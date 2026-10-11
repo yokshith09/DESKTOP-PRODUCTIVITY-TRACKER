@@ -1,10 +1,10 @@
 import {
-  Archive, Clock3, LayoutDashboard, Moon, NotebookPen, PawPrint, Plug, Settings, Sun, Trash2,
+  Archive, CheckSquare, Clock3, LayoutDashboard, Moon, NotebookPen, PawPrint, Plug, Settings, Sun, Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Bear } from "./Bear";
 
-export type Page = "today" | "time" | "notes" | "archive" | "bin" | "character" | "mcp" | "settings";
+export type Page = "today" | "tasks" | "time" | "notes" | "archive" | "bin" | "character" | "mcp" | "settings";
 
 interface Props {
   page: Page;
@@ -60,6 +60,7 @@ export function Sidebar({ page, counts, onPage, isDark, onToggleTheme }: Props) 
 
       <Group>
         <Item active={page === "today"} onClick={go("today")} icon={<LayoutDashboard />} count={counts.today}>Today overview</Item>
+        <Item active={page === "tasks"} onClick={go("tasks")} icon={<CheckSquare />}>Tasks</Item>
         <Item active={page === "time"} onClick={go("time")} icon={<Clock3 />}>Time</Item>
         <Item active={page === "notes"} onClick={go("notes")} icon={<NotebookPen />} count={counts.notes}>Notes</Item>
         <Item active={page === "character"} onClick={go("character")} icon={<PawPrint />}>Character</Item>

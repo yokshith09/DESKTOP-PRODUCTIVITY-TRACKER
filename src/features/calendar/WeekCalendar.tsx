@@ -12,20 +12,14 @@ const DOT: Record<Kind, string> = { task: "bg-foreground/40", reminder: "bg-prim
 const MAX_PER_DAY = 3;
 const EDGE: Record<Kind, string> = { task: "border-foreground/30", reminder: "border-primary", deadline: "border-destructive" };
 
-/** Monday of the week containing `d`. */
-export function startOfWeek(d: Date): Date {
-  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
-  return x;
-}
-
-/** This week, Monday to Sunday: tasks by planned date, deadlines by due date, reminders by time. */
+/** The next 7 days, starting today: tasks by planned date, deadlines by due date, reminders by time. */
 export function WeekCalendar({ className }: { className?: string }) {
   const { data: tasks = [] } = useAllTasks();
   const { data: reminders = [] } = useReminders(false);
   const todayKey = ymd(new Date());
-  const monday = startOfWeek(new Date());
-  const days = Array.from({ length: 7 }, (_, i) => new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i));
+  const now = new Date();
+  const first = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const days = Array.from({ length: 7 }, (_, i) => new Date(first.getFullYear(), first.getMonth(), first.getDate() + i));
 
   const byDay = useMemo(() => {
     const map = new Map<string, Item[]>();
@@ -41,12 +35,12 @@ export function WeekCalendar({ className }: { className?: string }) {
     return map;
   }, [tasks, reminders]);
 
-  const last = days[6] ?? monday;
-  const range = `${monday.toLocaleDateString([], { month: "short", day: "numeric" })} – ${last.toLocaleDateString([], { month: "short", day: "numeric" })}`;
+  const last = days[6] ?? first;
+  const range = `${first.toLocaleDateString([], { month: "short", day: "numeric" })} – ${last.toLocaleDateString([], { month: "short", day: "numeric" })}`;
 
   return (
     <Tile
-      className={className} title="This week" count={[...byDay.entries()].filter(([k]) => days.some((d) => ymd(d) === k)).reduce((n, [, v]) => n + v.length, 0)}
+      className={className} title="Next 7 days" count={[...byDay.entries()].filter(([k]) => days.some((d) => ymd(d) === k)).reduce((n, [, v]) => n + v.length, 0)}
       action={<span className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><CalendarDays className="size-3.5" />{range}</span>}
       bodyClassName="p-0" footer={
         <ul className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground" aria-label="Legend">
@@ -56,7 +50,7 @@ export function WeekCalendar({ className }: { className?: string }) {
         </ul>
       }
     >
-      <div className="grid h-full grid-cols-7 divide-x" role="grid" aria-label="This week">
+      <div className="grid h-full grid-cols-7 divide-x" role="grid" aria-label="Next 7 days">
         {days.map((d) => {
           const key = ymd(d);
           const items = byDay.get(key) ?? [];

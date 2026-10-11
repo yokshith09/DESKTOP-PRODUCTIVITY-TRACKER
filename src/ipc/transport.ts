@@ -5,12 +5,14 @@ import type { AppError, LoafEvent } from "./types";
 type Handler = (cmd: string, args: Record<string, unknown> | undefined) => Promise<unknown>;
 type Subscribe = (cb: (e: LoafEvent) => void) => () => void;
 
-let mock: { call: Handler; subscribe: Subscribe } | null = null;
+type Mock = { call: Handler; subscribe: Subscribe };
+// One shared promise: concurrent first calls must get the same in-memory shell, not one each.
+let mock: Promise<Mock | null> | null = null;
 
 /** In `vite dev` outside Tauri the UI runs against an in-memory fake, so the screens can be
  *  designed and screenshotted without the Rust shell. It is dead code in production builds (unless built with VITE_MOCK for design previews). */
-async function loadMock() {
-  if (!mock && (import.meta.env.DEV || import.meta.env.VITE_MOCK)) mock = (await import("./mock")).createMock();
+function loadMock(): Promise<Mock | null> {
+  mock ??= import.meta.env.DEV || import.meta.env.VITE_MOCK ? import("./mock").then((m) => m.createMock()) : Promise.resolve(null);
   return mock;
 }
 

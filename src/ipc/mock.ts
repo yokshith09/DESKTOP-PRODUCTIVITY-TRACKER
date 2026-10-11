@@ -2,7 +2,7 @@
 import { daysAgo, ymd } from "../lib/dates";
 import type {
   AppUsage, DomainUsage, TimeRange, UsageSummary,
-  AppError, BinNote, DailyLog, LogEntry, Reminder, Label, LoafEvent, Note, NoteColor, NoteSummary, Task, TaskRow, TaskStatus,
+  AppError, BinNote, DailyLog, LogEntry, Reminder, Label, LoafEvent, Note, NoteColor, NoteSummary, Task, TaskEvent, TaskRow, TaskStatus, WorkUpdate,
 } from "./types";
 
 type Args = Record<string, unknown> | undefined;
@@ -68,6 +68,17 @@ export function createMock() {
   function t(id: string, title: string, priority: Task["priority"], planned: string | null, due: string | null, status: TaskStatus): Task {
     return { id, title, description: "", status, priority, project: null, planned_date: planned, due_date: due, note_id: null, source_action_item_id: null, created_at: now(), updated_at: now(), started_at: null, completed_at: status === "COMPLETED" ? now() : null, cancelled_at: null };
   }
+
+  const taskEvents = new Map<string, TaskEvent[]>();
+  const workUpdates: WorkUpdate[] = [
+    { id: "w1", task_id: "t1", body: "Sketched the layout; waiting on the colour tokens.", created_at: now() - 3 * HOUR },
+  ];
+  function log(id: string, kind: string, extra: Partial<TaskEvent> = {}) {
+    const list = taskEvents.get(id) ?? [];
+    list.push({ kind, from_status: null, to_status: null, from_date: null, to_date: null, at: now(), local_date: today, ...extra });
+    taskEvents.set(id, list);
+  }
+  for (const x of tasks) log(x.id, "CREATED");
 
   function summary(x: Note): NoteSummary {
     const { body, ...rest } = x;
@@ -293,30 +304,101 @@ export function createMock() {
       if (!name) fail("VALIDATION", "A label needs a name.");
       const l = { id: `l${++seq}`, name }; labels.push(l); emit("LabelsChanged"); return l;
     },
-    label_rename: () => fail("INTERNAL", "Not in the mock."),
-    label_delete: () => fail("INTERNAL", "Not in the mock."),
+    label_rename: (a) => {
+      const l = labels.find((x) => x.id === a.id) ?? fail("NOT_FOUND", "That label no longer exists.");
+      const name = String(a.name).trim();
+      if (!name) fail("VALIDATION", "A label needs a name.");
+      if (labels.some((x) => x.id !== l.id && x.name.toLowerCase() === name.toLowerCase())) fail("CONFLICT", "You already have a label with that name.");
+      l.name = name; for (const n of notes) for (const nl of n.labels) if (nl.id === l.id) nl.name = name;
+      emit("LabelsChanged"); return l;
+    },
+    label_delete: (a) => {
+      const i = labels.findIndex((x) => x.id === a.id);
+      if (i < 0) fail("NOT_FOUND", "That label no longer exists.");
+      labels.splice(i, 1); for (const n of notes) n.labels = n.labels.filter((l) => l.id !== a.id);
+      emit("LabelsChanged"); return null;
+    },
 
     tasks_query: (a) => {
       const open = (x: Task) => x.status !== "CANCELLED" && x.status !== "COMPLETED";
-      const rows = a.view === "all" ? tasks : a.view === "upcoming" ? tasks.filter((x) => open(x) && !!x.planned_date && x.planned_date > today) : tasks.filter((x) => open(x) && (x.status === "IN_PROGRESS" || x.planned_date === today || (!!x.due_date && x.due_date < today)));
+      const f = (a.filters ?? {}) as { status?: TaskStatus | null; priority?: Task["priority"]; project?: string | null; from?: string | null; to?: string | null };
+      let rows: Task[];
+      switch (a.view) {
+        case "all": rows = [...tasks].sort((p, q) => Number(!open(p)) - Number(!open(q))); break;
+        case "upcoming": rows = tasks.filter((x) => open(x) && !!x.planned_date && x.planned_date > today && x.planned_date <= inDays(7)); break;
+        case "pending": rows = tasks.filter((x) => x.status === "PENDING"); break;
+        case "completed": rows = tasks.filter((x) => x.status === "COMPLETED").sort((p, q) => (q.completed_at ?? 0) - (p.completed_at ?? 0)); break;
+        default: rows = tasks.filter((x) => open(x) && (x.status === "IN_PROGRESS" || x.planned_date === today || (!!x.due_date && x.due_date < today)));
+      }
+      if (f.priority) rows = rows.filter((x) => x.priority === f.priority);
+      if (f.project) rows = rows.filter((x) => x.project === f.project);
+      if (f.status && a.view === "all") rows = rows.filter((x) => x.status === f.status);
+      const day = (x: Task) => a.view === "completed" ? new Date(x.completed_at ?? 0).toISOString().slice(0, 10) : (x.planned_date ?? "");
+      if (f.from) rows = rows.filter((x) => day(x) >= (f.from ?? ""));
+      if (f.to) rows = rows.filter((x) => day(x) <= (f.to ?? ""));
       return rows.map<TaskRow>((task) => ({ task, overdue: !!task.due_date && task.due_date < today && open(task) }));
     },
-    task_quick_add: (a) => { const x = t(`t${++seq}`, String(a.title), null, today, null, "PLANNED"); tasks.push(x); emit("TaskCreated"); return x; },
+    task_quick_add: (a) => { const x = t(`t${++seq}`, String(a.title), null, today, null, "PLANNED"); tasks.push(x); log(x.id, "CREATED"); emit("TaskCreated"); return x; },
+    task_get: (a) => tasks.find((y) => y.id === a.id) ?? fail("NOT_FOUND", "That task no longer exists."),
+    task_history: (a) => { if (!tasks.some((y) => y.id === a.id)) fail("NOT_FOUND", "That task no longer exists."); return taskEvents.get(String(a.id)) ?? []; },
+    task_defer: (a) => {
+      const x = tasks.find((y) => y.id === a.id) ?? fail("NOT_FOUND", "That task no longer exists.");
+      if (x.status === "COMPLETED" || x.status === "CANCELLED") fail("INVALID_TRANSITION", "A finished task can't be deferred.");
+      const to = String(a.to);
+      if (to <= (x.planned_date ?? today)) fail("VALIDATION", "Pick a day after the current one.");
+      log(x.id, "DEFERRED", { from_date: x.planned_date, to_date: to });
+      x.planned_date = to; x.updated_at = now(); emit("TaskUpdated"); return x;
+    },
+    task_delete: (a) => {
+      const i = tasks.findIndex((y) => y.id === a.id);
+      if (i < 0) fail("NOT_FOUND", "That task no longer exists.");
+      const x = tasks[i]; if (x && x.status !== "COMPLETED" && x.status !== "CANCELLED") fail("INVALID_TRANSITION", "Complete or cancel this task before deleting it.");
+      tasks.splice(i, 1); taskEvents.delete(String(a.id)); emit("TaskDeleted"); return null;
+    },
+    work_updates_list: (a) => { if (!tasks.some((y) => y.id === a.taskId)) fail("NOT_FOUND", "That task no longer exists."); return workUpdates.filter((u) => u.task_id === a.taskId).sort((p, q) => q.created_at - p.created_at); },
+    work_update_add: (a) => {
+      const body = String(a.body).trim();
+      if (!body) fail("VALIDATION", "Write a short update first.");
+      const u: WorkUpdate = { id: `w${++seq}`, task_id: String(a.taskId), body, created_at: now() };
+      workUpdates.push(u); emit("TaskUpdated"); return u;
+    },
+    work_update_delete: (a) => {
+      const i = workUpdates.findIndex((u) => u.id === a.id);
+      const u = workUpdates[i];
+      if (!u) return fail("NOT_FOUND", "That update no longer exists.");
+      if (now() - u.created_at > 5 * 60_000) fail("CONFLICT", "Updates can only be deleted in the first 5 minutes.");
+      workUpdates.splice(i, 1); emit("TaskUpdated"); return null;
+    },
     daily_log_get: (a) => {
       const d = new Date(String(a.date) + "T00:00:00");
       const back = Math.round((new Date(today + "T00:00:00").getTime() - d.getTime()) / 86_400_000);
       return back < 0 || back > 20 ? null : sampleLog(String(a.date), back);
     },
+    data_export: () => ({ path: "C:\\Users\\you\\Documents\\loaf-export.json", bytes: 48_213 }),
+    data_import: () => {
+      if (notes.length || tasks.length || reminders.length) fail("CONFLICT", "Import only works into an empty Loaf. Delete all data first, then import.");
+      emit("DataImported"); return { notes: 0 };
+    },
+    data_delete_all: (a) => {
+      if (a.confirm !== "DELETE") fail("VALIDATION", "Type DELETE to confirm.");
+      notes.length = 0; bin.length = 0; tasks.length = 0; reminders.length = 0; labels.length = 0; workUpdates.length = 0; taskEvents.clear();
+      emit("AllDataDeleted"); return null;
+    },
     task_update: (a) => {
       const x = tasks.find((y) => y.id === a.id) ?? fail("NOT_FOUND", "That task no longer exists.");
-      const e = a.edit as { title: string; priority?: Task["priority"]; planned_date?: string | null; due_date?: string | null };
+      const e = a.edit as { title: string; description?: string; project?: string | null; priority?: Task["priority"]; planned_date?: string | null; due_date?: string | null; note_id?: string | null };
       if (!e.title.trim()) fail("VALIDATION", "Give the task a title.");
-      x.title = e.title.trim(); x.priority = e.priority ?? null; x.planned_date = e.planned_date ?? null; x.due_date = e.due_date ?? null; x.updated_at = now();
-      emit("TaskUpdated"); return x;
+      x.title = e.title.trim(); x.description = e.description ?? ""; x.project = e.project?.trim() || null; x.priority = e.priority ?? null;
+      x.planned_date = e.planned_date ?? null; x.due_date = e.due_date ?? null; x.note_id = e.note_id ?? null; x.updated_at = now();
+      log(x.id, "EDITED"); emit("TaskUpdated"); return x;
     },
     task_transition: (a) => {
       const x = tasks.find((y) => y.id === a.id) ?? fail("NOT_FOUND", "That task no longer exists.");
-      x.status = a.to as TaskStatus; x.completed_at = x.status === "COMPLETED" ? now() : null;
+      const to = a.to as TaskStatus;
+      const moves: Record<TaskStatus, TaskStatus[]> = { PLANNED: ["IN_PROGRESS", "COMPLETED", "CANCELLED"], IN_PROGRESS: ["PENDING", "COMPLETED", "CANCELLED"], PENDING: ["IN_PROGRESS", "COMPLETED", "CANCELLED"], COMPLETED: ["PLANNED"], CANCELLED: ["PLANNED"] };
+      if (!moves[x.status].includes(to)) fail("INVALID_TRANSITION", "That change isn't allowed for this task.");
+      log(x.id, "STATUS", { from_status: x.status, to_status: to });
+      x.status = to; x.completed_at = to === "COMPLETED" ? now() : null; if (to === "IN_PROGRESS" && !x.started_at) x.started_at = now();
       emit("TaskStatusChanged"); return x;
     },
   };

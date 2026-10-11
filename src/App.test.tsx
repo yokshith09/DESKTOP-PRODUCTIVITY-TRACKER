@@ -90,6 +90,147 @@ describe("Notes screen (against the in-memory shell)", () => {
     }
   });
 
+  it("Tasks page: views, filters and search", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await goTo(user, /^Tasks/);
+    const list = await screen.findByRole("region", { name: "Task list" });
+    expect(await within(list).findByRole("button", { name: "Open Design the notes screen" })).toBeTruthy();
+    await user.click(screen.getByRole("radio", { name: "All" }));
+    expect(await within(list).findByRole("button", { name: "Open Write release notes" })).toBeTruthy();
+    await user.type(screen.getByRole("textbox", { name: "Search tasks" }), "release");
+    expect(within(list).queryByRole("button", { name: "Open Design the notes screen" })).toBeNull();
+    expect(within(list).getByRole("button", { name: "Open Write release notes" })).toBeTruthy();
+    await user.click(screen.getByRole("radio", { name: "Completed" }));
+    await user.clear(screen.getByRole("textbox", { name: "Search tasks" }));
+    expect(await within(list).findByRole("button", { name: "Open Reply to Sam" })).toBeTruthy();
+  });
+
+  it("a task can be started, logged, deferred and finished from its detail", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await goTo(user, /^Tasks/);
+    await user.click(await screen.findByRole("button", { name: "Open Refactor the tray menu" }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(await within(dialog).findByRole("button", { name: "Start" }));
+    expect(await within(dialog).findByRole("button", { name: "Pause" })).toBeTruthy();
+    await user.type(within(dialog).getByRole("textbox", { name: "New work update" }), "wired the menu{Enter}");
+    expect(await within(dialog).findByText("wired the menu")).toBeTruthy();
+    await user.click(within(dialog).getByRole("button", { name: "Tomorrow" }));
+    await user.click(await within(dialog).findByRole("button", { name: "Complete" }));
+    expect(await within(dialog).findByRole("button", { name: "Reopen" })).toBeTruthy();
+    // A finished task can be deleted, after a confirmation.
+    await user.click(within(dialog).getByRole("button", { name: "Delete task" }));
+    await user.click(within(dialog).getByRole("button", { name: "Delete" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(screen.queryByRole("button", { name: "Open Refactor the tray menu" })).toBeNull();
+  });
+
+  it("a note previews as Markdown, never as raw HTML", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await openNotes(user);
+    await user.click(await screen.findByRole("button", { name: "Groceries" }));
+    const dialog = await screen.findByRole("dialog");
+    const body = within(dialog).getByRole("textbox", { name: "Note" });
+    await user.clear(body);
+    await user.click(body);
+    await user.paste("# Big heading\n\n- [x] done item\n\n<b>raw</b> text");
+    await user.click(within(dialog).getByRole("button", { name: "Preview" }));
+    const preview = within(dialog).getByLabelText("Preview");
+    expect(within(preview).getByRole("heading", { level: 1, name: "Big heading" })).toBeTruthy();
+    const box = within(preview).getByRole("checkbox") as HTMLInputElement;
+    expect(box.checked).toBe(true);
+    expect(box.disabled).toBe(true);
+    expect(preview.textContent).toContain("<b>raw</b> text");
+    expect(preview.querySelector("b")).toBeNull();
+    await user.click(within(dialog).getByRole("button", { name: "Edit" }));
+    expect(within(dialog).getByRole("textbox", { name: "Note" })).toBeTruthy();
+  });
+
+  it("note editor shortcuts: Ctrl+D pins, Ctrl+E toggles preview", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await openNotes(user);
+    await user.click(await screen.findByRole("button", { name: "Groceries" }));
+    const dialog = await screen.findByRole("dialog");
+    await user.keyboard("{Control>}d{/Control}");
+    expect(await within(dialog).findByRole("button", { name: "Unpin" })).toBeTruthy();
+    await user.keyboard("{Control>}e{/Control}");
+    expect(within(dialog).getByLabelText("Preview")).toBeTruthy();
+  });
+
+  it("labels can be renamed and deleted from the label manager", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await openNotes(user);
+    await user.click(await screen.findByRole("button", { name: "Manage labels" }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: "Rename pet" }));
+    const input = within(dialog).getByRole("textbox", { name: "New name for pet" });
+    await user.clear(input);
+    await user.type(input, "pets{Enter}");
+    expect(await within(dialog).findByText("pets")).toBeTruthy();
+    await user.click(within(dialog).getByRole("button", { name: "Delete home" }));
+    await user.click(within(dialog).getByRole("button", { name: "Delete" }));
+    await waitFor(() => expect(within(dialog).queryByText("home")).toBeNull());
+    // A name that is taken is refused and the label keeps its name.
+    await user.click(within(dialog).getByRole("button", { name: "Rename work" }));
+    const second = within(dialog).getByRole("textbox", { name: "New name for work" });
+    await user.clear(second);
+    await user.type(second, "IDEAS{Enter}");
+    expect(within(dialog).getByRole("textbox", { name: "New name for work" })).toBeTruthy();
+  });
+
+  it("the Time page lists past days with done of planned, and a day opens to its tasks", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await goTo(user, /^Time/);
+    const log = await screen.findByRole("region", { name: "Daily log" });
+    const yesterday = (await within(log).findAllByRole("button", { name: /^.+: \d+ of \d+ done$/, expanded: false }))[0] as HTMLElement;
+    await user.click(yesterday);
+    expect(yesterday.getAttribute("aria-expanded")).toBe("true");
+    expect(within(log).getAllByRole("button", { name: /Copy .+ as Markdown/ }).length).toBeGreaterThan(0);
+  });
+
+  it("Settings › Your data: export, refused import into a non-empty Loaf, delete all with the word DELETE", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await goTo(user, /^Settings/);
+    await user.click(await screen.findByRole("button", { name: "Export…" }));
+    expect(await screen.findByText("Export saved")).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Import…" }));
+    await user.click(await screen.findByRole("button", { name: "Choose file…" }));
+    expect(await screen.findByText(/Import only works into an empty Loaf/)).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Delete all…" }));
+    const dialog = await screen.findByRole("dialog");
+    const confirm = within(dialog).getByRole("button", { name: "Delete everything" }) as HTMLButtonElement;
+    expect(confirm.disabled).toBe(true);
+    await user.type(within(dialog).getByRole("textbox", { name: "Type DELETE to confirm" }), "delete");
+    expect(confirm.disabled).toBe(true);
+    await user.clear(within(dialog).getByRole("textbox", { name: "Type DELETE to confirm" }));
+    await user.type(within(dialog).getByRole("textbox", { name: "Type DELETE to confirm" }), "DELETE");
+    await user.click(confirm);
+    expect(await screen.findByText("Everything was deleted")).toBeTruthy();
+    await openNotes(user);
+    expect(await screen.findByText("No notes yet")).toBeTruthy();
+  });
+
+  it("keyboard: Ctrl+3 opens Notes, Ctrl+T focuses a new task, Ctrl+, opens Settings", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByRole("region", { name: "Today’s agenda" });
+    await user.keyboard("{Control>}3{/Control}");
+    expect(await screen.findByRole("textbox", { name: "Search notes" })).toBeTruthy();
+    await user.keyboard("{Control>}t{/Control}");
+    const field = await screen.findByRole("textbox", { name: "New task" });
+    await waitFor(() => expect(document.activeElement).toBe(field));
+    await user.keyboard("{Control>},{/Control}");
+    expect(await screen.findByRole("heading", { name: "Settings" })).toBeTruthy();
+  });
+
   it("pasted links become shortcuts", async () => {
     const user = userEvent.setup();
     render(<App />);
@@ -99,14 +240,14 @@ describe("Notes screen (against the in-memory shell)", () => {
     expect(await screen.findByRole("button", { name: "Open linear.app" })).toBeTruthy();
   });
 
-  it("Notes has search and New note, shows Today first, then the week, Pinned, and the rest", async () => {
+  it("Notes has search and New note, shows Today first, then the next 7 days, Pinned, and the rest", async () => {
     const user = userEvent.setup();
     render(<App />);
     await openNotes(user);
     expect(await screen.findByRole("textbox", { name: "Search notes" })).toBeTruthy();
     expect(screen.getByRole("button", { name: /New note/ })).toBeTruthy();
     const regions = (await screen.findAllByRole("region")).map((r) => r.getAttribute("aria-label"));
-    const order = ["Today", "This week", "Pinned", "All notes"].map((n) => regions.indexOf(n));
+    const order = ["Today", "Next 7 days", "Pinned", "All notes"].map((n) => regions.indexOf(n));
     expect(order.every((n) => n >= 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
     expect(within(screen.getByRole("region", { name: "All notes" })).getByRole("button", { name: "Groceries" })).toBeTruthy();

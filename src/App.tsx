@@ -15,10 +15,11 @@ import type { NotesLayout } from "@/features/notes/NotesBoard";
 import { SettingsPage } from "@/features/settings/SettingsPage";
 import { ComingSoon } from "@/features/shell/ComingSoon";
 import { Sidebar, type Page } from "@/features/shell/Sidebar";
+import { TasksPage } from "@/features/tasks/TasksPage";
 import { TimePage } from "@/features/time/TimePage";
 import { TodayOverviewPage } from "@/features/overview/TodayOverviewPage";
 
-const PAGES: readonly Page[] = ["today", "time", "notes", "archive", "bin", "character", "mcp", "settings"];
+const PAGES: readonly Page[] = ["today", "tasks", "time", "notes", "archive", "bin", "character", "mcp", "settings"];
 
 function Screen() {
   const [page, setPageState] = useState<Page>("today");
@@ -48,6 +49,22 @@ function Screen() {
     setLayoutState(l);
     void ipc.prefsSet("ui.notes_layout", l);
   };
+
+  // App-wide shortcuts (UI brief §8): Mod+1…4 jump between pages, Mod+, opens Settings,
+  // Mod+T starts a new task. New note and search belong to the Notes page and live there.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey) return;
+      const pages: Record<string, Page> = { "1": "today", "2": "tasks", "3": "notes", "4": "time", ",": "settings", t: "tasks" };
+      const target = pages[e.key.toLowerCase()];
+      if (!target) return;
+      e.preventDefault();
+      setPage(target);
+      if (e.key.toLowerCase() === "t") setTimeout(() => document.getElementById("new-task")?.focus(), 50);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
 
   const newNote = async () => {
     const note = await actions.create({ label_ids: labelId ? [labelId] : [] });
@@ -80,6 +97,7 @@ function Screen() {
             {page === "bin" && <BinPage />}
             {page === "character" && <CharacterPage />}
             {page === "settings" && <SettingsPage />}
+            {page === "tasks" && <TasksPage />}
             {page === "time" && <TimePage />}
             {page === "mcp" && <ComingSoon icon={<Plug />} title="MCP" description="Connect external tools and services to Loaf through the Model Context Protocol. This arrives in a later release." />}
           </div>
