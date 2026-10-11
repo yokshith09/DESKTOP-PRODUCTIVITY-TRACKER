@@ -57,5 +57,10 @@ export const ipc = {
   workUpdatesList: (taskId: string) => call<WorkUpdate[]>("work_updates_list", { taskId }),
   workUpdateAdd: (taskId: string, body: string) => call<WorkUpdate>("work_update_add", { taskId, body }),
   workUpdateDelete: (id: string) => call<unknown>("work_update_delete", { id }),
+  /** Opens the system "save" dialog and writes the export there. `null` if cancelled. */
+  dataExport: () => call<{ path: string; bytes: number } | null>("data_export"),
+  /** Opens the system "open" dialog and restores that export into an empty Loaf. `null` if cancelled. */
+  dataImport: () => call<Record<string, number> | null>("data_import"),
+  dataDeleteAll: (confirm: string) => call<unknown>("data_delete_all", { confirm }),
   taskTransition: (id: string, to: TaskStatus) => call<Task>("task_transition", { id, to }),
 };

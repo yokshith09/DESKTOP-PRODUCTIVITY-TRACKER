@@ -22,7 +22,8 @@ export function useBusSync() {
   useEffect(
     () =>
       onEvent((e) => {
-        if (e.type === "ResyncRequired") return void qc.invalidateQueries();
+        // Importing or erasing replaces everything: refetch it all (and the settings with it).
+        if (e.type === "ResyncRequired" || e.type === "DataImported" || e.type === "AllDataDeleted") return void qc.invalidateQueries();
         if (e.type === "ReminderDue") {
           const r = e.reminder as { title?: string } | undefined;
           toast(r?.title ?? "Reminder", { description: "Reminder is due" });
