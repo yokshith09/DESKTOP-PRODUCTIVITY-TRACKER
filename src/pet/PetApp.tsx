@@ -7,7 +7,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { ipc, onEvent, type TaskRow } from "@/ipc";
 import { cn } from "@/lib/utils";
 import { PetCard } from "./PetCard";
-import { enqueue, newlyOverdue, reactionFor, type Reaction } from "./reactions";
+import { enqueue, isAsleep, reactionFor, type Reaction } from "./reactions";
 
 /** Card and bubble sizes in logical pixels; the shell grows the window by this much. */
 export const CARD_W = 300;
@@ -17,13 +17,11 @@ export const BUBBLE_H = 52;
 const SIZES = { S: 96, M: 128, L: 160 } as const;
 const DOUBLE_CLICK_MS = 260;
 const DRAG_PX = 4;
-/** How often the pet looks for tasks that have just gone overdue. */
-const OVERDUE_CHECK_MS = 60_000;
+/** How often the pet checks whether it has been quiet long enough to fall asleep. */
+const SLEEP_CHECK_MS = 30_000;
 
 type Anchor = { pet: "left" | "right"; card: "above" | "below" };
 type Panel = "card" | "bubble" | null;
-
-const sleepy = (d = new Date()) => d.getHours() >= 23 || d.getHours() < 6;
 
 /**
  * The desktop pet. Click opens the dashboard, double-click hides it, right-click opens the
@@ -46,7 +44,13 @@ export function PetApp() {
   const press = useRef<{ x: number; y: number } | null>(null);
   const queue = useRef<Reaction[]>([]);
   const tasks = useRef<TaskRow[]>(openToday);
-  const overdueSeen = useRef(new Set<string>());
+  // Anything happening (hover, click, an event from Loaf, tracked app time) keeps the bear awake.
+  const lastActive = useRef(Date.now());
+  const [asleep, setAsleep] = useState(false);
+  const wake = () => {
+    lastActive.current = Date.now();
+    setAsleep(false);
+  };
   const hoverRef = useRef(false);
   const panelRef = useRef<Panel>(null);
   tasks.current = openToday;
@@ -89,19 +93,15 @@ export function PetApp() {
 
   // Keep the card fresh, and react to what happens in Loaf.
   useEffect(() => onEvent((e) => {
+    wake();
     reactRef.current(reactionFor(e, { openToday: tasks.current }));
     void qc.invalidateQueries();
   }), [qc]);
 
-  // Overdue is about the clock, not an event: look once a minute.
   useEffect(() => {
-    const id = window.setInterval(() => void qc.invalidateQueries({ queryKey: ["tasks"] }), OVERDUE_CHECK_MS);
+    const id = window.setInterval(() => setAsleep(isAsleep(lastActive.current)), SLEEP_CHECK_MS);
     return () => clearInterval(id);
-  }, [qc]);
-  useEffect(() => {
-    const fresh = newlyOverdue(openToday, overdueSeen.current);
-    if (fresh[0]) reactRef.current(reactionFor({ type: "TaskOverdue", title: fresh[0].task.title, count: fresh.length }, { openToday }));
-  }, [openToday]);
+  }, []);
 
   useEffect(() => () => Object.values(timers.current).forEach((t) => clearTimeout(t)), []);
 
@@ -119,6 +119,7 @@ export function PetApp() {
   };
 
   const onEnter = () => {
+    wake();
     setHovering(true);
     clearTimeout(timers.current.leave);
     timers.current.enter = window.setTimeout(() => void openCard(), 350);
@@ -146,6 +147,7 @@ export function PetApp() {
   const onPointerDown = (e: React.PointerEvent) => {
     // Only the primary button starts a click or a drag. (jsdom leaves `button` unset.)
     if (e.button !== undefined && e.button !== 0) return;
+    wake();
     press.current = { x: e.screenX ?? 0, y: e.screenY ?? 0 };
   };
   const onPointerMove = (e: React.PointerEvent) => {
@@ -166,7 +168,7 @@ export function PetApp() {
   };
 
   const working = openToday.some((r) => r.task.status === "IN_PROGRESS");
-  const pose: BearPose = playing?.pose ?? (hovering ? "wave" : sleepy() ? "sleep" : working ? "work" : "idle");
+  const pose: BearPose = playing?.pose ?? (hovering ? "wave" : asleep ? "sleep" : working ? "work" : "idle");
   const bear = (
     <button
       type="button" aria-label="Loaf. Click to open, double-click to hide, right-click for options"

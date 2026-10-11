@@ -8,9 +8,6 @@ import type { Event } from "@/ipc/generated/Event";
  */
 export interface Reaction { pose: BearPose; bubble: string; ms: number; priority: number }
 
-/** A moment the pet itself notices (not sent by the core). */
-export type PetSignal = { type: "TaskOverdue"; title: string; count: number };
-
 /** What a reaction may look at: today's open tasks as they were just before the event. */
 export interface ReactionContext { openToday: TaskRow[] }
 
@@ -18,7 +15,7 @@ const short = (s: string, n = 26) => (s.length > n ? `${s.slice(0, n - 1).trimEn
 const quote = (s: string) => `“${short(s)}”`;
 
 type Rule<T> = (e: T, ctx: ReactionContext) => Reaction | null;
-type Signal = Event | PetSignal;
+type Signal = Event;
 type Rules = { [K in Signal["type"]]?: Rule<Extract<Signal, { type: K }>> };
 
 export const RULES: Rules = {
@@ -38,21 +35,13 @@ export const RULES: Rules = {
   },
   TaskDeleted: () => ({ pose: "toss", bubble: "Tossed it", ms: 2400, priority: 1 }),
   ReminderDue: (e) => ({ pose: "ring", bubble: `Reminder: ${quote(e.reminder.title)}`, ms: 5000, priority: 5 }),
-  TaskOverdue: (e) => ({ pose: "worried", bubble: e.count > 1 ? `${e.count} tasks are overdue` : `${quote(e.title)} is overdue`, ms: 3600, priority: 4 }),
 };
 
 /** The reaction for an event, or null when the pet stays calm. */
-export function reactionFor(e: LoafEvent | PetSignal, ctx: ReactionContext): Reaction | null {
+export function reactionFor(e: LoafEvent, ctx: ReactionContext): Reaction | null {
   // Events come from the core as generated `Event`s; the transport types them loosely.
   const rule = (RULES as Record<string, Rule<Signal> | undefined>)[e.type];
   return rule ? rule(e as Signal, ctx) : null;
-}
-
-/** Overdue tasks not seen before. `seen` is updated in place, so each task is mentioned once. */
-export function newlyOverdue(rows: TaskRow[], seen: Set<string>): TaskRow[] {
-  const fresh = rows.filter((r) => r.overdue && !seen.has(r.task.id));
-  fresh.forEach((r) => seen.add(r.task.id));
-  return fresh;
 }
 
 /** Up to three waiting reactions, highest priority first; on a tie the older one plays first. */
@@ -60,3 +49,7 @@ export function enqueue(queue: Reaction[], r: Reaction, max = 3): Reaction[] {
   const next = [...queue, r].sort((a, b) => b.priority - a.priority);
   return next.slice(0, max);
 }
+
+/** The bear sleeps after this long with nothing happening (no hover, no click, no event). */
+export const SLEEP_AFTER_MS = 15 * 60_000;
+export const isAsleep = (lastActive: number, now = Date.now()) => now - lastActive >= SLEEP_AFTER_MS;

@@ -12,7 +12,7 @@ const SIZES = { S: 64, M: 96, L: 128 } as const;
 /** What each pose is for, as shown on the preview buttons. */
 const POSE_LABELS: Record<BearPose, string> = {
   idle: "Idle", wave: "Hello (hover)", sleep: "Sleepy", work: "Working", cheer: "Task done", party: "All done",
-  catch: "Task added", worried: "Overdue", ring: "Reminder", toss: "Task deleted",
+  catch: "Task added", worried: "Worried", ring: "Reminder", toss: "Task deleted",
 };
 
 function Row({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {

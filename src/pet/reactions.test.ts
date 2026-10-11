@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { LoafEvent, TaskRow } from "@/ipc";
-import { enqueue, newlyOverdue, reactionFor, type Reaction } from "./reactions";
+import { SLEEP_AFTER_MS, enqueue, isAsleep, reactionFor, type Reaction } from "./reactions";
 
 const row = (id: string, title = id, overdue = false): TaskRow => ({
   overdue,
@@ -31,11 +31,9 @@ describe("pet reactions", () => {
     expect(long?.bubble).toBe("Got it: “A very long task title th…”");
   });
 
-  it("mentions each overdue task once, and counts several", () => {
-    const seen = new Set<string>();
-    expect(newlyOverdue([row("a", "a", true), row("b")], seen).map((r) => r.task.id)).toEqual(["a"]);
-    expect(newlyOverdue([row("a", "a", true)], seen)).toEqual([]);
-    expect(reactionFor({ type: "TaskOverdue", title: "x", count: 3 }, { openToday: [] })?.bubble).toBe("3 tasks are overdue");
+  it("sleeps only after a quiet spell, whatever the time of day", () => {
+    expect(isAsleep(0, SLEEP_AFTER_MS - 1)).toBe(false);
+    expect(isAsleep(0, SLEEP_AFTER_MS)).toBe(true);
   });
 
   it("keeps at most three waiting reactions, most important first", () => {

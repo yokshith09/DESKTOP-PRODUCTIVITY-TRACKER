@@ -4,6 +4,11 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+### 2026-10-11 (0.1.3 — owner's test of 0.1.2)
+- Fixed: the pet "always slept". It slept by the clock (23:00–06:00), which is when the owner works. It now sleeps only after 15 minutes with nothing happening (no hover, no click, no event from Loaf, no tracked app time) and wakes at once.
+- Removed: the overdue reaction (owner's call). The worried pose stays for later use.
+- Changed: version **0.1.3**.
+
 ### 2026-10-11 (0.1.2 — owner's test of 0.1.1)
 - Fixed: scrollbars in the pet window. The hover card was taller than the space reserved for it (291 px vs 262), so the window scrolled. The card now has its measured size and the pet window never scrolls.
 - Fixed: scrollbars everywhere are hidden until the pointer is over the area that scrolls.
