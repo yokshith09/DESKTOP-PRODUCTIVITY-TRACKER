@@ -1,12 +1,19 @@
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { PageHeader, Panel } from "@/features/shell/PageHeader";
-import { Bear, type BearPose } from "@/features/shell/Bear";
+import { BEAR_POSES, Bear, type BearPose } from "@/features/shell/Bear";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useSetting } from "@/hooks/useTheme";
 
 const SIZES = { S: 64, M: 96, L: 128 } as const;
+
+/** What each pose is for, as shown on the preview buttons. */
+const POSE_LABELS: Record<BearPose, string> = {
+  idle: "Idle", wave: "Hello (hover)", sleep: "Sleepy", work: "Working", cheer: "Task done", party: "All done",
+  catch: "Task added", worried: "Overdue", ring: "Reminder", toss: "Task deleted",
+};
 
 function Row({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
@@ -22,6 +29,7 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
 
 export function CharacterPage() {
   const [pose, setPose] = useState<BearPose>("idle");
+  const [replay, setReplay] = useState(0);
   const [visible, setVisible] = useSetting("pet.visible");
   const [size, setSize] = useSetting("pet.size");
   const [opacity, setOpacity] = useSetting("pet.opacity");
@@ -34,18 +42,24 @@ export function CharacterPage() {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <Panel className="flex flex-col items-center justify-between gap-6 p-6">
           <div className="grid min-h-72 w-full flex-1 place-items-center rounded-lg border bg-muted/40 [background-image:radial-gradient(circle_at_center,var(--border)_1px,transparent_1px)] [background-size:16px_16px]">
-            <Bear pose={pose} className="size-56" />
+            <Bear key={`${pose}-${replay}`} pose={pose} animated className="size-56" />
           </div>
           <div className="flex w-full items-center justify-between">
             <div>
               <p className="text-sm font-semibold">Loaf the bear</p>
               <p className="text-xs text-muted-foreground">Default character</p>
             </div>
-            <ToggleGroup type="single" value={pose} onValueChange={(v) => v && setPose(v as BearPose)} aria-label="Preview pose">
-              <ToggleGroupItem value="idle">Idle</ToggleGroupItem>
-              <ToggleGroupItem value="wave">Wave</ToggleGroupItem>
-              <ToggleGroupItem value="sleep">Sleepy</ToggleGroupItem>
-            </ToggleGroup>
+            <p className="text-xs text-muted-foreground">Pick a moment to preview it</p>
+          </div>
+          <div className="flex w-full flex-wrap gap-1.5" role="group" aria-label="Preview pose">
+            {BEAR_POSES.map((p) => (
+              <Button
+                key={p} size="sm" variant={p === pose ? "default" : "outline"} aria-pressed={p === pose}
+                onClick={() => { setPose(p); setReplay((n) => n + 1); }}
+              >
+                {POSE_LABELS[p]}
+              </Button>
+            ))}
           </div>
         </Panel>
 

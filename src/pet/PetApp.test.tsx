@@ -58,6 +58,13 @@ describe("desktop pet", () => {
     expect(menu).toHaveBeenCalledTimes(1);
   });
 
+  it("reacts to a new task with a pose and a speech bubble", async () => {
+    renderPet();
+    await act(async () => { await ipc.taskQuickAdd("Buy honey"); });
+    expect(await screen.findByRole("img", { name: "Loaf the bear (catch)" }, { timeout: 2000 })).toBeTruthy();
+    expect(screen.getAllByText("Got it: “Buy honey”").length).toBeGreaterThan(0);
+  });
+
   it("puts overdue, then in-progress, then high-priority tasks first", () => {
     const row = (id: string, over: Partial<TaskRow["task"]>, overdue = false): TaskRow => ({
       overdue,

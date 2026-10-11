@@ -35,8 +35,8 @@ export function TodayOverviewPage() {
   ].sort((a, b) => b.at - a.at);
 
   const tiles: Record<TileId, { span: string; node: React.ReactNode; title: string }> = {
-    agenda: { span: "lg:col-span-5", title: "Today", node: <AgendaCard className="h-full" /> },
-    time: { span: "lg:col-span-7", title: "Total time today", node: <TimeHero className="h-full" /> },
+    agenda: { span: "lg:col-span-5 lg:row-span-2", title: "Today", node: <AgendaCard className="h-full" /> },
+    time: { span: "lg:col-span-7 lg:row-span-2", title: "Total time today", node: <TimeHero className="h-full" /> },
     links: { span: "lg:col-span-4", title: "Links", node: <LinksCard className="h-full" /> },
     activity: {
       span: "lg:col-span-5", title: "Activity",

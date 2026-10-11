@@ -13,7 +13,8 @@ export function createMock() {
   let seq = 100;
   const now = () => Date.now();
   const listeners = new Set<(e: LoafEvent) => void>();
-  const emit = (type: string) => listeners.forEach((l) => l({ type, at: now() }));
+  // Events carry the same fields as the real ones where the UI reads them (the pet does).
+  const emit = (type: string, fields: Record<string, unknown> = {}) => listeners.forEach((l) => l({ ...fields, type, at: now() }));
   const fail = (code: AppError["code"], message: string): never => {
     throw { code, message } satisfies AppError;
   };
@@ -286,7 +287,7 @@ export function createMock() {
       const i = a.input as { title: string; remind_at: number };
       if (!i.title.trim()) fail("VALIDATION", "A reminder needs a title.");
       const r: Reminder = { id: `r${++seq}`, title: i.title.trim(), remind_at: i.remind_at, note_id: null, fired_at: null, done_at: null, created_at: now() };
-      reminders.push(r); emit("ReminderCreated"); return r;
+      reminders.push(r); emit("ReminderCreated", { reminder: r }); return r;
     },
     reminder_update: (a) => {
       const r = reminders.find((x) => x.id === a.id) ?? fail("NOT_FOUND", "That reminder no longer exists.");
@@ -338,7 +339,7 @@ export function createMock() {
       if (f.to) rows = rows.filter((x) => day(x) <= (f.to ?? ""));
       return rows.map<TaskRow>((task) => ({ task, overdue: !!task.due_date && task.due_date < today && open(task) }));
     },
-    task_quick_add: (a) => { const x = t(`t${++seq}`, String(a.title), null, today, null, "PLANNED"); tasks.push(x); log(x.id, "CREATED"); emit("TaskCreated"); return x; },
+    task_quick_add: (a) => { const x = t(`t${++seq}`, String(a.title), null, today, null, "PLANNED"); tasks.push(x); log(x.id, "CREATED"); emit("TaskCreated", { task: x }); return x; },
     task_get: (a) => tasks.find((y) => y.id === a.id) ?? fail("NOT_FOUND", "That task no longer exists."),
     task_history: (a) => { if (!tasks.some((y) => y.id === a.id)) fail("NOT_FOUND", "That task no longer exists."); return taskEvents.get(String(a.id)) ?? []; },
     task_defer: (a) => {
@@ -353,7 +354,7 @@ export function createMock() {
       const i = tasks.findIndex((y) => y.id === a.id);
       if (i < 0) fail("NOT_FOUND", "That task no longer exists.");
       const x = tasks[i]; if (x && x.status !== "COMPLETED" && x.status !== "CANCELLED") fail("INVALID_TRANSITION", "Complete or cancel this task before deleting it.");
-      tasks.splice(i, 1); taskEvents.delete(String(a.id)); emit("TaskDeleted"); return null;
+      tasks.splice(i, 1); taskEvents.delete(String(a.id)); emit("TaskDeleted", { id: a.id }); return null;
     },
     work_updates_list: (a) => { if (!tasks.some((y) => y.id === a.taskId)) fail("NOT_FOUND", "That task no longer exists."); return workUpdates.filter((u) => u.task_id === a.taskId).sort((p, q) => q.created_at - p.created_at); },
     work_update_add: (a) => {
@@ -402,8 +403,9 @@ export function createMock() {
       const moves: Record<TaskStatus, TaskStatus[]> = { PLANNED: ["IN_PROGRESS", "COMPLETED", "CANCELLED"], IN_PROGRESS: ["PENDING", "COMPLETED", "CANCELLED"], PENDING: ["IN_PROGRESS", "COMPLETED", "CANCELLED"], COMPLETED: ["PLANNED"], CANCELLED: ["PLANNED"] };
       if (!moves[x.status].includes(to)) fail("INVALID_TRANSITION", "That change isn't allowed for this task.");
       log(x.id, "STATUS", { from_status: x.status, to_status: to });
+      const from = x.status;
       x.status = to; x.completed_at = to === "COMPLETED" ? now() : null; if (to === "IN_PROGRESS" && !x.started_at) x.started_at = now();
-      emit("TaskStatusChanged"); return x;
+      emit("TaskStatusChanged", { id: x.id, from, to }); return x;
     },
   };
 
