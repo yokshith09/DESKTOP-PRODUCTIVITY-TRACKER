@@ -218,6 +218,19 @@ describe("Notes screen (against the in-memory shell)", () => {
     expect(await screen.findByText("No notes yet")).toBeTruthy();
   });
 
+  it("keyboard: Ctrl+3 opens Notes, Ctrl+T focuses a new task, Ctrl+, opens Settings", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByRole("region", { name: "Today’s agenda" });
+    await user.keyboard("{Control>}3{/Control}");
+    expect(await screen.findByRole("textbox", { name: "Search notes" })).toBeTruthy();
+    await user.keyboard("{Control>}t{/Control}");
+    const field = await screen.findByRole("textbox", { name: "New task" });
+    await waitFor(() => expect(document.activeElement).toBe(field));
+    await user.keyboard("{Control>},{/Control}");
+    expect(await screen.findByRole("heading", { name: "Settings" })).toBeTruthy();
+  });
+
   it("pasted links become shortcuts", async () => {
     const user = userEvent.setup();
     render(<App />);

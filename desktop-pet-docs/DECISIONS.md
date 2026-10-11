@@ -3,30 +3,32 @@
 One place to see what was decided, by whom, and what is still open. Long reasoning stays where it already lives:
 
 - Architecture decisions ADR-001 … ADR-019: [`docs/01-build-principles/07-architecture-decisions.md`](docs/01-build-principles/07-architecture-decisions.md)
-- V-2 RAM metric: [`docs/05-backend/adr-020-ram-metric-v2.md`](docs/05-backend/adr-020-ram-metric-v2.md) (see U8 about its number)
+- V-2 RAM metric: [`docs/05-backend/adr-020-ram-metric-v2.md`](docs/05-backend/adr-020-ram-metric-v2.md) (ADR-020; was wrongly numbered ADR-001)
 - Product decisions D-1 … D-10: [PRD §9](docs/02-prd/PRD.md) and amendments in PRD §12
 
 **Source tags:** *Owner* = said by the project owner in chat; *Doc* = written in a locked document; *Claude* = proposed by Claude and accepted by silence or not yet reviewed.
 
 ---
 
-## 1. Open decisions (answer these; Claude should not decide them)
+## 1. Open decisions
 
-| # | Question | Why it matters | Recommendation |
-|---|----------|----------------|----------------|
-| U1 | **What is the first release called?** M1 (notes + daily work) is smaller than the PRD's v1.0.0 (adds meetings and the pet). | Version numbers and expectations | Call M1 **v0.1**; keep v1.0.0 for the full Phase 1. |
-| U2 | **Post-v1 order.** ADR-015 (owner, 2026-10-03): Developer → MCP → Voice. The audit request listed voice before MCP and developer. | Decides what is built after v1 | Keep ADR-015 unless you say otherwise. |
-| U3 | **Where does Daily Logs history live?** You removed the calendar and log from the Time page on 2026-10-04. R1-44 still needs a history screen. | M1 cannot close without it | A "History" tab on the Tasks page (new), not on Time. |
-| U4 | **What replaces the Progress card on Today?** You removed it. R1-70 wants "yesterday and today" progress. | Daily progress is a P0 goal | A one-line strip in the Today header: "3 of 5 done today · yesterday 7 of 8". |
-| U5 | **Autosave 500 ms vs 800 ms; Bin + Undo vs confirm + no trash.** Code and PRD disagree. | PRD must match the product | Amend the PRD to the code (500 ms, Bin 30 days, Undo). |
-| U6 | **When to merge PR #1.** `main` has only the docs commit; 49 commits sit on the branch. | Risk of a huge unreviewed merge | Merge after the Windows checklist passes. |
-| U7 | **Repo rename.** GitHub shows `DESKTOP-PRODUCTIVITY-TRACKER`; the local remote says `DESKTOP-PET`. | Tooling scope and links | Update the remote URL on your machine. |
-| U8 | **Two documents are both "ADR-001".** | Confusing references | Rename the RAM one to ADR-020 (it is newer than ADR-019). |
-| U9 | Week calendar: Monday–Sunday or the next seven days? On a Sunday it shows only that day. | Small UX | Rolling seven days. |
-| U10 | Should task search exist (notes only today)? | "Search" is a P0 check item | Not in M1; revisit after the Tasks page. |
-| U11 | Is the in-app "Open Loaf at login" switch hidden until F0-09 is built? | Defect D2 | Hide it, or build F0-09 now. |
+None are waiting on the owner right now. Questions that will come up next: when to start M2, when to add signing, and whether to keep the "Character" and "MCP" sidebar items visible before they do anything.
 
----
+### Resolved on 2026-10-11 (owner)
+
+| # | Question | Answer | What was done |
+|---|----------|--------|---------------|
+| U1 | First release name | **v0.1.0** for M1; **v1.0.0** stays for the full Phase 1 | Roadmap; version bump happens at release time |
+| U2 | Post-v1 order | **As locked:** Developer → MCP → Voice (ADR-015) | Roadmap unchanged |
+| U3 | Where Daily Logs history lives | **On the Time page, short** | "Daily log" list on the Time page |
+| U4 | Progress card | **Do not create one** | R1-70's yesterday/today summary dropped |
+| U5 | Autosave and delete rules | **Update the PRD to match the code** | PRD v1.5: 500 ms; Bin + Undo |
+| U6 | Merge PR #1 | **Merge now; build in one branch** | PR #1 merged as `3cdaa9e`; work continues on the one designated branch via new PRs to `main` |
+| U7 | Repo rename | **Update the remote** | Done in docs; this cloud session's git proxy only allows the old name, so you must run the `git remote set-url` command in PROJECT_STATUS R7 on your PC |
+| U8 | Two documents called ADR-001 | "Do something" (not understood) | Claude renamed the RAM one to **ADR-020** (file, heading and references) |
+| U9 | Week calendar | **Next 7 days** | Calendar starts today |
+| U10 | Task search | "Leave to M1" — read as **include it in M1** | Search box on the Tasks page. If you meant "leave it out", delete that box |
+| U11 | Autostart | **Build before the first version** | F0-09 built |
 
 ## 2. Decisions made
 
@@ -54,6 +56,7 @@ One place to see what was decided, by whom, and what is still open. Long reasoni
 | 2026-10-05 | Overview tiles can be dragged and the order is remembered; Overview page is "fine" | `MovableTiles.tsx` |
 | 2026-10-05 | Notes next, then continue in order | This roadmap |
 | 2026-10-11 | **P0 = Notes and daily work management is the first release.** Later: browser tracking, desktop companion, voice, MCP, developer reactions, characters | `ROADMAP.md` |
+| 2026-10-11 | U1–U11 answered (table above): v0.1.0 for M1, ADR-015 order kept, Time page history, no Progress card, PRD v1.5, merge PR #1, next-7-days calendar, autostart before release | PRD, `ROADMAP.md`, code |
 
 ### Technical decisions made by Claude (open to review)
 
@@ -67,6 +70,14 @@ One place to see what was decided, by whom, and what is still open. Long reasoni
 | 2026-10-05 | A reminder created from the task editor is a normal reminder with the task's title, not linked to the task | No schema change |
 | 2026-10-05 | `@dnd-kit` for tile drag, for keyboard support | Native drag has no keyboard path |
 | 2026-10-05 | Overview tiles share one height so dragging leaves no gaps | Mixed heights left empty holes |
+| 2026-10-11 | Export is a plain JSON dump of every table by column name; import inserts the same way, in one transaction, and recomputes label `name_folded` | New tables are covered without a second list to maintain; a bad row undoes everything |
+| 2026-10-11 | The export/import file dialogs are opened by Rust (dialog plugin), never by the webview | The webview never holds or supplies a file path |
+| 2026-10-11 | Delete all lifts the append-only triggers inside one transaction, wipes every table, puts the triggers back, then runs `VACUUM` | Keeps the "history is append-only" rule everywhere else, and removes deleted text from the file |
+| 2026-10-11 | Autostart: the OS login item is the truth; if it disagrees with the setting at startup, the setting changes. The main window is created hidden and shown unless `--hidden` | A removed login item can't leave the switch lying |
+| 2026-10-11 | Windows installer uses `embedBootstrapper` for WebView2 | Works on a clean PC without a separate download step for most systems |
+| 2026-10-11 | A day's log is exported by copying Markdown to the clipboard | No file dialog needed for a short text; a save-to-file option can follow |
+| 2026-10-11 | Tasks got their own sidebar page ("Tasks") between Today overview and Time | R1-27 needs the five views somewhere; the owner approved the sidebar order earlier but not this addition: tell Claude if you want it elsewhere |
+| 2026-10-11 | Coverage floors: core ≥ 90% lines (measured 97%), frontend lines 80 / branches 70 / functions 55 (measured 88 / 80 / 65) | Catches large drops without failing on small ones |
 
 ### Documented conflicts (code differs from a locked document)
 
