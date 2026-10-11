@@ -374,6 +374,16 @@ export function createMock() {
       const back = Math.round((new Date(today + "T00:00:00").getTime() - d.getTime()) / 86_400_000);
       return back < 0 || back > 20 ? null : sampleLog(String(a.date), back);
     },
+    data_export: () => ({ path: "C:\\Users\\you\\Documents\\loaf-export.json", bytes: 48_213 }),
+    data_import: () => {
+      if (notes.length || tasks.length || reminders.length) fail("CONFLICT", "Import only works into an empty Loaf. Delete all data first, then import.");
+      emit("DataImported"); return { notes: 0 };
+    },
+    data_delete_all: (a) => {
+      if (a.confirm !== "DELETE") fail("VALIDATION", "Type DELETE to confirm.");
+      notes.length = 0; bin.length = 0; tasks.length = 0; reminders.length = 0; labels.length = 0; workUpdates.length = 0; taskEvents.clear();
+      emit("AllDataDeleted"); return null;
+    },
     task_update: (a) => {
       const x = tasks.find((y) => y.id === a.id) ?? fail("NOT_FOUND", "That task no longer exists.");
       const e = a.edit as { title: string; description?: string; project?: string | null; priority?: Task["priority"]; planned_date?: string | null; due_date?: string | null; note_id?: string | null };

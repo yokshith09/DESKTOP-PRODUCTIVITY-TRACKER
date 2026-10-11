@@ -1,4 +1,6 @@
-import { PageHeader, Panel } from "@/features/shell/PageHeader";
+import { PageHeader } from "@/features/shell/PageHeader";
+import { DataSection } from "./DataSection";
+import { Row, Section } from "./parts";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useState } from "react";
@@ -7,27 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { ipc } from "@/ipc";
 import { useSetting } from "@/hooks/useTheme";
-
-function Row({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-4 py-3.5">
-      <div className="min-w-0 flex-1">
-        <p className="text-[13px] font-medium">{label}</p>
-        {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section>
-      <h2 className="mb-2 px-1 text-xs font-medium text-muted-foreground">{title}</h2>
-      <Panel className="divide-y px-5">{children}</Panel>
-    </section>
-  );
-}
 
 export function SettingsPage() {
   const [theme, setTheme] = useSetting("general.theme");
@@ -89,6 +70,7 @@ export function SettingsPage() {
           </div>
         </DialogContent>
       </Dialog>
+      <DataSection />
       <Section title="About">
         <Row label="Loaf" hint="Version 0.0.1 · Your notes, tasks and reminders are stored only on this computer." >
           <span />

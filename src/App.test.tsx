@@ -193,6 +193,31 @@ describe("Notes screen (against the in-memory shell)", () => {
     expect(within(log).getAllByRole("button", { name: /Copy .+ as Markdown/ }).length).toBeGreaterThan(0);
   });
 
+  it("Settings › Your data: export, refused import into a non-empty Loaf, delete all with the word DELETE", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await goTo(user, /^Settings/);
+    await user.click(await screen.findByRole("button", { name: "Export…" }));
+    expect(await screen.findByText("Export saved")).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Import…" }));
+    await user.click(await screen.findByRole("button", { name: "Choose file…" }));
+    expect(await screen.findByText(/Import only works into an empty Loaf/)).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Delete all…" }));
+    const dialog = await screen.findByRole("dialog");
+    const confirm = within(dialog).getByRole("button", { name: "Delete everything" }) as HTMLButtonElement;
+    expect(confirm.disabled).toBe(true);
+    await user.type(within(dialog).getByRole("textbox", { name: "Type DELETE to confirm" }), "delete");
+    expect(confirm.disabled).toBe(true);
+    await user.clear(within(dialog).getByRole("textbox", { name: "Type DELETE to confirm" }));
+    await user.type(within(dialog).getByRole("textbox", { name: "Type DELETE to confirm" }), "DELETE");
+    await user.click(confirm);
+    expect(await screen.findByText("Everything was deleted")).toBeTruthy();
+    await openNotes(user);
+    expect(await screen.findByText("No notes yet")).toBeTruthy();
+  });
+
   it("pasted links become shortcuts", async () => {
     const user = userEvent.setup();
     render(<App />);
