@@ -148,10 +148,13 @@ export function createMock() {
     for (let day = first.getTime(); day < to; day += 86_400_000) {
       const d = new Date(day);
       const k = (d.getDate() * 7 + d.getMonth() * 3) % 5;
+      // Today's sample day is squeezed into the hours that have passed, so the demo data (and the
+      // tests that read it) look the same at any time of day. Earlier days use the real hours.
+      const squeeze = Math.min(1, ((now() - day) / 3_600_000) / 18.5);
       for (const a of APPS) {
         a.spans.forEach(([s, e], i) => {
           const trim = ((k + i) % 3) * 0.12;
-          const start = day + s * 3_600_000, end = Math.min(day + (e - trim) * 3_600_000, now());
+          const start = day + s * squeeze * 3_600_000, end = Math.min(day + (e - trim) * squeeze * 3_600_000, now());
           if (end <= start) return;
           out.push({ app: a.app, category: a.category, is_browser: a.is_browser, start, end });
           if (a.is_browser) {
