@@ -65,6 +65,18 @@ describe("desktop pet", () => {
     expect(screen.getAllByText("Got it: “Buy honey”").length).toBeGreaterThan(0);
   });
 
+  it("falls asleep only after 15 quiet minutes, and wakes on hover", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(ipc, "petHover").mockResolvedValue(null);
+    renderPet();
+    await act(async () => { await vi.advanceTimersByTimeAsync(14 * 60_000); });
+    expect(screen.queryByRole("img", { name: "Loaf the bear (sleep)" })).toBeNull();
+    await act(async () => { await vi.advanceTimersByTimeAsync(2 * 60_000); });
+    expect(screen.getByRole("img", { name: "Loaf the bear (sleep)" })).toBeTruthy();
+    fireEvent.mouseEnter(bear().closest("div.flex") as HTMLElement);
+    expect(screen.queryByRole("img", { name: "Loaf the bear (sleep)" })).toBeNull();
+  });
+
   it("puts overdue, then in-progress, then high-priority tasks first", () => {
     const row = (id: string, over: Partial<TaskRow["task"]>, overdue = false): TaskRow => ({
       overdue,
