@@ -3,7 +3,7 @@
 One place to see what was decided, by whom, and what is still open. Long reasoning stays where it already lives:
 
 - Architecture decisions ADR-001 … ADR-019: [`docs/01-build-principles/07-architecture-decisions.md`](docs/01-build-principles/07-architecture-decisions.md)
-- V-2 RAM metric: [`docs/05-backend/adr-001-ram-metric-v2.md`](docs/05-backend/adr-001-ram-metric-v2.md) (see U8 about its number)
+- V-2 RAM metric: [`docs/05-backend/adr-020-ram-metric-v2.md`](docs/05-backend/adr-020-ram-metric-v2.md) (see U8 about its number)
 - Product decisions D-1 … D-10: [PRD §9](docs/02-prd/PRD.md) and amendments in PRD §12
 
 **Source tags:** *Owner* = said by the project owner in chat; *Doc* = written in a locked document; *Claude* = proposed by Claude and accepted by silence or not yet reviewed.
@@ -38,7 +38,7 @@ One place to see what was decided, by whom, and what is still open. Long reasoni
 | 2026-10-03 | Global search removed from v1 (ADR-017) | Architecture decisions |
 | 2026-10-03 | Phase order: Developer → MCP → Voice (ADR-015); CI status after MCP (ADR-016) | Architecture decisions |
 | 2026-10-04 | Windows is developed and tested on the owner's PC; macOS and Windows are built by GitHub Actions and sent for testing | CI |
-| 2026-10-04 | V-2 RAM is gated on **private working set**, not private bytes (ADR-001-RAM) | `05-backend/adr-001-ram-metric-v2.md` |
+| 2026-10-04 | V-2 RAM is gated on **private working set**, not private bytes (ADR-020) | `05-backend/adr-020-ram-metric-v2.md` |
 | 2026-10-04 | The UI must look polished and professional, structured tiles, not a "kids" UI | `src/index.css`, dashboard |
 | 2026-10-04 | App window opens maximized | `tauri.conf.json` |
 | 2026-10-04 | Reminders live inside Today (one agenda) | Today overview |

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowDownUp, LayoutGrid, List, Plus, Search, X } from "lucide-react";
+import { ArrowDownUp, LayoutGrid, List, Plus, Search, Tag, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger,
@@ -9,15 +9,15 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { WeekCalendar } from "@/features/calendar/WeekCalendar";
 import { PageHeader } from "@/features/shell/PageHeader";
 import type { Page } from "@/features/shell/Sidebar";
+import { mod } from "@/lib/platform";
 import { useNoteActions, useNotes, useSearch } from "@/hooks/useLoaf";
 import type { LabelCount, NoteSort } from "@/ipc";
+import { LabelManager } from "./LabelManager";
 import { NoteComposer } from "./NoteComposer";
 import { NotesBoard, type NotesLayout } from "./NotesBoard";
 import { TodayStrip } from "./TodayStrip";
 
 const SORTS: Record<NoteSort, string> = { last_edited: "Last edited", created: "Date created", color: "Colour" };
-const isMac = typeof navigator !== "undefined" && /Mac/i.test(navigator.platform);
-const mod = isMac ? "⌘" : "Ctrl";
 
 interface Props {
   archived: boolean;
@@ -40,6 +40,7 @@ export function NotesPage({ archived, labelId, labelName, labels, onLabel, sort,
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
+  const [managing, setManaging] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(query), 150);
@@ -135,8 +136,12 @@ export function NotesPage({ archived, labelId, labelName, labels, onLabel, sort,
                 {l.name}{l.count !== undefined && <span className="tabular-nums text-muted-foreground">{l.count}</span>}
               </button>
             ))}
+            <button type="button" onClick={() => setManaging(true)} className="ml-1 inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring">
+              <Tag className="size-3.5" />Manage labels
+            </button>
           </div>
         )}
+        <LabelManager open={managing} onOpenChange={setManaging} labels={labels} onDeleted={(id) => id === labelId && onLabel(null)} />
         {mode === "notes" && <NoteComposer className="mb-6 max-w-2xl" onOpenEditor={onNew} />}
         <NotesBoard
           notes={notes} layout={layout} mode={mode} onNew={onNew}
