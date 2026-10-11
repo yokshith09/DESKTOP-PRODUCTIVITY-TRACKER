@@ -50,6 +50,22 @@ function Screen() {
     void ipc.prefsSet("ui.notes_layout", l);
   };
 
+  // App-wide shortcuts (UI brief §8): Mod+1…4 jump between pages, Mod+, opens Settings,
+  // Mod+T starts a new task. New note and search belong to the Notes page and live there.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey) return;
+      const pages: Record<string, Page> = { "1": "today", "2": "tasks", "3": "notes", "4": "time", ",": "settings", t: "tasks" };
+      const target = pages[e.key.toLowerCase()];
+      if (!target) return;
+      e.preventDefault();
+      setPage(target);
+      if (e.key.toLowerCase() === "t") setTimeout(() => document.getElementById("new-task")?.focus(), 50);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
   const newNote = async () => {
     const note = await actions.create({ label_ids: labelId ? [labelId] : [] });
     if (page !== "notes") setPage("notes");

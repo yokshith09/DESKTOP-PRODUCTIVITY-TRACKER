@@ -121,7 +121,7 @@ export function TasksPage() {
       <PageHeader title="Tasks" description="Plan, run and finish your work." />
 
       <form className="flex max-w-2xl gap-2" onSubmit={(e) => { e.preventDefault(); void add(); }}>
-        <Input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Add a task for today" aria-label="New task" maxLength={300} />
+        <Input id="new-task" value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Add a task for today" aria-label="New task" maxLength={300} />
         <Button type="submit" variant="secondary" size="icon" aria-label="Add task" disabled={!draft.trim()}><Plus /></Button>
       </form>
 
