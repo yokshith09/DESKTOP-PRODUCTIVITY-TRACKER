@@ -72,7 +72,7 @@ export function SettingsPage() {
       </Dialog>
       <DataSection />
       <Section title="About">
-        <Row label="Loaf" hint="Version 0.0.1 · Your notes, tasks and reminders are stored only on this computer." >
+        <Row label="Loaf" hint={`Version ${__APP_VERSION__} · Your notes, tasks and reminders are stored only on this computer.`}>
           <span />
         </Row>
       </Section>

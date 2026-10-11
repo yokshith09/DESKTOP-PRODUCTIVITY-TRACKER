@@ -123,7 +123,7 @@ Every claim is tagged with how it was checked. **Fact** = seen in code, tests, G
 | G1 Real-Windows checklist (§8) | **Open — owner** |
 | G2 Export / import / delete all | Unverified (built) |
 | G3 Autostart | Unverified (built) |
-| G4 Installer | **Unverified**: `.github/workflows/release.yml` builds installers on Windows and macOS; `webviewInstallMode: embedBootstrapper`. The workflow has never run. **Signing: not set up** (needs the owner's certificates). Version is still `0.0.1`; bump to `0.1.0` when releasing. |
+| G4 Installer | **Unverified**: pushing a tag `v*` runs `.github/workflows/release.yml`, which builds installers on Windows and macOS and creates a **draft GitHub Release** with them (publish = one click). `webviewInstallMode: embedBootstrapper`. Version is `0.1.0`. The workflow has never run before the first tag. **Signing: not set up** (needs the owner's certificates). |
 | G5 Time-of-day test bug | Fixed (`3ed177f`) |
 | G6 Coverage floors | Done (core ≥ 90% lines, frontend thresholds) |
 

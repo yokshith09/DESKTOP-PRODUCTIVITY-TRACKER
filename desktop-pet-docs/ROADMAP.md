@@ -111,7 +111,8 @@ The first release is **M1: Notes and daily work management (P0)**. Everything el
 - [x] G4 Installer workflow `release.yml` + bundle config — built, never run; **signing not set up (owner's certificates)**
 - [x] G5 Time-of-day test bug fixed
 - [x] G6 Coverage floors enforced in CI (core ≥ 90% lines, frontend thresholds)
-- [ ] Bump version to 0.1.0, run Release build, install on a clean PC
+- [x] Version bumped to 0.1.0; tag push builds installers and a draft release
+- [ ] Install the draft release's installer on a clean PC and pass the checklist, then publish
 
 **Already built and not part of the original M1 list (owner additions):** reminders with notifications, the Today overview dashboard with drag-to-reorder tiles, week calendar, Links, Time page and Windows app tracking. They ship with M1 but their real-machine behaviour is Unverified.
 
