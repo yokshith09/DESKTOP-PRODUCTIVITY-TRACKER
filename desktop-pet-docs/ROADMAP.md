@@ -5,13 +5,18 @@ Everything else is reference — open it when a feature needs it:
 
 | Need | Document |
 |------|----------|
+| Where things stand, evidence, defects | [PROJECT_STATUS](PROJECT_STATUS.md) |
+| Why things were decided, open questions | [DECISIONS](DECISIONS.md) |
+| What changed | [CHANGELOG](CHANGELOG.md) |
 | Why / what the product is | [Product Document](docs/00-product/product-document.md) · [PRD](docs/02-prd/PRD.md) |
 | How it is built | [TRD](docs/03-trd/TRD.md) · [Schema](docs/05-backend/backend-schema.md) · [ADRs](docs/01-build-principles/07-architecture-decisions.md) |
 | What it looks like | [App flow](docs/04-design/app-flow.md) · [UI/UX brief](docs/04-design/ui-ux-brief.md) |
 | Feature detail (acceptance, tests) | [`docs/features/`](docs/features/README.md) |
 | Sizes and exit gates | [Implementation plan](docs/06-plan/implementation-plan.md) |
 
-**Rule from here:** this file gets status updates only. Scope or design changes go in one line in the PR description, and only get a formal amendment if a locked document would otherwise contradict the code.
+**Rule from here:** this file tracks plan and status. Evidence for every status is in [`PROJECT_STATUS.md`](PROJECT_STATUS.md). Scope or design changes are one line in [`DECISIONS.md`](DECISIONS.md); a locked document is amended only if it would otherwise contradict the code.
+
+**Last audited:** 2026-10-11 against branch `claude/repo-context-review-trprp8` @ `86b18f0`. Status words (Complete, Unverified, Partial, Planned…) are defined in PROJECT_STATUS §2. **Unverified** means it compiles and CI is green but nobody has run it on a real machine.
 
 ---
 
@@ -30,110 +35,122 @@ Full text: [`docs/01-build-principles/`](docs/01-build-principles/README.md).
 9. **No premature optimisation** — make it work, right, then fast.
 10. **Technical debt is a debt** — log it with a payoff date.
 
-## 2. Phases
+## 2. Milestones (release order)
 
-| Phase | Name | Ships | Status |
-|------:|------|-------|--------|
-| **0** | Foundation | Scaffold, event bus, database, settings, tray, CI | 🟡 In progress |
-| **1** | Workspace | Notes, tasks, daily log, meetings, minimal pet → **v1.0.0** | ⬜ Not started |
-| 2 | Browser Intelligence | App + browser time tracking, dashboard | ⬜ |
-| 3 | Pet & Companion | Animated pet that reacts to events | ⬜ |
-| 4 | Developer Companion | Git and local build awareness | ⬜ |
-| 5 | MCP Integrations | MCP client, OAuth, GitHub / Gmail / Calendar / Slack / Notion | ⬜ |
-| 5.1 | CI Status | CI results and reactions | ⬜ |
-| 6 | Voice | Activation-based voice → tasks, notes, queries | ⬜ |
-| 7 | Characters | 18 characters, outfits | ⬜ |
+The first release is **M1: Notes and daily work management (P0)**. Everything else waits for it. The PRD's "v1.0.0" (notes + tasks + meetings + pet) stays as the full Phase 1 target; M1 is a smaller release before it (proposed label: **v0.1**, see DECISIONS U1).
 
-Global search was removed from v1 (ADR-017). Phases 2–7 below are outlines; each is sized from its own feature list just before it starts.
+| Milestone | Name | Contents | Status |
+|-----------|------|----------|--------|
+| **M0** | Foundation closure | Real-Windows run, autostart, export/import/delete, perf harness | 🟡 Partial |
+| **M1** | **Notes + daily work (P0, first release)** | Notes, tasks, search, labels, dates, completion history, daily progress, release gate | 🟡 **Active** — core done, UI gaps |
+| M2 | Phase 1 completion → v1.0.0 | Meetings, pet window, global shortcuts, settings screens, first run | ⬜ |
+| M3 | Browser tracking (Phase 2) | Extensions, bridge, macOS collector, open tabs | 🟡 Windows app tracking built, unverified |
+| M4 | Desktop companion (Phase 3) | Animated pet, reactions, sleep | ⬜ |
+| M5 | Developer reactions (Phase 4) | Git and local build awareness | ⬜ |
+| M6 | MCP (Phase 5, 5.1) | MCP client, OAuth, calendar, GitHub, Gmail, Slack, Notion, CI | ⬜ |
+| M7 | Voice (Phase 6) | Activation, intents, voice → task/note | ⬜ |
+| M8 | Character customization (Phase 7) | 18 characters, outfits | ⬜ |
 
----
-
-## Phase 0 — Foundation
-
-**Goal:** a base everything else stands on. **Exit gate:** all F0 acceptance criteria pass on Windows and macOS, V-1, V-2, V-3 and V-5 recorded.
-
-**Legend:** ✅ done · 🟡 core logic done and tested, UI/OS wiring waits on the shell · 🟡 Review = built, awaiting a check only you can do · ⬜ not started · ⏸ gated
-
-**Code so far:** `loaf-core` has 143 tests; every rule above marked done or 🟡 logic is mutation-checked where it matters.
-
-> **Open decision (V-2):** a hello-world Windows build measures about 105 MB total RAM (private bytes) against a 100 MB budget; macOS measures 47.5 MB. Features that don't touch the shell (everything in `loaf-core`) continue; shell-dependent ones wait for the decision. A second Windows figure (private working set) is being measured.
-
-### Milestone CP1 — Foundation & verification
-| ID | Feature | Days | Status |
-|----|---------|-----:|--------|
-| F0-01 | Tauri + React/TS scaffold, builds on Windows & macOS | 1.5 | 🟡 Review — builds on both OSes; V-1 (oldest macOS) needs your Mac |
-| F0-02 | CI matrix + early RAM measurement (V-2) | 1.5 | 🟡 Review — CI green; **Windows over budget, decision pending** |
-| F0-13 | Error model, logging, panic hook | 1.0 | ✅ Done — 16 tests |
-| F0-03 | Event bus | 1.5 | ✅ Done — 11 tests |
-| F0-04 | Database, migrations, integrity check | 1.5 | ✅ Done — 24 tests |
-| F0-05 | DB writer thread + read pool | 1.5 | ✅ Done — 10 tests, mutation-checked |
-| F0-06 | Clock + midnight rollover scheduler | 2.0 | 🟡 Core done (clock, DST, scheduler); OS wake/timezone hooks wait on the shell |
-| F0-07 | Settings + typed IPC to the frontend | 1.5 | ⏸ Waits on V-2 |
-| F0-08 | Tray, single instance, close-hides, quit | 1.0 | ⏸ Waits on V-2 |
-| F0-09 | Autostart (`--hidden`) | 0.5 | ⏸ Waits on V-2 |
-| F0-10 | Frontend shell: sidebar, router, theme, tokens | 2.0 | ⏸ Waits on V-2 |
-| F0-11 | Export / import / delete all data | 2.5 | ⏸ Waits on V-2 |
-| F0-12 | Performance harness; final V-2, V-3, V-5 | 2.0 | ⏸ Waits on V-2 |
-| | **Milestone total** | **20.0** | |
+**Order after M2:** the locked order is Developer → MCP → Voice (ADR-015). The request that started this audit listed voice before MCP and developer. That is open as DECISIONS U2; until the owner says otherwise, ADR-015 stands. M3 and M4 come before it as in the PRD.
 
 ---
 
-## Phase 1 — Workspace (first release, v1.0.0)
+## M0 — Foundation closure
 
-**Goal:** a usable local-first workspace: capture notes, run tasks through a lifecycle, log meetings, see an automatic daily log, with the pet present. **Exit gate:** all PRD R1 requirements implemented, budgets pass on both OSes, `v1.0.0` tagged.
-
-### Milestone CP2 — Notes core
-| ID | Feature | Days | Status |
-|----|---------|-----:|--------|
-| F1-01 | Create note + editor + autosave | 2.0 | 🟡 Logic done; editor UI waits on the shell |
-| F1-02 | Notes list: pinned/others, cards, sort | 1.5 | 🟡 Logic done (list, sort, filter); UI waits |
-| F1-03 | Edit semantics (`edited_at`, reopen) | 0.5 | ✅ Logic done (`edited_at` rules) |
-| F1-04 | Delete with 5 s undo | 1.0 | 🟡 Logic done (snapshot + restore); undo toast waits |
-| F1-05 | Pin / unpin | 0.5 | 🟡 Logic done; UI waits |
-| F1-06 | Archive / restore + Archive view | 1.0 | 🟡 Logic done; Archive view waits |
-| F1-07 | Labels: add, filter, manage | 2.0 | 🟡 Logic done (Unicode-safe labels); sidebar + manager UI wait |
-| F1-08 | Note colour | 0.5 | 🟡 Logic done; picker UI waits |
-| F1-09 | Markdown edit / preview | 1.0 | ⬜ |
-| | **Milestone total** | **10.0** | |
-
-### Milestone CP3 — Tasks & Daily Log
-| ID | Feature | Days | Status |
-|----|---------|-----:|--------|
-| F1-10 | Create task + quick add | 1.5 | 🟡 Logic done (create, quick add); UI waits |
-| F1-11 | Task state machine + history + transition UI | 2.0 | 🟡 Logic done (all 25 transitions + history); transition UI waits |
-| F1-12 | Dates, priority, project, overdue, defer | 1.5 | 🟡 Logic done (dates, priority, project, overdue, defer); UI waits |
-| F1-13 | Task detail: work updates, link note, history | 1.5 | 🟡 Part done (history, note link, delete rule); work updates ⬜ |
-| F1-14 | Task views: Today / Upcoming / Pending / All / Completed | 2.0 | 🟡 Logic done (all five views, filters); UI waits |
-| F1-15 | Daily log: live, freeze at rollover, missed days | 3.0 | 🟡 Logic done (live, freeze, reconcile, freezer; 23 tests); UI waits |
-| F1-16 | Daily Logs view + compare + Markdown export | 1.5 | ⬜ |
-| | **Milestone total** | **13.0** | |
-Daily-log tests must cover midnight, DST, timezone change and a multi-day gap before this milestone closes (logs are immutable, so a bug is permanent).
-
-### Milestone CP4 — Meetings, Pet, Today, Settings
-| ID | Feature | Days | Status |
-|----|---------|-----:|--------|
-| F1-17 | Meeting create/edit + participants | 2.0 | ⬜ |
-| F1-18 | Decisions + action items | 1.0 | ⬜ |
-| F1-19 | Action item → task | 1.0 | ⬜ |
-| F1-22 | Minimal pet window | 1.5 | ⬜ |
-| F1-23 | Today view | 2.0 | ⬜ |
-| F1-24 | Global shortcuts + quick-add popup + keymap | 2.0 | ⬜ |
-| F1-25 | Settings screens | 1.5 | ⬜ |
-| F1-26 | First run + empty states | 1.0 | ⬜ |
-| | **Milestone total** | **12.0** | |
-F1-20 and F1-21 (search) are cancelled and their numbers retired.
-
-### Milestone CP5 — Release
-| ID | Feature | Days | Status |
-|----|---------|-----:|--------|
-| F1-27 | Cross-OS E2E, installers, signing, **v1.0.0** | 3.0 | ⬜ |
-| | **Milestone total** | **3.0** | |
-
-**Phase 1 total: 58.0 relative dev-days** (relative size, not a forecast).
+| ID | Feature | Status (2026-10-11) |
+|----|---------|--------|
+| F0-01 | Scaffold | ✅ Complete (V-1 oldest macOS: Unverified, needs a Mac) |
+| F0-02 | CI matrix + V-2 | ✅ CI green · final V-2 on the full app Unverified (gate: private working set, ADR-001-RAM) |
+| F0-03 | Event bus | ✅ Complete |
+| F0-04 | Database, migrations | ✅ Complete (migrations 001–003) |
+| F0-05 | DB writer + read pool | ✅ Complete |
+| F0-06 | Clock + rollover | 🟡 Partial — core and scheduler wired; wake-from-sleep and timezone hooks missing |
+| F0-07 | Settings + typed IPC | ✅ Complete (settings keys hand-typed) |
+| F0-08 | Tray, single instance, close-hides, quit | 🟡 Unverified — never run on a real desktop |
+| F0-09 | Autostart `--hidden` | ⏸ Partial, on hold — switch exists, does nothing (defect D2) |
+| F0-10 | Frontend shell | ✅ Complete |
+| F0-11 | Export / import / delete all data | ⬜ Planned |
+| F0-12 | Performance harness | 🟡 Partial — V-2 only |
+| F0-13 | Errors and logging | ✅ Complete |
 
 ---
 
-## Phase 2 — Browser Intelligence *(outline)*
+## M1 — Notes + daily work (P0, first release)
+
+**Goal:** someone can capture notes, plan and finish tasks, find things, and see what they got done each day — on a real Windows machine, with their data safe. **Exit gate:** every checked item below, the Windows checklist (PROJECT_STATUS §8) passed, CI green on Windows and macOS, installer built.
+
+### M1.1 Notes
+- [x] Create, edit, autosave, discard-if-empty (F1-01, F1-03)
+- [x] List, sort, pin, archive, colours (F1-02, F1-05, F1-06, F1-08)
+- [x] Delete to a 30-day Bin with Undo, restore, empty (F1-04 + owner addition)
+- [x] Labels: add, create inline, filter with counts (F1-07, partly)
+- [x] Search (plain, notes only)
+- [ ] N1 Markdown edit / preview (F1-09) — ⬜ Planned
+- [ ] N2 Label manager: rename, delete — 🟡 core done, no UI
+- [ ] N3 Pin from the editor toolbar, shortcut, keyboard map — 🟡 Partial
+- [ ] N4 Autosave timing and delete behaviour written into the PRD — decision
+
+### M1.2 Tasks
+- [x] Create, quick add, edit title/priority/deadline, complete with Undo, overdue badge (F1-10, F1-12 partly)
+- [x] Core: state machine, history, defer, delete rule, five views, filters (F1-11, F1-14 logic)
+- [ ] T1 Tasks page: Upcoming, Pending, All, Completed + filters
+- [ ] T2 Status controls: start, pending, cancel, reopen
+- [ ] T3 Defer (IPC + UI)
+- [ ] T4 Task detail: description, project, planned date, linked note, history, work updates (F1-13)
+- [ ] T5 Delete task (IPC + UI)
+
+### M1.3 Daily progress
+- [x] Daily log core: live, freeze, missed days (F1-15 logic)
+- [x] Done-this-week bars, Activity feed, Time page task chart
+- [ ] D-a Daily Logs history screen (F1-16)
+- [ ] D-b Compare with previous day, Markdown export (F1-16)
+- [ ] D-c Today progress summary (needs owner decision, DECISIONS U4)
+
+### M1.4 Release gate
+- [ ] G1 Real-Windows checklist passed and recorded
+- [ ] G2 Export / import / delete all data (F0-11)
+- [ ] G3 Autostart works, or the switch is hidden (F0-09)
+- [ ] G4 Installer and signing for Windows (and macOS build) (F1-27, part)
+- [ ] G5 Fix the time-of-day test flake (D1)
+- [ ] G6 Coverage floor enforced in CI
+
+**Already built and not part of the original M1 list (owner additions):** reminders with notifications, the Today overview dashboard with drag-to-reorder tiles, week calendar, Links, Time page and Windows app tracking. They ship with M1 but their real-machine behaviour is Unverified.
+
+---
+
+## M2 — Phase 1 completion → v1.0.0
+
+| ID | Feature | Status |
+|----|---------|--------|
+| F1-17 | Meeting create/edit + participants | ⬜ |
+| F1-18 | Decisions + action items | ⬜ |
+| F1-19 | Action item → task | ⬜ |
+| F1-22 | Minimal pet window | ⬜ (`pet.html` is a placeholder) |
+| F1-23 | Today view (R1-70 rest) | 🟡 Partial |
+| F1-24 | Global shortcuts + quick-add popup + keymap | ⬜ |
+| F1-25 | Settings screens (Pet, Shortcuts, Data, Advanced) | 🟡 Partial |
+| F1-26 | First run + empty states | ⬜ |
+| F1-27 | Cross-OS E2E, signing, **v1.0.0** | ⬜ |
+
+F1-20 and F1-21 (search) are cancelled; their numbers are retired.
+
+---
+
+## M3 — Browser tracking (Phase 2)
+
+| Item | Status |
+|------|--------|
+| Windows foreground-app tracking, opt-in, domain-only (ADR-019) | 🟡 Built, **Unverified** on Windows |
+| Per-app / per-site time, Time page, filters | ✅ Complete (UI-mock) |
+| Chrome + Edge extensions (MV3) | ⬜ |
+| Native-messaging bridge to the core | ⬜ (the ingest command `usage_record_domain` exists) |
+| Open-tabs list and close tab | ⬜ |
+| Firefox, Safari extensions | ⬜ |
+| macOS foreground-app collector | ⬜ (reports `supported: false`) |
+
+---
+
+## Outline: Phase 2 remainder *(see M3)*
 **Milestone 2.1 — Capture**
 - App-focus tracking (OS events, no polling)
 - Chrome + Edge extensions (MV3)
@@ -151,7 +168,7 @@ F1-20 and F1-21 (search) are cancelled and their numbers retired.
 - Open tabs view + close tab
 - Today vs yesterday
 
-## Phase 3 — Pet & Companion *(outline)*
+## M4 — Desktop companion: Phase 3 *(outline)*
 **Milestone 3.1 — Pet engine**
 - Sprite renderer (30 FPS cap, stops when hidden)
 - Idle and hover animations
@@ -167,7 +184,7 @@ F1-20 and F1-21 (search) are cancelled and their numbers retired.
 - Startup greeting
 - Pet behaviour settings
 
-## Phase 4 — Developer Companion *(outline; fully offline)*
+## M5 — Developer reactions: Phase 4 *(outline; fully offline)*
 **Milestone 4.1 — Git**
 - Repository watcher on `.git` refs
 - Commit and push detection
@@ -181,7 +198,7 @@ F1-20 and F1-21 (search) are cancelled and their numbers retired.
 - Build-failure notification
 - Suggest a task from a failure
 
-## Phase 5 — MCP Integrations *(outline; the largest post-v1 phase)*
+## M6 — MCP: Phase 5 *(outline; the largest post-v1 phase; Calendar lives here)*
 **Milestone 5.1 — Foundation**
 - MCP client scaffold
 - OAuth 2.0 + PKCE, tokens in the OS keychain
@@ -195,13 +212,13 @@ F1-20 and F1-21 (search) are cancelled and their numbers retired.
 - Slack
 - Notion
 
-## Phase 5.1 — CI Status *(outline)*
+## M6b — CI status: Phase 5.1 *(outline)*
 **Milestone 5.1.1 — CI**
 - GitHub Actions status (Jenkins if sizing allows)
 - CI pass / fail pet reactions
 - CI-failure notification and task suggestion
 
-## Phase 6 — Voice *(outline)*
+## M7 — Voice: Phase 6 *(outline)*
 **Milestone 6.1 — Capture & intent**
 - Activation (button / wake word), no always-on mic
 - Audio capture and JEV provider
@@ -216,7 +233,7 @@ F1-20 and F1-21 (search) are cancelled and their numbers retired.
 **Milestone 6.3 — Meetings**
 - Meeting transcription into the transcript field
 
-## Phase 7 — Characters *(outline)*
+## M8 — Character customization: Phase 7 *(outline)*
 **Milestone 7.1 — Character system**
 - Asset pipeline and lazy loading
 - Character switching UI
