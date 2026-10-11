@@ -2,9 +2,9 @@
 
 A lightweight, local-first desktop companion for Windows and macOS: notes, tasks, meetings and an automatic daily work log, with a desktop pet that lives alongside your work.
 
-**Where things stand:** [`ROADMAP.md`](ROADMAP.md) — build principles → phases → milestones → features. Start there.
+**Where things stand:** [`PROJECT_STATUS.md`](PROJECT_STATUS.md) (evidence, defects, next actions) · [`ROADMAP.md`](ROADMAP.md) (milestones) · [`DECISIONS.md`](DECISIONS.md) · [`CHANGELOG.md`](CHANGELOG.md). Start with the status file.
 
-**Status:** 🔒 **D0–D7 locked** (2026-10-03) → next: **CP1 Foundation** (`F0-01` Tauri scaffold). No application code exists yet.
+**Status:** 🔒 **D0–D7 locked** (2026-10-03). The app is built and running in CI on Windows and macOS: core logic, notes, tasks, reminders, time tracking and the dashboard exist. **Active milestone: M1 — Notes + daily work (first release).** See [`PROJECT_STATUS.md`](PROJECT_STATUS.md) for what works, what is unverified and what is missing.
 
 ## Non-negotiables
 Event-driven (no polling) · Idle CPU <1% · RAM <100 MB · Local-first SQLite · Pet present from v1 · Windows + macOS parity
