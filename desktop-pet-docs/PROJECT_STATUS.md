@@ -59,7 +59,7 @@ How verification was done: **core** = `cargo test` in `loaf-core` (312 pass); **
 | ID | Feature | Status | Evidence |
 |----|---------|--------|----------|
 | F0-01 | Scaffold | Complete | Builds in CI on both OSes; `src-tauri` also compiled on Linux in this audit. **V-1 (oldest macOS) is Unverified** — needs a Mac. |
-| F0-02 | CI matrix, V-2 RAM job | Complete (CI) / Unverified (final V-2) | CI green. The `v2-ram` jobs pass, but they only prove a number was measured. This audit did not read the numbers. Gate is private working set (ADR-001-RAM). |
+| F0-02 | CI matrix, V-2 RAM job | Complete (CI) / Unverified (final V-2) | CI green. The `v2-ram` jobs pass, but they only prove a number was measured. This audit did not read the numbers. Gate is private working set (ADR-020). |
 | F0-03 | Event bus | Complete | core tests |
 | F0-04 | Database, migrations 001–003 | Complete | core tests |
 | F0-05 | DB writer thread | Complete | core tests |
@@ -193,7 +193,7 @@ P0 = Notes and daily work management as the first release. Each line is a gap fo
 | D1 | Two tests (`Total time lists every app and website…`, `browsers list their sites…`) fail before about 08:30 local time. The demo data only has Chrome sessions from 08:30. CI passed on 2026-10-05 around 12:30 UTC, so CI can fail on early-morning runs. | Test run today at 08:13 UTC: 2 failed, 26 passed. Cause read from `src/ipc/mock.ts` (sessions end at "now"). A first run under heavy CPU load showed 3 failures; the third is Unknown. | Medium (CI reliability) |
 | D2 | "Open Loaf at login" switch does nothing. | No autostart code in `src-tauri`. | Medium (misleading UI) |
 | D3 | Feature spec files F0-01…F0-13 still say DRAFT; `features/README.md` too. | `docs/features/*.md` | Low |
-| D4 | Two documents are both called ADR-001: "Tauri v2 as the shell" and "V-2 RAM metric". | `07-architecture-decisions.md`, `05-backend/adr-001-ram-metric-v2.md` | Low |
+| D4 | Two documents are both called ADR-001: "Tauri v2 as the shell" and "V-2 RAM metric". | `07-architecture-decisions.md`, `05-backend/adr-020-ram-metric-v2.md` | Low |
 | D5 | GitHub shows the repository as `DESKTOP-PRODUCTIVITY-TRACKER`; the local remote still says `DESKTOP-PET`. Works through GitHub's redirect. | CI check URLs; `git remote -v` | Low |
 | D6 | A session hook reported missing files `memory/decisions.md` and `memory/FACTS.md`. They do not exist in this repo. Origin Unknown. | Hook output at session start | Low |
 | D7 | Windows tracker and tray have never run on real Windows. | No record | High (for release) |

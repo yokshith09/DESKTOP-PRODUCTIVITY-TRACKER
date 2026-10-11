@@ -1,16 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Archive, ArchiveRestore, Check, Palette, Pin, PinOff, Plus, Tag, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, Check, Eye, Palette, Pencil, Pin, PinOff, Plus, Tag, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
+import { mod } from "@/lib/platform";
 import { cn } from "@/lib/utils";
 import { timeAgo } from "@/lib/time";
 import { ipc, NOTE_COLORS, type Note, type NoteColor } from "@/ipc";
 import { keys, useLabels, useNoteActions } from "@/hooks/useLoaf";
 import { COLOR_NAMES } from "./colors";
+import { MarkdownView } from "./MarkdownView";
 
 const TITLE_MAX = 200;
 const BODY_MAX = 100_000;
@@ -35,6 +37,8 @@ function EditorBody({ note, onClose }: { note: Note; onClose: () => void }) {
   const [body, setBody] = useState(note.body);
   const [status, setStatus] = useState<"saved" | "saving">("saved");
   const [newLabel, setNewLabel] = useState("");
+  const [preview, setPreview] = useState(false);
+  const [labelsOpen, setLabelsOpen] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const latest = useRef({ title, body });
   latest.current = { title, body };
@@ -93,6 +97,14 @@ function EditorBody({ note, onClose }: { note: Note; onClose: () => void }) {
         e.preventDefault();
         void close();
       }}
+      onKeyDown={(e) => {
+        if (!(e.ctrlKey || e.metaKey)) return;
+        const k = e.key.toLowerCase();
+        if (k === "d" && !e.shiftKey) { e.preventDefault(); void actions.pin(note.id, !note.pinned); }
+        else if (k === "e" && !e.shiftKey) { e.preventDefault(); setPreview((p) => !p); }
+        else if (k === "a" && e.shiftKey) { e.preventDefault(); void actions.archive(note.id, !note.archived).then(onClose); }
+        else if (k === "l" && !e.shiftKey) { e.preventDefault(); setLabelsOpen(true); }
+      }}
       showClose={false}
       className={cn("gap-0 overflow-hidden", note.color !== "default" && "note-tint")}
     >
@@ -108,15 +120,19 @@ function EditorBody({ note, onClose }: { note: Note; onClose: () => void }) {
           aria-label="Title"
           className="h-auto border-0 bg-transparent px-0 text-xl font-semibold tracking-tight shadow-none focus-visible:ring-0"
         />
-        <textarea
-          ref={bodyRef}
-          value={body}
-          maxLength={BODY_MAX}
-          onChange={(e) => edit({ body: e.target.value })}
-          placeholder="Take a note…"
-          aria-label="Note"
-          className="max-h-[50vh] min-h-64 resize-none overflow-y-auto bg-transparent text-[15px] leading-relaxed outline-none placeholder:text-muted-foreground"
-        />
+        {preview ? (
+          <div aria-label="Preview" className="max-h-[50vh] min-h-64 overflow-y-auto"><MarkdownView source={body} /></div>
+        ) : (
+          <textarea
+            ref={bodyRef}
+            value={body}
+            maxLength={BODY_MAX}
+            onChange={(e) => edit({ body: e.target.value })}
+            placeholder="Take a note…"
+            aria-label="Note"
+            className="max-h-[50vh] min-h-64 resize-none overflow-y-auto bg-transparent text-[15px] leading-relaxed outline-none placeholder:text-muted-foreground"
+          />
+        )}
         {note.labels.length > 0 && (
           <div className="flex flex-wrap gap-1.5 pt-2">
             {note.labels.map((l) => (
@@ -162,7 +178,7 @@ function EditorBody({ note, onClose }: { note: Note; onClose: () => void }) {
             </div>
           </PopoverContent>
         </Popover>
-        <Popover>
+        <Popover open={labelsOpen} onOpenChange={setLabelsOpen}>
           <PopoverTrigger asChild>
             <Button variant="ghost" size="icon-sm" aria-label="Labels" title="Labels"><Tag /></Button>
           </PopoverTrigger>
@@ -198,6 +214,12 @@ function EditorBody({ note, onClose }: { note: Note; onClose: () => void }) {
         </Button>
         <Button variant="ghost" size="icon-sm" aria-label="Delete" title="Delete" className="hover:text-destructive" onClick={() => void actions.remove(note.id).then(onClose)}>
           <Trash2 />
+        </Button>
+        <Button
+          variant="ghost" size="icon-sm" aria-pressed={preview} aria-label={preview ? "Edit" : "Preview"} title={`${preview ? "Edit" : "Preview"} (${mod}+E)`}
+          onClick={() => setPreview((p) => !p)}
+        >
+          {preview ? <Pencil /> : <Eye />}
         </Button>
         <span className="ml-auto mr-2 text-xs text-foreground/50" aria-live="polite">
           {status === "saving" ? "Saving…" : `Edited ${timeAgo(note.edited_at)}`}

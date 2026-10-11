@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { toEdit } from "@/features/tasks/edit";
 import { useReminderActions, useTaskActions } from "@/hooks/useLoaf";
 import { fromLocalInput, toLocalInput } from "@/lib/time";
 import type { Priority, Task } from "@/ipc";
@@ -46,9 +47,9 @@ export function TaskEditor({ task, children }: { task: Task; children: ReactNode
     setSaving(true);
     try {
       await update(task.id, {
+        ...toEdit(task),
         title: title.trim(),
         priority: priority === NONE ? null : (priority as Priority),
-        planned_date: task.planned_date,
         due_date: due || null,
       });
       if (remind) await create(title.trim(), fromLocalInput(remind));

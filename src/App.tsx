@@ -15,10 +15,11 @@ import type { NotesLayout } from "@/features/notes/NotesBoard";
 import { SettingsPage } from "@/features/settings/SettingsPage";
 import { ComingSoon } from "@/features/shell/ComingSoon";
 import { Sidebar, type Page } from "@/features/shell/Sidebar";
+import { TasksPage } from "@/features/tasks/TasksPage";
 import { TimePage } from "@/features/time/TimePage";
 import { TodayOverviewPage } from "@/features/overview/TodayOverviewPage";
 
-const PAGES: readonly Page[] = ["today", "time", "notes", "archive", "bin", "character", "mcp", "settings"];
+const PAGES: readonly Page[] = ["today", "tasks", "time", "notes", "archive", "bin", "character", "mcp", "settings"];
 
 function Screen() {
   const [page, setPageState] = useState<Page>("today");
@@ -80,6 +81,7 @@ function Screen() {
             {page === "bin" && <BinPage />}
             {page === "character" && <CharacterPage />}
             {page === "settings" && <SettingsPage />}
+            {page === "tasks" && <TasksPage />}
             {page === "time" && <TimePage />}
             {page === "mcp" && <ComingSoon icon={<Plug />} title="MCP" description="Connect external tools and services to Loaf through the Model Context Protocol. This arrives in a later release." />}
           </div>

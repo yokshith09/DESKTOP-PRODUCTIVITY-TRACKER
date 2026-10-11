@@ -12,7 +12,9 @@ use loaf_core::notes::{self, BinNote, Note, NoteInput, NotePatch, NoteSort, Note
 use loaf_core::reminders::{self, Reminder, ReminderInput, ReminderPatch};
 use loaf_core::settings::SettingsKey;
 use loaf_core::settings_service::SettingsService;
-use loaf_core::tasks::{self, Task, TaskEdit, TaskFilters, TaskRow, TaskStatus, TaskView};
+use loaf_core::tasks::{
+    self, Task, TaskEdit, TaskEvent, TaskFilters, TaskRow, TaskStatus, TaskView, WorkUpdate,
+};
 use loaf_core::usage::{DomainSetting, TimeRange, TrackingStatus, UsageService, UsageSummary};
 use serde_json::Value;
 use tauri::{AppHandle, State};
@@ -220,6 +222,50 @@ pub async fn task_transition(id: String, to: TaskStatus, core: State<'_, Core>) 
 #[tauri::command]
 pub async fn task_update(id: String, edit: TaskEdit, core: State<'_, Core>) -> Result<Task> {
     tasks::update(&core.db, &*core.clock, &id, edit.into()).await
+}
+
+#[tauri::command]
+pub async fn task_get(id: String, core: State<'_, Core>) -> Result<Task> {
+    tasks::get(&core.db, &id).await
+}
+
+/// Everything that happened to a task, oldest first.
+#[tauri::command]
+pub async fn task_history(id: String, core: State<'_, Core>) -> Result<Vec<TaskEvent>> {
+    tasks::history(&core.db, &id).await
+}
+
+/// Move the planned day later. `to` is a local day `YYYY-MM-DD`.
+#[tauri::command]
+pub async fn task_defer(id: String, to: String, core: State<'_, Core>) -> Result<Task> {
+    let day = chrono::NaiveDate::parse_from_str(&to, "%Y-%m-%d")
+        .map_err(|_| AppError::validation("to", "Dates look like 2026-10-04."))?;
+    tasks::defer(&core.db, &*core.clock, &id, day).await
+}
+
+/// Only finished (completed or cancelled) tasks can be deleted.
+#[tauri::command]
+pub async fn task_delete(id: String, core: State<'_, Core>) -> Result<()> {
+    tasks::delete(&core.db, &*core.clock, &id).await
+}
+
+#[tauri::command]
+pub async fn work_updates_list(task_id: String, core: State<'_, Core>) -> Result<Vec<WorkUpdate>> {
+    tasks::work_updates(&core.db, &task_id).await
+}
+
+#[tauri::command]
+pub async fn work_update_add(
+    task_id: String,
+    body: String,
+    core: State<'_, Core>,
+) -> Result<WorkUpdate> {
+    tasks::add_work_update(&core.db, &*core.clock, &task_id, &body).await
+}
+
+#[tauri::command]
+pub async fn work_update_delete(id: String, core: State<'_, Core>) -> Result<()> {
+    tasks::delete_work_update(&core.db, &*core.clock, &id).await
 }
 
 // ---- daily logs (the Time screen) -----------------------------------------------------------

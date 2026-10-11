@@ -60,7 +60,7 @@ The first release is **M1: Notes and daily work management (P0)**. Everything el
 | ID | Feature | Status (2026-10-11) |
 |----|---------|--------|
 | F0-01 | Scaffold | ✅ Complete (V-1 oldest macOS: Unverified, needs a Mac) |
-| F0-02 | CI matrix + V-2 | ✅ CI green · final V-2 on the full app Unverified (gate: private working set, ADR-001-RAM) |
+| F0-02 | CI matrix + V-2 | ✅ CI green · final V-2 on the full app Unverified (gate: private working set, ADR-020) |
 | F0-03 | Event bus | ✅ Complete |
 | F0-04 | Database, migrations | ✅ Complete (migrations 001–003) |
 | F0-05 | DB writer + read pool | ✅ Complete |

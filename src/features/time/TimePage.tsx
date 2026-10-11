@@ -10,6 +10,7 @@ import { dayLabel, weekdayNarrow, ymd } from "@/lib/dates";
 import { formatDuration } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { CATEGORIES, categoryStyle } from "./categories";
+import { DailyLogs } from "./DailyLogs";
 import { RANGES, rangeBounds, type RangeKey } from "./range";
 import { TimeCard } from "./TimeCard";
 
@@ -121,6 +122,7 @@ export function TimePage() {
       <Tile className="h-64" title="Tasks completed" action={<span className="text-[11px] text-muted-foreground">{done} in this period</span>} bodyClassName="flex p-4">
         <Bars bars={bars} className="flex-1" ariaLabel={`Tasks completed per day: ${bars.map((b) => b.value).join(", ")}`} />
       </Tile>
+      <DailyLogs className="max-h-[26rem]" />
       <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Info className="size-3.5" />Time is recorded on this computer only. Window titles and full web addresses are never stored.</p>
     </div>
   );

@@ -1,4 +1,4 @@
-# ADR-001: V-2 RAM Budget Metric Selection
+# ADR-020: V-2 RAM Budget Metric Selection
 
 **Date:** 2026-10-04  
 **Status:** Accepted  
