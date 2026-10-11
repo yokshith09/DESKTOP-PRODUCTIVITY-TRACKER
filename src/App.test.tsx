@@ -68,6 +68,21 @@ describe("Notes screen (against the in-memory shell)", () => {
     expect(await within(list).findByRole("button", { name: /^github\.com/ })).toBeTruthy();
   });
 
+  it("the demo time data does not depend on the time of day (00:20 local)", async () => {
+    const early = new Date();
+    early.setHours(0, 20, 0, 0);
+    vi.useFakeTimers({ toFake: ["Date"], now: early });
+    try {
+      vi.resetModules();
+      ({ App } = await import("./App"));
+      render(<App />);
+      const sites = await screen.findByRole("region", { name: "Websites" });
+      expect(await within(sites).findByRole("button", { name: /^github\.com/ })).toBeTruthy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("every overview tile has a move handle", async () => {
     render(<App />);
     for (const t of ["Today", "Total time today", "Links", "Activity", "Done this week"]) {
