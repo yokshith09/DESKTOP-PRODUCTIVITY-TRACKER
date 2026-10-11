@@ -53,7 +53,7 @@ function SortableTile({ id, spec }: { id: TileId; spec: TileSpec }) {
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={cn("min-h-96 min-w-0", spec.span, isDragging && "relative z-10 opacity-90 shadow-2xl ring-1 ring-primary/50")}
+      className={cn("min-h-60 min-w-0 lg:min-h-0", spec.span, isDragging && "relative z-10 opacity-90 shadow-2xl ring-1 ring-primary/50")}
     >
       <TileHandleContext.Provider value={<Handle title={spec.title} {...attributes} {...listeners} />}>
         {spec.node}
@@ -62,7 +62,7 @@ function SortableTile({ id, spec }: { id: TileId; spec: TileSpec }) {
   );
 }
 
-/** Overview tiles in a 12-column grid. Drag a tile by its grip (or use the keyboard) to reorder; the order is remembered. */
+/** Overview tiles in a 12-column grid of 15rem rows (big tiles span two rows). Drag a tile by its grip (or use the keyboard) to reorder; the order is remembered. */
 export function MovableTiles({ tiles }: { tiles: Record<TileId, TileSpec> }) {
   const { order, save, isDefault } = useTileOrder();
   const [active, setActive] = useState(false);
@@ -80,7 +80,7 @@ export function MovableTiles({ tiles }: { tiles: Record<TileId, TileSpec> }) {
     <div>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={() => setActive(true)} onDragCancel={() => setActive(false)} onDragEnd={onEnd}>
         <SortableContext items={order} strategy={rectSortingStrategy}>
-          <div className={cn("grid gap-4 lg:auto-rows-[31rem] lg:grid-cols-12", active && "select-none")}>
+          <div className={cn("grid gap-4 lg:grid-flow-row-dense lg:auto-rows-[15rem] lg:grid-cols-12", active && "select-none")}>
             {order.map((id) => <SortableTile key={id} id={id} spec={tiles[id]} />)}
           </div>
         </SortableContext>

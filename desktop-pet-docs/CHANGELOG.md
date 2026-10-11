@@ -4,6 +4,15 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+### 2026-10-11 (0.1.2 — owner's test of 0.1.1)
+- Fixed: scrollbars in the pet window. The hover card was taller than the space reserved for it (291 px vs 262), so the window scrolled. The card now has its measured size and the pet window never scrolls.
+- Fixed: scrollbars everywhere are hidden until the pointer is over the area that scrolls.
+- Fixed: Today overview tiles. The second row (Links, Activity, Done this week) was as tall as the first and "Done this week" overflowed sideways. Rows are now 15rem; Today and Total time span two rows.
+- Changed: the bear is redrawn "soft 3D": form shading, warm rim light, contact shadows, blurred ground shadow, squash-and-stretch.
+- Added: **pet reactions** with a 3-second speech bubble. Task added → catches a card; task done → jumps ("Done! 2 left today"); last task done → party with confetti; task started → works on a laptop (and keeps working while any task is in progress); task overdue → worried with a sweat drop; reminder due → rings a bell; task deleted → tosses a paper ball. One table (`src/pet/reactions.ts`) holds them all; adding one is one line.
+- Added: Character page previews every pose.
+- Changed: version **0.1.2**.
+
 ### 2026-10-11 (0.1.1 — fixes from the owner's first test)
 - Added: **desktop pet** (F1-22). An animated bear in its own transparent, always-on-top window, bottom-right by default. Hover shows today's card: total time, top 3 apps, top 2 tasks, next reminder, done/open counts. Click opens Loaf, double-click hides it, right-click opens a menu (open/hide Loaf, new note, new task, app tracking on/off, settings, hide pet, quit). Drag to move; the spot is remembered. Also in the tray menu. **Unverified** on a real desktop.
 - Added: global shortcuts `Ctrl+Shift+L` show/hide Loaf, `Ctrl+Shift+N` new note, `Ctrl+Shift+T` new task, `Ctrl+Shift+P` show/hide pet (`Cmd` on macOS).

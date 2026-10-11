@@ -17,7 +17,7 @@ export function topTasks(rows: TaskRow[], n = 2): TaskRow[] {
 }
 
 /** What the pet shows on hover: today's time, top apps, the two tasks that matter, and two lines of context. */
-export function PetCard({ className }: { className?: string }) {
+export function PetCard({ className, style }: { className?: string; style?: React.CSSProperties }) {
   const today = rangeBounds("today");
   const { data: status } = useTrackingStatus();
   const { data: usage } = useUsage(today.from, today.to);
@@ -32,7 +32,7 @@ export function PetCard({ className }: { className?: string }) {
   const max = apps[0]?.total_seconds ?? 1;
 
   return (
-    <div className={cn("flex flex-col gap-3 rounded-xl border bg-popover p-3.5 text-popover-foreground shadow-lg", className)} role="status" aria-label="Today at a glance">
+    <div className={cn("flex flex-col gap-3 overflow-hidden rounded-xl border bg-popover p-3.5 text-popover-foreground shadow-lg", className)} style={style} role="status" aria-label="Today at a glance">
       <div className="flex items-baseline justify-between">
         <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Today</span>
         <span className="text-[11px] text-muted-foreground">{new Date().toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })}</span>

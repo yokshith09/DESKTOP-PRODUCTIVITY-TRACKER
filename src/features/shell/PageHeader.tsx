@@ -33,7 +33,7 @@ export function Tile({
         {action && <div className="ml-auto flex items-center gap-1">{action}</div>}
         {handle && <div className={action ? "" : "ml-auto"}>{handle}</div>}
       </header>
-      <div className={`min-h-0 flex-1 overflow-y-auto p-3 ${bodyClassName}`}>{children}</div>
+      <div className={`min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-3 ${bodyClassName}`}>{children}</div>
       {footer && <footer className="shrink-0 border-t p-3">{footer}</footer>}
     </section>
   );

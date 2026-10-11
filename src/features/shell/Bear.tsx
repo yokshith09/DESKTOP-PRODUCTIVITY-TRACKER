@@ -1,60 +1,260 @@
 import { useId } from "react";
 import { cn } from "@/lib/utils";
 
-export type BearPose = "idle" | "wave" | "sleep";
+/** Everything the bear can do. Reactions (src/pet/reactions.ts) pick one of these. */
+export const BEAR_POSES = ["idle", "wave", "sleep", "work", "cheer", "party", "catch", "worried", "ring", "toss"] as const;
+export type BearPose = (typeof BEAR_POSES)[number];
 
-/** Loaf the bear: a shaded SVG that reads as 3D. Shipped as a flat image in the pet window. */
-/** `animated` adds a slow breath and a blink (CSS transforms only; stops with reduced motion). */
+type Eyes = "open" | "happy" | "closed" | "down";
+type Mouth = "smile" | "open" | "worried";
+type Arms = "down" | "wave" | "up" | "hold" | "throw";
+type Prop = "laptop" | "card" | "bell" | "ball" | "confetti" | "zzz" | null;
+
+interface Look { eyes: Eyes; mouth: Mouth; arms: Arms; prop: Prop; body?: string; brows?: boolean }
+
+/** Face, arms and prop per pose. The body class is the whole-body motion (CSS, transforms only). */
+const LOOKS: Record<BearPose, Look> = {
+  idle: { eyes: "open", mouth: "smile", arms: "down", prop: null, body: "bear-breathe" },
+  wave: { eyes: "happy", mouth: "open", arms: "wave", prop: null, body: "bear-breathe" },
+  sleep: { eyes: "closed", mouth: "smile", arms: "down", prop: "zzz", body: "bear-breathe-slow" },
+  work: { eyes: "down", mouth: "smile", arms: "hold", prop: "laptop", body: "bear-breathe" },
+  cheer: { eyes: "happy", mouth: "open", arms: "up", prop: null, body: "bear-jump" },
+  party: { eyes: "happy", mouth: "open", arms: "up", prop: "confetti", body: "bear-jump bear-jump-twice" },
+  catch: { eyes: "open", mouth: "open", arms: "hold", prop: "card", body: "bear-catch" },
+  worried: { eyes: "open", mouth: "worried", arms: "down", prop: null, body: "bear-shake", brows: true },
+  ring: { eyes: "happy", mouth: "open", arms: "hold", prop: "bell", body: "bear-breathe" },
+  toss: { eyes: "happy", mouth: "smile", arms: "throw", prop: "ball", body: "bear-breathe" },
+};
+
+const CONFETTI = [
+  { x: 40, y: 40, dx: -38, dy: -30, c: "#F59E0B", r: 20 }, { x: 160, y: 40, dx: 36, dy: -34, c: "#22C55E", r: -30 },
+  { x: 60, y: 20, dx: -20, dy: -48, c: "#3B82F6", r: 45 }, { x: 140, y: 18, dx: 22, dy: -50, c: "#EC4899", r: -15 },
+  { x: 100, y: 10, dx: 2, dy: -56, c: "#F97316", r: 60 }, { x: 30, y: 80, dx: -46, dy: -8, c: "#A855F7", r: 10 },
+  { x: 170, y: 80, dx: 46, dy: -10, c: "#14B8A6", r: -50 },
+];
+
+/**
+ * Loaf the bear, drawn "soft 3D": one light from the top left, form shading toward the edges,
+ * a warm rim light on the shadow side, contact shadows where parts meet, and a blurred ground
+ * shadow. `animated` turns on the motion (CSS transforms only; reduced motion stops it).
+ */
 export function Bear({ pose = "idle", animated = false, className, style }: { pose?: BearPose; animated?: boolean; className?: string; style?: React.CSSProperties }) {
   const u = useId().replace(/:/g, "");
   const g = (name: string) => `${name}-${u}`;
   const url = (name: string) => `url(#${g(name)})`;
-  return (
-    <svg viewBox="0 0 200 200" role="img" aria-label="Loaf the bear" className={cn("overflow-visible", className)} style={style}>
-      <defs>
-        <radialGradient id={g("fur")} cx="35%" cy="25%" r="85%"><stop offset="0" stopColor="#F6D3A4" /><stop offset=".45" stopColor="#E0A163" /><stop offset="1" stopColor="#A9672F" /></radialGradient>
-        <radialGradient id={g("dark")} cx="35%" cy="25%" r="90%"><stop offset="0" stopColor="#E7B27A" /><stop offset="1" stopColor="#93561F" /></radialGradient>
-        <radialGradient id={g("belly")} cx="40%" cy="30%" r="80%"><stop offset="0" stopColor="#FFF1DA" /><stop offset="1" stopColor="#EBC391" /></radialGradient>
-        <radialGradient id={g("ear")} cx="40%" cy="35%" r="80%"><stop offset="0" stopColor="#FFC2B8" /><stop offset="1" stopColor="#D98476" /></radialGradient>
-        <radialGradient id={g("nose")} cx="35%" cy="30%" r="80%"><stop offset="0" stopColor="#6B4A3A" /><stop offset="1" stopColor="#241410" /></radialGradient>
-        <radialGradient id={g("eye")} cx="35%" cy="30%" r="80%"><stop offset="0" stopColor="#5B4036" /><stop offset="1" stopColor="#17100D" /></radialGradient>
-        <radialGradient id={g("gloss")} cx="30%" cy="20%" r="60%"><stop offset="0" stopColor="#fff" stopOpacity=".75" /><stop offset="1" stopColor="#fff" stopOpacity="0" /></radialGradient>
-      </defs>
-      <ellipse cx="100" cy="188" rx="62" ry="7" fill="#000" opacity=".25" />
-      <g className={animated ? "bear-breathe" : undefined}>
-      <ellipse cx="70" cy="178" rx="19" ry="12" fill={url("dark")} />
-      <ellipse cx="130" cy="178" rx="19" ry="12" fill={url("dark")} />
-      <ellipse cx="70" cy="180" rx="9" ry="6" fill={url("ear")} opacity=".8" />
-      <ellipse cx="130" cy="180" rx="9" ry="6" fill={url("ear")} opacity=".8" />
-      <ellipse cx="100" cy="140" rx="56" ry="46" fill={url("fur")} />
-      <ellipse cx="100" cy="148" rx="33" ry="30" fill={url("belly")} />
-      <ellipse cx="82" cy="118" rx="22" ry="12" fill={url("gloss")} opacity=".5" />
-      <g><ellipse cx="50" cy="140" rx="14" ry="25" transform="rotate(14 50 140)" fill={url("dark")} /><ellipse cx="46" cy="130" rx="6" ry="10" fill={url("gloss")} opacity=".6" /></g>
-      <g
-        style={pose === "wave" ? { transformOrigin: "142px 122px", transform: "rotate(-130deg)" } : undefined}
-        className={pose === "wave" ? "bear-wave" : undefined}
-      >
-        <ellipse cx="150" cy="140" rx="14" ry="25" transform="rotate(-14 150 140)" fill={url("dark")} /><ellipse cx="146" cy="130" rx="6" ry="10" fill={url("gloss")} opacity=".6" />
+  const look = LOOKS[pose];
+  const anim = (cls: string | undefined) => (animated ? cls : undefined);
+  const arm = (side: "l" | "r") => {
+    const cx = side === "l" ? 50 : 150;
+    const tilt = side === "l" ? 14 : -14;
+    const shoulder = side === "l" ? "58px 122px" : "142px 122px";
+    const sign = side === "l" ? 1 : -1;
+    const angle = (() => {
+      switch (look.arms) {
+        case "up": return 120 * sign;
+        case "hold": return -38 * sign;
+        case "wave": return side === "r" ? -130 : 0;
+        case "throw": return side === "r" ? -110 : 0;
+        default: return 0;
+      }
+    })();
+    const cls = look.arms === "wave" && side === "r" ? "bear-wave"
+      : look.arms === "up" ? (side === "l" ? "bear-arm-up-l" : "bear-arm-up-r")
+      : look.arms === "hold" && pose === "work" ? "bear-type"
+      : look.arms === "throw" && side === "r" ? "bear-throw" : undefined;
+    return (
+      <g style={angle ? { transformOrigin: shoulder, transform: `rotate(${angle}deg)` } : { transformOrigin: shoulder }} className={anim(cls)}>
+        <ellipse cx={cx} cy="140" rx="14" ry="25" transform={`rotate(${tilt} ${cx} 140)`} fill={url("dark")} />
+        <ellipse cx={cx} cy="140" rx="14" ry="25" transform={`rotate(${tilt} ${cx} 140)`} fill={url("shade")} />
+        <ellipse cx={cx - 4} cy="129" rx="5.5" ry="10" transform={`rotate(${tilt} ${cx} 140)`} fill={url("gloss")} opacity=".55" />
+        <ellipse cx={cx + sign * -2} cy="160" rx="8" ry="6" fill={url("pad")} opacity=".9" transform={`rotate(${tilt} ${cx} 140)`} />
       </g>
-      <circle cx="54" cy="36" r="20" fill={url("dark")} /><circle cx="54" cy="38" r="11" fill={url("ear")} />
-      <circle cx="146" cy="36" r="20" fill={url("dark")} /><circle cx="146" cy="38" r="11" fill={url("ear")} />
-      <ellipse cx="100" cy="80" rx="60" ry="52" fill={url("fur")} />
-      <path d="M78 36 q6 -5 10 1 M95 31 q6 -5 10 0 M112 36 q6 -5 10 1" fill="none" stroke="#B97A3E" strokeWidth="3" strokeLinecap="round" opacity=".55" />
-      <ellipse cx="78" cy="52" rx="30" ry="15" fill={url("gloss")} />
-      <ellipse cx="64" cy="94" rx="10" ry="6.5" fill="#FF8F86" opacity=".45" /><ellipse cx="136" cy="94" rx="10" ry="6.5" fill="#FF8F86" opacity=".45" />
-      <ellipse cx="100" cy="95" rx="26" ry="19" fill={url("belly")} />
-      {pose === "sleep" ? (
-        <g fill="none" stroke="#3A2620" strokeWidth="3.5" strokeLinecap="round"><path d="M68 74 q9 8 18 0" /><path d="M114 74 q9 8 18 0" /></g>
-      ) : (
-        <g className={animated ? "bear-blink" : undefined}>
-          <ellipse cx="77" cy="72" rx="8" ry="9" fill={url("eye")} /><ellipse cx="123" cy="72" rx="8" ry="9" fill={url("eye")} />
-          <circle cx="74.5" cy="68.5" r="3.2" fill="#fff" /><circle cx="120.5" cy="68.5" r="3.2" fill="#fff" />
-          <circle cx="80" cy="76" r="1.6" fill="#fff" opacity=".8" /><circle cx="126" cy="76" r="1.6" fill="#fff" opacity=".8" />
+    );
+  };
+
+  return (
+    <svg viewBox="0 0 200 200" role="img" aria-label={`Loaf the bear (${pose})`} className={cn("overflow-visible", className)} style={style}>
+      <defs>
+        <radialGradient id={g("fur")} cx="34%" cy="24%" r="88%"><stop offset="0" stopColor="#F8DAB0" /><stop offset=".42" stopColor="#E3A465" /><stop offset=".85" stopColor="#B4702F" /><stop offset="1" stopColor="#8C5221" /></radialGradient>
+        <radialGradient id={g("dark")} cx="34%" cy="24%" r="92%"><stop offset="0" stopColor="#EBB880" /><stop offset=".6" stopColor="#B87634" /><stop offset="1" stopColor="#82491B" /></radialGradient>
+        {/* Form shading: clear in the middle, darker toward the far edge. */}
+        <radialGradient id={g("shade")} cx="38%" cy="30%" r="75%"><stop offset=".55" stopColor="#5A2E0E" stopOpacity="0" /><stop offset="1" stopColor="#5A2E0E" stopOpacity=".38" /></radialGradient>
+        {/* Rim light: warm bounce on the lower right edge. */}
+        <radialGradient id={g("rim")} cx="78%" cy="82%" r="40%"><stop offset=".6" stopColor="#FFD9A0" stopOpacity="0" /><stop offset=".92" stopColor="#FFD9A0" stopOpacity=".35" /><stop offset="1" stopColor="#FFD9A0" stopOpacity="0" /></radialGradient>
+        <radialGradient id={g("belly")} cx="40%" cy="28%" r="82%"><stop offset="0" stopColor="#FFF6E6" /><stop offset=".7" stopColor="#F1CE9E" /><stop offset="1" stopColor="#D9A86E" /></radialGradient>
+        <radialGradient id={g("ear")} cx="40%" cy="35%" r="80%"><stop offset="0" stopColor="#FFC9BE" /><stop offset="1" stopColor="#CF7A6C" /></radialGradient>
+        <radialGradient id={g("pad")} cx="40%" cy="35%" r="80%"><stop offset="0" stopColor="#F5B1A3" /><stop offset="1" stopColor="#B86A5C" /></radialGradient>
+        <radialGradient id={g("nose")} cx="35%" cy="30%" r="80%"><stop offset="0" stopColor="#7A5545" /><stop offset="1" stopColor="#1E110C" /></radialGradient>
+        <radialGradient id={g("eye")} cx="35%" cy="30%" r="80%"><stop offset="0" stopColor="#6A4A3E" /><stop offset="1" stopColor="#120B08" /></radialGradient>
+        <radialGradient id={g("gloss")} cx="30%" cy="20%" r="60%"><stop offset="0" stopColor="#fff" stopOpacity=".8" /><stop offset="1" stopColor="#fff" stopOpacity="0" /></radialGradient>
+        <linearGradient id={g("metal")} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#E5E7EB" /><stop offset="1" stopColor="#9CA3AF" /></linearGradient>
+        <linearGradient id={g("gold")} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#FDE68A" /><stop offset=".6" stopColor="#F59E0B" /><stop offset="1" stopColor="#B45309" /></linearGradient>
+        <filter id={g("soft")} x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3.5" /></filter>
+        <filter id={g("ao")} x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5" /></filter>
+      </defs>
+
+      {/* Ground shadow: shrinks while the bear is in the air. */}
+      <ellipse cx="100" cy="189" rx="58" ry="7" fill="#000" opacity=".28" filter={url("soft")} className={anim(look.body?.includes("jump") ? `bear-shadow-jump${look.body.includes("twice") ? " bear-jump-twice" : ""}` : undefined)} />
+
+      <g className={anim(look.body)}>
+        {/* Feet */}
+        {[70, 130].map((x) => (
+          <g key={x}>
+            <ellipse cx={x} cy="178" rx="19" ry="12" fill={url("dark")} />
+            <ellipse cx={x} cy="178" rx="19" ry="12" fill={url("shade")} />
+            <ellipse cx={x} cy="181" rx="9" ry="5.5" fill={url("pad")} opacity=".85" />
+          </g>
+        ))}
+
+        {/* Body */}
+        <ellipse cx="100" cy="140" rx="56" ry="46" fill={url("fur")} />
+        <ellipse cx="100" cy="140" rx="56" ry="46" fill={url("shade")} />
+        <ellipse cx="100" cy="140" rx="56" ry="46" fill={url("rim")} />
+        <ellipse cx="100" cy="149" rx="33" ry="30" fill={url("belly")} />
+        <ellipse cx="86" cy="134" rx="14" ry="9" fill={url("gloss")} opacity=".5" />
+
+        {/* Props held in front of the belly sit under the paws. */}
+        {look.prop === "laptop" && (
+          <g>
+            <path d="M66 150 L134 150 L140 168 L60 168 Z" fill="#374151" />
+            <rect x="72" y="122" width="56" height="30" rx="3" fill="#1F2937" />
+            <rect x="75" y="125" width="50" height="24" rx="2" fill="#60A5FA" opacity=".85" className={anim("bear-screen")} />
+            <path d="M60 168 L140 168" stroke="#111827" strokeWidth="2" />
+            <circle cx="100" cy="137" r="3" fill="#E0F2FE" opacity=".9" />
+          </g>
+        )}
+        {look.prop === "card" && (
+          <g className={anim("bear-card-in")}>
+            <rect x="76" y="126" width="48" height="34" rx="5" fill="#FFFDF7" stroke="#E5D3B3" />
+            <path d="M84 137 h32 M84 145 h24 M84 152 h18" stroke="#C9B48F" strokeWidth="2.4" strokeLinecap="round" />
+            <circle cx="117" cy="152" r="5" fill="#22C55E" />
+          </g>
+        )}
+        {look.prop === "bell" && (
+          <g className={anim("bear-bell")} style={{ transformOrigin: "100px 120px" }}>
+            <path d="M100 120 c-14 0 -18 12 -18 24 l-5 8 h46 l-5 -8 c0 -12 -4 -24 -18 -24 z" fill={url("gold")} />
+            <ellipse cx="94" cy="132" rx="4" ry="7" fill="#fff" opacity=".45" />
+            <circle cx="100" cy="155" r="4.5" fill="#92400E" />
+            <circle cx="100" cy="119" r="3" fill="#B45309" />
+          </g>
+        )}
+
+        {look.arms !== "up" && arm("l")}
+        {look.arms !== "up" && arm("r")}
+
+        {look.prop === "ball" && (
+          <g className={anim("bear-ball")}>
+            <circle cx="166" cy="74" r="10" fill="#F5F5F4" stroke="#D6D3D1" />
+            <path d="M159 70 q6 4 13 -1 M160 79 q6 -3 12 2" stroke="#A8A29E" strokeWidth="1.5" fill="none" />
+          </g>
+        )}
+
+        {/* Contact shadow where the head meets the body. */}
+        <ellipse cx="100" cy="124" rx="44" ry="10" fill="#4A2508" opacity=".35" filter={url("ao")} />
+
+        {/* Head */}
+        <g className={anim(pose === "idle" ? "bear-head-tilt" : undefined)}>
+          {[54, 146].map((x) => (
+            <g key={x}>
+              <circle cx={x} cy="36" r="20" fill={url("dark")} />
+              <circle cx={x} cy="36" r="20" fill={url("shade")} />
+              <circle cx={x} cy="38.5" r="11" fill={url("ear")} />
+              <ellipse cx={x} cy="44" rx="8" ry="3" fill="#7A3B2E" opacity=".25" />
+            </g>
+          ))}
+          <ellipse cx="100" cy="80" rx="60" ry="52" fill={url("fur")} />
+          <ellipse cx="100" cy="80" rx="60" ry="52" fill={url("shade")} />
+          <ellipse cx="100" cy="80" rx="60" ry="52" fill={url("rim")} />
+          <path d="M78 36 q6 -5 10 1 M95 31 q6 -5 10 0 M112 36 q6 -5 10 1" fill="none" stroke="#B97A3E" strokeWidth="3" strokeLinecap="round" opacity=".5" />
+          <ellipse cx="76" cy="50" rx="30" ry="14" fill={url("gloss")} />
+          <ellipse cx="64" cy="95" rx="10" ry="6.5" fill="#FF8F86" opacity=".42" />
+          <ellipse cx="136" cy="95" rx="10" ry="6.5" fill="#FF8F86" opacity=".42" />
+
+          {/* Muzzle with a soft shadow under it. */}
+          <ellipse cx="100" cy="101" rx="25" ry="14" fill="#7A3F12" opacity=".28" filter={url("soft")} />
+          <ellipse cx="100" cy="96" rx="26" ry="19" fill={url("belly")} />
+
+          {/* Eyes */}
+          {look.eyes === "open" && (
+            <g className={anim("bear-blink")}>
+              {[77, 123].map((x) => (
+                <g key={x}>
+                  <ellipse cx={x} cy="72" rx="8.5" ry="9.5" fill={url("eye")} />
+                  <circle cx={x - 2.8} cy="68.2" r="3.4" fill="#fff" />
+                  <circle cx={x + 3} cy="76" r="1.6" fill="#fff" opacity=".8" />
+                </g>
+              ))}
+            </g>
+          )}
+          {look.eyes === "down" && (
+            <g className={anim("bear-blink")}>
+              {[77, 123].map((x) => (
+                <g key={x}>
+                  <ellipse cx={x} cy="75" rx="8" ry="8.5" fill={url("eye")} />
+                  <circle cx={x - 2.4} cy="77" r="2.8" fill="#fff" />
+                </g>
+              ))}
+            </g>
+          )}
+          {look.eyes === "happy" && (
+            <g fill="none" stroke="#2A1812" strokeWidth="3.6" strokeLinecap="round">
+              <path d="M68 75 q9 -11 18 0" /><path d="M114 75 q9 -11 18 0" />
+            </g>
+          )}
+          {look.eyes === "closed" && (
+            <g fill="none" stroke="#2A1812" strokeWidth="3.4" strokeLinecap="round">
+              <path d="M68 73 q9 8 18 0" /><path d="M114 73 q9 8 18 0" />
+            </g>
+          )}
+          {look.brows && (
+            <g fill="none" stroke="#6B3A16" strokeWidth="3" strokeLinecap="round">
+              <path d="M68 58 l15 -5" /><path d="M132 58 l-15 -5" />
+            </g>
+          )}
+
+          {/* Nose and mouth */}
+          <ellipse cx="100" cy="87" rx="9.5" ry="6.5" fill={url("nose")} />
+          <ellipse cx="97" cy="85" rx="3.6" ry="1.8" fill="#fff" opacity=".6" />
+          {look.mouth === "smile" && (
+            <path d="M100 93 v5 M100 98 q-7 7 -15 1 M100 98 q7 7 15 1" fill="none" stroke="#3A2620" strokeWidth="2.6" strokeLinecap="round" />
+          )}
+          {look.mouth === "open" && (
+            <g>
+              <path d="M100 93 v3" stroke="#3A2620" strokeWidth="2.6" strokeLinecap="round" />
+              <path d="M88 98 q12 16 24 0 z" fill="#7A2E24" stroke="#3A2620" strokeWidth="2.2" strokeLinejoin="round" />
+              <ellipse cx="100" cy="105" rx="5" ry="2.6" fill="#FF8F86" />
+            </g>
+          )}
+          {look.mouth === "worried" && (
+            <path d="M100 93 v4 M90 104 q5 -5 10 0 q5 5 10 0" fill="none" stroke="#3A2620" strokeWidth="2.6" strokeLinecap="round" />
+          )}
+          {pose === "worried" && (
+            <path d="M150 52 q6 10 0 14 q-6 -4 0 -14 z" fill="#93C5FD" stroke="#60A5FA" strokeWidth="1" className={anim("bear-sweat")} />
+          )}
+        </g>
+
+        {/* Raised arms are in front of the head. */}
+        {look.arms === "up" && arm("l")}
+        {look.arms === "up" && arm("r")}
+      </g>
+
+      {look.prop === "zzz" && (
+        <g fill="#94A3B8" fontWeight="700" fontFamily="system-ui, sans-serif">
+          <text x="150" y="40" fontSize="16" className={anim("bear-zzz")}>z</text>
+          <text x="162" y="24" fontSize="12" className={anim("bear-zzz bear-zzz-late")}>z</text>
         </g>
       )}
-      <ellipse cx="100" cy="86" rx="9.5" ry="6.5" fill={url("nose")} /><ellipse cx="97" cy="84" rx="3.5" ry="1.8" fill="#fff" opacity=".6" />
-      <path d="M100 92 v5 M100 97 q-7 7 -15 1 M100 97 q7 7 15 1" fill="none" stroke="#3A2620" strokeWidth="2.6" strokeLinecap="round" />
-      </g>
+      {look.prop === "confetti" && (
+        <g>
+          {CONFETTI.map((p, i) => (
+            <rect
+              key={i} x={p.x} y={p.y} width="7" height="4" rx="1" fill={p.c}
+              className={anim("bear-confetti")}
+              style={{ "--dx": `${p.dx}px`, "--dy": `${p.dy}px`, "--r": `${p.r}deg`, animationDelay: `${i * 40}ms` } as React.CSSProperties}
+            />
+          ))}
+        </g>
+      )}
     </svg>
   );
 }
