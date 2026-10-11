@@ -4,6 +4,10 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+### 2026-10-11 (release automation)
+- Changed: version bumped to **0.1.0** (package, Tauri, Cargo workspace); Settings › About now shows the real version.
+- Added: pushing a tag `v*` builds the Windows and macOS installers and creates a **draft GitHub Release** with them attached; a tag with a dash (`v0.1.0-rc1`) is a pre-release. Publishing is a manual click.
+
 ### 2026-10-11 (M1 build-out)
 - Merged: PR #1 into `main` (`3cdaa9e`).
 - Fixed: CI failed before 08:30 UTC because the frontend demo data depended on the time of day; fixed with a regression test (`3ed177f`). Also fixed a race that made the demo shell create two copies of itself.

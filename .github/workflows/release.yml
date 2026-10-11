@@ -4,6 +4,10 @@ name: Release build
 # downloadable artifacts. Run it by hand (Actions → "Release build" → Run workflow) or by pushing
 # a tag like v0.1.0. Nothing is published automatically.
 #
+# Pushing a tag also creates a DRAFT GitHub Release with the installers attached. Test them, then
+# open the draft on GitHub and press "Publish release". A tag with a dash (v0.1.0-rc1) is marked
+# as a pre-release; a plain tag (v0.1.0) is not. Nothing is published without that click.
+#
 # Signing is NOT set up yet: it needs the owner's certificates. Unsigned installers work, but
 # Windows SmartScreen and macOS Gatekeeper will warn. To sign, add the secrets listed below to the
 # repository and uncomment the `env` block.
@@ -52,3 +56,26 @@ jobs:
             target/release/bundle/dmg/*.dmg
             target/release/bundle/macos/*.app
           if-no-files-found: error
+
+  draft-release:
+    name: draft GitHub release
+    needs: installers
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Create the draft release with the installers
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          mapfile -t files < <(find dist -type f \( -name '*.exe' -o -name '*.msi' -o -name '*.dmg' \))
+          flags=(--draft --generate-notes)
+          case "$TAG" in *-*) flags+=(--prerelease);; esac
+          gh release create "$TAG" "${files[@]}" --repo "$REPO" --title "Loaf $TAG" "${flags[@]}"
