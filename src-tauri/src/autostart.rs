@@ -89,6 +89,10 @@ pub fn start<R: Runtime>(app: AppHandle<R>, settings: Arc<SettingsService>, bus:
                         }
                     }
                 }
+                // "Delete all data" returns Loaf to a first run: no login item either.
+                Recv::Event(Event::AllDataDeleted { .. }) => {
+                    let _ = app.autolaunch().disable();
+                }
                 Recv::Event(_) | Recv::Resync { .. } => {}
                 Recv::Closed => break,
             }

@@ -4,8 +4,11 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
+use loaf_core::clock::Clock;
 use loaf_core::daily_log::{self, DailyLog};
+use loaf_core::data;
 use loaf_core::error::{AppError, Result};
+use loaf_core::events::Event;
 use loaf_core::labels::{self, Label, LabelCount};
 use loaf_core::links;
 use loaf_core::notes::{self, BinNote, Note, NoteInput, NotePatch, NoteSort, NoteSummary};
@@ -18,6 +21,7 @@ use loaf_core::tasks::{
 use loaf_core::usage::{DomainSetting, TimeRange, TrackingStatus, UsageService, UsageSummary};
 use serde_json::Value;
 use tauri::{AppHandle, State};
+use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_opener::OpenerExt;
 
 use crate::tracking::Tracking;
@@ -398,6 +402,110 @@ pub async fn usage_record_domain(
     usage
         .record_domain_session(&browser, &domain, started_at, ended_at)
         .await
+}
+
+// ---- your data: export, import, delete all (F0-11) --------------------------------------------
+
+/// Where an export went.
+#[derive(serde::Serialize)]
+pub struct Exported {
+    pub path: String,
+    pub bytes: u64,
+}
+
+/// Ask where to save, then write everything there. `None` if the person cancelled the dialog.
+/// The path comes only from the system dialog, never from the webview.
+#[tauri::command]
+pub async fn data_export(app: AppHandle, core: State<'_, Core>) -> Result<Option<Exported>> {
+    let version = app.package_info().version.to_string();
+    let document = data::export(&core.db, &*core.clock, &version).await?;
+    let name = format!("loaf-export-{}.json", core.clock.today());
+    let picker = app.clone();
+    let chosen = tauri::async_runtime::spawn_blocking(move || {
+        picker
+            .dialog()
+            .file()
+            .set_file_name(&name)
+            .add_filter("Loaf export", &["json"])
+            .blocking_save_file()
+    })
+    .await
+    .map_err(|_| AppError::internal("The save dialog stopped unexpectedly."))?;
+    let Some(chosen) = chosen else {
+        return Ok(None);
+    };
+    let path = chosen
+        .into_path()
+        .map_err(|_| AppError::io("Loaf can't save to that place."))?;
+    let bytes = serde_json::to_vec_pretty(&document)
+        .map_err(|_| AppError::internal("Loaf couldn't write the export."))?;
+    let size = bytes.len() as u64;
+    let target = path.clone();
+    tauri::async_runtime::spawn_blocking(move || std::fs::write(target, bytes))
+        .await
+        .map_err(|_| AppError::internal("Saving stopped unexpectedly."))?
+        .map_err(|_| AppError::io("Loaf couldn't save the file there."))?;
+    let shown = path.to_string_lossy().into_owned();
+    core.bus.publish(Event::DataExported {
+        at: core.clock.now_ms(),
+        path: shown.clone(),
+        bytes: size,
+    });
+    Ok(Some(Exported {
+        path: shown,
+        bytes: size,
+    }))
+}
+
+/// Ask for an export file and restore it into an empty Loaf. `None` if the dialog was cancelled.
+#[tauri::command]
+pub async fn data_import(
+    app: AppHandle,
+    core: State<'_, Core>,
+) -> Result<Option<std::collections::BTreeMap<String, u64>>> {
+    const MAX_BYTES: u64 = 1 << 30;
+    let picker = app.clone();
+    let chosen = tauri::async_runtime::spawn_blocking(move || {
+        picker
+            .dialog()
+            .file()
+            .add_filter("Loaf export", &["json"])
+            .blocking_pick_file()
+    })
+    .await
+    .map_err(|_| AppError::internal("The open dialog stopped unexpectedly."))?;
+    let Some(chosen) = chosen else {
+        return Ok(None);
+    };
+    let path = chosen
+        .into_path()
+        .map_err(|_| AppError::io("Loaf can't open that file."))?;
+    let document = tauri::async_runtime::spawn_blocking(move || {
+        let size = std::fs::metadata(&path)?.len();
+        if size > MAX_BYTES {
+            return Ok(Err(AppError::validation(
+                "file",
+                "That file is too large to be a Loaf export.",
+            )));
+        }
+        let bytes = std::fs::read(&path)?;
+        Ok::<_, std::io::Error>(
+            serde_json::from_slice::<serde_json::Value>(&bytes)
+                .map_err(|_| AppError::validation("file", "That file isn't a Loaf export.")),
+        )
+    })
+    .await
+    .map_err(|_| AppError::internal("Reading stopped unexpectedly."))?
+    .map_err(|_| AppError::io("Loaf couldn't read that file."))??;
+    data::import(&core.db, &*core.clock, document)
+        .await
+        .map(Some)
+}
+
+/// Erase everything. `confirm` must be exactly `DELETE`.
+#[tauri::command]
+pub async fn data_delete_all(confirm: String, core: State<'_, Core>) -> Result<()> {
+    data::delete_all(&core.db, &*core.clock, &confirm).await
 }
 
 // ---- links ----------------------------------------------------------------------------------
