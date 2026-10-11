@@ -95,6 +95,8 @@ pub fn run() {
         ))
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
+        // Only used from Rust: the file dialogs for export and import. The webview never gets a path.
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             ipc::settings_get_all,
             ipc::setting_set,
@@ -143,6 +145,9 @@ pub fn run() {
             ipc::domain_set_tracked,
             ipc::domain_set_category,
             ipc::usage_record_domain,
+            ipc::data_export,
+            ipc::data_import,
+            ipc::data_delete_all,
             ipc::open_url,
         ])
         .on_window_event(|window, event| {

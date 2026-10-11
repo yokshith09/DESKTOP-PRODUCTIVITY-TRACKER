@@ -114,6 +114,27 @@ impl Database {
             .map_err(|_| AppError::internal("Loaf stopped before that change finished."))?
     }
 
+    /// Reclaim the space of deleted rows and fold the write-ahead log into the main file, on the
+    /// writer thread (so it runs after every queued write). Used after "Delete all data", so the
+    /// deleted text is not left behind in the file.
+    pub async fn compact(&self) -> Result<()> {
+        let (reply, answer) = oneshot::channel();
+        let job: Job = Box::new(move |conn, _bus, _commits| {
+            let result = conn
+                .execute_batch("VACUUM; PRAGMA wal_checkpoint(TRUNCATE);")
+                .map_err(AppError::from);
+            let _ = reply.send(result);
+        });
+        let sender = lock(&self.writer).clone();
+        match sender {
+            Some(tx) if tx.send(Message::Run(job)).is_ok() => {}
+            _ => return Err(shutting_down()),
+        }
+        answer
+            .await
+            .map_err(|_| AppError::internal("Loaf stopped before that finished."))?
+    }
+
     /// Run `f` on a read-only connection. At most two reads run at once.
     pub async fn read<T, F>(&self, f: F) -> Result<T>
     where
