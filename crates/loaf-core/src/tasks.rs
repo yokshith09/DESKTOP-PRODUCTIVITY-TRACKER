@@ -237,26 +237,36 @@ pub struct TaskPatch {
     pub note_id: Option<Option<String>>,
 }
 
-/// What the Today editor sends: the whole editable state of a task, so a cleared field means
-/// "clear it". Converted to a [`TaskPatch`] that sets every field.
+/// What the task editors send: the whole editable state of a task, so a cleared field means
+/// "clear it". Converted to a [`TaskPatch`] that sets every field. Status is not here; use
+/// [`transition`]. An empty project becomes "no project".
 #[derive(Debug, Clone, Default, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export, optional_fields = nullable))]
 #[serde(default)]
 pub struct TaskEdit {
     pub title: String,
+    pub description: String,
+    pub project: Option<String>,
     pub priority: Option<Priority>,
     pub planned_date: Option<NaiveDate>,
     pub due_date: Option<NaiveDate>,
+    pub note_id: Option<String>,
 }
 
 impl From<TaskEdit> for TaskPatch {
     fn from(e: TaskEdit) -> Self {
+        let project = e
+            .project
+            .map(|p| p.trim().to_owned())
+            .filter(|p| !p.is_empty());
         Self {
             title: Some(e.title),
+            description: Some(e.description),
+            project: Some(project),
             priority: Some(e.priority),
             planned_date: Some(e.planned_date),
             due_date: Some(e.due_date),
-            ..Self::default()
+            note_id: Some(e.note_id),
         }
     }
 }
@@ -388,6 +398,7 @@ fn date_text(d: Option<NaiveDate>) -> Option<String> {
     d.map(|d| d.to_string())
 }
 
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TaskEvent {
     pub kind: String,
@@ -395,6 +406,7 @@ pub struct TaskEvent {
     pub to_status: Option<String>,
     pub from_date: Option<String>,
     pub to_date: Option<String>,
+    #[cfg_attr(feature = "ts", ts(type = "number"))]
     pub at: i64,
     pub local_date: String,
 }
@@ -641,6 +653,100 @@ pub async fn delete(db: &Database, clock: &dyn Clock, id: &str) -> Result<()> {
         }
         tx.execute("DELETE FROM tasks WHERE id = ?1", [&id])?;
         Ok(((), vec![Event::TaskDeleted { at: now, id }]))
+    })
+    .await
+}
+
+// ---- work updates (R1-25) ------------------------------------------------------------------
+
+pub const WORK_UPDATE_MAX: usize = 5_000;
+/// A work update can be deleted for this long after it was written; after that it is permanent.
+pub const WORK_UPDATE_DELETE_WINDOW_MS: i64 = 5 * 60 * 1_000;
+
+/// A short, timestamped progress note on a task. Append-only: there is no edit.
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct WorkUpdate {
+    pub id: String,
+    pub task_id: String,
+    pub body: String,
+    #[cfg_attr(feature = "ts", ts(type = "number"))]
+    pub created_at: i64,
+}
+
+pub async fn add_work_update(
+    db: &Database,
+    clock: &dyn Clock,
+    task_id: &str,
+    body: &str,
+) -> Result<WorkUpdate> {
+    let body = body.trim();
+    match body.chars().count() {
+        0 => return Err(AppError::validation("body", "Write a short update first.")),
+        n if n > WORK_UPDATE_MAX => {
+            return Err(AppError::validation(
+                "body",
+                format!("Updates can be up to {WORK_UPDATE_MAX} characters."),
+            ))
+        }
+        _ => {}
+    }
+    let (task_id, body, now) = (task_id.to_owned(), body.to_owned(), clock.now_ms());
+    db.write(move |tx| {
+        let task = load(tx, &task_id)?;
+        let update = WorkUpdate {
+            id: new_id(),
+            task_id: task_id.clone(),
+            body,
+            created_at: now,
+        };
+        tx.execute(
+            "INSERT INTO task_work_updates (id, task_id, body, created_at) VALUES (?1, ?2, ?3, ?4)",
+            params![update.id, update.task_id, update.body, update.created_at],
+        )?;
+        Ok((update, vec![Event::TaskUpdated { at: now, task }]))
+    })
+    .await
+}
+
+/// Newest first.
+pub async fn work_updates(db: &Database, task_id: &str) -> Result<Vec<WorkUpdate>> {
+    let task_id = task_id.to_owned();
+    db.read(move |conn| {
+        load(conn, &task_id)?;
+        let mut stmt = conn.prepare(
+            "SELECT id, task_id, body, created_at FROM task_work_updates WHERE task_id = ?1 ORDER BY created_at DESC, id DESC",
+        )?;
+        let rows = stmt
+            .query_map([&task_id], |r| Ok(WorkUpdate { id: r.get(0)?, task_id: r.get(1)?, body: r.get(2)?, created_at: r.get(3)? }))?
+            .collect::<rusqlite::Result<Vec<_>>>()?;
+        Ok(rows)
+    })
+    .await
+}
+
+/// Only within [`WORK_UPDATE_DELETE_WINDOW_MS`] of writing it.
+pub async fn delete_work_update(db: &Database, clock: &dyn Clock, id: &str) -> Result<()> {
+    let (id, now) = (id.to_owned(), clock.now_ms());
+    db.write(move |tx| {
+        let found: Option<(String, i64)> = tx
+            .query_row(
+                "SELECT task_id, created_at FROM task_work_updates WHERE id = ?1",
+                [&id],
+                |r| Ok((r.get(0)?, r.get(1)?)),
+            )
+            .optional()?;
+        let Some((task_id, created_at)) = found else {
+            return Err(AppError::not_found("That update no longer exists."));
+        };
+        if now - created_at > WORK_UPDATE_DELETE_WINDOW_MS {
+            return Err(AppError::conflict(
+                "Updates can only be deleted in the first 5 minutes.",
+            ));
+        }
+        tx.execute("DELETE FROM task_work_updates WHERE id = ?1", [&id])?;
+        let task = load(tx, &task_id)?;
+        Ok(((), vec![Event::TaskUpdated { at: now, task }]))
     })
     .await
 }
@@ -1398,6 +1504,128 @@ mod tests {
         .await
         .unwrap();
         assert_eq!((cleared.priority, cleared.due_date), (None, None));
+    }
+
+    #[tokio::test]
+    async fn work_updates_are_newest_first_and_deletable_for_five_minutes() {
+        let f = setup();
+        let task = create(&f.db, &f.clock, titled("ship")).await.unwrap();
+        let first = add_work_update(&f.db, &f.clock, &task.id, "  started  ")
+            .await
+            .unwrap();
+        assert_eq!(first.body, "started", "trimmed");
+        f.clock.advance_ms(60_000);
+        let second = add_work_update(&f.db, &f.clock, &task.id, "half way")
+            .await
+            .unwrap();
+        let listed = work_updates(&f.db, &task.id).await.unwrap();
+        assert_eq!(
+            listed.iter().map(|u| u.body.as_str()).collect::<Vec<_>>(),
+            ["half way", "started"]
+        );
+
+        // Four minutes after the first one: still deletable.
+        f.clock.advance_ms(3 * 60_000);
+        delete_work_update(&f.db, &f.clock, &first.id)
+            .await
+            .unwrap();
+        // Six minutes after the second: too late.
+        f.clock.advance_ms(5 * 60_000 + 1);
+        let late = delete_work_update(&f.db, &f.clock, &second.id)
+            .await
+            .unwrap_err();
+        assert_eq!(late.code, ErrorCode::Conflict);
+        assert_eq!(work_updates(&f.db, &task.id).await.unwrap().len(), 1);
+    }
+
+    #[tokio::test]
+    async fn work_updates_reject_empty_long_and_unknown() {
+        let f = setup();
+        let task = create(&f.db, &f.clock, titled("x")).await.unwrap();
+        assert_eq!(
+            add_work_update(&f.db, &f.clock, &task.id, "   ")
+                .await
+                .unwrap_err()
+                .code,
+            ErrorCode::Validation
+        );
+        let long = "a".repeat(WORK_UPDATE_MAX + 1);
+        assert_eq!(
+            add_work_update(&f.db, &f.clock, &task.id, &long)
+                .await
+                .unwrap_err()
+                .code,
+            ErrorCode::Validation
+        );
+        assert_eq!(
+            add_work_update(&f.db, &f.clock, "nope", "hi")
+                .await
+                .unwrap_err()
+                .code,
+            ErrorCode::NotFound
+        );
+        assert_eq!(
+            delete_work_update(&f.db, &f.clock, "nope")
+                .await
+                .unwrap_err()
+                .code,
+            ErrorCode::NotFound
+        );
+    }
+
+    #[tokio::test]
+    async fn work_updates_go_with_the_task() {
+        let f = setup();
+        let task = create(&f.db, &f.clock, titled("done soon")).await.unwrap();
+        add_work_update(&f.db, &f.clock, &task.id, "note")
+            .await
+            .unwrap();
+        transition(&f.db, &f.clock, &task.id, Completed)
+            .await
+            .unwrap();
+        delete(&f.db, &f.clock, &task.id).await.unwrap();
+        assert_eq!(
+            work_updates(&f.db, &task.id).await.unwrap_err().code,
+            ErrorCode::NotFound
+        );
+    }
+
+    #[tokio::test]
+    async fn the_editor_can_set_description_project_and_clear_them() {
+        let f = setup();
+        let task = create(&f.db, &f.clock, titled("plan")).await.unwrap();
+        let set = update(
+            &f.db,
+            &f.clock,
+            &task.id,
+            TaskEdit {
+                title: "plan".into(),
+                description: "details".into(),
+                project: Some("  Loaf ".into()),
+                ..Default::default()
+            }
+            .into(),
+        )
+        .await
+        .unwrap();
+        assert_eq!(
+            (set.description.as_str(), set.project.as_deref()),
+            ("details", Some("Loaf"))
+        );
+        let cleared = update(
+            &f.db,
+            &f.clock,
+            &task.id,
+            TaskEdit {
+                title: "plan".into(),
+                project: Some("   ".into()),
+                ..Default::default()
+            }
+            .into(),
+        )
+        .await
+        .unwrap();
+        assert_eq!((cleared.description.as_str(), cleared.project), ("", None));
     }
 
     #[tokio::test]

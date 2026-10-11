@@ -24,6 +24,10 @@ export default defineConfig(({ mode }) => ({
   test: {
     environment: "jsdom",
     include: ["src/**/*.test.{ts,tsx}"],
-    coverage: { provider: "v8", include: ["src/**"], exclude: ["src/**/*.test.{ts,tsx}"] },
+    coverage: {
+      provider: "v8", include: ["src/**"], exclude: ["src/**/*.test.{ts,tsx}", "src/ipc/generated/**"],
+      // The floor (G6). Measured 2026-10-11: lines 88, branches 80, functions 65. Raise it as it grows; never lower it to pass.
+      thresholds: { lines: 80, statements: 80, branches: 70, functions: 55 },
+    },
   },
 }));

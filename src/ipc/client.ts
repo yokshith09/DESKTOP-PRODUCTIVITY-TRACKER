@@ -1,8 +1,8 @@
 // Typed IPC client (F0-07): the only place that knows command names and argument shapes.
 import { call } from "./transport";
 import type {
-  UsageSummary, TimeRange, TrackingStatus, BinNote, DailyLog, Reminder, ReminderInput, ReminderPatch, Label, LabelCount, Note, NoteInput, NotePatch, NoteSort, NoteSummary, Task, TaskEdit, TaskRow,
-  TaskStatus, TaskView,
+  UsageSummary, TimeRange, TrackingStatus, BinNote, DailyLog, Reminder, ReminderInput, ReminderPatch, Label, LabelCount, Note, NoteInput, NotePatch, NoteSort, NoteSummary, Task, TaskEdit, TaskEvent, TaskFilters, TaskRow,
+  TaskStatus, TaskView, WorkUpdate,
 } from "./types";
 import type { Settings, SettingsKey } from "./settings";
 
@@ -40,7 +40,7 @@ export const ipc = {
   labelRename: (id: string, name: string) => call<Label>("label_rename", { id, name }),
   labelDelete: (id: string) => call<unknown>("label_delete", { id }),
 
-  tasksQuery: (view: TaskView) => call<TaskRow[]>("tasks_query", { view }),
+  tasksQuery: (view: TaskView, filters?: TaskFilters) => call<TaskRow[]>("tasks_query", { view, filters: filters ?? null }),
   taskQuickAdd: (title: string) => call<Task>("task_quick_add", { title }),
   dailyLogGet: (date: string) => call<DailyLog | null>("daily_log_get", { date }),
   usageSummary: (from: number, to: number) => call<UsageSummary>("usage_summary", { from, to }),
@@ -50,5 +50,17 @@ export const ipc = {
   usageDelete: (from: number | null, to: number | null) => call<unknown>("usage_delete", { from, to }),
   openUrl: (url: string) => call<unknown>("open_url", { url }),
   taskUpdate: (id: string, edit: TaskEdit) => call<Task>("task_update", { id, edit }),
+  taskGet: (id: string) => call<Task>("task_get", { id }),
+  taskHistory: (id: string) => call<TaskEvent[]>("task_history", { id }),
+  taskDefer: (id: string, to: string) => call<Task>("task_defer", { id, to }),
+  taskDelete: (id: string) => call<unknown>("task_delete", { id }),
+  workUpdatesList: (taskId: string) => call<WorkUpdate[]>("work_updates_list", { taskId }),
+  workUpdateAdd: (taskId: string, body: string) => call<WorkUpdate>("work_update_add", { taskId, body }),
+  workUpdateDelete: (id: string) => call<unknown>("work_update_delete", { id }),
+  /** Opens the system "save" dialog and writes the export there. `null` if cancelled. */
+  dataExport: () => call<{ path: string; bytes: number } | null>("data_export"),
+  /** Opens the system "open" dialog and restores that export into an empty Loaf. `null` if cancelled. */
+  dataImport: () => call<Record<string, number> | null>("data_import"),
+  dataDeleteAll: (confirm: string) => call<unknown>("data_delete_all", { confirm }),
   taskTransition: (id: string, to: TaskStatus) => call<Task>("task_transition", { id, to }),
 };

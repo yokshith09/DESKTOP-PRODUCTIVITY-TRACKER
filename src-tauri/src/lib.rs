@@ -1,6 +1,7 @@
 //! Loaf desktop shell. Thin by design: windows, tray and OS integration live
 //! here; logic lives in `loaf-core` (ADR-002).
 
+mod autostart;
 mod ipc;
 mod tracking;
 mod tray;
@@ -81,11 +82,21 @@ fn forward_events(app: AppHandle, bus: &EventBus) {
 pub fn run() {
     let app = tauri::Builder::default()
         // A second launch focuses the existing window and exits (R0-01).
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-            tray::show_main(app);
+        .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
+            // A second login-item launch (`--hidden`) must not pop the window up.
+            if !autostart::is_hidden_launch(&args) {
+                tray::show_main(app);
+            }
         }))
+        // F0-09: the login item starts Loaf with `--hidden` (quiet start in the tray).
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            Some(vec![autostart::HIDDEN_FLAG]),
+        ))
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
+        // Only used from Rust: the file dialogs for export and import. The webview never gets a path.
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             ipc::settings_get_all,
             ipc::setting_set,
@@ -117,6 +128,13 @@ pub fn run() {
             ipc::task_quick_add,
             ipc::task_transition,
             ipc::task_update,
+            ipc::task_get,
+            ipc::task_history,
+            ipc::task_defer,
+            ipc::task_delete,
+            ipc::work_updates_list,
+            ipc::work_update_add,
+            ipc::work_update_delete,
             ipc::daily_log_get,
             ipc::usage_summary,
             ipc::usage_app_sessions,
@@ -127,6 +145,9 @@ pub fn run() {
             ipc::domain_set_tracked,
             ipc::domain_set_category,
             ipc::usage_record_domain,
+            ipc::data_export,
+            ipc::data_import,
+            ipc::data_delete_all,
             ipc::open_url,
         ])
         .on_window_event(|window, event| {
@@ -179,7 +200,7 @@ pub fn run() {
                     }
                 });
                 // App tracking is opt-in: this only starts the OS source if `tracking.apps` is on.
-                let tracking = tracking::start(usage_service, settings, dyn_clock.clone(), &bus)
+                let tracking = tracking::start(usage_service, settings.clone(), dyn_clock.clone(), &bus)
                     .unwrap_or_else(|_unsupported| tracking::Tracking::unsupported());
                 let day = Scheduler::spawn(dyn_clock, DbLastSeen(db.clone()), bus.clone());
                 (Background { day, reminders }, tracking)
@@ -189,6 +210,11 @@ pub fn run() {
             app.manage(tracking);
 
             tray::setup_tray(app.handle(), &tray::MenuRegistry::base(), quit)?;
+            autostart::start(app.handle().clone(), settings.clone(), &bus);
+            // The window is created hidden; a normal launch shows it, a login launch does not.
+            if !autostart::is_hidden_launch(std::env::args()) {
+                tray::show_main(app.handle());
+            }
             Ok(())
         })
         .build(tauri::generate_context!())

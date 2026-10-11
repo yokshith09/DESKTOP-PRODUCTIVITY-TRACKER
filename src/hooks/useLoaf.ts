@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { daysAgo, ymd } from "@/lib/dates";
-import { errorMessage, ipc, onEvent, type NoteInput, type NotePatch, type NoteSort, type TaskEdit, type TaskStatus } from "@/ipc";
+import { errorMessage, ipc, onEvent, type NoteInput, type NotePatch, type NoteSort, type TaskEdit, type TaskFilters, type TaskStatus, type TaskView } from "@/ipc";
 
 export const keys = {
   notes: (archived: boolean, labelId: string | null, sort: NoteSort) => ["notes", archived, labelId, sort] as const,
@@ -22,7 +22,8 @@ export function useBusSync() {
   useEffect(
     () =>
       onEvent((e) => {
-        if (e.type === "ResyncRequired") return void qc.invalidateQueries();
+        // Importing or erasing replaces everything: refetch it all (and the settings with it).
+        if (e.type === "ResyncRequired" || e.type === "DataImported" || e.type === "AllDataDeleted") return void qc.invalidateQueries();
         if (e.type === "ReminderDue") {
           const r = e.reminder as { title?: string } | undefined;
           toast(r?.title ?? "Reminder", { description: "Reminder is due" });
@@ -39,7 +40,10 @@ export function useBusSync() {
         if (e.type.startsWith("Task") || e.type.startsWith("Note") || e.type === "DayRolledOver" || e.type === "DailyLogFrozen") {
           void qc.invalidateQueries({ queryKey: ["log"] });
         }
-        if (e.type.startsWith("Task")) void qc.invalidateQueries({ queryKey: ["tasks"] });
+        if (e.type.startsWith("Task")) {
+          void qc.invalidateQueries({ queryKey: ["tasks"] });
+          void qc.invalidateQueries({ queryKey: ["task"] });
+        }
         if (e.type === "SettingChanged") void qc.invalidateQueries({ queryKey: keys.settings });
       }),
     [qc],
@@ -64,6 +68,14 @@ export const useReminders = (includeDone = false) =>
   useQuery({ queryKey: [...keys.reminders, includeDone], queryFn: () => ipc.remindersList(includeDone) });
 export const useLabels = () => useQuery({ queryKey: keys.labels, queryFn: ipc.labelsList });
 export const useTodayTasks = () => useQuery({ queryKey: keys.tasks, queryFn: () => ipc.tasksQuery("today") });
+export const useTasksQuery = (view: TaskView, filters?: TaskFilters) =>
+  useQuery({ queryKey: ["tasks", "view", view, filters ?? null], queryFn: () => ipc.tasksQuery(view, filters) });
+export const useTask = (id: string | null) =>
+  useQuery({ queryKey: ["task", id], queryFn: () => ipc.taskGet(id ?? ""), enabled: id !== null });
+export const useTaskHistory = (id: string | null) =>
+  useQuery({ queryKey: ["task", "history", id], queryFn: () => ipc.taskHistory(id ?? ""), enabled: id !== null });
+export const useWorkUpdates = (id: string | null) =>
+  useQuery({ queryKey: ["task", "updates", id], queryFn: () => ipc.workUpdatesList(id ?? ""), enabled: id !== null });
 export const useUpcomingTasks = () => useQuery({ queryKey: ["tasks", "upcoming"], queryFn: () => ipc.tasksQuery("upcoming") });
 export const useTrackingStatus = () => useQuery({ queryKey: ["tracking", "status"], queryFn: ipc.trackingStatus });
 export const useUsage = (from: number, to: number) =>
@@ -93,6 +105,8 @@ export function useNoteActions() {
   const emptyBin = useAction(() => ipc.binEmpty(), NOTE_KEYS);
   const discard = useAction((id: string) => ipc.noteDiscardIfEmpty(id), NOTE_KEYS);
   const createLabel = useAction((name: string) => ipc.labelCreate(name), [["labels"]]);
+  const renameLabel = useAction((id: string, name: string) => ipc.labelRename(id, name), NOTE_KEYS);
+  const deleteLabel = useAction((id: string) => ipc.labelDelete(id), NOTE_KEYS);
   return {
     create: (input: NoteInput = {}) => create.mutateAsync([input]),
     update: (id: string, patch: NotePatch) => update.mutateAsync([id, patch]),
@@ -108,17 +122,29 @@ export function useNoteActions() {
     emptyBin: () => emptyBin.mutateAsync([]),
     discardIfEmpty: (id: string) => discard.mutateAsync([id]),
     createLabel: (name: string) => createLabel.mutateAsync([name]),
+    renameLabel: (id: string, name: string) => renameLabel.mutateAsync([id, name]),
+    deleteLabel: (id: string) => deleteLabel.mutateAsync([id]),
   };
 }
 
 export function useTaskActions() {
-  const quickAdd = useAction((title: string) => ipc.taskQuickAdd(title), [["tasks"]]);
-  const move = useAction((id: string, to: TaskStatus) => ipc.taskTransition(id, to), [["tasks"]]);
-  const update = useAction((id: string, edit: TaskEdit) => ipc.taskUpdate(id, edit), [["tasks"]]);
+  const refresh = [["tasks"], ["task"]] as const;
+  const quickAdd = useAction((title: string) => ipc.taskQuickAdd(title), refresh);
+  const move = useAction((id: string, to: TaskStatus) => ipc.taskTransition(id, to), refresh);
+  const update = useAction((id: string, edit: TaskEdit) => ipc.taskUpdate(id, edit), refresh);
+  const defer = useAction((id: string, to: string) => ipc.taskDefer(id, to), refresh);
+  const remove = useAction((id: string) => ipc.taskDelete(id), refresh);
+  const addUpdate = useAction((id: string, body: string) => ipc.workUpdateAdd(id, body), refresh);
+  const removeUpdate = useAction((id: string) => ipc.workUpdateDelete(id), refresh);
   return {
     update: (id: string, edit: TaskEdit) => update.mutateAsync([id, edit]),
     quickAdd: (title: string) => quickAdd.mutateAsync([title]),
+    transition: (id: string, to: TaskStatus) => move.mutateAsync([id, to]),
     setDone: (id: string, done: boolean) => move.mutateAsync([id, done ? "COMPLETED" : "PLANNED"]),
+    defer: (id: string, to: string) => defer.mutateAsync([id, to]),
+    remove: (id: string) => remove.mutateAsync([id]),
+    addUpdate: (id: string, body: string) => addUpdate.mutateAsync([id, body]),
+    removeUpdate: (id: string) => removeUpdate.mutateAsync([id]),
   };
 }
 

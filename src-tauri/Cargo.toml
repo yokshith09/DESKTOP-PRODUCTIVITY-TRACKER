@@ -23,6 +23,8 @@ chrono = { version = "0.4", default-features = false, features = ["std"] }
 tauri-plugin-single-instance = "2"
 tauri-plugin-notification = "2"
 tauri-plugin-opener = "2"
+tauri-plugin-autostart = "2"
+tauri-plugin-dialog = "2"
 tracing = "0.1"
 
 # The Windows foreground-app collector (src/tracking.rs). Only the features it calls.

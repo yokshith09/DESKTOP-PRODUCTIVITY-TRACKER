@@ -16,7 +16,7 @@ Everything else is reference — open it when a feature needs it:
 
 **Rule from here:** this file tracks plan and status. Evidence for every status is in [`PROJECT_STATUS.md`](PROJECT_STATUS.md). Scope or design changes are one line in [`DECISIONS.md`](DECISIONS.md); a locked document is amended only if it would otherwise contradict the code.
 
-**Last audited:** 2026-10-11 against branch `claude/repo-context-review-trprp8` @ `86b18f0`. Status words (Complete, Unverified, Partial, Planned…) are defined in PROJECT_STATUS §2. **Unverified** means it compiles and CI is green but nobody has run it on a real machine.
+**Last updated:** 2026-10-11, after the M1 build-out (branch `claude/repo-context-review-trprp8`, PR #2). Status words (Complete, Unverified, Partial, Planned…) are defined in PROJECT_STATUS §2. **Unverified** means it compiles and CI is green but nobody has run it on a real machine.
 
 ---
 
@@ -37,12 +37,12 @@ Full text: [`docs/01-build-principles/`](docs/01-build-principles/README.md).
 
 ## 2. Milestones (release order)
 
-The first release is **M1: Notes and daily work management (P0)**. Everything else waits for it. The PRD's "v1.0.0" (notes + tasks + meetings + pet) stays as the full Phase 1 target; M1 is a smaller release before it (proposed label: **v0.1**, see DECISIONS U1).
+The first release is **M1: Notes and daily work management (P0)**. Everything else waits for it. The PRD's "v1.0.0" (notes + tasks + meetings + pet) stays as the full Phase 1 target; M1 is the smaller release before it, labelled **v0.1.0** (owner, 2026-10-11).
 
 | Milestone | Name | Contents | Status |
 |-----------|------|----------|--------|
 | **M0** | Foundation closure | Real-Windows run, autostart, export/import/delete, perf harness | 🟡 Partial |
-| **M1** | **Notes + daily work (P0, first release)** | Notes, tasks, search, labels, dates, completion history, daily progress, release gate | 🟡 **Active** — core done, UI gaps |
+| **M1** | **Notes + daily work (P0, first release, v0.1.0)** | Notes, tasks, search, labels, dates, completion history, daily progress, release gate | 🟡 **Active — code complete, in verification (G1)** |
 | M2 | Phase 1 completion → v1.0.0 | Meetings, pet window, global shortcuts, settings screens, first run | ⬜ |
 | M3 | Browser tracking (Phase 2) | Extensions, bridge, macOS collector, open tabs | 🟡 Windows app tracking built, unverified |
 | M4 | Desktop companion (Phase 3) | Animated pet, reactions, sleep | ⬜ |
@@ -51,7 +51,7 @@ The first release is **M1: Notes and daily work management (P0)**. Everything el
 | M7 | Voice (Phase 6) | Activation, intents, voice → task/note | ⬜ |
 | M8 | Character customization (Phase 7) | 18 characters, outfits | ⬜ |
 
-**Order after M2:** the locked order is Developer → MCP → Voice (ADR-015). The request that started this audit listed voice before MCP and developer. That is open as DECISIONS U2; until the owner says otherwise, ADR-015 stands. M3 and M4 come before it as in the PRD.
+**Order after M2:** Developer → MCP → Voice, as locked in ADR-015 (the owner confirmed this on 2026-10-11). M3 and M4 come before it as in the PRD.
 
 ---
 
@@ -60,16 +60,16 @@ The first release is **M1: Notes and daily work management (P0)**. Everything el
 | ID | Feature | Status (2026-10-11) |
 |----|---------|--------|
 | F0-01 | Scaffold | ✅ Complete (V-1 oldest macOS: Unverified, needs a Mac) |
-| F0-02 | CI matrix + V-2 | ✅ CI green · final V-2 on the full app Unverified (gate: private working set, ADR-001-RAM) |
+| F0-02 | CI matrix + V-2 | ✅ CI green · final V-2 on the full app Unverified (gate: private working set, ADR-020) |
 | F0-03 | Event bus | ✅ Complete |
 | F0-04 | Database, migrations | ✅ Complete (migrations 001–003) |
 | F0-05 | DB writer + read pool | ✅ Complete |
 | F0-06 | Clock + rollover | 🟡 Partial — core and scheduler wired; wake-from-sleep and timezone hooks missing |
 | F0-07 | Settings + typed IPC | ✅ Complete (settings keys hand-typed) |
 | F0-08 | Tray, single instance, close-hides, quit | 🟡 Unverified — never run on a real desktop |
-| F0-09 | Autostart `--hidden` | ⏸ Partial, on hold — switch exists, does nothing (defect D2) |
+| F0-09 | Autostart `--hidden` | 🟡 Unverified — built 2026-10-11, never run on a real OS |
 | F0-10 | Frontend shell | ✅ Complete |
-| F0-11 | Export / import / delete all data | ⬜ Planned |
+| F0-11 | Export / import / delete all data | 🟡 Unverified — core done and tested (9 tests); file dialogs never run on a real OS |
 | F0-12 | Performance harness | 🟡 Partial — V-2 only |
 | F0-13 | Errors and logging | ✅ Complete |
 
@@ -80,39 +80,38 @@ The first release is **M1: Notes and daily work management (P0)**. Everything el
 **Goal:** someone can capture notes, plan and finish tasks, find things, and see what they got done each day — on a real Windows machine, with their data safe. **Exit gate:** every checked item below, the Windows checklist (PROJECT_STATUS §8) passed, CI green on Windows and macOS, installer built.
 
 ### M1.1 Notes
-- [x] Create, edit, autosave, discard-if-empty (F1-01, F1-03)
+- [x] Create, edit, autosave (500 ms), discard-if-empty (F1-01, F1-03)
 - [x] List, sort, pin, archive, colours (F1-02, F1-05, F1-06, F1-08)
 - [x] Delete to a 30-day Bin with Undo, restore, empty (F1-04 + owner addition)
-- [x] Labels: add, create inline, filter with counts (F1-07, partly)
-- [x] Search (plain, notes only)
-- [ ] N1 Markdown edit / preview (F1-09) — ⬜ Planned
-- [ ] N2 Label manager: rename, delete — 🟡 core done, no UI
-- [ ] N3 Pin from the editor toolbar, shortcut, keyboard map — 🟡 Partial
-- [ ] N4 Autosave timing and delete behaviour written into the PRD — decision
+- [x] Labels: add, create inline, filter with counts, **manage (rename, delete)** (F1-07)
+- [x] Search (plain, notes)
+- [x] N1 Markdown edit / preview (F1-09)
+- [x] N3 Pin from the editor, `Mod+D`, `Mod+E`, `Mod+Shift+A`, `Mod+L`; app keys `Mod+1…4`, `Mod+,`, `Mod+T`
+- [x] N4 PRD amended (v1.5): autosave 500 ms, Bin instead of confirm-delete
 
 ### M1.2 Tasks
-- [x] Create, quick add, edit title/priority/deadline, complete with Undo, overdue badge (F1-10, F1-12 partly)
-- [x] Core: state machine, history, defer, delete rule, five views, filters (F1-11, F1-14 logic)
-- [ ] T1 Tasks page: Upcoming, Pending, All, Completed + filters
-- [ ] T2 Status controls: start, pending, cancel, reopen
-- [ ] T3 Defer (IPC + UI)
-- [ ] T4 Task detail: description, project, planned date, linked note, history, work updates (F1-13)
-- [ ] T5 Delete task (IPC + UI)
+- [x] Create, quick add, edit, complete with Undo, overdue badge (F1-10, F1-12)
+- [x] Core: state machine, history, defer, delete rule, five views, filters (F1-11, F1-14)
+- [x] T1 Tasks page: Today, Upcoming, Pending, All, Completed + priority/project/status/date filters + search
+- [x] T2 Status buttons: Start, Pause, Resume, Complete, Cancel, Reopen
+- [x] T3 Defer (tomorrow or a chosen day)
+- [x] T4 Task detail: description, project, planned date, deadline, linked note, history, work updates (F1-13)
+- [x] T5 Delete a finished task
 
 ### M1.3 Daily progress
-- [x] Daily log core: live, freeze, missed days (F1-15 logic)
-- [x] Done-this-week bars, Activity feed, Time page task chart
-- [ ] D-a Daily Logs history screen (F1-16)
-- [ ] D-b Compare with previous day, Markdown export (F1-16)
-- [ ] D-c Today progress summary (needs owner decision, DECISIONS U4)
+- [x] Daily log core: live, freeze, missed days (F1-15)
+- [x] Done-this-week bars, Activity feed
+- [x] D-a/D-b Daily log on the Time page: last 14 days, done of planned, change vs the day before, expand, copy as Markdown (F1-16)
+- [x] D-c **dropped**: no Progress card (owner)
 
 ### M1.4 Release gate
-- [ ] G1 Real-Windows checklist passed and recorded
-- [ ] G2 Export / import / delete all data (F0-11)
-- [ ] G3 Autostart works, or the switch is hidden (F0-09)
-- [ ] G4 Installer and signing for Windows (and macOS build) (F1-27, part)
-- [ ] G5 Fix the time-of-day test flake (D1)
-- [ ] G6 Coverage floor enforced in CI
+- [ ] G1 Real-Windows checklist passed and recorded — **owner**
+- [x] G2 Export / import / delete all data (F0-11) — built, Unverified
+- [x] G3 Autostart (F0-09) — built, Unverified
+- [x] G4 Installer workflow `release.yml` + bundle config — built, never run; **signing not set up (owner's certificates)**
+- [x] G5 Time-of-day test bug fixed
+- [x] G6 Coverage floors enforced in CI (core ≥ 90% lines, frontend thresholds)
+- [ ] Bump version to 0.1.0, run Release build, install on a clean PC
 
 **Already built and not part of the original M1 list (owner additions):** reminders with notifications, the Today overview dashboard with drag-to-reorder tiles, week calendar, Links, Time page and Windows app tracking. They ship with M1 but their real-machine behaviour is Unverified.
 
@@ -128,7 +127,7 @@ The first release is **M1: Notes and daily work management (P0)**. Everything el
 | F1-22 | Minimal pet window | ⬜ (`pet.html` is a placeholder) |
 | F1-23 | Today view (R1-70 rest) | 🟡 Partial |
 | F1-24 | Global shortcuts + quick-add popup + keymap | ⬜ |
-| F1-25 | Settings screens (Pet, Shortcuts, Data, Advanced) | 🟡 Partial |
+| F1-25 | Settings screens (Pet, Shortcuts, Advanced) | 🟡 Partial — Data section done in M1 |
 | F1-26 | First run + empty states | ⬜ |
 | F1-27 | Cross-OS E2E, signing, **v1.0.0** | ⬜ |
 
