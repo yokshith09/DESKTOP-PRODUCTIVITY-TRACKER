@@ -1,4 +1,5 @@
 import { PageHeader } from "@/features/shell/PageHeader";
+import { mod } from "@/lib/platform";
 import { DataSection } from "./DataSection";
 import { Row, Section } from "./parts";
 import { Switch } from "@/components/ui/switch";
@@ -16,6 +17,9 @@ export function SettingsPage() {
   const [autostart, setAutostart] = useSetting("general.autostart");
   const [tracking, setTracking] = useSetting("tracking.apps");
   const [excluded, setExcluded] = useSetting("tracking.exclude_apps");
+  const [petVisible, setPetVisible] = useSetting("pet.visible");
+  const [petSize, setPetSize] = useSetting("pet.size");
+  const [petOpacity, setPetOpacity] = useSetting("pet.opacity");
   const [exclText, setExclText] = useState<string | null>(null);
   const [confirm, setConfirm] = useState(false);
   return (
@@ -41,6 +45,36 @@ export function SettingsPage() {
         <Row label="Open Loaf at login" hint="Starts quietly in the tray.">
           <Switch checked={autostart ?? false} onCheckedChange={(v) => void setAutostart(v)} aria-label="Open Loaf at login" />
         </Row>
+      </Section>
+      <Section title="Desktop pet">
+        <Row label="Show the pet" hint={`Loaf the bear sits on your desktop. Click to open Loaf, double-click to hide it, right-click for options, drag to move. ${mod}+Shift+P shows or hides it.`}>
+          <Switch checked={petVisible ?? true} onCheckedChange={(v) => void setPetVisible(v)} aria-label="Show the pet" />
+        </Row>
+        <Row label="Size">
+          <ToggleGroup type="single" value={petSize ?? "M"} onValueChange={(v) => v && void setPetSize(v as "S" | "M" | "L")} aria-label="Pet size">
+            <ToggleGroupItem value="S">Small</ToggleGroupItem>
+            <ToggleGroupItem value="M">Medium</ToggleGroupItem>
+            <ToggleGroupItem value="L">Large</ToggleGroupItem>
+          </ToggleGroup>
+        </Row>
+        <Row label="Opacity" hint={`${petOpacity ?? 100}%`}>
+          <input
+            type="range" min={30} max={100} step={5} value={petOpacity ?? 100} aria-label="Pet opacity"
+            onChange={(e) => void setPetOpacity(Number(e.target.value))} className="w-40 accent-[var(--primary)]"
+          />
+        </Row>
+      </Section>
+      <Section title="Keyboard shortcuts">
+        {[
+          [`${mod}+Shift+L`, "Open or hide Loaf, from any app"],
+          [`${mod}+Shift+N`, "New note, from any app"],
+          [`${mod}+Shift+T`, "New task, from any app"],
+          [`${mod}+Shift+P`, "Show or hide the pet"],
+          [`${mod}+1 … 4`, "Today overview, Tasks, Notes, Time"],
+          [`${mod}+K / ${mod}+N`, "Search notes / new note (on Notes)"],
+        ].map(([keys, what]) => (
+          <Row key={keys} label={what ?? ""}><span className="rounded-md border bg-muted px-2 py-0.5 font-mono text-[12px]">{keys}</span></Row>
+        ))}
       </Section>
       <Section title="Privacy and tracking">
         <Row label="Track app usage" hint="Records which app is in front, and for how long, to show where your time went. Stays on this computer. Window titles and full web addresses are never stored.">

@@ -35,7 +35,7 @@
 /* Light: clean paper, one restrained copper accent. */
 :root {
   --radius: 0.625rem;
-  --background: oklch(0.985 0.002 270);
+  --background: oklch(0.972 0.003 270);
   --foreground: oklch(0.2 0.01 270);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.2 0.01 270);
@@ -46,16 +46,16 @@
   --secondary: oklch(0.96 0.003 270);
   --secondary-foreground: oklch(0.25 0.01 270);
   --muted: oklch(0.96 0.003 270);
-  --muted-foreground: oklch(0.5 0.01 270);
+  --muted-foreground: oklch(0.46 0.012 270);
   --accent: oklch(0.95 0.004 270);
   --accent-foreground: oklch(0.25 0.01 270);
   --destructive: oklch(0.55 0.2 27);
-  --border: oklch(0.915 0.004 270);
-  --input: oklch(0.89 0.004 270);
+  --border: oklch(0.895 0.005 270);
+  --input: oklch(0.86 0.006 270);
   --ring: oklch(0.56 0.16 48);
   --success: oklch(0.52 0.13 150);
   --violet: oklch(0.52 0.18 285);
-  --sidebar: oklch(0.968 0.003 270);
+  --sidebar: oklch(0.955 0.004 270);
   /* note tint: lightness/chroma of the fill and of the edge */
   --nl: 0.975;
   --nc: 0.016;
@@ -65,27 +65,27 @@
 
 /* Dark: neutral graphite, the default look. */
 .dark {
-  --background: oklch(0.145 0.004 270);
+  --background: oklch(0.13 0.004 270);
   --foreground: oklch(0.96 0.003 270);
-  --card: oklch(0.185 0.005 270);
+  --card: oklch(0.19 0.006 270);
   --card-foreground: oklch(0.96 0.003 270);
-  --popover: oklch(0.21 0.006 270);
+  --popover: oklch(0.215 0.007 270);
   --popover-foreground: oklch(0.96 0.003 270);
   --primary: oklch(0.76 0.15 62);
   --primary-foreground: oklch(0.18 0.02 60);
-  --secondary: oklch(0.235 0.006 270);
+  --secondary: oklch(0.26 0.007 270);
   --secondary-foreground: oklch(0.96 0.003 270);
-  --muted: oklch(0.235 0.006 270);
-  --muted-foreground: oklch(0.68 0.01 270);
-  --accent: oklch(0.255 0.007 270);
+  --muted: oklch(0.24 0.006 270);
+  --muted-foreground: oklch(0.74 0.01 270);
+  --accent: oklch(0.27 0.008 270);
   --accent-foreground: oklch(0.96 0.003 270);
   --destructive: oklch(0.7 0.18 22);
-  --border: oklch(1 0 0 / 8%);
-  --input: oklch(1 0 0 / 11%);
+  --border: oklch(1 0 0 / 11%);
+  --input: oklch(1 0 0 / 17%);
   --ring: oklch(0.76 0.15 62);
   --success: oklch(0.75 0.14 155);
   --violet: oklch(0.72 0.14 285);
-  --sidebar: oklch(0.165 0.005 270);
+  --sidebar: oklch(0.155 0.005 270);
   --nl: 0.215;
   --nc: 0.02;
   --nbl: 0.33;
@@ -110,6 +110,20 @@
     letter-spacing: -0.003em;
     font-feature-settings: "cv11", "ss01";
   }
+}
+
+/* Surfaces (colour-palette rules): canvas → sidebar → cards are one neutral step apart, cards
+   carry a hairline and a whisper of depth (light) or a top edge highlight (dark). One accent,
+   copper, marks what can be acted on. Utilities (shadow-*, ring-*) still win: this is a layer. */
+@layer components {
+  .bg-card { box-shadow: 0 1px 2px oklch(0 0 0 / 0.05); }
+  .dark .bg-card { box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.05); }
+}
+
+/* The pet window is see-through: only the bear and its card are drawn. */
+html.pet,
+html.pet body {
+  background: transparent !important;
 }
 
 /* Note colours: one hue per name, tinted by the theme's lightness/chroma. */
@@ -141,4 +155,12 @@
   }
 }
 .bear-wave { animation: bear-wave 0.9s ease-in-out infinite; }
+/* The desktop pet: a slow breath and an occasional blink. Transforms only, so the compositor
+   does the work; the pet window is hidden (and paused) when the pet is off. */
+.bear-breathe { transform-box: view-box; transform-origin: 100px 186px; animation: bear-breathe 3.6s ease-in-out infinite; }
+@keyframes bear-breathe { 50% { transform: scale(1.025, 0.985); } }
+.bear-blink { transform-box: view-box; transform-origin: 100px 72px; animation: bear-blink 5.5s infinite; }
+@keyframes bear-blink { 0%, 94%, 100% { transform: scaleY(1); } 97% { transform: scaleY(0.1); } }
+.pet-hop { animation: pet-hop 0.45s ease-out; }
+@keyframes pet-hop { 40% { transform: translateY(-8px); } }
 @keyframes bear-wave { 50% { transform: rotate(-100deg); } }

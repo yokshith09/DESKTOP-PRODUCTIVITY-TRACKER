@@ -179,16 +179,14 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
       </div>
 
       <div className="flex items-center gap-2 border-t p-3">
-        {finished && (
-          confirmDelete ? (
-            <>
-              <span className="text-xs text-destructive">Delete this task and its history for good?</span>
-              <Button size="sm" variant="destructive" onClick={() => void actions.remove(task.id).then(onClose)}>Delete</Button>
-              <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(false)}>Keep</Button>
-            </>
-          ) : (
-            <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive" onClick={() => setConfirmDelete(true)}><Trash2 />Delete task</Button>
-          )
+        {confirmDelete ? (
+          <>
+            <span className="text-xs text-destructive">{finished ? "Delete this task and its history for good?" : "This task isn’t finished. Delete it anyway?"}</span>
+            <Button size="sm" variant="destructive" onClick={() => void actions.removeAny(task).then(onClose)}>Delete</Button>
+            <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(false)}>Keep</Button>
+          </>
+        ) : (
+          <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive" onClick={() => setConfirmDelete(true)}><Trash2 />Delete task</Button>
         )}
         <div className="ml-auto flex gap-2">
           <Button size="sm" variant="ghost" onClick={onClose}>Close</Button>

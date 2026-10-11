@@ -374,6 +374,10 @@ export function createMock() {
       const back = Math.round((new Date(today + "T00:00:00").getTime() - d.getTime()) / 86_400_000);
       return back < 0 || back > 20 ? null : sampleLog(String(a.date), back);
     },
+    pet_hover: (a) => (a.expanded ? { pet: "right", card: "above" } : null),
+    pet_click: () => null,
+    pet_double_click: () => null,
+    pet_menu: () => null,
     data_export: () => ({ path: "C:\\Users\\you\\Documents\\loaf-export.json", bytes: 48_213 }),
     data_import: () => {
       if (notes.length || tasks.length || reminders.length) fail("CONFLICT", "Import only works into an empty Loaf. Delete all data first, then import.");

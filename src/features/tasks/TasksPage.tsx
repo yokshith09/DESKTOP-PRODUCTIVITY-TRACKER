@@ -14,6 +14,7 @@ import { useAllTasks, useTaskActions, useTasksQuery } from "@/hooks/useLoaf";
 import { STATUSES, STATUS_LABEL } from "@/lib/taskStatus";
 import { cn } from "@/lib/utils";
 import type { Priority, TaskFilters, TaskRow, TaskStatus, TaskView } from "@/ipc";
+import { DeleteTaskButton } from "./DeleteTaskButton";
 import { TaskDetail } from "./TaskDetail";
 
 const VIEWS: { key: TaskView; label: string; empty: string }[] = [
@@ -55,6 +56,7 @@ function Row({ row, onOpen }: { row: TaskRow; onOpen: (id: string) => void }) {
           <span aria-hidden>{PRIORITY[task.priority].glyph}</span> {PRIORITY[task.priority].label}
         </span>
       )}
+      <DeleteTaskButton task={task} />
     </li>
   );
 }

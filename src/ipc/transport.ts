@@ -43,3 +43,10 @@ export function errorMessage(e: unknown): string {
   if (e && typeof e === "object" && "message" in e) return String((e as AppError).message);
   return typeof e === "string" ? e : "Something went wrong. Your data is safe.";
 }
+
+/** Requests from the shell to the dashboard (`new-note`, `new-task`, `settings`): global shortcuts and the pet menu. */
+export function onCommand(cb: (command: string) => void): () => void {
+  if (!isTauri()) return () => {};
+  const pending = listen<string>("loaf://command", (e) => cb(e.payload));
+  return () => void pending.then((off) => off());
+}

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { DeleteTaskButton } from "@/features/tasks/DeleteTaskButton";
 import { TaskEditor } from "./TaskEditor";
 import { AddReminder } from "@/features/reminders/AddReminder";
 import { useReminderActions, useReminders, useTaskActions, useTodayTasks } from "@/hooks/useLoaf";
@@ -96,7 +97,7 @@ export function TodayAgenda({ showUpcoming = false }: { showUpcoming?: boolean }
           <SectionLabel icon={<CalendarCheck2 />} count={tasks.length}>Tasks</SectionLabel>
           <ul className="-mx-0.5">
             {tasks.map(({ task, overdue }) => (
-              <li key={task.id} className="flex h-9 items-center gap-2.5 rounded-md px-1.5 hover:bg-accent/50">
+              <li key={task.id} className="group flex h-9 items-center gap-2.5 rounded-md px-1.5 hover:bg-accent/50">
                 <Checkbox aria-label={`Complete ${task.title}`} checked={false} onCheckedChange={() => void complete(task.id, task.title)} />
                 <TaskEditor task={task}>
                   <button type="button" title="Edit priority, deadline and reminder" aria-label={`Edit ${task.title}`}
@@ -114,6 +115,7 @@ export function TodayAgenda({ showUpcoming = false }: { showUpcoming?: boolean }
                     <span aria-hidden>{PRIORITY[task.priority].glyph}</span> {PRIORITY[task.priority].label}
                   </span>
                 )}
+                <DeleteTaskButton task={task} />
               </li>
             ))}
           </ul>

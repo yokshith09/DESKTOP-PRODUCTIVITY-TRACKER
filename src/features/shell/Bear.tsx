@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils";
 export type BearPose = "idle" | "wave" | "sleep";
 
 /** Loaf the bear: a shaded SVG that reads as 3D. Shipped as a flat image in the pet window. */
-export function Bear({ pose = "idle", className, style }: { pose?: BearPose; className?: string; style?: React.CSSProperties }) {
+/** `animated` adds a slow breath and a blink (CSS transforms only; stops with reduced motion). */
+export function Bear({ pose = "idle", animated = false, className, style }: { pose?: BearPose; animated?: boolean; className?: string; style?: React.CSSProperties }) {
   const u = useId().replace(/:/g, "");
   const g = (name: string) => `${name}-${u}`;
   const url = (name: string) => `url(#${g(name)})`;
@@ -20,6 +21,7 @@ export function Bear({ pose = "idle", className, style }: { pose?: BearPose; cla
         <radialGradient id={g("gloss")} cx="30%" cy="20%" r="60%"><stop offset="0" stopColor="#fff" stopOpacity=".75" /><stop offset="1" stopColor="#fff" stopOpacity="0" /></radialGradient>
       </defs>
       <ellipse cx="100" cy="188" rx="62" ry="7" fill="#000" opacity=".25" />
+      <g className={animated ? "bear-breathe" : undefined}>
       <ellipse cx="70" cy="178" rx="19" ry="12" fill={url("dark")} />
       <ellipse cx="130" cy="178" rx="19" ry="12" fill={url("dark")} />
       <ellipse cx="70" cy="180" rx="9" ry="6" fill={url("ear")} opacity=".8" />
@@ -44,7 +46,7 @@ export function Bear({ pose = "idle", className, style }: { pose?: BearPose; cla
       {pose === "sleep" ? (
         <g fill="none" stroke="#3A2620" strokeWidth="3.5" strokeLinecap="round"><path d="M68 74 q9 8 18 0" /><path d="M114 74 q9 8 18 0" /></g>
       ) : (
-        <g>
+        <g className={animated ? "bear-blink" : undefined}>
           <ellipse cx="77" cy="72" rx="8" ry="9" fill={url("eye")} /><ellipse cx="123" cy="72" rx="8" ry="9" fill={url("eye")} />
           <circle cx="74.5" cy="68.5" r="3.2" fill="#fff" /><circle cx="120.5" cy="68.5" r="3.2" fill="#fff" />
           <circle cx="80" cy="76" r="1.6" fill="#fff" opacity=".8" /><circle cx="126" cy="76" r="1.6" fill="#fff" opacity=".8" />
@@ -52,6 +54,7 @@ export function Bear({ pose = "idle", className, style }: { pose?: BearPose; cla
       )}
       <ellipse cx="100" cy="86" rx="9.5" ry="6.5" fill={url("nose")} /><ellipse cx="97" cy="84" rx="3.5" ry="1.8" fill="#fff" opacity=".6" />
       <path d="M100 92 v5 M100 97 q-7 7 -15 1 M100 97 q7 7 15 1" fill="none" stroke="#3A2620" strokeWidth="2.6" strokeLinecap="round" />
+      </g>
     </svg>
   );
 }

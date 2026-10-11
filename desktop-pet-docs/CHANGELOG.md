@@ -1,8 +1,17 @@
 # Changelog
 
-All notable changes. Newest first. Format follows [Keep a Changelog](https://keepachangelog.com). Nothing has been released yet; everything below is **Unreleased** and lives on branch `claude/repo-context-review-trprp8` (PR #1). Dates come from Git.
+All notable changes. Newest first. Format follows [Keep a Changelog](https://keepachangelog.com). Everything lives on `main`. `v0.1.0` is the first release; entries below are grouped by date. Dates come from Git.
 
 ## [Unreleased]
+
+### 2026-10-11 (0.1.1 — fixes from the owner's first test)
+- Added: **desktop pet** (F1-22). An animated bear in its own transparent, always-on-top window, bottom-right by default. Hover shows today's card: total time, top 3 apps, top 2 tasks, next reminder, done/open counts. Click opens Loaf, double-click hides it, right-click opens a menu (open/hide Loaf, new note, new task, app tracking on/off, settings, hide pet, quit). Drag to move; the spot is remembered. Also in the tray menu. **Unverified** on a real desktop.
+- Added: global shortcuts `Ctrl+Shift+L` show/hide Loaf, `Ctrl+Shift+N` new note, `Ctrl+Shift+T` new task, `Ctrl+Shift+P` show/hide pet (`Cmd` on macOS).
+- Added: Settings › Desktop pet (show, size, opacity) and Settings › Keyboard shortcuts.
+- Added: delete for **any** task: a trash button on Tasks and Today rows (click twice to confirm) and in task detail. Unfinished tasks are cancelled first.
+- Changed: the main window opens at 1180×760 instead of full screen and remembers its size and position.
+- Changed: calmer colours: clearer card edges, stronger secondary text, darker dark-mode background.
+- Changed: version **0.1.1**.
 
 ### 2026-10-11 (release automation)
 - First release build ran green: release `v0.1.0` has the Windows `.exe` and `.msi` and an Apple Silicon `.dmg` attached. It is shown as **published** (13:10 UTC); the workflow itself only makes drafts. Not yet tested by a person.
