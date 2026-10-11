@@ -62,5 +62,10 @@ export const ipc = {
   /** Opens the system "open" dialog and restores that export into an empty Loaf. `null` if cancelled. */
   dataImport: () => call<Record<string, number> | null>("data_import"),
   dataDeleteAll: (confirm: string) => call<unknown>("data_delete_all", { confirm }),
+  petHover: (expanded: boolean, cardWidth: number, cardHeight: number) =>
+    call<{ pet: "left" | "right"; card: "above" | "below" } | null>("pet_hover", { expanded, cardWidth, cardHeight }),
+  petClick: () => call<unknown>("pet_click"),
+  petDoubleClick: () => call<unknown>("pet_double_click"),
+  petMenu: () => call<unknown>("pet_menu"),
   taskTransition: (id: string, to: TaskStatus) => call<Task>("task_transition", { id, to }),
 };

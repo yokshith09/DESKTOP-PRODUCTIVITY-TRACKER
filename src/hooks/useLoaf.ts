@@ -143,6 +143,11 @@ export function useTaskActions() {
     setDone: (id: string, done: boolean) => move.mutateAsync([id, done ? "COMPLETED" : "PLANNED"]),
     defer: (id: string, to: string) => defer.mutateAsync([id, to]),
     remove: (id: string) => remove.mutateAsync([id]),
+    /** Delete any task. An unfinished one is cancelled first (the core only deletes finished tasks, so history stays honest). */
+    removeAny: async (task: { id: string; status: TaskStatus }) => {
+      if (task.status !== "COMPLETED" && task.status !== "CANCELLED") await move.mutateAsync([task.id, "CANCELLED"]);
+      await remove.mutateAsync([task.id]);
+    },
     addUpdate: (id: string, body: string) => addUpdate.mutateAsync([id, body]),
     removeUpdate: (id: string) => removeUpdate.mutateAsync([id]),
   };

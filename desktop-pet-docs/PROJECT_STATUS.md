@@ -1,6 +1,6 @@
 # Loaf — Project Status
 
-**Last updated:** 2026-10-11 · **Work branch:** `claude/repo-context-review-trprp8` → PR #2 (draft) · **`main`** holds everything up to the merge of PR #1 (`3cdaa9e`)
+**Last updated:** 2026-10-11 · **Work branch:** `main` (owner decision: one branch). PR #1 and PR #2 are merged. Release `v0.1.0` exists; `0.1.1` adds the desktop pet.
 **Read this first.** Then [`ROADMAP.md`](ROADMAP.md) (plan), [`DECISIONS.md`](DECISIONS.md) (why) and [`CHANGELOG.md`](CHANGELOG.md) (what changed).
 
 Every claim is tagged with how it was checked. **Fact** = seen in code, tests, Git or CI. **Inference** = a reasoned guess from facts. **Unknown** = no evidence either way.
@@ -12,10 +12,11 @@ Every claim is tagged with how it was checked. **Fact** = seen in code, tests, G
 1. **Fact:** Loaf is a Tauri v2 app: Rust core (`crates/loaf-core`, no Tauri dependency), thin shell (`src-tauri`), React + TypeScript UI (`src`).
 2. **Fact:** On 2026-10-11 the owner decided: merge now and build in one branch (done: PR #1 merged), no Progress card, calendar shows the next 7 days, autostart is built before the first release, the phase order stays as locked (ADR-015), M1 is labelled v0.1 and v1.0.0 stays for the full Phase 1.
 3. **Fact:** The whole M1 build list is now implemented: Notes (Markdown preview, label manager, shortcuts), Tasks (page, all views, status controls, defer, detail, work updates, delete, search), daily-log history on the Time page, autostart, export/import/delete-all, installer workflow, coverage floors.
-4. **Fact:** Tests run on 2026-10-11: **327** core tests + **6** shell tests pass; **41** frontend tests pass; `cargo clippy -D warnings`, `cargo fmt --check`, `pnpm lint`, `pnpm typecheck`, `pnpm check:core-deps` pass; generated types are fresh.
-5. **Fact:** Coverage measured today: `loaf-core` **97.3%** of lines; frontend **88.6%** lines. CI now enforces floors (core ≥ 90% lines; frontend lines/statements ≥ 80, branches ≥ 70, functions ≥ 55).
-6. **Unknown (the main risk):** nobody has run the real app on Windows. Everything that needs the operating system is **Unverified**: the tray, reminder notifications, the Windows app tracker, opening links, **autostart**, the **file dialogs for export and import**, and the **installer**.
-7. **Fact:** CI failed on `00ae175` (2026-10-11 08:17 UTC) because the demo data in the frontend tests depended on the time of day. Fixed in `3ed177f` with a regression test; CI is green on it for Windows and macOS.
+4. **Fact:** Tests run on 2026-10-11 (after the pet work): **327** core tests + **13** shell tests pass; **44** frontend tests pass; `cargo clippy -D warnings`, `cargo fmt --check`, `pnpm lint`, `pnpm typecheck`, `pnpm check:core-deps` pass; generated types are fresh.
+5. **Fact:** Coverage measured today: `loaf-core` **97.3%** of lines; frontend **87.6%** lines. CI now enforces floors (core ≥ 90% lines; frontend lines/statements ≥ 80, branches ≥ 70, functions ≥ 55).
+6. **Fact (owner, 2026-10-11):** the owner installed v0.1.0 on Windows; the app opens, app tracking lists apps (Loaf, Claude, File Explorer) and tasks can be added. The owner reported: no desktop pet, colours confusing, the dashboard opened full screen, no way to delete every task. All four are addressed in 0.1.1 (§4.6), **Unverified** until the owner installs it.
+7. **Unknown (the main risk):** the rest of the Windows checklist (§8) has not been run line by line. Everything that needs the operating system is **Unverified**: the tray, reminder notifications, the Windows app tracker, opening links, **autostart**, the **file dialogs for export and import**, and the **installer**.
+8. **Fact:** CI failed on `00ae175` (2026-10-11 08:17 UTC) because the demo data in the frontend tests depended on the time of day. Fixed in `3ed177f` with a regression test; CI is green on it for Windows and macOS.
 
 **M1 (first release) is feature-complete in code.** What stands between here and a release is **verification on a real Windows PC (G1)** and **signing certificates (owner)**.
 
@@ -40,7 +41,7 @@ Every claim is tagged with how it was checked. **Fact** = seen in code, tests, G
 | Item | Detail |
 |------|--------|
 | **Current milestone** | **M1 — Notes + daily work (P0, first release, v0.1).** Code complete; in verification. |
-| **Just finished** | Everything in §5 marked done: see the CHANGELOG entry for 2026-10-11. |
+| **Just finished** | Owner's first-test fixes (0.1.1): desktop pet with hover card, click / double-click / right-click menu, drag, global shortcuts; Pet and Shortcuts settings; calmer colours; main window opens at 1180×760 and remembers its size; delete any task. See the CHANGELOG. |
 | **Open work** | G1 (owner runs the Windows checklist, §8). Signing certificates (owner). F0-06 wake-from-sleep and timezone-change hooks (a risk, not a blocker; see §6 R1). |
 | **Blockers** | G1 needs the owner's PC. Signing needs the owner's certificates. |
 | **Next after M1** | M2 — rest of Phase 1 (meetings, pet window, global shortcuts, first run) toward v1.0.0. Not started; not to be started without the owner's go-ahead. |
@@ -132,9 +133,9 @@ Every claim is tagged with how it was checked. **Fact** = seen in code, tests, G
 | Item | Status |
 |------|--------|
 | Meetings (F1-17…19) | Planned |
-| Pet window (F1-22) | Planned (`pet.html` is a placeholder) |
-| Global shortcuts + quick-add popup (F1-24) | Planned. In-app shortcuts exist: `Mod+1…4`, `Mod+,`, `Mod+T`, Notes and editor keys. |
-| Settings screens (F1-25) | Partial: Appearance, General, Privacy and tracking, **Your data**, About. Missing Pet, Shortcuts, Advanced. |
+| Pet window (F1-22) | **Built, Unverified** (owner asked for it after testing v0.1.0). Transparent, always-on-top window with the animated bear (breathing, blinking, waving on hover, sleeping 23:00–06:00; CSS transforms only). Hover → card with today's total, top 3 apps, top 2 tasks, next reminder, done/open counts; the window grows toward the free side of the screen. Click opens Loaf, double-click hides it, right-click opens a native menu (open/hide, new note, new task, tracking on/off, settings, hide pet, quit), drag moves it and the spot is remembered. Code: `src-tauri/src/pet.rs`, `src/pet/`. Missing from F1-22: speech bubbles, reactions to events. |
+| Global shortcuts + quick-add popup (F1-24) | **Partial, Unverified**: global `Mod+Shift+L` (show/hide Loaf), `Mod+Shift+N` (new note), `Mod+Shift+T` (new task), `Mod+Shift+P` (show/hide pet) in `src-tauri/src/shortcuts.rs`; a key another app owns is skipped with a log warning. Missing: quick-add popup, remapping. |
+| Settings screens (F1-25) | Partial: Appearance, General, Privacy and tracking, **Desktop pet**, **Keyboard shortcuts** (list only), **Your data**, About. Missing Advanced. |
 | First run (F1-26) | Planned |
 | Phase 2 rest: browser extensions, bridge, macOS collector, open tabs | Planned |
 | Phases 3–7 | Planned |
@@ -165,7 +166,8 @@ Remaining for release: **G1**, **signing**, version bump, and fixing whatever G1
 |---|---------|----------|----------|
 | R1 | No wake-from-sleep or timezone-change hooks. If the PC sleeps over midnight the rollover relies on the startup catch-up and the day scheduler. | no code in `src-tauri`; core has multi-day-gap tests | Medium |
 | R2 | The Windows tracker, tray, notifications, autostart, file dialogs and installer have never run on real Windows. | no record | **High** |
-| R3 | `release.yml` has never run; its artifact paths (`target/release/bundle/...`) are expected, not seen. | | Medium |
+| R3 | The pet uses a transparent window. On Windows it needs WebView2 transparency; on macOS the private API (`macOSPrivateApi`), which the Mac App Store does not allow. Nobody has seen it on a real desktop yet. | `tauri.conf.json` | Medium |
+| R9 | The pet's animations run all the time while it is visible. R1-65 asks for ~0% CPU when idle; CSS transforms are cheap but not zero. Not measured. | `src/index.css` | Low |
 | R4 | Delete-all removes the login item through the autostart plugin; if the plugin refuses, the item can stay. The warning is logged. | `src-tauri/src/autostart.rs` | Low |
 | R5 | Export holds the whole database in memory (fine at expected sizes; the 5000-item fixture is not measured). | `data.rs` | Low |
 | R6 | Feature spec files F0-01…F0-13 still say DRAFT. | `docs/features/*.md` | Low (doc debt) |
@@ -178,8 +180,8 @@ Fixed since the first audit: D1 time-of-day tests (CI had failed on it), D2 auto
 
 ## 7. Next three actions
 
-1. **Owner: run the Windows checklist (§8)** on a build from `main` or PR #2. Record pass or fail per line here.
-2. **Fix what G1 finds**, then bump the version to 0.1.0, run **Release build** from the Actions tab, and install the result on a clean Windows PC.
+1. **Owner: install the draft release `v0.1.1`** (built automatically from `main`) and check the pet: it appears bottom-right, hover card, click / double-click / right-click, drag, `Ctrl+Shift+P/L/N/T`, Settings › Desktop pet. Then run the Windows checklist (§8).
+2. **Fix what that finds**, then publish the draft.
 3. **Add signing** (owner's certificates) and decide when to start M2.
 
 ---

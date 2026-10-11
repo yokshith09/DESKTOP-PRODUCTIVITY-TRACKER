@@ -125,10 +125,10 @@ The first release is **M1: Notes and daily work management (P0)**. Everything el
 | F1-17 | Meeting create/edit + participants | ⬜ |
 | F1-18 | Decisions + action items | ⬜ |
 | F1-19 | Action item → task | ⬜ |
-| F1-22 | Minimal pet window | ⬜ (`pet.html` is a placeholder) |
+| F1-22 | Minimal pet window | 🟡 Built, Unverified (0.1.1, pulled forward by the owner after testing v0.1.0): hover card, click/double-click/right-click, drag, saved spot. Missing: speech bubbles, event reactions |
 | F1-23 | Today view (R1-70 rest) | 🟡 Partial |
-| F1-24 | Global shortcuts + quick-add popup + keymap | ⬜ |
-| F1-25 | Settings screens (Pet, Shortcuts, Advanced) | 🟡 Partial — Data section done in M1 |
+| F1-24 | Global shortcuts + quick-add popup + keymap | 🟡 Partial, Unverified: `Mod+Shift+L/N/T/P`; no quick-add popup, no remapping |
+| F1-25 | Settings screens (Pet, Shortcuts, Advanced) | 🟡 Partial — Data (M1), Desktop pet and Shortcuts list (0.1.1) done; Advanced missing |
 | F1-26 | First run + empty states | ⬜ |
 | F1-27 | Cross-OS E2E, signing, **v1.0.0** | ⬜ |
 

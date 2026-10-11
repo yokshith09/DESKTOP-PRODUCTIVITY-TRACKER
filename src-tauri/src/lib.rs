@@ -3,6 +3,8 @@
 
 mod autostart;
 mod ipc;
+mod pet;
+mod shortcuts;
 mod tracking;
 mod tray;
 
@@ -19,6 +21,13 @@ use loaf_core::settings_service::SettingsService;
 use loaf_core::usage::{self, UsageService};
 use tauri::{AppHandle, Emitter, Manager, RunEvent, WindowEvent};
 use tauri_plugin_notification::NotificationExt;
+use tauri_plugin_window_state::{AppHandleExt, StateFlags};
+
+/// What the dashboard window remembers between runs: size, place, maximized. Not whether it was
+/// showing (Loaf decides that at startup: hidden for `--hidden`, shown otherwise).
+fn window_state_flags() -> StateFlags {
+    StateFlags::all() - StateFlags::VISIBLE
+}
 
 /// What the shell needs at shutdown.
 pub(crate) struct Core {
@@ -36,7 +45,8 @@ struct Background {
 }
 
 /// Quit path (R0-03): announce, let the writer flush, then exit every process.
-fn quit(app: &AppHandle) {
+pub(crate) fn quit(app: &AppHandle) {
+    let _ = app.save_window_state(window_state_flags());
     if let Some(core) = app.try_state::<Core>() {
         core.bus.publish(Event::AppShuttingDown {
             at: core.clock.now_ms(),
@@ -97,6 +107,15 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         // Only used from Rust: the file dialogs for export and import. The webview never gets a path.
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        // The dashboard opens at its last size and place (first run: the size in tauri.conf.json,
+        // not maximized). The pet places itself.
+        .plugin(
+            tauri_plugin_window_state::Builder::new()
+                .with_denylist(&[pet::LABEL])
+                .with_state_flags(window_state_flags())
+                .build(),
+        )
         .invoke_handler(tauri::generate_handler![
             ipc::settings_get_all,
             ipc::setting_set,
@@ -149,9 +168,24 @@ pub fn run() {
             ipc::data_import,
             ipc::data_delete_all,
             ipc::open_url,
+            pet::pet_hover,
+            pet::pet_click,
+            pet::pet_double_click,
+            pet::pet_menu,
         ])
         .on_window_event(|window, event| {
             // Closing the main window hides it; the process keeps running (R0-03).
+            if window.label() == pet::LABEL {
+                match event {
+                    WindowEvent::Moved(p) => pet::on_moved(window.app_handle(), p.x, p.y),
+                    WindowEvent::CloseRequested { api, .. } => {
+                        api.prevent_close();
+                        pet::flip_setting(window.app_handle(), "pet.visible", true);
+                    }
+                    _ => {}
+                }
+                return;
+            }
             if let WindowEvent::CloseRequested { api, .. } = event {
                 if window.label() == "main" {
                     api.prevent_close();
@@ -211,6 +245,10 @@ pub fn run() {
 
             tray::setup_tray(app.handle(), &tray::MenuRegistry::base(), quit)?;
             autostart::start(app.handle().clone(), settings.clone(), &bus);
+            app.manage(Arc::new(pet::PetState::default()));
+            app.on_menu_event(|app, event| pet::on_menu(app, event.id().as_ref()));
+            pet::start(app.handle().clone(), settings.clone(), &bus);
+            shortcuts::register(app.handle());
             // The window is created hidden; a normal launch shows it, a login launch does not.
             if !autostart::is_hidden_launch(std::env::args()) {
                 tray::show_main(app.handle());

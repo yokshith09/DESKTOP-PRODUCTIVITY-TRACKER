@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useBin, useBusSync, useLabels, useNoteActions, useNotes } from "@/hooks/useLoaf";
 import { useAgenda } from "@/features/overview/TodayAgenda";
 import { useTheme } from "@/hooks/useTheme";
-import { ipc, type NoteSort } from "@/ipc";
+import { ipc, onCommand, type NoteSort } from "@/ipc";
 import { BinPage } from "@/features/bin/BinPage";
 import { CharacterPage } from "@/features/character/CharacterPage";
 import { NoteEditor } from "@/features/notes/NoteEditor";
@@ -65,6 +65,15 @@ function Screen() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   });
+
+  // From the shell: global shortcuts and the pet's menu.
+  useEffect(() => onCommand((command) => {
+    if (command === "new-note") void newNote();
+    else if (command === "new-task") {
+      setPage("tasks");
+      setTimeout(() => document.getElementById("new-task")?.focus(), 80);
+    } else if (command === "settings") setPage("settings");
+  }));
 
   const newNote = async () => {
     const note = await actions.create({ label_ids: labelId ? [labelId] : [] });

@@ -9,6 +9,8 @@ use tauri::{AppHandle, Manager, Runtime};
 
 pub const ID_OPEN: &str = "open";
 pub const ID_QUIT: &str = "quit";
+/// Handled by the pet module (`pet::on_menu`), like the pet's own menu.
+pub const ID_PET: &str = "pet:toggle";
 
 /// Where an entry sits. Groups are separated by a single separator. `Create`, `Pet` and
 /// `Settings` are claimed by F1-01, F1-22 and F1-25 when those land.
@@ -49,6 +51,12 @@ impl MenuRegistry {
             id: ID_OPEN,
             label: "Open Loaf".into(),
             group: Group::Open,
+            order: 0,
+        });
+        r.register(Entry {
+            id: ID_PET,
+            label: "Show or hide pet".into(),
+            group: Group::Pet,
             order: 0,
         });
         r.register(Entry {
@@ -166,8 +174,11 @@ mod tests {
     }
 
     #[test]
-    fn base_menu_is_open_separator_quit() {
-        assert_eq!(ids(&MenuRegistry::base().slots()), ["open", "-", "quit"]);
+    fn base_menu_is_open_pet_quit_with_separators() {
+        assert_eq!(
+            ids(&MenuRegistry::base().slots()),
+            ["open", "-", ID_PET, "-", "quit"]
+        );
     }
 
     #[test]
@@ -179,7 +190,10 @@ mod tests {
         r.register(entry("pet", Group::Pet, 0));
         assert_eq!(
             ids(&r.slots()),
-            ["open", "-", "new_note", "new_task", "-", "pet", "-", "settings", "-", "quit"]
+            [
+                "open", "-", "new_note", "new_task", "-", ID_PET, "pet", "-", "settings", "-",
+                "quit"
+            ]
         );
     }
 
@@ -199,7 +213,7 @@ mod tests {
             ..entry("quit", Group::Quit, 0)
         });
         let slots = r.slots();
-        assert_eq!(slots.len(), 3);
-        assert!(matches!(&slots[2], Slot::Item(e) if e.label == "Quit now"));
+        assert_eq!(slots.len(), 5);
+        assert!(matches!(&slots[4], Slot::Item(e) if e.label == "Quit now"));
     }
 }
