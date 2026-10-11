@@ -190,7 +190,7 @@ Fixed since the first audit: D1 time-of-day tests (CI had failed on it), D2 auto
 
 Run `pnpm tauri dev` or install the CI build. Write pass or fail next to each line.
 
-1. App opens maximized and the tray icon appears.
+1. App opens as a window (not full screen) and the tray icon appears. Resize it, quit, reopen: same size and place.
 2. Close the window: it hides. Tray → Quit: the process ends. A second copy brings the first to the front.
 3. Notes: create, edit, pin (`Ctrl+D`), colour, label, preview Markdown (`Ctrl+E`), archive, delete + Undo, search, rename and delete a label. Restart: everything is still there.
 4. Tasks: add one, Start, Pause, Resume, Complete, Reopen, add a work update, defer to tomorrow, change priority and deadline, delete a finished one. Restart: all correct.
@@ -202,6 +202,7 @@ Run `pnpm tauri dev` or install the CI build. Write pass or fail next to each li
 10. Leave Loaf open past midnight (or move the clock): yesterday appears in the Time page's Daily log. Copy a day as Markdown and paste it somewhere.
 11. Task Manager: idle CPU near 0%, memory under 100 MB.
 12. Install from the CI installer on a clean PC: it installs, starts, uninstalls cleanly.
+13. Desktop pet: hover card fully visible (no scrollbars), click / double-click / right-click, drag and restart (same spot), `Ctrl+Shift+P/L/N/T`, reactions (add, start, finish, finish last, reminder, delete), sleeps after 15 quiet minutes.
 
 ---
 
