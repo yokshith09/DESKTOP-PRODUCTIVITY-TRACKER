@@ -2114,6 +2114,7 @@ dependencies = [
  "tauri-plugin-window-state",
  "tokio",
  "tracing",
+ "windows",
  "windows-sys 0.61.2",
 ]
 

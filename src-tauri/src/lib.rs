@@ -7,6 +7,7 @@ mod logs;
 mod notify;
 mod pet;
 mod shortcuts;
+mod sites;
 mod tracking;
 mod tray;
 mod typing;
@@ -257,6 +258,8 @@ pub fn run() {
                     }
                 });
                 // App tracking is opt-in: this only starts the OS source if `tracking.apps` is on.
+                // Website time from the address bar: only while `tracking.apps` and `tracking.sites` are on.
+                sites::start(usage_service.clone(), settings.clone(), dyn_clock.clone(), &bus);
                 let tracking = tracking::start(usage_service, settings.clone(), dyn_clock.clone(), &bus)
                     .unwrap_or_else(|_unsupported| tracking::Tracking::unsupported());
                 let day = Scheduler::spawn(dyn_clock, DbLastSeen(db.clone()), bus.clone());

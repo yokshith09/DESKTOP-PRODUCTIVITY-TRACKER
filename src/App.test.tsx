@@ -193,6 +193,18 @@ describe("Notes screen (against the in-memory shell)", () => {
     expect(within(log).getAllByRole("button", { name: /Copy .+ as Markdown/ }).length).toBeGreaterThan(0);
   });
 
+  it("Settings › website tracking is off by default and needs app tracking", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await goTo(user, /^Settings/);
+    const sites = await screen.findByRole("switch", { name: "Track websites" });
+    expect(sites.getAttribute("aria-checked")).toBe("false");
+    await user.click(sites);
+    await waitFor(() => expect(sites.getAttribute("aria-checked")).toBe("true"));
+    await user.click(screen.getByRole("switch", { name: "Track app usage" }));
+    await waitFor(() => expect((sites as HTMLButtonElement).disabled).toBe(true));
+  });
+
   it("Settings › Your data: export, refused import into a non-empty Loaf, delete all with the word DELETE", async () => {
     const user = userEvent.setup();
     render(<App />);

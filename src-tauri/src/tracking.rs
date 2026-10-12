@@ -78,7 +78,7 @@ pub fn start(
 }
 
 #[cfg(windows)]
-mod win {
+pub(crate) mod win {
     use std::ffi::OsString;
     use std::os::windows::ffi::OsStringExt;
     use std::sync::mpsc as std_mpsc;
@@ -163,19 +163,24 @@ mod win {
         }
 
         fn idle_ms(&self) -> Option<u64> {
-            let mut info = LASTINPUTINFO {
-                cbSize: std::mem::size_of::<LASTINPUTINFO>() as u32,
-                dwTime: 0,
-            };
-            // SAFETY: `info` is a valid LASTINPUTINFO with `cbSize` set, as the API requires.
-            if unsafe { GetLastInputInfo(&mut info) } == 0 {
-                return None;
-            }
-            // SAFETY: plain FFI call with no arguments. Both values are 32-bit tick counts that
-            // wrap together, so the wrapping difference is right across the 49-day wrap.
-            let now = unsafe { GetTickCount() };
-            Some(u64::from(now.wrapping_sub(info.dwTime)))
+            idle_ms()
         }
+    }
+
+    /// Milliseconds since the last keyboard or mouse input anywhere.
+    pub(crate) fn idle_ms() -> Option<u64> {
+        let mut info = LASTINPUTINFO {
+            cbSize: std::mem::size_of::<LASTINPUTINFO>() as u32,
+            dwTime: 0,
+        };
+        // SAFETY: `info` is a valid LASTINPUTINFO with `cbSize` set, as the API requires.
+        if unsafe { GetLastInputInfo(&mut info) } == 0 {
+            return None;
+        }
+        // SAFETY: plain FFI call with no arguments. Both values are 32-bit tick counts that
+        // wrap together, so the wrapping difference is right across the 49-day wrap.
+        let now = unsafe { GetTickCount() };
+        Some(u64::from(now.wrapping_sub(info.dwTime)))
     }
 
     /// Install the hook and pump messages until `WM_QUIT`. Sends the thread id once the hook is
@@ -245,7 +250,7 @@ mod win {
     /// The file name (not the path) of the program that owns `hwnd`; `None` if there is no
     /// window or the process cannot be inspected (elevated or protected processes), in which
     /// case nothing is recorded for it.
-    fn executable_name(hwnd: HWND) -> Option<String> {
+    pub(crate) fn executable_name(hwnd: HWND) -> Option<String> {
         if hwnd.is_null() {
             return None;
         }

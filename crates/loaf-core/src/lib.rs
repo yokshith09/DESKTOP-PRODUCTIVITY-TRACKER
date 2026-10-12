@@ -20,6 +20,7 @@ pub mod reminders;
 pub mod scheduler;
 pub mod settings;
 pub mod settings_service;
+pub mod sites;
 pub mod tasks;
 pub mod usage;
 pub mod usage_collector;

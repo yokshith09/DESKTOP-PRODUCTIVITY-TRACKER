@@ -50,6 +50,10 @@ pub enum SettingsKey {
     TrackingApps,
     #[serde(rename = "tracking.exclude_apps")]
     TrackingExcludeApps,
+    /// Website time read from the browser's address bar (domain only). Off by default; only
+    /// counts while `tracking.apps` is on too.
+    #[serde(rename = "tracking.sites")]
+    TrackingSites,
 
     // advanced
     #[serde(rename = "advanced.log_level")]
@@ -103,6 +107,7 @@ impl SettingsKey {
             Self::ShortcutsGlobalNewTask => "shortcuts.global_new_task",
             Self::TrackingApps => "tracking.apps",
             Self::TrackingExcludeApps => "tracking.exclude_apps",
+            Self::TrackingSites => "tracking.sites",
             Self::AdvancedLogLevel => "advanced.log_level",
         }
     }
@@ -123,6 +128,7 @@ impl SettingsKey {
             "shortcuts.global_new_task" => Some(Self::ShortcutsGlobalNewTask),
             "tracking.apps" => Some(Self::TrackingApps),
             "tracking.exclude_apps" => Some(Self::TrackingExcludeApps),
+            "tracking.sites" => Some(Self::TrackingSites),
             "advanced.log_level" => Some(Self::AdvancedLogLevel),
             _ => None,
         }
@@ -144,6 +150,7 @@ impl SettingsKey {
             Self::ShortcutsGlobalNewTask => json!(null),
             Self::TrackingApps => json!(false),
             Self::TrackingExcludeApps => json!([]),
+            Self::TrackingSites => json!(false),
             Self::AdvancedLogLevel => json!("info"),
         }
     }
@@ -155,7 +162,8 @@ impl SettingsKey {
             | Self::PetVisible
             | Self::PetAlwaysOnTop
             | Self::PetTyping
-            | Self::TrackingApps => {
+            | Self::TrackingApps
+            | Self::TrackingSites => {
                 if !value.is_boolean() {
                     return Err(AppError::validation(self.as_str(), "must be a boolean"));
                 }
@@ -282,6 +290,7 @@ pub fn all_defaults() -> BTreeMap<String, Value> {
         SettingsKey::ShortcutsGlobalNewTask,
         SettingsKey::TrackingApps,
         SettingsKey::TrackingExcludeApps,
+        SettingsKey::TrackingSites,
         SettingsKey::AdvancedLogLevel,
     ]
     .iter()
@@ -330,7 +339,12 @@ mod tests {
     #[test]
     fn all_defaults_exist() {
         let defaults = all_defaults();
-        assert_eq!(defaults.len(), 14);
+        assert_eq!(defaults.len(), 15);
+        assert_eq!(
+            defaults["tracking.sites"],
+            json!(false),
+            "site tracking is opt-in"
+        );
         assert_eq!(
             defaults["tracking.apps"],
             json!(false),
