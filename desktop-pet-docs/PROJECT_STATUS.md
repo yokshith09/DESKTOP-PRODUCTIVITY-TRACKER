@@ -184,7 +184,7 @@ Fixed since the first audit: D1 time-of-day tests (CI had failed on it), D2 auto
 
 1. **M2 (owner, 2026-10-12: "keep moving"; next release only after Phase 2).** Done: F1-26 first run, F1-17…19 meetings. Done also: F1-23 (Yesterday line), F1-24, F1-25. M2: F1-27 end-to-end tests built (`e2e/`, CI workflow *End-to-end*); only **signing** is left, and it needs the owner's certificates. Next: M3 (Phase 2), then the release.
 2. **Owner: re-check the three 0.1.3 fixes** when convenient: Actions → Release build → Run workflow refreshes the `v0.1.3` draft with them (no version change). Notifications: Settings › Notifications › Send a test notification.
-3. **Characters (owner, 2026-10-12, pulled forward):** four designs (3D-lit; Byte dropped) and the bear's typing pose are in as a preview. Typing along is built (`pet.typing`, off by default) — **Unverified**: needs a run on the owner's Windows PC (turn on Character › Type along with me, type in Notepad). Open: watch the other app's text box instead of the 20 s wait.
+3. **Characters (owner, 2026-10-12, pulled forward):** four designs (3D-lit; Byte dropped) and the bear's typing pose are in as a preview. Typing along is built (`pet.typing`, off by default) — **Unverified**: needs a run on the owner's Windows PC (turn on Character › Type along with me, type in Notepad). Text-box waiting built too (Windows caret check; macOS needs Accessibility) — **Unverified**.
 4. **Signing certificates** (owner): order them now; they are needed for the Phase 2 release.
 
 ---

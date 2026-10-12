@@ -4,6 +4,8 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Added: the pet keeps waiting, laptop open, while a text box is focused in the app you're using, and puts the laptop away 1.5 s after you leave it (at most 5 min). Windows: text-caret check, no permission. macOS: needs Accessibility; without it, the old 20 s wait. Only "is a text box focused" is read, never its contents. **Unverified** on a real PC.
+
 - Added: **Type along with me** (Settings on the Character page, off by default). When you type in any app, the bear takes a laptop out of its pocket and types too; when you stop it looks up at you and waits, then puts the laptop away after 20 s. Only key presses are counted, never which keys; nothing is saved or sent. Windows: keyboard hook; macOS: system key counter (asks for Input Monitoring). **Unverified** on a real PC.
 - Changed: the laptop is now graphite, seen from behind (glowing teal logo, screen light on the face) with the paws reaching over the lid; the bear got the same 3D lighting as the new characters. All four new characters have the typing and waiting poses; Ghosty redrawn (gumdrop shape, curling tail, soft inner glow, bigger eyes).
 
