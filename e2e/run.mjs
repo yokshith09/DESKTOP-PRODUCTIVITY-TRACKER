@@ -8,7 +8,7 @@
 // Linux needs WebKitWebDriver (package webkit2gtk-driver) and a display (xvfb-run).
 // macOS has no WebDriver for WKWebView, so CI runs `e2e/smoke.mjs` there instead.
 import { spawn } from "node:child_process";
-import { mkdtempSync, rmSync, existsSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
@@ -45,6 +45,13 @@ try {
   code = await new Promise((done) => tests.on("exit", (c) => done(c ?? 1)));
 } finally {
   driver.kill();
+  // On failure, show what the app itself wrote: its log and any crash report.
+  if (code !== 0) {
+    const logs = join(dataDir, "logs");
+    const files = existsSync(logs) ? readdirSync(logs) : [];
+    console.error(files.length ? `\n--- Loaf's own logs (${logs}) ---` : `\n--- Loaf wrote no logs in ${logs}: it probably never started with this data folder ---`);
+    for (const f of files) console.error(`\n# ${f}\n${readFileSync(join(logs, f), "utf8").slice(-8000)}`);
+  }
   try { rmSync(dataDir, { recursive: true, force: true }); } catch { /* best effort */ }
 }
 process.exit(code);

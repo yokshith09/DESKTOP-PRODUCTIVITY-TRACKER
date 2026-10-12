@@ -27,7 +27,10 @@ async function start() {
 async function open() {
   driver = await new Builder()
     .usingServer("http://127.0.0.1:4444/")
-    .withCapabilities({ browserName: "wry", "tauri:options": { application: process.env.LOAF_BINARY } })
+    // `webviewOptions` tells Microsoft's Edge driver (Windows) that this is a WebView2 app, so
+    // it passes its debugging flags to the web view instead of to Loaf's own command line.
+    // Other systems ignore it.
+    .withCapabilities({ browserName: "wry", "tauri:options": { application: process.env.LOAF_BINARY, webviewOptions: {} } })
     .build();
   // Loaf has two windows (the dashboard and the pet). Work in the dashboard.
   const deadline = Date.now() + WAIT;
