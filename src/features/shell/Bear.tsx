@@ -2,7 +2,7 @@ import { useId } from "react";
 import { cn } from "@/lib/utils";
 
 /** Everything the bear can do. Reactions (src/pet/reactions.ts) pick one of these. */
-export const BEAR_POSES = ["idle", "wave", "sleep", "work", "cheer", "party", "catch", "worried", "ring", "toss"] as const;
+export const BEAR_POSES = ["idle", "wave", "sleep", "work", "type", "cheer", "party", "catch", "worried", "ring", "toss"] as const;
 export type BearPose = (typeof BEAR_POSES)[number];
 
 type Eyes = "open" | "happy" | "closed" | "down";
@@ -18,6 +18,8 @@ const LOOKS: Record<BearPose, Look> = {
   wave: { eyes: "happy", mouth: "open", arms: "wave", prop: null, body: "bear-breathe" },
   sleep: { eyes: "closed", mouth: "smile", arms: "down", prop: "zzz", body: "bear-breathe-slow" },
   work: { eyes: "down", mouth: "smile", arms: "hold", prop: "laptop", body: "bear-breathe" },
+  // You are typing (anywhere): the laptop opens and the paws keep time with you.
+  type: { eyes: "down", mouth: "open", arms: "hold", prop: "laptop", body: "bear-breathe" },
   cheer: { eyes: "happy", mouth: "open", arms: "up", prop: null, body: "bear-jump" },
   party: { eyes: "happy", mouth: "open", arms: "up", prop: "confetti", body: "bear-jump bear-jump-twice" },
   catch: { eyes: "open", mouth: "open", arms: "hold", prop: "card", body: "bear-catch" },
@@ -61,6 +63,7 @@ export function Bear({ pose = "idle", animated = false, className, style }: { po
     const cls = look.arms === "wave" && side === "r" ? "bear-wave"
       : look.arms === "up" ? (side === "l" ? "bear-arm-up-l" : "bear-arm-up-r")
       : look.arms === "hold" && pose === "work" ? "bear-type"
+      : look.arms === "hold" && pose === "type" ? (side === "l" ? "pet-tap-l" : "pet-tap-r")
       : look.arms === "throw" && side === "r" ? "bear-throw" : undefined;
     return (
       <g style={angle ? { transformOrigin: shoulder, transform: `rotate(${angle}deg)` } : { transformOrigin: shoulder }} className={anim(cls)}>
@@ -115,7 +118,7 @@ export function Bear({ pose = "idle", animated = false, className, style }: { po
 
         {/* Props held in front of the belly sit under the paws. */}
         {look.prop === "laptop" && (
-          <g>
+          <g className={anim(pose === "type" ? "pet-lid-open" : undefined)}>
             <path d="M66 150 L134 150 L140 168 L60 168 Z" fill="#374151" />
             <rect x="72" y="122" width="56" height="30" rx="3" fill="#1F2937" />
             <rect x="75" y="125" width="50" height="24" rx="2" fill="#60A5FA" opacity=".85" className={anim("bear-screen")} />

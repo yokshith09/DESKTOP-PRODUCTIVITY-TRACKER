@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PageHeader, Panel } from "@/features/shell/PageHeader";
 import { BEAR_POSES, Bear, type BearPose } from "@/features/shell/Bear";
+import { CHARACTERS, CHARACTER_POSES } from "./Characters";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -11,7 +12,7 @@ const SIZES = { S: 64, M: 96, L: 128 } as const;
 
 /** What each pose is for, as shown on the preview buttons. */
 const POSE_LABELS: Record<BearPose, string> = {
-  idle: "Idle", wave: "Hello (hover)", sleep: "Sleepy", work: "Working", cheer: "Task done", party: "All done",
+  idle: "Idle", wave: "Hello (hover)", type: "Typing with you", sleep: "Sleepy", work: "Working", cheer: "Task done", party: "All done",
   catch: "Task added", worried: "Worried", ring: "Reminder", toss: "Task deleted",
 };
 
@@ -93,6 +94,25 @@ export function CharacterPage() {
           </div>
         </Panel>
       </div>
+      <section aria-label="More characters" className="mt-6">
+        <h2 className="text-[15px] font-semibold">More characters <span className="ml-1 rounded-md bg-primary/15 px-1.5 py-0.5 text-[11px] font-medium text-primary">Preview</span></h2>
+        <p className="mt-0.5 text-xs text-muted-foreground">Coming in a later version. Each one types along with you, cheers when you finish, and naps when you rest.</p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {CHARACTERS.map(({ key, name, what, Component }) => (
+            <Panel key={key} className="p-4">
+              <p className="text-sm font-semibold">{name} <span className="font-normal text-muted-foreground">{what}</span></p>
+              <div className="mt-2 grid grid-cols-4 gap-1">
+                {CHARACTER_POSES.map((p) => (
+                  <figure key={p} className="text-center">
+                    <Component pose={p} animated className="mx-auto size-20" />
+                    <figcaption className="text-[10px] text-muted-foreground">{p === "type" ? "typing" : p}</figcaption>
+                  </figure>
+                ))}
+              </div>
+            </Panel>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
