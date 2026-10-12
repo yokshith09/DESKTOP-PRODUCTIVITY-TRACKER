@@ -14,6 +14,7 @@ import { useAllTasks, useTaskActions, useTasksQuery } from "@/hooks/useLoaf";
 import { STATUSES, STATUS_LABEL } from "@/lib/taskStatus";
 import { cn } from "@/lib/utils";
 import type { Priority, TaskFilters, TaskRow, TaskStatus, TaskView } from "@/ipc";
+import type { TaskFocus } from "@/features/overview/YesterdayLine";
 import { DeleteTaskButton } from "./DeleteTaskButton";
 import { TaskDetail } from "./TaskDetail";
 
@@ -81,7 +82,7 @@ function Pick({ label, value, onChange, options }: { label: string; value: strin
 }
 
 /** Tasks: the five views, filters, search and quick add (R1-27). Click a task for its detail. */
-export function TasksPage() {
+export function TasksPage({ focus = null, onClearFocus = () => {} }: { focus?: TaskFocus | null; onClearFocus?: () => void }) {
   const [view, setView] = useState<TaskView>("today");
   const [priority, setPriority] = useState("");
   const [status, setStatus] = useState("");
@@ -106,7 +107,11 @@ export function TasksPage() {
   const projects = useMemo(() => [...new Set(everything.map((r) => r.task.project).filter((p): p is string => !!p))].sort(), [everything]);
 
   const q = query.trim().toLowerCase();
-  const shown = q ? rows.filter(({ task }) => `${task.title} ${task.description} ${task.project ?? ""}`.toLowerCase().includes(q)) : rows;
+  // A focus (e.g. "Unfinished from yesterday") replaces the view: those tasks, while still open.
+  const base = focus
+    ? everything.filter(({ task }) => focus.ids.includes(task.id) && task.status !== "COMPLETED" && task.status !== "CANCELLED")
+    : rows;
+  const shown = q ? base.filter(({ task }) => `${task.title} ${task.description} ${task.project ?? ""}`.toLowerCase().includes(q)) : base;
   const filtered = !!(priority || project || status || from || to);
   const meta = VIEWS.find((v) => v.key === view);
 
@@ -127,7 +132,15 @@ export function TasksPage() {
         <Button type="submit" variant="secondary" size="icon" aria-label="Add task" disabled={!draft.trim()}><Plus /></Button>
       </form>
 
-      <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filters">
+      {focus && (
+        <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-[13px]" role="status">
+          <span className="font-medium">{focus.title}</span>
+          <span className="text-muted-foreground">· {base.length} {base.length === 1 ? "task" : "tasks"}</span>
+          <Button size="sm" variant="ghost" className="ml-auto" onClick={onClearFocus}><X />Show all views</Button>
+        </div>
+      )}
+
+      <div className={cn("flex flex-wrap items-center gap-2", focus && "hidden")} role="group" aria-label="Filters">
         <ToggleGroup type="single" value={view} onValueChange={(v) => v && setView(v as TaskView)} aria-label="View">
           {VIEWS.map((v) => <ToggleGroupItem key={v.key} value={v.key}>{v.label}</ToggleGroupItem>)}
         </ToggleGroup>

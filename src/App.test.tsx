@@ -444,3 +444,19 @@ describe("meetings (F1-17…19)", () => {
     expect(screen.queryByRole("button", { name: "Open meeting “Design review”" })).toBeNull();
   });
 });
+
+describe("yesterday on Today overview (R1-70)", () => {
+  it("says how yesterday went and opens what is still unfinished", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const line = await screen.findByRole("button", { name: /Yesterday: \d+ of \d+ done · 2 still open/ });
+    await user.click(line);
+    expect(await screen.findByText("Unfinished from yesterday")).toBeTruthy();
+    const list = screen.getByRole("region", { name: "Task list" });
+    expect(within(list).getByText("Finish the sync spec")).toBeTruthy();
+    expect(within(list).getByText("Refactor the tray menu")).toBeTruthy();
+    expect(within(list).queryByText("Design the notes screen")).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Show all views" }));
+    expect(screen.queryByText("Unfinished from yesterday")).toBeNull();
+  });
+});
