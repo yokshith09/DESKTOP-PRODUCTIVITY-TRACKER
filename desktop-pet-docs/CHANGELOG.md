@@ -4,6 +4,8 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Added: **Track websites (domain only)** in Settings › Privacy and tracking (off by default, needs app tracking). On Windows, Loaf reads the address bar of the browser in front every 2 s and keeps only the site's name (github.com); paths, searches, browser pages and files are dropped. Private/incognito windows are skipped. Time shows on the Time page per site. No extension needed. **Unverified** on a real PC; macOS not yet.
+
 - Added: the pet keeps waiting, laptop open, while a text box is focused in the app you're using, and puts the laptop away 1.5 s after you leave it (at most 5 min). Windows: text-caret check, no permission. macOS: needs Accessibility; without it, the old 20 s wait. Only "is a text box focused" is read, never its contents. **Unverified** on a real PC.
 
 - Added: **Type along with me** (Settings on the Character page, off by default). When you type in any app, the bear takes a laptop out of its pocket and types too; when you stop it looks up at you and waits, then puts the laptop away after 20 s. Only key presses are counted, never which keys; nothing is saved or sent. Windows: keyboard hook; macOS: system key counter (asks for Input Monitoring). **Unverified** on a real PC.

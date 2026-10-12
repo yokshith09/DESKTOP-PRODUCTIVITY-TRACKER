@@ -19,6 +19,7 @@ export interface Settings {
   "shortcuts.global_new_task": string | null;
   "tracking.apps": boolean;
   "tracking.exclude_apps": string[];
+  "tracking.sites": boolean;
   "advanced.log_level": "trace" | "debug" | "info" | "warn" | "error";
 }
 

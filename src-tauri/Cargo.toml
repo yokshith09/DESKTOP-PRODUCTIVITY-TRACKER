@@ -31,6 +31,15 @@ tracing = "0.1"
 
 # The Windows foreground-app collector (src/tracking.rs). Only the features it calls.
 [target.'cfg(windows)'.dependencies]
+# UI Automation (COM) for reading the browser's address bar (src/sites.rs). Same version Tauri uses.
+windows = { version = "0.62", features = [
+    "Win32_Foundation",
+    "Win32_System_Com",
+    "Win32_System_Ole",
+    "Win32_System_Variant",
+    "Win32_UI_Accessibility",
+    "Win32_UI_WindowsAndMessaging",
+] }
 windows-sys = { version = "0.61", features = [
     "Win32_Foundation",
     "Win32_System_SystemInformation",
