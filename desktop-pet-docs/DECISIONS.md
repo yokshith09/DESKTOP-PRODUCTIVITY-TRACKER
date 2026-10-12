@@ -56,6 +56,7 @@ None are waiting on the owner right now. Questions that will come up next: when 
 | 2026-10-05 | Overview tiles can be dragged and the order is remembered; Overview page is "fine" | `MovableTiles.tsx` |
 | 2026-10-05 | Notes next, then continue in order | This roadmap |
 | 2026-10-11 | **P0 = Notes and daily work management is the first release.** Later: browser tracking, desktop companion, voice, MCP, developer reactions, characters | `ROADMAP.md` |
+| 2026-10-12 | Next release only after Phase 2 (M2 + M3) is complete; no version bumps until then | Owner, after testing 0.1.3 |
 | 2026-10-11 | U1–U11 answered (table above): v0.1.0 for M1, ADR-015 order kept, Time page history, no Progress card, PRD v1.5, merge PR #1, next-7-days calendar, autostart before release | PRD, `ROADMAP.md`, code |
 
 ### Technical decisions made by Claude (open to review)
@@ -93,6 +94,8 @@ None are waiting on the owner right now. Questions that will come up next: when 
 | 2026-10-11 | The bear sleeps after 15 minutes with no activity (hover, click, any Loaf event, tracked app time), not by the clock | Owner works late; clock-based sleep looked like "always asleep". With tracking off, only Loaf activity keeps it awake |
 | 2026-10-11 | Speech bubbles grow the pet window the same way the hover card does, and never take focus | A bubble must not interrupt typing in another app |
 | 2026-10-11 | Scrollbars are invisible until the pointer is over the scrolling area | Owner asked for no visible scrollbars; hiding them fully would remove the only hint that a list scrolls |
+| 2026-10-12 | A due reminder is shown four ways: system notification, taskbar flash, pet bell (15 s), in-app alert with Done / Snooze | The system notification can be swallowed silently (Do not disturb, notifications off) and the plugin never reports it |
+| 2026-10-12 | Dragging the pet with its card open moves the grown window; the shell computes the pet's new square from how far the window moved | Resizing the window at the start of a drag cancels the drag on Windows |
 
 ### Documented conflicts (code differs from a locked document)
 
