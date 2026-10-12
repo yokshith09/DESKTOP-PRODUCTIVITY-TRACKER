@@ -213,3 +213,18 @@ html.pet * { scrollbar-width: none; }
 @keyframes pet-hop { 40% { transform: translateY(-8px); } }
 .pet-bubble-in { animation: pet-bubble-in 0.22s cubic-bezier(.2,.9,.3,1.2) both; }
 @keyframes pet-bubble-in { from { transform: translateY(6px) scale(.96); opacity: 0; } }
+
+/* Typing along with you (all characters): the lid opens, then two paws/hands tap in turn. */
+.pet-lid-open { transform-box: fill-box; transform-origin: bottom; animation: pet-lid-open 0.35s cubic-bezier(.2,.9,.3,1.2) both; }
+@keyframes pet-lid-open { from { transform: scaleY(0.1); opacity: .4; } }
+.pet-tap-l, .pet-tap-r { animation: pet-tap 0.18s ease-in-out infinite alternate; }
+.pet-tap-r { animation-delay: -0.09s; }
+@keyframes pet-tap { to { translate: 0 3px; } }
+.pet-float { transform-box: view-box; transform-origin: 100px 120px; animation: pet-float 3.2s ease-in-out infinite; }
+@keyframes pet-float { 50% { transform: translateY(-6px); } }
+.pet-wheel { transform-box: fill-box; transform-origin: center; animation: pet-wheel 0.5s linear infinite; }
+@keyframes pet-wheel { to { transform: rotate(360deg); } }
+.pet-code { animation: pet-code 0.6s steps(3) infinite; }
+@keyframes pet-code { 50% { translate: 0 -4px; } }
+.pet-glow { animation: pet-glow 1.2s ease-in-out infinite alternate; }
+@keyframes pet-glow { to { opacity: .35; } }

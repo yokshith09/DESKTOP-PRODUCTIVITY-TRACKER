@@ -4,6 +4,9 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Added (preview): five new characters (Mochi the cat, Pip the penguin, Bolt the robot, Byte the hamster, Ghosty the ghost) shown on the Character page, each with idle / typing / cheer / sleep poses. Not selectable yet.
+- Added: the bear's "typing" pose (opens a laptop and taps along). Not yet triggered by real typing.
+
 ### 2026-10-12 (M2: end-to-end tests, F1-27)
 - Added: **end-to-end tests** on the real app (`pnpm e2e`): a fresh install shows the welcome screen; add a task; write a note; log a meeting and convert its action item to a task; restart and check everything is still there. Runs on Windows in CI (*End-to-end* workflow) through WebDriver; macOS gets a launch smoke test (`pnpm e2e:smoke`), because Apple has no WebDriver for the app's webview.
 - Added: `LOAF_DATA_DIR` environment variable: keeps Loaf's database and logs in that folder (the tests use a fresh temporary one, never real data).
