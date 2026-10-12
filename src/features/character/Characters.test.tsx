@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { CHARACTERS, CHARACTER_POSES } from "./Characters";
 
 describe("characters", () => {
-  it("has the five approved characters", () => {
-    expect(CHARACTERS.map((c) => c.name)).toEqual(["Mochi", "Pip", "Bolt", "Byte", "Ghosty"]);
+  it("has the four approved characters", () => {
+    expect(CHARACTERS.map((c) => c.name)).toEqual(["Mochi", "Pip", "Bolt", "Ghosty"]);
   });
 
   it.each(CHARACTERS.flatMap((c) => CHARACTER_POSES.map((p) => [c.name, p, c.Component] as const)))(
