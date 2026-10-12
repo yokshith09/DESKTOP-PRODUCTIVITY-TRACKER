@@ -430,6 +430,12 @@ async fn apply<R: Runtime>(app: &AppHandle<R>, settings: &SettingsService, reset
     let scale = w.scale_factor().unwrap_or(1.0);
     let size = (logical_size(&size_name) * scale).round() as u32;
     let _ = w.set_size(PhysicalSize::new(size, size));
+    // Character › "Always on top" (on by default).
+    let on_top = all
+        .get("pet.always_on_top")
+        .and_then(Value::as_bool)
+        .unwrap_or(true);
+    let _ = w.set_always_on_top(on_top);
 
     let saved = if reset_position {
         None
@@ -480,7 +486,7 @@ pub fn start<R: Runtime>(app: AppHandle<R>, settings: Arc<SettingsService>, bus:
         loop {
             match events.recv().await {
                 Recv::Event(Event::SettingChanged { key, .. })
-                    if key == "pet.visible" || key == "pet.size" =>
+                    if key == "pet.visible" || key == "pet.size" || key == "pet.always_on_top" =>
                 {
                     apply(&app, &settings, false).await;
                 }

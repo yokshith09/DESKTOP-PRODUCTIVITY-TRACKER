@@ -52,6 +52,37 @@ pub enum SettingsKey {
     AdvancedLogLevel,
 }
 
+/// A global shortcut as stored: `Mod+…+Key`, e.g. `CmdOrCtrl+Shift+L`. It needs Ctrl, Alt, Cmd
+/// or CmdOrCtrl (Shift alone would steal ordinary typing), each modifier once, and one key:
+/// a letter, a digit or F1–F24.
+pub fn shortcut_is_valid(combo: &str) -> bool {
+    let parts: Vec<&str> = combo.split('+').map(str::trim).collect();
+    let Some((key, mods)) = parts.split_last() else {
+        return false;
+    };
+    let key_ok = (key.len() == 1 && key.chars().all(|c| c.is_ascii_alphanumeric()))
+        || key
+            .strip_prefix('F')
+            .and_then(|n| n.parse::<u8>().ok())
+            .is_some_and(|n| (1..=24).contains(&n));
+    let mut seen: Vec<&str> = Vec::new();
+    for m in mods {
+        let m = match *m {
+            "CmdOrCtrl" | "CommandOrControl" => "CmdOrCtrl",
+            "Ctrl" | "Control" => "Ctrl",
+            "Cmd" | "Command" | "Super" => "Cmd",
+            "Alt" | "Option" => "Alt",
+            "Shift" => "Shift",
+            _ => return false,
+        };
+        if seen.contains(&m) {
+            return false;
+        }
+        seen.push(m);
+    }
+    key_ok && seen.iter().any(|m| *m != "Shift")
+}
+
 impl SettingsKey {
     pub fn as_str(&self) -> &'static str {
         match self {
@@ -165,10 +196,16 @@ impl SettingsKey {
             Self::ShortcutsGlobalOpen
             | Self::ShortcutsGlobalNewNote
             | Self::ShortcutsGlobalNewTask => {
-                if !value.is_null() && !value.is_string() {
+                if value.is_null() {
+                    return Ok(());
+                }
+                let combo = value.as_str().ok_or_else(|| {
+                    AppError::validation(self.as_str(), "must be null or a string")
+                })?;
+                if !shortcut_is_valid(combo) {
                     return Err(AppError::validation(
                         self.as_str(),
-                        "must be null or a string",
+                        "Use Ctrl, Alt or Cmd with a letter, digit or F-key, e.g. CmdOrCtrl+Shift+L.",
                     ));
                 }
             }
@@ -246,6 +283,39 @@ pub fn all_defaults() -> BTreeMap<String, Value> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn shortcuts_need_a_real_modifier_and_one_key() {
+        for ok in [
+            "CmdOrCtrl+Shift+L",
+            "Alt+F4",
+            "Ctrl+Alt+9",
+            "Cmd+K",
+            "CommandOrControl+Shift+F12",
+        ] {
+            assert!(shortcut_is_valid(ok), "{ok}");
+        }
+        for bad in [
+            "",
+            "L",
+            "Shift+L",
+            "CmdOrCtrl+",
+            "CmdOrCtrl+Ctrl+Ctrl+L",
+            "Ctrl+Ctrl+L",
+            "Ctrl+LL",
+            "Hyper+L",
+            "Ctrl+F25",
+            "Ctrl+Shift",
+        ] {
+            assert!(!shortcut_is_valid(bad), "{bad}");
+        }
+        assert!(SettingsKey::ShortcutsGlobalOpen
+            .validate(&serde_json::json!("Shift+L"))
+            .is_err());
+        assert!(SettingsKey::ShortcutsGlobalOpen
+            .validate(&serde_json::json!(null))
+            .is_ok());
+    }
     use crate::error::ErrorCode;
 
     #[test]

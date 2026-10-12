@@ -126,9 +126,9 @@ The first release is **M1: Notes and daily work management (P0)**. Everything el
 | F1-18 | Decisions + action items | ✅ Built 2026-10-12 (add, edit, remove, reorder) |
 | F1-19 | Action item → task | ✅ Built 2026-10-12 (task status shown live on the item) |
 | F1-22 | Minimal pet window | 🟡 Built, Unverified (0.1.1, pulled forward by the owner after testing v0.1.0): hover card, click/double-click/right-click, drag, saved spot. 0.1.2 adds the soft-3D bear and task/reminder reactions with bubbles. Missing: reactions to focus/app time |
-| F1-23 | Today view (R1-70 rest) | 🟡 Partial |
-| F1-24 | Global shortcuts + quick-add popup + keymap | 🟡 `Mod+Shift+L/N/P` (Unverified). Quick-add popup and `Mod+Shift+T` **dropped by the owner** (2026-10-12). Remapping not built |
-| F1-25 | Settings screens (Pet, Shortcuts, Advanced) | 🟡 Partial — Data (M1), Desktop pet and Shortcuts list (0.1.1) done; Advanced missing |
+| F1-23 | Today view (R1-70 rest) | ✅ 2026-10-12: one line "Yesterday: X of Y done · N still open" that opens those tasks (owner chose only this; follow-ups and pinned notes dropped) |
+| F1-24 | Global shortcuts + quick-add popup + keymap | ✅ 2026-10-12 (Unverified on Windows): `Mod+Shift+L/N` changeable in Settings, `Mod+Shift+P` fixed; quick-add popup and `Mod+Shift+T` dropped by the owner |
+| F1-25 | Settings screens (Pet, Shortcuts, Advanced) | ✅ 2026-10-12: Shortcuts (change/reset), Data (database location, open folder), Advanced (log detail live, open logs folder, reset settings), About (open-source licenses) |
 | F1-26 | First run + empty states | 🟡 Welcome screen built (2026-10-12): shown once on a fresh Loaf or after Delete all, never to someone with notes or tasks; three start actions (task, note, meeting); pet on, tracking and login off. |
 | F1-27 | Cross-OS E2E, signing, **v1.0.0** | ⬜ |
 

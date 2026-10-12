@@ -4,6 +4,13 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+### 2026-10-12 (M2: Today, shortcuts, settings)
+- Added: **"Yesterday: X of Y done · N still open"** under the greeting on Today; a click opens Tasks on yesterday's unfinished tasks.
+- Added: change the global shortcuts for Open/hide Loaf and New note in Settings › Keyboard shortcuts (press the keys, Esc cancels, clashes refused, Reset). They apply at once.
+- Added: Settings › Your data shows where the database is, with Open folder. Settings › Advanced: log detail (Low/Normal/Debug, applies at once), Open logs folder, Reset settings. About lists the open-source projects Loaf uses.
+- Fixed: **the app never wrote a log file or crash report** — the logger existed but was never started. Now it starts first thing.
+- Fixed: Character › "Always on top" had no effect on the pet window.
+
 ### 2026-10-12 (M2: meetings F1-17…19; shortcut removed)
 - Added: **Meetings** page (sidebar, `Ctrl+5`; `Ctrl+M` starts one). List newest first with participant and date filters. The editor saves itself: title, time, participants (suggested from earlier meetings), Markdown notes, decisions and action items (add, edit, remove, reorder), follow-up date. **Convert to task** makes a task (project = meeting, due = follow-up, assignee in the description) and the item shows that task's status live. Deleting a meeting keeps its tasks.
 - Added: "Log a meeting" on the welcome screen.

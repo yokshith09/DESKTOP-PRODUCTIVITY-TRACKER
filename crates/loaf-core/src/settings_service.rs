@@ -70,6 +70,26 @@ impl SettingsService {
             .await
     }
 
+    /// Settings › Advanced › Reset settings: every setting back to its default. Announces each
+    /// one that actually changes, so the shell and the UI apply the defaults at once.
+    /// Preferences (layout, last page) and data are untouched.
+    pub async fn reset_all(&self) -> Result<()> {
+        let at = self.clock.now_ms();
+        let before = self.get_all().await?;
+        let defaults = settings::all_defaults();
+        self.db
+            .write(move |tx| {
+                tx.execute("DELETE FROM settings", [])?;
+                let events = defaults
+                    .into_iter()
+                    .filter(|(key, value)| before.get(key) != Some(value))
+                    .map(|(key, value)| Event::SettingChanged { at, key, value })
+                    .collect();
+                Ok(((), events))
+            })
+            .await
+    }
+
     pub async fn get_pref(&self, key: &str) -> Result<Option<Value>> {
         let key = key.to_owned();
         let mut all = self.db.read(|c| load(c, "user_preferences")).await?;
@@ -106,6 +126,30 @@ mod tests {
     fn service(dir: &tempfile::TempDir, bus: &EventBus) -> SettingsService {
         let db = Arc::new(Database::open(&dir.path().join("t.db"), bus.clone()).unwrap());
         SettingsService::new(db, Arc::new(FakeClock::new(1_000, Tz::UTC)))
+    }
+
+    #[tokio::test]
+    async fn reset_puts_every_setting_back_and_announces_only_real_changes() {
+        let dir = tempfile::tempdir().unwrap();
+        let bus = EventBus::default();
+        let s = service(&dir, &bus);
+        s.set("pet.size", json!("L")).await.unwrap();
+        s.set("general.theme", json!("system")).await.unwrap(); // already the default
+        s.set_pref("ui.last_view", json!("tasks")).await.unwrap();
+        let mut events = bus.subscribe();
+        s.reset_all().await.unwrap();
+        assert_eq!(s.get_all().await.unwrap(), settings::all_defaults());
+        assert_eq!(
+            s.get_pref("ui.last_view").await.unwrap(),
+            Some(json!("tasks"))
+        );
+        match events.recv().await {
+            Recv::Event(Event::SettingChanged { key, value, .. }) => {
+                assert_eq!(key, "pet.size");
+                assert_eq!(value, json!("M"));
+            }
+            other => panic!("expected one SettingChanged, got {other:?}"),
+        }
     }
 
     #[tokio::test]

@@ -164,6 +164,51 @@ pub fn build_subscriber(
     (subscriber, LogGuard(guard))
 }
 
+/// Changes the log level of a running logger (Settings › Advanced, no restart needed).
+pub struct LevelHandle(
+    tracing_subscriber::reload::Handle<LevelFilter, tracing_subscriber::Registry>,
+);
+
+impl LevelHandle {
+    pub fn set(&self, level: LogLevel) {
+        let _ = self.0.modify(|f| *f = level.filter());
+    }
+}
+
+/// Like [`build_subscriber`], with a level that can change later.
+pub fn build_reloadable(
+    writer: impl Write + Send + 'static,
+    level: LogLevel,
+) -> (
+    impl tracing::Subscriber + Send + Sync,
+    LogGuard,
+    LevelHandle,
+) {
+    use tracing_subscriber::layer::SubscriberExt;
+    let (non_blocking, guard) = tracing_appender::non_blocking(writer);
+    let (filter, handle) = tracing_subscriber::reload::Layer::new(level.filter());
+    let subscriber = tracing_subscriber::registry().with(filter).with(
+        tracing_subscriber::fmt::layer()
+            .with_writer(non_blocking)
+            .with_ansi(false),
+    );
+    (subscriber, LogGuard(guard), LevelHandle(handle))
+}
+
+/// Install the process-wide logger writing to `<dir>/loaf.log` (5 × 2 MB). The level can be
+/// changed later through the returned handle.
+pub fn init_reloadable(dir: &Path, level: LogLevel) -> io::Result<(LogGuard, LevelHandle)> {
+    let writer = RotatingWriter::new(dir, LOG_STEM, MAX_LOG_BYTES, KEEP_LOG_FILES)?;
+    let (subscriber, guard, handle) = build_reloadable(writer, level);
+    tracing::subscriber::set_global_default(subscriber).map_err(|_| {
+        io::Error::new(
+            io::ErrorKind::AlreadyExists,
+            "a global logger is already installed",
+        )
+    })?;
+    Ok((guard, handle))
+}
+
 /// Install the process-wide logger writing to `<dir>/loaf.log` (5 × 2 MB).
 pub fn init(dir: &Path, level: LogLevel) -> io::Result<LogGuard> {
     let writer = RotatingWriter::new(dir, LOG_STEM, MAX_LOG_BYTES, KEEP_LOG_FILES)?;
@@ -319,6 +364,23 @@ mod tests {
         w.flush().unwrap();
         let text = fs::read_to_string(dir.path().join("loaf.log")).unwrap();
         assert!(text.contains("before restart") && text.contains("after restart"));
+    }
+
+    #[test]
+    fn the_level_can_change_while_running() {
+        let dir = tempfile::tempdir().unwrap();
+        let writer =
+            RotatingWriter::new(dir.path(), "loaf", MAX_LOG_BYTES, KEEP_LOG_FILES).unwrap();
+        let (subscriber, guard, level) = build_reloadable(writer, LogLevel::Warn);
+        tracing::subscriber::with_default(subscriber, || {
+            tracing::info!("before-change-info");
+            level.set(LogLevel::Debug);
+            tracing::debug!("after-change-debug");
+        });
+        drop(guard);
+        let text = fs::read_to_string(dir.path().join("loaf.log")).unwrap();
+        assert!(!text.contains("before-change-info"));
+        assert!(text.contains("after-change-debug"));
     }
 
     #[test]

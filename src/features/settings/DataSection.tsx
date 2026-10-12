@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ const kb = (bytes: number) => (bytes < 1024 * 1024 ? `${Math.max(1, Math.round(b
 
 /** Your data (R0-07…09): take it all out, put it back into an empty Loaf, or erase everything. */
 export function DataSection() {
+  const { data: paths } = useQuery({ queryKey: ["app-paths"], queryFn: ipc.appPaths });
   const [busy, setBusy] = useState(false);
   const [importing, setImporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -47,6 +49,9 @@ export function DataSection() {
   return (
     <>
       <Section title="Your data">
+        <Row label="Stored on this computer" hint={paths?.database ?? ""}>
+          <Button variant="outline" size="sm" onClick={() => void ipc.folderOpen("data").catch((e: unknown) => toast.error(errorMessage(e)))}>Open folder</Button>
+        </Row>
         <Row label="Export everything" hint="Saves your notes, tasks, reminders, logs and settings to one file you keep.">
           <Button variant="outline" size="sm" disabled={busy} onClick={() => void doExport()}>Export…</Button>
         </Row>
