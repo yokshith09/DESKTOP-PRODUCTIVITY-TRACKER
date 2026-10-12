@@ -10,8 +10,11 @@
 //!   typing in the address bar. Private windows are skipped: Edge "InPrivate" and Firefox
 //!   "Private Browsing" by their title, Chrome and Brave by their "Incognito"/"Private" toolbar
 //!   button (English names only for now). A window that can't be classified is skipped too.
-//! * **macOS / elsewhere**: not yet; nothing is recorded. (macOS needs the foreground-app
-//!   collector first.)
+//! * **macOS**: AppleScript, asked of the browser in front: Chrome, Edge, Brave and Vivaldi
+//!   report the active tab's address and whether the window is incognito. macOS asks once per
+//!   browser ("Loaf wants to control Google Chrome"); if you say no, nothing is recorded for it.
+//!   Safari (private windows can't be told apart), Firefox and Arc (no way to ask) record nothing.
+//! * Elsewhere: nothing is recorded.
 //!
 //! Polling is the exception to ADR-009 here: no OS event fires when the address bar changes.
 //!
@@ -32,7 +35,7 @@ use tokio::sync::mpsc;
 /// Whether the looking thread should look at all (both switches on).
 static ACTIVE: AtomicBool = AtomicBool::new(false);
 
-#[cfg_attr(not(windows), allow(dead_code))]
+#[cfg_attr(not(any(windows, target_os = "macos")), allow(dead_code))]
 /// One look from the OS thread: what it saw and how long since the last input.
 struct Look {
     seen: Seen,
@@ -104,7 +107,7 @@ pub fn start(
     });
 }
 
-#[cfg_attr(not(windows), allow(dead_code))]
+#[cfg_attr(not(any(windows, target_os = "macos")), allow(dead_code))]
 fn interval() -> Duration {
     Duration::from_millis(LOOK_EVERY_MS)
 }
@@ -266,7 +269,81 @@ mod os {
     }
 }
 
-#[cfg(not(windows))]
+#[cfg(target_os = "macos")]
+mod os {
+    use std::process::Command;
+    use std::sync::atomic::Ordering;
+
+    use loaf_core::sites::{domain_from_address, Seen};
+    use loaf_core::usage::{display_name, is_browser};
+    use tokio::sync::mpsc::UnboundedSender;
+
+    use super::{Look, ACTIVE};
+
+    /// Browsers that can say both the active tab's address and whether the window is incognito.
+    const ASKABLE: &[&str] = &[
+        "Google Chrome",
+        "Microsoft Edge",
+        "Brave Browser",
+        "Vivaldi",
+    ];
+
+    pub fn spawn(tx: UnboundedSender<Look>) -> bool {
+        std::thread::Builder::new()
+            .name("loaf-sites".into())
+            .spawn(move || loop {
+                std::thread::sleep(super::interval());
+                if !ACTIVE.load(Ordering::Relaxed) {
+                    continue;
+                }
+                let seen = look();
+                let idle_ms = crate::tracking::mac::idle_ms().unwrap_or(0);
+                if tx.send(Look { seen, idle_ms }).is_err() {
+                    return;
+                }
+            })
+            .is_ok()
+    }
+
+    fn look() -> Seen {
+        let Some(app) = crate::tracking::mac::frontmost_app() else {
+            return Seen::NoBrowser;
+        };
+        if !is_browser(&app) {
+            return Seen::NoBrowser;
+        }
+        if !ASKABLE.contains(&app.as_str()) {
+            return Seen::Nothing;
+        }
+        // The app name comes from the fixed list above, so it is safe to put in the script.
+        let script = format!(
+            "tell application \"{app}\" to if (count of windows) > 0 then return (mode of front window) & linefeed & (URL of active tab of front window)"
+        );
+        let Ok(out) = Command::new("/usr/bin/osascript")
+            .args(["-e", &script])
+            .output()
+        else {
+            return Seen::Nothing;
+        };
+        if !out.status.success() {
+            return Seen::Nothing; // not allowed to ask, or no window
+        }
+        let text = String::from_utf8_lossy(&out.stdout);
+        let mut lines = text.lines();
+        if lines.next().map(str::trim) != Some("normal") {
+            return Seen::Nothing; // incognito, or an answer we don't understand
+        }
+        match lines.next().and_then(domain_from_address) {
+            Some(domain) => Seen::Site {
+                browser: display_name(&app),
+                domain,
+            },
+            None => Seen::Nothing,
+        }
+    }
+}
+
+#[cfg(not(any(windows, target_os = "macos")))]
 mod os {
     use tokio::sync::mpsc::UnboundedSender;
 

@@ -8,10 +8,12 @@
 //!   blocking message loop (no polling), resolving the window to its executable's file name
 //!   (never the path, never the title). Processes that deny access (elevated ones) report
 //!   nothing. Idle time comes from `GetLastInputInfo`.
-//! * **macOS**: not implemented yet; [`start`] returns [`Unsupported`] and the UI shows tracking
-//!   as unavailable. The planned source is `NSWorkspace.didActivateApplicationNotification`
-//!   with `CGEventSourceSecondsSinceLastEventType` for idle time, behind the same
-//!   `Platform` trait.
+//! * **macOS**: `NSWorkspace.frontmostApplication` (the app's name as macOS shows it, e.g.
+//!   "Google Chrome"), looked at once a second on its own thread and reported only when it
+//!   changes. That one-second look is an exception to ADR-009: the notification needs a run loop
+//!   this thread doesn't have, and the look is a single in-process call. Idle time comes from
+//!   `CGEventSourceSecondsSinceLastEventType`. No permission is needed.
+//! * Elsewhere: [`start`] returns [`Unsupported`] and the UI shows tracking as unavailable.
 
 use std::sync::Arc;
 
@@ -21,8 +23,8 @@ use loaf_core::settings_service::SettingsService;
 use loaf_core::usage::UsageService;
 use loaf_core::usage_collector::Collector;
 
-/// This operating system has no collector yet. (Never built on Windows, where there is one.)
-#[cfg_attr(windows, allow(dead_code))]
+/// This operating system has no collector yet. (Never built on Windows or macOS.)
+#[cfg_attr(any(windows, target_os = "macos"), allow(dead_code))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Unsupported;
 
@@ -54,20 +56,23 @@ impl Tracking {
 
 /// Start the collector task. It only starts watching windows while `tracking.apps` is on.
 /// Must be called inside the async runtime.
-#[cfg(windows)]
+#[cfg(any(windows, target_os = "macos"))]
 pub fn start(
     usage: Arc<UsageService>,
     settings: Arc<SettingsService>,
     clock: Arc<dyn Clock>,
     bus: &EventBus,
 ) -> Result<Tracking, Unsupported> {
+    #[cfg(windows)]
     let platform = Arc::new(win::Foreground::default());
+    #[cfg(target_os = "macos")]
+    let platform = Arc::new(mac::Foreground::default());
     Ok(Tracking {
         collector: Some(Collector::spawn(platform, usage, settings, clock, bus)),
     })
 }
 
-#[cfg(not(windows))]
+#[cfg(not(any(windows, target_os = "macos")))]
 pub fn start(
     _usage: Arc<UsageService>,
     _settings: Arc<SettingsService>,
@@ -284,5 +289,99 @@ pub(crate) mod win {
             .next()
             .filter(|name| !name.is_empty())
             .map(str::to_owned)
+    }
+}
+
+#[cfg(target_os = "macos")]
+pub(crate) mod mac {
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::{Arc, Mutex, PoisonError};
+    use std::thread::JoinHandle;
+    use std::time::Duration;
+
+    use loaf_core::error::{AppError, Result};
+    use loaf_core::usage_collector::Platform;
+    use objc2_app_kit::NSWorkspace;
+    use tokio::sync::mpsc::UnboundedSender;
+
+    #[link(name = "CoreGraphics", kind = "framework")]
+    extern "C" {
+        fn CGEventSourceSecondsSinceLastEventType(state: i32, event_type: u32) -> f64;
+    }
+    const COMBINED_SESSION_STATE: i32 = 0;
+    const ANY_INPUT_EVENT: u32 = !0;
+
+    /// How often the app in front is looked at.
+    const LOOK_EVERY: Duration = Duration::from_secs(1);
+
+    /// The name of the app in front, as macOS shows it ("Google Chrome", "Code", "Finder").
+    pub(crate) fn frontmost_app() -> Option<String> {
+        let app = NSWorkspace::sharedWorkspace().frontmostApplication()?;
+        let name = app.localizedName()?.to_string();
+        (!name.trim().is_empty()).then_some(name)
+    }
+
+    struct Watcher {
+        stop: Arc<AtomicBool>,
+        join: JoinHandle<()>,
+    }
+
+    #[derive(Default)]
+    pub struct Foreground {
+        watcher: Mutex<Option<Watcher>>,
+    }
+
+    impl Platform for Foreground {
+        fn start(&self, sink: UnboundedSender<Option<String>>) -> Result<()> {
+            let mut slot = self.watcher.lock().unwrap_or_else(PoisonError::into_inner);
+            if slot.is_some() {
+                return Ok(());
+            }
+            let stop = Arc::new(AtomicBool::new(false));
+            let flag = stop.clone();
+            let join = std::thread::Builder::new()
+                .name("loaf-frontmost".into())
+                .spawn(move || {
+                    let mut last: Option<Option<String>> = None;
+                    while !flag.load(Ordering::Relaxed) {
+                        let now = frontmost_app();
+                        if last.as_ref() != Some(&now) {
+                            if sink.send(now.clone()).is_err() {
+                                return;
+                            }
+                            last = Some(now);
+                        }
+                        std::thread::sleep(LOOK_EVERY);
+                    }
+                })
+                .map_err(|_| AppError::internal("Loaf couldn't watch which app is in front."))?;
+            *slot = Some(Watcher { stop, join });
+            Ok(())
+        }
+
+        fn stop(&self) {
+            let watcher = self
+                .watcher
+                .lock()
+                .unwrap_or_else(PoisonError::into_inner)
+                .take();
+            if let Some(w) = watcher {
+                w.stop.store(true, Ordering::Relaxed);
+                let _ = w.join.join();
+            }
+        }
+
+        fn idle_ms(&self) -> Option<u64> {
+            idle_ms()
+        }
+    }
+
+    /// Milliseconds since the last keyboard or mouse input anywhere.
+    pub(crate) fn idle_ms() -> Option<u64> {
+        // SAFETY: plain FFI call with constant arguments; it returns seconds as a double.
+        let secs = unsafe {
+            CGEventSourceSecondsSinceLastEventType(COMBINED_SESSION_STATE, ANY_INPUT_EVENT)
+        };
+        (secs.is_finite() && secs >= 0.0).then_some((secs * 1000.0) as u64)
     }
 }

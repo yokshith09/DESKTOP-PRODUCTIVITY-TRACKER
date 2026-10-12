@@ -142,12 +142,12 @@ F1-20 and F1-21 (search) are cancelled; their numbers are retired.
 |------|--------|
 | Windows foreground-app tracking, opt-in, domain-only (ADR-019) | 🟡 Built, **Unverified** on Windows |
 | Per-app / per-site time, Time page, filters | ✅ Complete (UI-mock) |
-| Website time from the address bar (Windows, no extension), `tracking.sites` | 🟡 Built 2026-10-12, **Unverified** on Windows |
+| Website time from the address bar (Windows: UI Automation; Mac: AppleScript for Chrome/Edge/Brave/Vivaldi), `tracking.sites` | 🟡 Built 2026-10-12, **Unverified** on both |
 | Chrome + Edge extensions (MV3) | ⬜ (later, only for open tabs; native messaging) |
 | Native-messaging bridge to the core | ⬜ (the ingest command `usage_record_domain` exists) |
 | Open-tabs list and close tab | ⬜ |
 | Firefox, Safari extensions | ⬜ |
-| macOS foreground-app collector | ⬜ (reports `supported: false`) |
+| macOS foreground-app collector | 🟡 Built 2026-10-12 (NSWorkspace, 1 s), **Unverified** on a Mac |
 
 ---
 

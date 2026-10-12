@@ -156,6 +156,22 @@ const KNOWN: &[Known] = &[
     app("systemsettings", "Settings", "Other"),
     app("excel", "Excel", "Other"),
     app("powerpnt", "PowerPoint", "Other"),
+    // macOS names (NSWorkspace gives the app's shown name).
+    app("microsoft word", "Word", "Notes"),
+    app("microsoft excel", "Excel", "Other"),
+    app("microsoft powerpoint", "PowerPoint", "Other"),
+    app("microsoft outlook", "Outlook", "Communication"),
+    app("microsoft teams", "Microsoft Teams", "Communication"),
+    app("zoom.us", "Zoom", "Communication"),
+    app("mail", "Mail", "Communication"),
+    app("messages", "Messages", "Communication"),
+    app("notes", "Notes", "Notes"),
+    app("pages", "Pages", "Notes"),
+    app("intellij idea", "IntelliJ IDEA", "Coding"),
+    app("sublime text", "Sublime Text", "Coding"),
+    app("finder", "Finder", "Other"),
+    app("system settings", "Settings", "Other"),
+    app("preview", "Preview", "Research"),
 ];
 
 /// Shell surfaces that flash in front of the real foreground app (lock screen, Start menu, task
@@ -168,6 +184,9 @@ const IGNORED: &[&str] = &[
     "startmenuexperiencehost",
     "shellexperiencehost",
     "textinputhost",
+    // macOS: the login and lock screen, the screen saver.
+    "loginwindow",
+    "screensaverengine",
 ];
 
 /// The file name of `path` (either separator) without its directory.
