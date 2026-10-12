@@ -5,7 +5,7 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 ## [Unreleased]
 
 - Added: **Type along with me** (Settings on the Character page, off by default). When you type in any app, the bear takes a laptop out of its pocket and types too; when you stop it looks up at you and waits, then puts the laptop away after 20 s. Only key presses are counted, never which keys; nothing is saved or sent. Windows: keyboard hook; macOS: system key counter (asks for Input Monitoring). **Unverified** on a real PC.
-- Changed: the laptop is now seen from behind (glowing logo, screen light on the face) with the paws reaching over the lid; the bear got the same 3D lighting as the new characters. All four new characters have the typing and waiting poses.
+- Changed: the laptop is now graphite, seen from behind (glowing teal logo, screen light on the face) with the paws reaching over the lid; the bear got the same 3D lighting as the new characters. All four new characters have the typing and waiting poses; Ghosty redrawn (gumdrop shape, curling tail, soft inner glow, bigger eyes).
 
 - Added (preview): four new characters (Mochi the cat, Pip the penguin, Bolt the robot, Ghosty the ghost), drawn with 3D lighting shown on the Character page, each with idle / typing / cheer / sleep poses. Not selectable yet.
 - Added: the bear's "typing" pose (opens a laptop and taps along). Not yet triggered by real typing.
