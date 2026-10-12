@@ -8,6 +8,7 @@ import { ipc, onEvent, type TaskRow } from "@/ipc";
 import { cn } from "@/lib/utils";
 import { PetCard } from "./PetCard";
 import { enqueue, isAsleep, reactionFor, type Reaction } from "./reactions";
+import { useTypingAlong } from "./typing";
 
 /** Card and bubble sizes in logical pixels; the shell grows the window by this much. */
 export const CARD_W = 300;
@@ -57,6 +58,10 @@ export function PetApp() {
   const hoverRef = useRef(false);
   const panelRef = useRef<Panel>(null);
   tasks.current = openToday;
+  const typing = useTypingAlong(settings?.["pet.typing"] ?? false);
+  useEffect(() => {
+    if (typing !== "off") wake();
+  }, [typing]);
   hoverRef.current = hovering;
   panelRef.current = panel;
 
@@ -182,7 +187,8 @@ export function PetApp() {
   };
 
   const working = openToday.some((r) => r.task.status === "IN_PROGRESS");
-  const pose: BearPose = playing?.pose ?? (hovering ? "wave" : asleep ? "sleep" : working ? "work" : "idle");
+  // Typing along beats hover and the rest: you are busy, it keeps you company.
+  const pose: BearPose = playing?.pose ?? (typing !== "off" ? typing : hovering ? "wave" : asleep ? "sleep" : working ? "work" : "idle");
   const bear = (
     <button
       type="button" aria-label="Loaf. Click to open, double-click to hide, right-click for options"
@@ -192,8 +198,9 @@ export function PetApp() {
       className={cn("shrink-0 cursor-pointer select-none rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring", hop && "pet-hop")}
       style={{ width: size, height: size, opacity }}
     >
-      {/* key: a new reaction restarts its animation even when the pose repeats. */}
-      <Bear key={playing ? `${playing.pose}-${playing.bubble}` : pose} pose={pose} animated className="pointer-events-none size-full" />
+      {/* key: a new reaction restarts its animation even when the pose repeats. One key for the
+          whole typing sequence, so the laptop comes out once and isn't pulled out again. */}
+      <Bear key={playing ? `${playing.pose}-${playing.bubble}` : typing !== "off" ? "typing" : pose} pose={pose} animated className="pointer-events-none size-full" />
     </button>
   );
 

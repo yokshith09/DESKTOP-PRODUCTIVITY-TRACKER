@@ -38,7 +38,8 @@ None are waiting on the owner right now. Questions that will come up next: when 
 |------|----------|----------------|
 | 2026-10-03 | PRD §9 D-1 … D-10 approved; documents D0–D7 locked | PRD, `desktop-pet-docs/README.md` |
 | 2026-10-12 | Four characters (Mochi, Pip, Bolt, Ghosty) designed early, pulled forward from Phase 7; Ember, Sprout and Byte dropped. Bear first. | Character page (preview) |
-| 2026-10-12 | Typing reaction approved: count key presses only (never which key), off by default with its own switch, nothing stored or sent; macOS needs Input Monitoring | Not built yet |
+| 2026-10-12 | Typing reaction approved: count key presses only (never which key), off by default with its own switch, nothing stored or sent; macOS needs Input Monitoring | `pet.typing`, `src-tauri/src/typing.rs`, `src/pet/typing.ts` |
+| 2026-10-12 | Typing sequence: laptop out of the pocket → types → stops 3 s after the last key and looks at you → puts it away after 20 s. Owner asked to wait "until the text box is open"; detecting another app's text box (UI Automation / Accessibility) is **open**, the 20 s wait stands in for now | Character page, pet |
 | 2026-10-03 | Global search removed from v1 (ADR-017) | Architecture decisions |
 | 2026-10-03 | Phase order: Developer → MCP → Voice (ADR-015); CI status after MCP (ADR-016) | Architecture decisions |
 | 2026-10-04 | Windows is developed and tested on the owner's PC; macOS and Windows are built by GitHub Actions and sent for testing | CI |
