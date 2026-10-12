@@ -126,7 +126,7 @@ export function SettingsPage() {
         </Row>
         <Row
           label="Track websites (domain only)"
-          hint="Reads the address bar of the browser in front and keeps only the site's name, like github.com. Private and incognito windows are skipped. Windows only for now; needs app tracking on."
+          hint="Reads the address bar of the browser in front and keeps only the site's name, like github.com. Private and incognito windows are skipped. Needs app tracking on. On a Mac: Chrome, Edge, Brave and Vivaldi (macOS asks once per browser); Safari and Firefox aren't counted."
         >
           <Switch checked={sites ?? false} disabled={!tracking} onCheckedChange={(v) => void setSites(v)} aria-label="Track websites" />
         </Row>

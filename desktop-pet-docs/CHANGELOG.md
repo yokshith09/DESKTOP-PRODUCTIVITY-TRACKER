@@ -4,6 +4,8 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Added (macOS parity): **app tracking on Mac** (the app in front, once a second; idle from the system; no permission) and **website tracking on Mac** for Chrome, Edge, Brave and Vivaldi via AppleScript (macOS asks once per browser; incognito windows skipped). Safari, Firefox and Arc are not counted on Mac: Safari can't say whether a window is private; the other two can't be asked. More Mac app names recognised (Word, Zoom, Finder…). **Unverified**: built and compiled for macOS, never run on a Mac.
+
 - Added: **Track websites (domain only)** in Settings › Privacy and tracking (off by default, needs app tracking). On Windows, Loaf reads the address bar of the browser in front every 2 s and keeps only the site's name (github.com); paths, searches, browser pages and files are dropped. Private/incognito windows are skipped. Time shows on the Time page per site. No extension needed. **Unverified** on a real PC; macOS not yet.
 
 - Added: the pet keeps waiting, laptop open, while a text box is focused in the app you're using, and puts the laptop away 1.5 s after you leave it (at most 5 min). Windows: text-caret check, no permission. macOS: needs Accessibility; without it, the old 20 s wait. Only "is a text box focused" is read, never its contents. **Unverified** on a real PC.

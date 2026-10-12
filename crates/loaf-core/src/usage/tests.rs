@@ -50,6 +50,30 @@ fn well_known_executables_get_friendly_names() {
 }
 
 #[test]
+fn macos_app_names_are_recognised() {
+    for (app, name, category) in [
+        ("Code", "VS Code", "Coding"),
+        ("Brave Browser", "Brave", "Research"),
+        ("Microsoft Word", "Word", "Notes"),
+        ("zoom.us", "Zoom", "Communication"),
+        ("Finder", "Finder", "Other"),
+    ] {
+        assert_eq!(display_name(app), name, "{app}");
+        assert_eq!(category_for(app), category, "{app}");
+    }
+    for b in [
+        "Google Chrome",
+        "Microsoft Edge",
+        "Brave Browser",
+        "Vivaldi",
+        "Safari",
+        "Arc",
+    ] {
+        assert!(is_browser(b), "{b}");
+    }
+}
+
+#[test]
 fn unknown_executables_lose_their_extension_and_are_title_cased() {
     assert_eq!(display_name("mycoolapp.exe"), "Mycoolapp");
     assert_eq!(display_name("my_cool-app.exe"), "My Cool App");
