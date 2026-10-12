@@ -214,6 +214,8 @@ describe("Notes screen (against the in-memory shell)", () => {
     await user.type(within(dialog).getByRole("textbox", { name: "Type DELETE to confirm" }), "DELETE");
     await user.click(confirm);
     expect(await screen.findByText("Everything was deleted")).toBeTruthy();
+    // An empty Loaf starts over at the welcome screen; past it, Notes is empty.
+    await user.click(await screen.findByRole("button", { name: "Start" }));
     await openNotes(user);
     expect(await screen.findByText("No notes yet")).toBeTruthy();
   });
@@ -339,5 +341,39 @@ describe("Notes screen (against the in-memory shell)", () => {
     await user.type(title, "Daily stand-up");
     await user.click(screen.getByRole("button", { name: "Save" }));
     expect(await screen.findByRole("button", { name: "Edit reminder “Daily stand-up”" })).toBeTruthy();
+  });
+});
+
+describe("first run (F1-26)", () => {
+  it("never shows the welcome to someone who already has notes or tasks", async () => {
+    render(<App />);
+    expect(await screen.findByRole("region", { name: "Today’s agenda" })).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Welcome to Loaf" })).toBeNull();
+  });
+
+  it("welcomes a fresh Loaf (after Delete all), then gets out of the way for good", async () => {
+    const { ipc } = await import("@/ipc");
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByRole("region", { name: "Today’s agenda" });
+    await ipc.dataDeleteAll("DELETE");
+    expect(await screen.findByRole("heading", { name: "Welcome to Loaf" })).toBeTruthy();
+    // The three choices, with the pet on and the rest off.
+    expect(screen.getByRole("switch", { name: "Show Loaf the bear on your desktop" }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByRole("switch", { name: "Track app time" }).getAttribute("aria-checked")).toBe("false");
+    await user.click(screen.getByRole("button", { name: "Start" }));
+    expect(await screen.findByRole("region", { name: "Today’s agenda" })).toBeTruthy();
+    expect(await ipc.prefsGet("ui.onboarded")).toBe(true);
+  });
+
+  it("can start straight from writing a note", async () => {
+    const { ipc } = await import("@/ipc");
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByRole("region", { name: "Today’s agenda" });
+    await ipc.dataDeleteAll("DELETE");
+    await user.click(await screen.findByRole("button", { name: /Write a note/ }));
+    await waitFor(() => expect(screen.queryByRole("heading", { name: "Welcome to Loaf" })).toBeNull());
+    expect((await ipc.notesList(false, null, "last_edited")).length).toBe(1);
   });
 });

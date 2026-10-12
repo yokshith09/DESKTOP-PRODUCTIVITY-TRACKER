@@ -20,6 +20,7 @@ import { Sidebar, type Page } from "@/features/shell/Sidebar";
 import { TasksPage } from "@/features/tasks/TasksPage";
 import { TimePage } from "@/features/time/TimePage";
 import { TodayOverviewPage } from "@/features/overview/TodayOverviewPage";
+import { Welcome, useFirstRun, type WelcomeNext } from "@/features/welcome/Welcome";
 
 const PAGES: readonly Page[] = ["today", "tasks", "time", "notes", "archive", "bin", "character", "mcp", "settings"];
 
@@ -32,6 +33,7 @@ function Screen() {
 
   useBusSync();
   const theme = useTheme();
+  const firstRun = useFirstRun();
   const actions = useNoteActions();
   const { data: allNotes = [] } = useNotes(false, null, "last_edited");
   const { data: labels = [] } = useLabels();
@@ -95,6 +97,25 @@ function Screen() {
     setEditing(note.id);
   };
   const labelName = labelId ? labels.find((l) => l.label.id === labelId)?.label.name : undefined;
+
+  if (firstRun.show) {
+    const start = async (next: WelcomeNext) => {
+      await firstRun.finish();
+      if (next === "note") return void newNote();
+      if (next === "task") {
+        setPage("tasks");
+        setTimeout(() => document.getElementById("new-task")?.focus(), 80);
+        return;
+      }
+      setPage("today");
+    };
+    return (
+      <>
+        <Welcome onDone={(next) => void start(next)} />
+        <Toaster />
+      </>
+    );
+  }
 
   return (
     <div className="flex h-screen min-h-[600px] bg-background text-foreground">

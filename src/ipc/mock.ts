@@ -87,13 +87,14 @@ export function createMock() {
   }
   const find = (id: unknown) => notes.find((x) => x.id === id) ?? fail("NOT_FOUND", "That note no longer exists.");
 
-  const settings: Record<string, unknown> = {
+  const defaultSettings = (): Record<string, unknown> => ({
     "general.autostart": false, "general.theme": "dark", "general.font_size": "M",
     "pet.visible": true, "pet.size": "M", "pet.opacity": 100, "pet.always_on_top": true,
     "shortcuts.global_open": null, "shortcuts.global_new_note": null, "shortcuts.global_new_task": null,
     "tracking.apps": true, "tracking.exclude_apps": [],
     "advanced.log_level": "info",
-  };
+  });
+  const settings = defaultSettings();
   /** Deterministic sample history so the Time screen has something to show. */
   function sampleLog(date: string, back: number): DailyLog | null {
     if (back === 0) return liveLog(date);
@@ -394,6 +395,11 @@ export function createMock() {
     data_delete_all: (a) => {
       if (a.confirm !== "DELETE") fail("VALIDATION", "Type DELETE to confirm.");
       notes.length = 0; bin.length = 0; tasks.length = 0; reminders.length = 0; labels.length = 0; workUpdates.length = 0; taskEvents.clear();
+      // Like the core: preferences and settings go too (so the welcome screen shows again). The
+      // core's defaults have app tracking off; the demo turns it on.
+      prefs.clear();
+      for (const k of Object.keys(settings)) delete settings[k];
+      Object.assign(settings, defaultSettings(), { "tracking.apps": false });
       emit("AllDataDeleted"); return null;
     },
     task_update: (a) => {
