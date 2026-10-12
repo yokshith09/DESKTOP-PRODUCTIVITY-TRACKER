@@ -7,7 +7,7 @@ export default tseslint.config(
   ...tseslint.configs.strict,
   {
     // Node-run tooling (not shipped): allow the Node globals it uses.
-    files: ["scripts/**/*.mjs"],
-    languageOptions: { globals: { console: "readonly", process: "readonly" } },
+    files: ["scripts/**/*.mjs", "e2e/**/*.mjs"],
+    languageOptions: { globals: { console: "readonly", process: "readonly", setTimeout: "readonly", fetch: "readonly" } },
   },
 );

@@ -4,6 +4,10 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+### 2026-10-12 (M2: end-to-end tests, F1-27)
+- Added: **end-to-end tests** on the real app (`pnpm e2e`): a fresh install shows the welcome screen; add a task; write a note; log a meeting and convert its action item to a task; restart and check everything is still there. Runs on Windows in CI (*End-to-end* workflow) through WebDriver; macOS gets a launch smoke test (`pnpm e2e:smoke`), because Apple has no WebDriver for the app's webview.
+- Added: `LOAF_DATA_DIR` environment variable: keeps Loaf's database and logs in that folder (the tests use a fresh temporary one, never real data).
+
 ### 2026-10-12 (M2: Today, shortcuts, settings)
 - Added: **"Yesterday: X of Y done · N still open"** under the greeting on Today; a click opens Tasks on yesterday's unfinished tasks.
 - Added: change the global shortcuts for Open/hide Loaf and New note in Settings › Keyboard shortcuts (press the keys, Esc cancels, clashes refused, Reset). They apply at once.

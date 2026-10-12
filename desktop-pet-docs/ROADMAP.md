@@ -130,7 +130,7 @@ The first release is **M1: Notes and daily work management (P0)**. Everything el
 | F1-24 | Global shortcuts + quick-add popup + keymap | ✅ 2026-10-12 (Unverified on Windows): `Mod+Shift+L/N` changeable in Settings, `Mod+Shift+P` fixed; quick-add popup and `Mod+Shift+T` dropped by the owner |
 | F1-25 | Settings screens (Pet, Shortcuts, Advanced) | ✅ 2026-10-12: Shortcuts (change/reset), Data (database location, open folder), Advanced (log detail live, open logs folder, reset settings), About (open-source licenses) |
 | F1-26 | First run + empty states | 🟡 Welcome screen built (2026-10-12): shown once on a fresh Loaf or after Delete all, never to someone with notes or tasks; three start actions (task, note, meeting); pet on, tracking and login off. |
-| F1-27 | Cross-OS E2E, signing, **v1.0.0** | ⬜ |
+| F1-27 | Cross-OS E2E, signing, **v1.0.0** | 🟡 E2E built 2026-10-12: Windows WebDriver run (welcome, task, note, meeting → task, restart) and macOS launch smoke test in `.github/workflows/e2e.yml`; passes 3/3 locally on Linux. **Signing waits for the owner's certificates.** The release is after Phase 2 (owner) |
 
 F1-20 and F1-21 (search) are cancelled; their numbers are retired.
 
