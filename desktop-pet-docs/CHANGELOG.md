@@ -4,7 +4,7 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
-- Added (preview): five new characters (Mochi the cat, Pip the penguin, Bolt the robot, Byte the hamster, Ghosty the ghost) shown on the Character page, each with idle / typing / cheer / sleep poses. Not selectable yet.
+- Added (preview): four new characters (Mochi the cat, Pip the penguin, Bolt the robot, Ghosty the ghost), drawn with 3D lighting shown on the Character page, each with idle / typing / cheer / sleep poses. Not selectable yet.
 - Added: the bear's "typing" pose (opens a laptop and taps along). Not yet triggered by real typing.
 
 ### 2026-10-12 (M2: end-to-end tests, F1-27)

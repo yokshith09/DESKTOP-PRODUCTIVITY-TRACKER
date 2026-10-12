@@ -37,7 +37,7 @@ None are waiting on the owner right now. Questions that will come up next: when 
 | Date | Decision | Where it shows |
 |------|----------|----------------|
 | 2026-10-03 | PRD §9 D-1 … D-10 approved; documents D0–D7 locked | PRD, `desktop-pet-docs/README.md` |
-| 2026-10-12 | Five characters (Mochi, Pip, Bolt, Byte, Ghosty) designed early, pulled forward from Phase 7; Ember and Sprout dropped. Bear first. | Character page (preview) |
+| 2026-10-12 | Four characters (Mochi, Pip, Bolt, Ghosty) designed early, pulled forward from Phase 7; Ember, Sprout and Byte dropped. Bear first. | Character page (preview) |
 | 2026-10-12 | Typing reaction approved: count key presses only (never which key), off by default with its own switch, nothing stored or sent; macOS needs Input Monitoring | Not built yet |
 | 2026-10-03 | Global search removed from v1 (ADR-017) | Architecture decisions |
 | 2026-10-03 | Phase order: Developer → MCP → Voice (ADR-015); CI status after MCP (ADR-016) | Architecture decisions |
