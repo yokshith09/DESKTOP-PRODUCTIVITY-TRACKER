@@ -44,6 +44,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Build the app (debug, UI embedded, no installer)
         run: pnpm tauri build --debug --no-bundle
+      - name: Launch smoke test (does the app start on this runner at all?)
+        run: pnpm e2e:smoke
       - name: Install tauri-driver and a matching Microsoft Edge Driver
         shell: pwsh
         run: |
@@ -53,6 +55,8 @@ jobs:
           "NATIVE_DRIVER=$PWD\msedgedriver.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - name: Run the end-to-end tests
         run: pnpm e2e
+        env:
+          RUST_BACKTRACE: "1"
 
   macos:
     name: smoke (macos)
