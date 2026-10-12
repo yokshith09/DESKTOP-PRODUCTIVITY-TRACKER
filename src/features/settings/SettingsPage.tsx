@@ -89,7 +89,6 @@ export function SettingsPage() {
         {[
           [`${mod}+Shift+L`, "Open or hide Loaf, from any app"],
           [`${mod}+Shift+N`, "New note, from any app"],
-          [`${mod}+Shift+T`, "New task, from any app"],
           [`${mod}+Shift+P`, "Show or hide the pet"],
           [`${mod}+1 … 4`, "Today overview, Tasks, Notes, Time"],
           [`${mod}+K / ${mod}+N`, "Search notes / new note (on Notes)"],

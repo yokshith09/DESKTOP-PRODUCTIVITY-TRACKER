@@ -300,7 +300,7 @@ fn build_menu<R: Runtime>(
         "pet:new-task",
         "New task",
         true,
-        Some(format!("{mod_key}+Shift+T")),
+        None::<&str>,
     )?)?;
     menu.append(&PredefinedMenuItem::separator(app)?)?;
     menu.append(&CheckMenuItem::with_id(

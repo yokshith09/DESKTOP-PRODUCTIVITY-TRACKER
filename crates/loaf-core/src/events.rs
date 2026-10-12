@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::labels::Label;
+use crate::meetings::Meeting;
 use crate::notes::Note;
 use crate::reminders::Reminder;
 use crate::tasks::{Task, TaskStatus};
@@ -134,6 +135,21 @@ pub enum Event {
         at: i64,
         reminder: Reminder,
     },
+    MeetingCreated {
+        #[cfg_attr(feature = "ts", ts(type = "number"))]
+        at: i64,
+        meeting: Meeting,
+    },
+    MeetingUpdated {
+        #[cfg_attr(feature = "ts", ts(type = "number"))]
+        at: i64,
+        meeting: Meeting,
+    },
+    MeetingDeleted {
+        #[cfg_attr(feature = "ts", ts(type = "number"))]
+        at: i64,
+        id: String,
+    },
     PetVisibilityChanged {
         #[cfg_attr(feature = "ts", ts(type = "number"))]
         at: i64,
@@ -212,6 +228,9 @@ impl Event {
             | Self::ReminderUpdated { at, .. }
             | Self::ReminderDeleted { at, .. }
             | Self::ReminderDue { at, .. }
+            | Self::MeetingCreated { at, .. }
+            | Self::MeetingUpdated { at, .. }
+            | Self::MeetingDeleted { at, .. }
             | Self::PetVisibilityChanged { at, .. }
             | Self::PetMoved { at, .. }
             | Self::DataExported { at, .. }
@@ -248,6 +267,9 @@ impl Event {
             Self::ReminderUpdated { .. } => "ReminderUpdated",
             Self::ReminderDeleted { .. } => "ReminderDeleted",
             Self::ReminderDue { .. } => "ReminderDue",
+            Self::MeetingCreated { .. } => "MeetingCreated",
+            Self::MeetingUpdated { .. } => "MeetingUpdated",
+            Self::MeetingDeleted { .. } => "MeetingDeleted",
             Self::PetVisibilityChanged { .. } => "PetVisibilityChanged",
             Self::PetMoved { .. } => "PetMoved",
             Self::DataExported { .. } => "DataExported",
@@ -355,6 +377,18 @@ pub(crate) fn one_of_each() -> Vec<Event> {
             at: 29,
             reminder: Reminder::sample(),
         },
+        Event::MeetingCreated {
+            at: 31,
+            meeting: Meeting::sample(),
+        },
+        Event::MeetingUpdated {
+            at: 32,
+            meeting: Meeting::sample(),
+        },
+        Event::MeetingDeleted {
+            at: 33,
+            id: "m1".into(),
+        },
         Event::PetVisibilityChanged {
             at: 5,
             visible: false,
@@ -418,6 +452,9 @@ mod tests {
         "ReminderUpdated",
         "ReminderDeleted",
         "ReminderDue",
+        "MeetingCreated",
+        "MeetingUpdated",
+        "MeetingDeleted",
         "PetVisibilityChanged",
         "PetMoved",
         "DataExported",

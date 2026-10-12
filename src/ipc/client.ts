@@ -2,7 +2,7 @@
 import { call } from "./transport";
 import type {
   UsageSummary, TimeRange, TrackingStatus, BinNote, DailyLog, Reminder, ReminderInput, ReminderPatch, Label, LabelCount, Note, NoteInput, NotePatch, NoteSort, NoteSummary, Task, TaskEdit, TaskEvent, TaskFilters, TaskRow,
-  TaskStatus, TaskView, WorkUpdate,
+  TaskStatus, TaskView, WorkUpdate, Meeting, MeetingFilters, MeetingInput, MeetingSummary,
 } from "./types";
 import type { Settings, SettingsKey } from "./settings";
 
@@ -67,6 +67,13 @@ export const ipc = {
   petClick: () => call<unknown>("pet_click"),
   petDoubleClick: () => call<unknown>("pet_double_click"),
   petMenu: () => call<unknown>("pet_menu"),
+  meetingsList: (filters: MeetingFilters = { participant: null, from: null, to: null }) => call<MeetingSummary[]>("meetings_list", { filters }),
+  meetingGet: (id: string) => call<Meeting>("meeting_get", { id }),
+  meetingCreate: (input: MeetingInput) => call<Meeting>("meeting_create", { input }),
+  meetingUpdate: (id: string, input: MeetingInput) => call<Meeting>("meeting_update", { id, input }),
+  meetingDelete: (id: string) => call<null>("meeting_delete", { id }),
+  actionItemConvert: (actionItemId: string) => call<Task>("action_item_convert", { actionItemId }),
+  participantsSuggest: (prefix: string) => call<string[]>("participants_suggest", { prefix }),
   notificationTest: () => call<null>("notification_test"),
   notificationSettingsOpen: () => call<null>("notification_settings_open"),
   taskTransition: (id: string, to: TaskStatus) => call<Task>("task_transition", { id, to }),

@@ -11,6 +11,7 @@ use loaf_core::error::{AppError, Result};
 use loaf_core::events::Event;
 use loaf_core::labels::{self, Label, LabelCount};
 use loaf_core::links;
+use loaf_core::meetings::{self, Meeting, MeetingFilters, MeetingInput, MeetingSummary};
 use loaf_core::notes::{self, BinNote, Note, NoteInput, NotePatch, NoteSort, NoteSummary};
 use loaf_core::reminders::{self, Reminder, ReminderInput, ReminderPatch};
 use loaf_core::settings::SettingsKey;
@@ -146,6 +147,50 @@ pub async fn bin_empty(core: State<'_, Core>) -> Result<u64> {
 #[tauri::command]
 pub async fn note_discard_if_empty(id: String, core: State<'_, Core>) -> Result<bool> {
     notes::discard_if_empty(&core.db, &*core.clock, &id).await
+}
+
+// ---- meetings (TRD §4.3) --------------------------------------------------------------------
+
+#[tauri::command]
+pub async fn meetings_list(
+    filters: MeetingFilters,
+    core: State<'_, Core>,
+) -> Result<Vec<MeetingSummary>> {
+    meetings::list(&core.db, filters).await
+}
+
+#[tauri::command]
+pub async fn meeting_get(id: String, core: State<'_, Core>) -> Result<Meeting> {
+    meetings::get(&core.db, &id).await
+}
+
+#[tauri::command]
+pub async fn meeting_create(input: MeetingInput, core: State<'_, Core>) -> Result<Meeting> {
+    meetings::create(&core.db, &*core.clock, input).await
+}
+
+#[tauri::command]
+pub async fn meeting_update(
+    id: String,
+    input: MeetingInput,
+    core: State<'_, Core>,
+) -> Result<Meeting> {
+    meetings::update(&core.db, &*core.clock, &id, input).await
+}
+
+#[tauri::command]
+pub async fn meeting_delete(id: String, core: State<'_, Core>) -> Result<()> {
+    meetings::delete(&core.db, &*core.clock, &id).await
+}
+
+#[tauri::command]
+pub async fn action_item_convert(action_item_id: String, core: State<'_, Core>) -> Result<Task> {
+    meetings::convert_action_item(&core.db, &*core.clock, &action_item_id).await
+}
+
+#[tauri::command]
+pub async fn participants_suggest(prefix: String, core: State<'_, Core>) -> Result<Vec<String>> {
+    meetings::suggest_participants(&core.db, &prefix).await
 }
 
 // ---- reminders ------------------------------------------------------------------------------

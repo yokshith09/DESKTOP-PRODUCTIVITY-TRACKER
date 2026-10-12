@@ -4,6 +4,13 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+### 2026-10-12 (M2: meetings F1-17…19; shortcut removed)
+- Added: **Meetings** page (sidebar, `Ctrl+5`; `Ctrl+M` starts one). List newest first with participant and date filters. The editor saves itself: title, time, participants (suggested from earlier meetings), Markdown notes, decisions and action items (add, edit, remove, reorder), follow-up date. **Convert to task** makes a task (project = meeting, due = follow-up, assignee in the description) and the item shows that task's status live. Deleting a meeting keeps its tasks.
+- Added: "Log a meeting" on the welcome screen.
+- Removed: the global shortcut `Ctrl+Shift+T` (owner). The in-app `Ctrl+T` stays.
+- Fixed: a due reminder showed two toasts inside Loaf; now one, with Done and Snooze.
+- Tests: fixed a test race (Delete all fired before the page listened for events).
+
 ### 2026-10-12 (M2: first run, F1-26)
 - Added: **welcome screen** on a fresh Loaf (and after Delete all): hello from the bear, "Add your first task" or "Write a note", and three choices — show the pet (on), track app time (off), open at login (off). Shown once; never to someone who already has notes or tasks.
 

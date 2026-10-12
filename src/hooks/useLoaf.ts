@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { daysAgo, ymd } from "@/lib/dates";
-import { errorMessage, ipc, onEvent, type NoteInput, type NotePatch, type NoteSort, type TaskEdit, type TaskFilters, type TaskStatus, type TaskView } from "@/ipc";
+import { errorMessage, ipc, onEvent, type NoteInput, type NotePatch, type NoteSort, type TaskEdit, type TaskFilters, type TaskStatus, type TaskView, type MeetingFilters, type MeetingInput } from "@/ipc";
 
 export const keys = {
   notes: (archived: boolean, labelId: string | null, sort: NoteSort) => ["notes", archived, labelId, sort] as const,
@@ -24,10 +24,6 @@ export function useBusSync() {
       onEvent((e) => {
         // Importing or erasing replaces everything: refetch it all (and the settings with it).
         if (e.type === "ResyncRequired" || e.type === "DataImported" || e.type === "AllDataDeleted") return void qc.invalidateQueries();
-        if (e.type === "ReminderDue") {
-          const r = e.reminder as { title?: string } | undefined;
-          toast(r?.title ?? "Reminder", { description: "Reminder is due" });
-        }
         if (e.type.startsWith("Reminder")) void qc.invalidateQueries({ queryKey: keys.reminders });
         if (e.type === "UsageUpdated") void qc.invalidateQueries({ queryKey: ["usage"] });
         if (e.type === "SettingChanged") void qc.invalidateQueries({ queryKey: ["tracking"] });
@@ -43,6 +39,11 @@ export function useBusSync() {
         if (e.type.startsWith("Task")) {
           void qc.invalidateQueries({ queryKey: ["tasks"] });
           void qc.invalidateQueries({ queryKey: ["task"] });
+        }
+        // Meetings show their action items' task status live (R1-34), so task changes count too.
+        if (e.type.startsWith("Meeting") || e.type.startsWith("Task")) {
+          void qc.invalidateQueries({ queryKey: ["meetings"] });
+          void qc.invalidateQueries({ queryKey: ["meeting"] });
         }
         if (e.type === "SettingChanged") void qc.invalidateQueries({ queryKey: keys.settings });
       }),
@@ -164,5 +165,29 @@ export function useReminderActions() {
     update: (id: string, title: string, remindAt: number) => edit.mutateAsync([id, title, remindAt]),
     setDone: (id: string, d: boolean) => done.mutateAsync([id, d]),
     remove: (id: string) => remove.mutateAsync([id]),
+  };
+}
+
+// ---- meetings --------------------------------------------------------------------------------
+
+const MEETING_KEYS = [["meetings"], ["meeting"], ["tasks"], ["task"]] as const;
+
+export const useMeetings = (filters: MeetingFilters) =>
+  useQuery({ queryKey: ["meetings", filters], queryFn: () => ipc.meetingsList(filters) });
+export const useMeeting = (id: string | null) =>
+  useQuery({ queryKey: ["meeting", id], queryFn: () => ipc.meetingGet(id ?? ""), enabled: id !== null });
+export const useParticipantSuggestions = (prefix: string) =>
+  useQuery({ queryKey: ["meetings", "participants", prefix], queryFn: () => ipc.participantsSuggest(prefix), enabled: prefix.trim().length > 0 });
+
+export function useMeetingActions() {
+  const create = useAction((input: MeetingInput) => ipc.meetingCreate(input), MEETING_KEYS);
+  const update = useAction((id: string, input: MeetingInput) => ipc.meetingUpdate(id, input), MEETING_KEYS);
+  const remove = useAction((id: string) => ipc.meetingDelete(id), MEETING_KEYS);
+  const convert = useAction((actionItemId: string) => ipc.actionItemConvert(actionItemId), MEETING_KEYS);
+  return {
+    create: (input: MeetingInput) => create.mutateAsync([input]),
+    update: (id: string, input: MeetingInput) => update.mutateAsync([id, input]),
+    remove: (id: string) => remove.mutateAsync([id]),
+    convert: (actionItemId: string) => convert.mutateAsync([actionItemId]),
   };
 }

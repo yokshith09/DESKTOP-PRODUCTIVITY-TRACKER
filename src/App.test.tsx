@@ -215,7 +215,7 @@ describe("Notes screen (against the in-memory shell)", () => {
     await user.click(confirm);
     expect(await screen.findByText("Everything was deleted")).toBeTruthy();
     // An empty Loaf starts over at the welcome screen; past it, Notes is empty.
-    await user.click(await screen.findByRole("button", { name: "Start" }));
+    await user.click(await screen.findByRole("button", { name: "Start" }, { timeout: 3000 }));
     await openNotes(user);
     expect(await screen.findByText("No notes yet")).toBeTruthy();
   });
@@ -355,9 +355,10 @@ describe("first run (F1-26)", () => {
     const { ipc } = await import("@/ipc");
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByRole("region", { name: "Today’s agenda" });
+    // Wait for data: by then the page is listening for events (effects ran), so it hears Delete all.
+    await screen.findByText("Review the sync PR");
     await ipc.dataDeleteAll("DELETE");
-    expect(await screen.findByRole("heading", { name: "Welcome to Loaf" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Welcome to Loaf" }, { timeout: 3000 })).toBeTruthy();
     // The three choices, with the pet on and the rest off.
     expect(screen.getByRole("switch", { name: "Show Loaf the bear on your desktop" }).getAttribute("aria-checked")).toBe("true");
     expect(screen.getByRole("switch", { name: "Track app time" }).getAttribute("aria-checked")).toBe("false");
@@ -370,10 +371,76 @@ describe("first run (F1-26)", () => {
     const { ipc } = await import("@/ipc");
     const user = userEvent.setup();
     render(<App />);
-    await screen.findByRole("region", { name: "Today’s agenda" });
+    // Wait for data: by then the page is listening for events (effects ran), so it hears Delete all.
+    await screen.findByText("Review the sync PR");
     await ipc.dataDeleteAll("DELETE");
-    await user.click(await screen.findByRole("button", { name: /Write a note/ }));
+    await user.click(await screen.findByRole("button", { name: /Write a note/ }, { timeout: 3000 }));
     await waitFor(() => expect(screen.queryByRole("heading", { name: "Welcome to Loaf" })).toBeNull());
     expect((await ipc.notesList(false, null, "last_edited")).length).toBe(1);
+  });
+});
+
+describe("meetings (F1-17…19)", () => {
+  const openMeetings = (user: ReturnType<typeof userEvent.setup>) => goTo(user, /^Meetings/);
+
+  it("lists meetings newest first and filters by participant", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await openMeetings(user);
+    const list = await screen.findByRole("list", { name: "Meetings" });
+    const rows = within(list).getAllByRole("button").map((b) => b.getAttribute("aria-label"));
+    expect(rows).toEqual(["Open meeting “Sprint planning”", "Open meeting “Design review”"]);
+    await user.type(screen.getByLabelText("Participant"), "ava");
+    await waitFor(() => expect(within(screen.getByRole("list", { name: "Meetings" })).getAllByRole("button")).toHaveLength(1));
+    expect(screen.getByRole("button", { name: "Open meeting “Design review”" })).toBeTruthy();
+  });
+
+  it("turns an action item into a task that shows its status", async () => {
+    const { ipc } = await import("@/ipc");
+    const user = userEvent.setup();
+    render(<App />);
+    await openMeetings(user);
+    await user.click(await screen.findByRole("button", { name: "Open meeting “Sprint planning”" }));
+    const item = await screen.findByRole("textbox", { name: "Action item 1" });
+    const row = item.closest("li") as HTMLElement;
+    await user.click(within(row).getByRole("button", { name: "Convert to task" }));
+    expect(await within(row).findByText("Task · Planned")).toBeTruthy();
+    const task = (await ipc.tasksQuery("all")).find((r) => r.task.title === "Write the meetings spec")?.task;
+    expect(task?.project).toBe("Sprint planning");
+    expect(task?.description).toContain("Assignee: Mara");
+  });
+
+  it("logs a new meeting with Ctrl+M: it saves itself once it has a title", async () => {
+    const { ipc } = await import("@/ipc");
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByRole("region", { name: "Today’s agenda" });
+    await user.keyboard("{Control>}m{/Control}");
+    const title = await screen.findByRole("textbox", { name: "Meeting title" });
+    await user.type(title, "1:1 with Asha");
+    await user.type(screen.getByRole("combobox", { name: "Add participant" }), "Asha{Enter}");
+    await user.click(screen.getByRole("button", { name: "Add decision" }));
+    await user.type(screen.getByRole("textbox", { name: "Decision 1" }), "Weekly check-ins");
+    await user.click(screen.getByRole("button", { name: "Add action item" }));
+    await user.type(screen.getByRole("textbox", { name: "Action item 1" }), "Share the roadmap");
+    await waitFor(async () => {
+      const m = (await ipc.meetingsList()).find((x) => x.title === "1:1 with Asha");
+      expect(m?.participants).toEqual(["Asha"]);
+      expect(m?.decisions).toBe(1);
+      expect(m?.action_items).toBe(1);
+    }, { timeout: 3000 });
+    await user.click(screen.getByRole("button", { name: "Back to meetings" }));
+    expect(await screen.findByRole("button", { name: "Open meeting “1:1 with Asha”" })).toBeTruthy();
+  });
+
+  it("deletes a meeting after a second click", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await openMeetings(user);
+    await user.click(await screen.findByRole("button", { name: "Open meeting “Design review”" }));
+    await user.click(await screen.findByRole("button", { name: "Delete meeting" }));
+    await user.click(await screen.findByRole("button", { name: "Delete meeting" }));
+    await screen.findByRole("list", { name: "Meetings" });
+    expect(screen.queryByRole("button", { name: "Open meeting “Design review”" })).toBeNull();
   });
 });
