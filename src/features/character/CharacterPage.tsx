@@ -12,7 +12,7 @@ const SIZES = { S: 64, M: 96, L: 128 } as const;
 
 /** What each pose is for, as shown on the preview buttons. */
 const POSE_LABELS: Record<BearPose, string> = {
-  idle: "Idle", wave: "Hello (hover)", type: "Typing with you", sleep: "Sleepy", work: "Working", cheer: "Task done", party: "All done",
+  idle: "Idle", wave: "Hello (hover)", type: "Typing with you", wait: "Waiting for you", stow: "Laptop away", sleep: "Sleepy", work: "Working", cheer: "Task done", party: "All done",
   catch: "Task added", worried: "Worried", ring: "Reminder", toss: "Task deleted",
 };
 
@@ -35,6 +35,7 @@ export function CharacterPage() {
   const [size, setSize] = useSetting("pet.size");
   const [opacity, setOpacity] = useSetting("pet.opacity");
   const [onTop, setOnTop] = useSetting("pet.always_on_top");
+  const [typing, setTyping] = useSetting("pet.typing");
   const px = SIZES[size ?? "M"];
 
   return (
@@ -81,6 +82,12 @@ export function CharacterPage() {
           <Row label="Always on top" hint="Keep the companion above other windows.">
             <Switch checked={onTop ?? true} onCheckedChange={(v) => void setOnTop(v)} aria-label="Always on top" />
           </Row>
+          <Row
+            label="Type along with me"
+            hint="When you type in any app, it takes out a laptop and types too. Loaf only counts key presses, never which keys; nothing is saved or sent. macOS asks for Input Monitoring."
+          >
+            <Switch checked={typing ?? false} onCheckedChange={(v) => void setTyping(v)} aria-label="Type along with me" />
+          </Row>
           <div className="py-4">
             <p className="mb-3 text-xs font-medium text-muted-foreground">Preview at each size</p>
             <div className="flex items-end gap-6">
@@ -97,15 +104,15 @@ export function CharacterPage() {
       <section aria-label="More characters" className="mt-6">
         <h2 className="text-[15px] font-semibold">More characters <span className="ml-1 rounded-md bg-primary/15 px-1.5 py-0.5 text-[11px] font-medium text-primary">Preview</span></h2>
         <p className="mt-0.5 text-xs text-muted-foreground">Coming in a later version. Each one types along with you, cheers when you finish, and naps when you rest.</p>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-3 grid gap-3 lg:grid-cols-2">
           {CHARACTERS.map(({ key, name, what, Component }) => (
             <Panel key={key} className="p-4">
               <p className="text-sm font-semibold">{name} <span className="font-normal text-muted-foreground">{what}</span></p>
-              <div className="mt-2 grid grid-cols-4 gap-1">
+              <div className="mt-2 grid grid-cols-5 gap-1">
                 {CHARACTER_POSES.map((p) => (
                   <figure key={p} className="text-center">
                     <Component pose={p} animated className="mx-auto size-20" />
-                    <figcaption className="text-[10px] text-muted-foreground">{p === "type" ? "typing" : p}</figcaption>
+                    <figcaption className="text-[10px] text-muted-foreground">{p === "type" ? "typing" : p === "wait" ? "waiting" : p}</figcaption>
                   </figure>
                 ))}
               </div>

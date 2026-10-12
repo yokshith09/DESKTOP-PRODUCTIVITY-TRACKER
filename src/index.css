@@ -228,3 +228,12 @@ html.pet * { scrollbar-width: none; }
 @keyframes pet-code { 50% { translate: 0 -4px; } }
 .pet-glow { animation: pet-glow 1.2s ease-in-out infinite alternate; }
 @keyframes pet-glow { to { opacity: .35; } }
+/* Typing along: the laptop comes out of the pocket, the lid opens, and later it goes back. */
+.pet-laptop-out, .pet-laptop-away { transform-box: view-box; }
+.pet-laptop-out { animation: pet-laptop-out 0.55s cubic-bezier(.2,.9,.3,1.15) both; }
+@keyframes pet-laptop-out { 0% { transform: translateY(10px) scale(.18); opacity: 0; } 25% { opacity: 1; } 65% { transform: translateY(-5px) scale(1.04); } 100% { transform: none; } }
+.pet-laptop-away { animation: pet-laptop-away 0.5s cubic-bezier(.5,0,.8,.4) both; }
+@keyframes pet-laptop-away { 0% { transform: none; } 30% { transform: translateY(-4px) scale(1.02); } 100% { transform: translateY(10px) scale(.18); opacity: 0; } }
+.pet-lid-late { animation-delay: 0.4s; }
+.pet-look { transform-box: view-box; transform-origin: 100px 120px; animation: pet-look 2.8s ease-in-out infinite; }
+@keyframes pet-look { 0%, 100% { transform: rotate(0); } 40%, 70% { transform: rotate(-4deg); } }

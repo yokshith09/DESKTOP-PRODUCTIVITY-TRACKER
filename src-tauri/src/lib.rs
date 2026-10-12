@@ -9,6 +9,7 @@ mod pet;
 mod shortcuts;
 mod tracking;
 mod tray;
+mod typing;
 
 use std::sync::Arc;
 
@@ -271,6 +272,7 @@ pub fn run() {
             app.on_menu_event(|app, event| pet::on_menu(app, event.id().as_ref()));
             pet::start(app.handle().clone(), settings.clone(), &bus);
             shortcuts::start(app.handle().clone(), settings.clone(), &bus);
+            typing::start(app.handle().clone(), settings.clone(), &bus);
             if let Some(logs) = logs {
                 logs::follow_setting(logs, settings.clone(), &bus);
             }

@@ -32,6 +32,10 @@ pub enum SettingsKey {
     PetOpacity,
     #[serde(rename = "pet.always_on_top")]
     PetAlwaysOnTop,
+    /// The pet types along while you type anywhere. Off by default: it needs a system-wide
+    /// key-press counter (never which key) and, on macOS, the Input Monitoring permission.
+    #[serde(rename = "pet.typing")]
+    PetTyping,
 
     // shortcuts (F1-24 registers these)
     #[serde(rename = "shortcuts.global_open")]
@@ -93,6 +97,7 @@ impl SettingsKey {
             Self::PetSize => "pet.size",
             Self::PetOpacity => "pet.opacity",
             Self::PetAlwaysOnTop => "pet.always_on_top",
+            Self::PetTyping => "pet.typing",
             Self::ShortcutsGlobalOpen => "shortcuts.global_open",
             Self::ShortcutsGlobalNewNote => "shortcuts.global_new_note",
             Self::ShortcutsGlobalNewTask => "shortcuts.global_new_task",
@@ -112,6 +117,7 @@ impl SettingsKey {
             "pet.size" => Some(Self::PetSize),
             "pet.opacity" => Some(Self::PetOpacity),
             "pet.always_on_top" => Some(Self::PetAlwaysOnTop),
+            "pet.typing" => Some(Self::PetTyping),
             "shortcuts.global_open" => Some(Self::ShortcutsGlobalOpen),
             "shortcuts.global_new_note" => Some(Self::ShortcutsGlobalNewNote),
             "shortcuts.global_new_task" => Some(Self::ShortcutsGlobalNewTask),
@@ -132,6 +138,7 @@ impl SettingsKey {
             Self::PetSize => json!("M"),
             Self::PetOpacity => json!(100),
             Self::PetAlwaysOnTop => json!(true),
+            Self::PetTyping => json!(false),
             Self::ShortcutsGlobalOpen => json!(null),
             Self::ShortcutsGlobalNewNote => json!(null),
             Self::ShortcutsGlobalNewTask => json!(null),
@@ -147,6 +154,7 @@ impl SettingsKey {
             Self::GeneralAutostart
             | Self::PetVisible
             | Self::PetAlwaysOnTop
+            | Self::PetTyping
             | Self::TrackingApps => {
                 if !value.is_boolean() {
                     return Err(AppError::validation(self.as_str(), "must be a boolean"));
@@ -268,6 +276,7 @@ pub fn all_defaults() -> BTreeMap<String, Value> {
         SettingsKey::PetSize,
         SettingsKey::PetOpacity,
         SettingsKey::PetAlwaysOnTop,
+        SettingsKey::PetTyping,
         SettingsKey::ShortcutsGlobalOpen,
         SettingsKey::ShortcutsGlobalNewNote,
         SettingsKey::ShortcutsGlobalNewTask,
@@ -321,7 +330,7 @@ mod tests {
     #[test]
     fn all_defaults_exist() {
         let defaults = all_defaults();
-        assert_eq!(defaults.len(), 13);
+        assert_eq!(defaults.len(), 14);
         assert_eq!(
             defaults["tracking.apps"],
             json!(false),
@@ -331,6 +340,11 @@ mod tests {
         assert_eq!(defaults["general.autostart"], json!(false));
         assert_eq!(defaults["general.theme"], json!("system"));
         assert_eq!(defaults["pet.opacity"], json!(100));
+        assert_eq!(
+            defaults["pet.typing"],
+            json!(false),
+            "typing along is opt-in"
+        );
     }
 
     #[test]

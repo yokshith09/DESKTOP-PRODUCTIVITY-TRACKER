@@ -234,7 +234,7 @@ F1-20 and F1-21 (search) are cancelled; their numbers are retired.
 - Meeting transcription into the transcript field
 
 ## M8 — Character customization: Phase 7 *(outline)*
-*Pulled forward (owner, 2026-10-12): four character designs and the bear's typing pose exist as a preview; typing detection is next.*
+*Pulled forward (owner, 2026-10-12): four character designs and the bear's typing pose exist as a preview; typing along is built for the bear (Unverified on a real OS); the other characters are not selectable yet.*
 
 **Milestone 7.1 — Character system**
 - Asset pipeline and lazy loading

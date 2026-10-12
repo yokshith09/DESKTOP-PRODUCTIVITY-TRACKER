@@ -105,3 +105,26 @@ describe("desktop pet", () => {
     expect(topTasks(rows, 4).map((r) => r.task.id)).toEqual(["late", "doing", "high", "low"]);
   });
 });
+
+describe("typing along", () => {
+  const typing = (on: boolean) => act(() => { window.dispatchEvent(new CustomEvent("loaf-typing", { detail: on })); });
+
+  it("with the switch on, the bear takes out its laptop while you type and looks up when you stop", async () => {
+    const all = await ipc.settingsGetAll();
+    vi.spyOn(ipc, "settingsGetAll").mockResolvedValue({ ...all, "pet.typing": true });
+    renderPet();
+    await waitFor(() => expect(ipc.settingsGetAll).toHaveBeenCalled());
+    await act(async () => { await new Promise((r) => setTimeout(r, 50)); });
+    typing(true);
+    expect(await screen.findByRole("img", { name: "Loaf the bear (type)" })).toBeTruthy();
+    typing(false);
+    expect(await screen.findByRole("img", { name: "Loaf the bear (wait)" })).toBeTruthy();
+  });
+
+  it("with the switch off (the default), typing changes nothing", async () => {
+    renderPet();
+    await act(async () => { await new Promise((r) => setTimeout(r, 50)); });
+    typing(true);
+    expect(screen.queryByRole("img", { name: "Loaf the bear (type)" })).toBeNull();
+  });
+});

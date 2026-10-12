@@ -1,5 +1,6 @@
 import { useId, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { BackLaptop, Pocket, isTypingPose } from "./Laptop";
 
 /**
  * The new characters (Phase 7, pulled forward by the owner): Mochi, Pip, Bolt, Ghosty.
@@ -7,7 +8,7 @@ import { cn } from "@/lib/utils";
  * on the far edge, a sharp specular highlight, and contact shadows where parts meet.
  * Same core poses as Loaf the bear. `type` is the typing-along pose: a laptop opens and they tap with you.
  */
-export const CHARACTER_POSES = ["idle", "type", "cheer", "sleep"] as const;
+export const CHARACTER_POSES = ["idle", "type", "wait", "cheer", "sleep"] as const;
 export type CharacterPose = (typeof CHARACTER_POSES)[number];
 export interface CharacterProps { pose?: CharacterPose; animated?: boolean; className?: string }
 
@@ -74,27 +75,6 @@ function Shadow({ url, w = 56, y = 189 }: { url: Url; w?: number; y?: number }) 
   );
 }
 
-/** The laptop: a deck with thickness and keys, a lid with a lit screen. */
-function Laptop({ url, animated, y = 128 }: { url: Url; animated: boolean; y?: number }) {
-  return (
-    <g>
-      <ellipse cx="100" cy={y + 44} rx="46" ry="5" fill="#000" opacity=".22" filter={url("blur1")} />
-      <path d={`M62 ${y + 28} L138 ${y + 28} L146 ${y + 40} L54 ${y + 40} Z`} fill={url("deck")} />
-      <path d={`M54 ${y + 40} L146 ${y + 40} L146 ${y + 43} Q100 ${y + 45} 54 ${y + 43} Z`} fill="#6B7280" />
-      <g fill="#6B7280" opacity=".55">
-        {[0, 1].map((row) => <rect key={row} x={68 - row * 2} y={y + 31 + row * 4} width={64 + row * 4} height="2.2" rx="1" />)}
-      </g>
-      <g className={animated ? "pet-lid-open" : undefined}>
-        <rect x="68" y={y - 6} width="64" height="35" rx="4" fill={url("lid")} />
-        <rect x="71" y={y - 3} width="58" height="29" rx="2.5" fill="#1E3A8A" />
-        <rect x="71" y={y - 3} width="58" height="29" rx="2.5" fill="#60A5FA" opacity=".55" className={animated ? "bear-screen" : undefined} />
-        <path d={`M71 ${y - 3} h30 l-14 29 h-16 z`} fill="#fff" opacity=".12" />
-        <circle cx="100" cy={y + 11} r="3.2" fill="#E0F2FE" opacity=".9" />
-      </g>
-    </g>
-  );
-}
-
 /** Glossy eyes with two highlights; happy arcs when cheering; closed lids when asleep. */
 function Eyes({ url, pose, l, r, y, size = 8, color = "#1a1210" }: { url: Url; pose: CharacterPose; l: number; r: number; y: number; size?: number; color?: string }) {
   if (pose === "cheer") return <g fill="none" stroke={color} strokeWidth="3.6" strokeLinecap="round"><path d={`M${l - 9} ${y + 3} q9 -11 18 0`} /><path d={`M${r - 9} ${y + 3} q9 -11 18 0`} /></g>;
@@ -125,8 +105,40 @@ function Zzz({ on }: { on: boolean }) {
 
 const bodyAnim = (pose: CharacterPose, animated: boolean) =>
   !animated ? undefined : pose === "cheer" ? "bear-jump" : pose === "sleep" ? "bear-breathe-slow" : "bear-breathe";
-const tap = (pose: CharacterPose, animated: boolean, side: "l" | "r") =>
-  animated && pose === "type" ? (side === "l" ? "pet-tap-l" : "pet-tap-r") : undefined;
+
+/**
+ * Typing along: the pocket, the arms reaching from the shoulders over the lid to the keys (paws
+ * tap while typing, rest while waiting), and the laptop itself, nearest to you.
+ */
+function TypingRig({ url, pose, animated, top, pocketY, shoulder, arm = 11, pocket = "#000" }: {
+  url: Url; pose: CharacterPose; animated: boolean; top: number; pocketY: number; shoulder: [number, number]; arm?: number; pocket?: string;
+}) {
+  if (!isTypingPose(pose)) return null;
+  const phase = pose === "type" ? "type" : "wait";
+  return (
+    <g>
+      <Pocket y={pocketY} color={pocket} />
+      {(["l", "r"] as const).map((side) => {
+        const sx = side === "l" ? shoulder[0] : 200 - shoulder[0];
+        const [px, py] = [side === "l" ? 86 : 114, top - 2];
+        const [dx, dy] = [px - sx, py - shoulder[1]];
+        const len = Math.hypot(dx, dy) / 2 + 5;
+        const angle = (Math.atan2(-dx, dy) * 180) / Math.PI;
+        const [cx, cy] = [(sx + px) / 2, (shoulder[1] + py) / 2];
+        const tap = animated && phase === "type" ? (side === "l" ? "pet-tap-l" : "pet-tap-r") : undefined;
+        return (
+          <Vol key={side} url={url} className={tap} shape={(f) => (
+            <g>
+              <ellipse cx={cx} cy={cy} rx={arm} ry={len} transform={`rotate(${angle} ${cx} ${cy})`} fill={f} />
+              <ellipse cx={px} cy={py} rx="9.5" ry="7.5" fill={f} />
+            </g>
+          )} />
+        );
+      })}
+      <BackLaptop phase={phase} animated={animated} top={top} pocketY={pocketY + 4} />
+    </g>
+  );
+}
 
 /** Mochi the cat: paws at the keys; curls up asleep. */
 export function Mochi({ pose = "idle", animated = false, className }: CharacterProps) {
@@ -141,9 +153,8 @@ export function Mochi({ pose = "idle", animated = false, className }: CharacterP
         <Vol url={url} shape={(f) => <ellipse cx="100" cy="146" rx="50" ry="40" fill={f} />} />
         <ellipse cx="100" cy="154" rx="27" ry="23" fill="#FFFDF9" opacity=".85" />
         <AO url={url} x={100} y={114} rx={42} ry={10} />
-        {pose === "type" && <Laptop url={url} animated={animated} />}
-        {[72, 128].map((x, i) => (
-          <Vol key={x} url={url} className={tap(pose, animated, i ? "r" : "l")} shape={(f) => <ellipse cx={x} cy={up ? 96 : pose === "type" ? 166 : 174} rx="13" ry="10" fill={f} />} />
+        {!isTypingPose(pose) && [72, 128].map((x) => (
+          <Vol key={x} url={url} shape={(f) => <ellipse cx={x} cy={up ? 96 : 174} rx="13" ry="10" fill={f} />} />
         ))}
         <Vol url={url} shape={(f) => <path d="M56 54 Q58 22 66 16 Q76 24 90 44 Z M144 54 Q142 22 134 16 Q124 24 110 44 Z" fill={f} />} />
         <path d="M64 46 Q66 30 69 26 Q75 32 81 42 Z M136 46 Q134 30 131 26 Q125 32 119 42 Z" fill="#F7A9B4" />
@@ -155,6 +166,7 @@ export function Mochi({ pose = "idle", animated = false, className }: CharacterP
         <path d="M100 96 q-6 6 -12 2 M100 96 q6 6 12 2" stroke="#3A2620" strokeWidth="2.4" fill="none" strokeLinecap="round" />
         <g stroke="#A07858" strokeWidth="1.4" strokeLinecap="round" opacity=".7"><path d="M70 94 h-18 M70 99 l-16 4 M130 94 h18 M130 99 l16 4" /></g>
         <Cheeks url={url} l={66} r={134} y={92} />
+        <TypingRig url={url} pose={pose} animated={animated} top={128} pocketY={162} shoulder={[60, 138]} pocket="#8A5A2B" />
       </g>
       <Zzz on={pose === "sleep"} />
     </svg>
@@ -177,14 +189,14 @@ export function Pip({ pose = "idle", animated = false, className }: CharacterPro
         <ellipse cx="100" cy="80" rx="34" ry="28" fill="#FBFBF7" />
         <ellipse cx="100" cy="80" rx="34" ry="28" fill={url("core")} opacity=".6" />
         <Spec url={url} x={76} y={54} rx={18} ry={9} />
-        {pose === "type" && <Laptop url={url} animated={animated} y={132} />}
-        {[{ x: 46, s: "l" as const, r: up ? 130 : pose === "type" ? -35 : 12 }, { x: 154, s: "r" as const, r: up ? -130 : pose === "type" ? 35 : -12 }].map((f) => (
-          <Vol key={f.x} url={url} transform={`rotate(${f.r} ${f.x} 100)`} className={tap(pose, animated, f.s)} shape={(fill) => <ellipse cx={f.x} cy="128" rx="12" ry="34" fill={fill} />} />
+        {!isTypingPose(pose) && [{ x: 46, r: up ? 130 : 12 }, { x: 154, r: up ? -130 : -12 }].map((f) => (
+          <Vol key={f.x} url={url} transform={`rotate(${f.r} ${f.x} 100)`} shape={(fill) => <ellipse cx={f.x} cy="128" rx="12" ry="34" fill={fill} />} />
         ))}
         <Eyes url={url} pose={pose} l={86} r={114} y={76} size={6} />
         <path d="M91 90 q9 -7 18 0 q-9 11 -18 0 z" fill="#F59E0B" />
         <path d="M93 89.5 q7 -4 12 -1" stroke="#FDE68A" strokeWidth="1.6" fill="none" strokeLinecap="round" />
         <Cheeks url={url} l={74} r={126} y={92} w={8} />
+        <TypingRig url={url} pose={pose} animated={animated} top={132} pocketY={162} shoulder={[52, 112]} arm={11} pocket="#334155" />
       </g>
       <Zzz on={pose === "sleep"} />
     </svg>
@@ -206,9 +218,8 @@ export function Bolt({ pose = "idle", animated = false, className }: CharacterPr
         <circle cx="100" cy="142" r="11" fill="#0B1220" opacity=".5" />
         <circle cx="100" cy="142" r="8" fill="#38BDF8" className={animated ? "pet-glow" : undefined} />
         <circle cx="97" cy="139" r="2.5" fill="#fff" opacity=".8" />
-        {pose === "type" && <Laptop url={url} animated={animated} y={136} />}
-        {[{ x: 44, s: "l" as const }, { x: 156, s: "r" as const }].map((a) => (
-          <Vol key={a.x} url={url} className={tap(pose, animated, a.s)} shape={(f) => <rect x={a.x - 8} y={up ? 70 : pose === "type" ? 140 : 120} width="16" height="40" rx="8" fill={f} />} />
+        {!isTypingPose(pose) && [44, 156].map((x) => (
+          <Vol key={x} url={url} shape={(f) => <rect x={x - 8} y={up ? 70 : 120} width="16" height="40" rx="8" fill={f} />} />
         ))}
         <AO url={url} x={100} y={114} rx={40} ry={8} />
         <rect x="98" y="22" width="4" height="14" rx="2" fill="#64748B" />
@@ -232,6 +243,7 @@ export function Bolt({ pose = "idle", animated = false, className }: CharacterPr
             <path d="M88 90 q12 8 24 0" fill="none" stroke="#4ADE80" strokeWidth="3" strokeLinecap="round" />
           </g>
         )}
+        <TypingRig url={url} pose={pose} animated={animated} top={128} pocketY={160} shoulder={[50, 126]} arm={9} pocket="#334155" />
       </g>
       <Zzz on={pose === "sleep"} />
     </svg>
@@ -251,13 +263,13 @@ export function Ghosty({ pose = "idle", animated = false, className }: Character
       <g className={animated && pose !== "cheer" ? "pet-float" : bodyAnim(pose, animated)}>
         <Vol url={url} shape={(f) => <path d={sheet} fill={f} />} />
         <Spec url={url} x={78} y={54} rx={22} ry={11} />
-        {pose === "type" && <Laptop url={url} animated={animated} y={124} />}
-        {[{ x: 40, s: "l" as const, r: up ? -50 : pose === "type" ? -20 : 20 }, { x: 160, s: "r" as const, r: up ? 50 : pose === "type" ? 20 : -20 }].map((a) => (
-          <Vol key={a.x} url={url} transform={`rotate(${a.r} ${a.x} 116)`} className={tap(pose, animated, a.s)} shape={(f) => <ellipse cx={a.x} cy={pose === "type" ? 140 : 116} rx="10" ry="18" fill={f} />} />
+        {!isTypingPose(pose) && [{ x: 40, r: up ? -50 : 20 }, { x: 160, r: up ? 50 : -20 }].map((a) => (
+          <Vol key={a.x} url={url} transform={`rotate(${a.r} ${a.x} 116)`} shape={(f) => <ellipse cx={a.x} cy="116" rx="10" ry="18" fill={f} />} />
         ))}
         <Eyes url={url} pose={pose} l={82} r={118} y={88} size={7} color="#312E81" />
         {up ? <ellipse cx="100" cy="110" rx="9" ry="7" fill="#312E81" /> : <path d="M92 108 q8 6 16 0" stroke="#312E81" strokeWidth="2.6" fill="none" strokeLinecap="round" />}
         <Cheeks url={url} l={68} r={132} y={104} w={9} />
+        <TypingRig url={url} pose={pose} animated={animated} top={124} pocketY={150} shoulder={[48, 112]} arm={10} pocket="#6366F1" />
       </g>
       <Zzz on={pose === "sleep"} />
     </svg>

@@ -1,13 +1,14 @@
 import { useId } from "react";
 import { cn } from "@/lib/utils";
+import { BackLaptop, Pocket } from "@/features/character/Laptop";
 
 /** Everything the bear can do. Reactions (src/pet/reactions.ts) pick one of these. */
-export const BEAR_POSES = ["idle", "wave", "sleep", "work", "type", "cheer", "party", "catch", "worried", "ring", "toss"] as const;
+export const BEAR_POSES = ["idle", "wave", "sleep", "work", "type", "wait", "stow", "cheer", "party", "catch", "worried", "ring", "toss"] as const;
 export type BearPose = (typeof BEAR_POSES)[number];
 
 type Eyes = "open" | "happy" | "closed" | "down";
 type Mouth = "smile" | "open" | "worried";
-type Arms = "down" | "wave" | "up" | "hold" | "throw";
+type Arms = "down" | "wave" | "up" | "hold" | "throw" | "reach";
 type Prop = "laptop" | "card" | "bell" | "ball" | "confetti" | "zzz" | null;
 
 interface Look { eyes: Eyes; mouth: Mouth; arms: Arms; prop: Prop; body?: string; brows?: boolean }
@@ -17,9 +18,12 @@ const LOOKS: Record<BearPose, Look> = {
   idle: { eyes: "open", mouth: "smile", arms: "down", prop: null, body: "bear-breathe" },
   wave: { eyes: "happy", mouth: "open", arms: "wave", prop: null, body: "bear-breathe" },
   sleep: { eyes: "closed", mouth: "smile", arms: "down", prop: "zzz", body: "bear-breathe-slow" },
-  work: { eyes: "down", mouth: "smile", arms: "hold", prop: "laptop", body: "bear-breathe" },
-  // You are typing (anywhere): the laptop opens and the paws keep time with you.
-  type: { eyes: "down", mouth: "open", arms: "hold", prop: "laptop", body: "bear-breathe" },
+  work: { eyes: "down", mouth: "smile", arms: "reach", prop: "laptop", body: "bear-breathe" },
+  // Typing along (pet.typing): out of the pocket, lid up, paws on the keys while you type;
+  // when you stop it looks up at you and waits; then it puts the laptop away.
+  type: { eyes: "down", mouth: "smile", arms: "reach", prop: "laptop", body: "bear-breathe" },
+  wait: { eyes: "open", mouth: "smile", arms: "reach", prop: "laptop", body: "bear-breathe" },
+  stow: { eyes: "happy", mouth: "smile", arms: "reach", prop: "laptop", body: "bear-breathe" },
   cheer: { eyes: "happy", mouth: "open", arms: "up", prop: null, body: "bear-jump" },
   party: { eyes: "happy", mouth: "open", arms: "up", prop: "confetti", body: "bear-jump bear-jump-twice" },
   catch: { eyes: "open", mouth: "open", arms: "hold", prop: "card", body: "bear-catch" },
@@ -62,8 +66,6 @@ export function Bear({ pose = "idle", animated = false, className, style }: { po
     })();
     const cls = look.arms === "wave" && side === "r" ? "bear-wave"
       : look.arms === "up" ? (side === "l" ? "bear-arm-up-l" : "bear-arm-up-r")
-      : look.arms === "hold" && pose === "work" ? "bear-type"
-      : look.arms === "hold" && pose === "type" ? (side === "l" ? "pet-tap-l" : "pet-tap-r")
       : look.arms === "throw" && side === "r" ? "bear-throw" : undefined;
     return (
       <g style={angle ? { transformOrigin: shoulder, transform: `rotate(${angle}deg)` } : { transformOrigin: shoulder }} className={anim(cls)}>
@@ -97,7 +99,8 @@ export function Bear({ pose = "idle", animated = false, className, style }: { po
       </defs>
 
       {/* Ground shadow: shrinks while the bear is in the air. */}
-      <ellipse cx="100" cy="189" rx="58" ry="7" fill="#000" opacity=".28" filter={url("soft")} className={anim(look.body?.includes("jump") ? `bear-shadow-jump${look.body.includes("twice") ? " bear-jump-twice" : ""}` : undefined)} />
+      <ellipse cx="100" cy="188" rx="38" ry="3.5" fill="#000" opacity=".3" filter={url("soft")} />
+      <ellipse cx="100" cy="189" rx="58" ry="7" fill="#000" opacity=".22" filter={url("soft")} className={anim(look.body?.includes("jump") ? `bear-shadow-jump${look.body.includes("twice") ? " bear-jump-twice" : ""}` : undefined)} />
 
       <g className={anim(look.body)}>
         {/* Feet */}
@@ -117,15 +120,6 @@ export function Bear({ pose = "idle", animated = false, className, style }: { po
         <ellipse cx="86" cy="134" rx="14" ry="9" fill={url("gloss")} opacity=".5" />
 
         {/* Props held in front of the belly sit under the paws. */}
-        {look.prop === "laptop" && (
-          <g className={anim(pose === "type" ? "pet-lid-open" : undefined)}>
-            <path d="M66 150 L134 150 L140 168 L60 168 Z" fill="#374151" />
-            <rect x="72" y="122" width="56" height="30" rx="3" fill="#1F2937" />
-            <rect x="75" y="125" width="50" height="24" rx="2" fill="#60A5FA" opacity=".85" className={anim("bear-screen")} />
-            <path d="M60 168 L140 168" stroke="#111827" strokeWidth="2" />
-            <circle cx="100" cy="137" r="3" fill="#E0F2FE" opacity=".9" />
-          </g>
-        )}
         {look.prop === "card" && (
           <g className={anim("bear-card-in")}>
             <rect x="76" y="126" width="48" height="34" rx="5" fill="#FFFDF7" stroke="#E5D3B3" />
@@ -142,8 +136,9 @@ export function Bear({ pose = "idle", animated = false, className, style }: { po
           </g>
         )}
 
-        {look.arms !== "up" && arm("l")}
-        {look.arms !== "up" && arm("r")}
+        {look.prop === "laptop" && <Pocket y={162} color="#6B3A16" opacity={0.22} />}
+        {look.arms !== "up" && look.arms !== "reach" && arm("l")}
+        {look.arms !== "up" && look.arms !== "reach" && arm("r")}
 
         {look.prop === "ball" && (
           <g className={anim("bear-ball")}>
@@ -156,7 +151,7 @@ export function Bear({ pose = "idle", animated = false, className, style }: { po
         <ellipse cx="100" cy="124" rx="44" ry="10" fill="#4A2508" opacity=".35" filter={url("ao")} />
 
         {/* Head */}
-        <g className={anim(pose === "idle" ? "bear-head-tilt" : undefined)}>
+        <g className={anim(pose === "idle" ? "bear-head-tilt" : pose === "wait" ? "pet-look" : undefined)}>
           {[54, 146].map((x) => (
             <g key={x}>
               <circle cx={x} cy="36" r="20" fill={url("dark")} />
@@ -170,6 +165,7 @@ export function Bear({ pose = "idle", animated = false, className, style }: { po
           <ellipse cx="100" cy="80" rx="60" ry="52" fill={url("rim")} />
           <path d="M78 36 q6 -5 10 1 M95 31 q6 -5 10 0 M112 36 q6 -5 10 1" fill="none" stroke="#B97A3E" strokeWidth="3" strokeLinecap="round" opacity=".5" />
           <ellipse cx="76" cy="50" rx="30" ry="14" fill={url("gloss")} />
+          <ellipse cx="70" cy="46" rx="9" ry="4.5" fill="#fff" opacity=".55" transform="rotate(-24 70 46)" filter={url("soft")} />
           <ellipse cx="64" cy="95" rx="10" ry="6.5" fill="#FF8F86" opacity=".42" />
           <ellipse cx="136" cy="95" rx="10" ry="6.5" fill="#FF8F86" opacity=".42" />
 
@@ -235,6 +231,23 @@ export function Bear({ pose = "idle", animated = false, className, style }: { po
             <path d="M150 52 q6 10 0 14 q-6 -4 0 -14 z" fill="#93C5FD" stroke="#60A5FA" strokeWidth="1" className={anim("bear-sweat")} />
           )}
         </g>
+
+        {/* Typing: the arms reach over the lid to the keys; the lid hides the paw tips. */}
+        {look.arms === "reach" && (["l", "r"] as const).map((side) => {
+          const s = side === "l" ? 1 : -1;
+          const ax = side === "l" ? 68 : 132;
+          const px = side === "l" ? 86 : 114;
+          return (
+            <g key={side} className={anim(pose === "type" || pose === "work" ? (side === "l" ? "pet-tap-l" : "pet-tap-r") : undefined)}>
+              <ellipse cx={ax} cy="134" rx="13" ry="19" transform={`rotate(${71 * s} ${ax} 134)`} fill={url("dark")} />
+              <ellipse cx={ax} cy="134" rx="13" ry="19" transform={`rotate(${71 * s} ${ax} 134)`} fill={url("shade")} />
+              <ellipse cx={ax - 2 * s} cy="129" rx="9" ry="4" transform={`rotate(${-18 * s} ${ax} 129)`} fill={url("gloss")} opacity=".5" />
+              <ellipse cx={px} cy="128" rx="10" ry="8" fill={url("dark")} />
+              <ellipse cx={px} cy="128" rx="10" ry="8" fill={url("shade")} />
+            </g>
+          );
+        })}
+        {look.prop === "laptop" && <BackLaptop phase={pose === "wait" ? "wait" : pose === "stow" ? "stow" : "type"} animated={animated} top={130} pocketY={164} />}
 
         {/* Raised arms are in front of the head. */}
         {look.arms === "up" && arm("l")}

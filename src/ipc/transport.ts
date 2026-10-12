@@ -50,3 +50,18 @@ export function onCommand(cb: (command: string) => void): () => void {
   const pending = listen<string>("loaf://command", (e) => cb(e.payload));
   return () => void pending.then((off) => off());
 }
+
+/**
+ * Typing started (`true`) or stopped (`false`) anywhere on the computer; only sent to the pet
+ * window while `pet.typing` is on. Outside the app (browser preview, tests) a `loaf-typing`
+ * window event with `detail: boolean` stands in for it.
+ */
+export function onTyping(cb: (typing: boolean) => void): () => void {
+  if (isTauri()) {
+    const pending = listen<boolean>("pet://typing", (e) => cb(e.payload));
+    return () => void pending.then((off) => off());
+  }
+  const handler = (e: Event) => cb(Boolean((e as CustomEvent<boolean>).detail));
+  window.addEventListener("loaf-typing", handler);
+  return () => window.removeEventListener("loaf-typing", handler);
+}

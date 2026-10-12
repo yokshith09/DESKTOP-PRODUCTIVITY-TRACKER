@@ -13,6 +13,7 @@ export interface Settings {
   "pet.size": PetSize;
   "pet.opacity": number;
   "pet.always_on_top": boolean;
+  "pet.typing": boolean;
   "shortcuts.global_open": string | null;
   "shortcuts.global_new_note": string | null;
   "shortcuts.global_new_task": string | null;
