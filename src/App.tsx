@@ -20,9 +20,10 @@ import { Sidebar, type Page } from "@/features/shell/Sidebar";
 import { TasksPage } from "@/features/tasks/TasksPage";
 import { TimePage } from "@/features/time/TimePage";
 import { TodayOverviewPage } from "@/features/overview/TodayOverviewPage";
+import { MeetingsPage } from "@/features/meetings/MeetingsPage";
 import { Welcome, useFirstRun, type WelcomeNext } from "@/features/welcome/Welcome";
 
-const PAGES: readonly Page[] = ["today", "tasks", "time", "notes", "archive", "bin", "character", "mcp", "settings"];
+const PAGES: readonly Page[] = ["today", "tasks", "time", "notes", "meetings", "archive", "bin", "character", "mcp", "settings"];
 
 function Screen() {
   const [page, setPageState] = useState<Page>("today");
@@ -30,6 +31,7 @@ function Screen() {
   const [sort, setSort] = useState<NoteSort>("last_edited");
   const [layout, setLayoutState] = useState<NotesLayout>("grid");
   const [editing, setEditing] = useState<string | null>(null);
+  const [newMeeting, setNewMeeting] = useState(0);
 
   useBusSync();
   const theme = useTheme();
@@ -54,17 +56,18 @@ function Screen() {
     void ipc.prefsSet("ui.notes_layout", l);
   };
 
-  // App-wide shortcuts (UI brief §8): Mod+1…4 jump between pages, Mod+, opens Settings,
-  // Mod+T starts a new task. New note and search belong to the Notes page and live there.
+  // App-wide shortcuts (UI brief §8): Mod+1…5 jump between pages, Mod+, opens Settings,
+  // Mod+T starts a new task, Mod+M a new meeting. New note and search live on the Notes page.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey) return;
-      const pages: Record<string, Page> = { "1": "today", "2": "tasks", "3": "notes", "4": "time", ",": "settings", t: "tasks" };
+      const pages: Record<string, Page> = { "1": "today", "2": "tasks", "3": "notes", "4": "time", "5": "meetings", ",": "settings", t: "tasks", m: "meetings" };
       const target = pages[e.key.toLowerCase()];
       if (!target) return;
       e.preventDefault();
       setPage(target);
       if (e.key.toLowerCase() === "t") setTimeout(() => document.getElementById("new-task")?.focus(), 50);
+      if (e.key.toLowerCase() === "m") setNewMeeting((n) => n + 1);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -102,6 +105,11 @@ function Screen() {
     const start = async (next: WelcomeNext) => {
       await firstRun.finish();
       if (next === "note") return void newNote();
+      if (next === "meeting") {
+        setPage("meetings");
+        setNewMeeting((n) => n + 1);
+        return;
+      }
       if (next === "task") {
         setPage("tasks");
         setTimeout(() => document.getElementById("new-task")?.focus(), 80);
@@ -142,6 +150,7 @@ function Screen() {
             {page === "character" && <CharacterPage />}
             {page === "settings" && <SettingsPage />}
             {page === "tasks" && <TasksPage />}
+            {page === "meetings" && <MeetingsPage newTick={newMeeting} />}
             {page === "time" && <TimePage />}
             {page === "mcp" && <ComingSoon icon={<Plug />} title="MCP" description="Connect external tools and services to Loaf through the Model Context Protocol. This arrives in a later release." />}
           </div>

@@ -2,7 +2,7 @@
 import { daysAgo, ymd } from "../lib/dates";
 import type {
   AppUsage, DomainUsage, TimeRange, UsageSummary,
-  AppError, BinNote, DailyLog, LogEntry, Reminder, Label, LoafEvent, Note, NoteColor, NoteSummary, Task, TaskEvent, TaskRow, TaskStatus, WorkUpdate,
+  AppError, BinNote, DailyLog, LogEntry, Meeting, MeetingInput, MeetingSummary, Reminder, Label, LoafEvent, Note, NoteColor, NoteSummary, Task, TaskEvent, TaskRow, TaskStatus, WorkUpdate,
 } from "./types";
 
 type Args = Record<string, unknown> | undefined;
@@ -66,6 +66,49 @@ export function createMock() {
     t("t7", "Write release notes", "LOW", inDays(3), inDays(4), "PLANNED"),
     t("t8", "Clear design feedback", "LOW", inDays(4), null, "PLANNED"),
   ];
+  // Meetings: stored without task status; `withStatus` reads it from the tasks, like the core.
+  type StoredMeeting = Omit<Meeting, "action_items"> & { action_items: { id: string; body: string; assignee: string | null; task_id: string | null }[] };
+  const meetings: StoredMeeting[] = [
+    {
+      id: "m1", title: "Sprint planning", starts_at: now() - 26 * HOUR, notes: "Scope for the next two weeks.\n\n- Notes polish\n- Meetings", follow_up_date: inDays(3),
+      participants: ["Mara", "Sam", "Ben"],
+      decisions: [{ id: "d1", body: "Ship meetings before the pet polish" }, { id: "d2", body: "Freeze scope on Wednesday" }],
+      action_items: [{ id: "a1", body: "Write the meetings spec", assignee: "Mara", task_id: null }, { id: "a2", body: "Book the demo slot", assignee: "Sam", task_id: null }],
+      created_at: now() - 26 * HOUR, updated_at: now() - 26 * HOUR,
+    },
+    {
+      id: "m2", title: "Design review", starts_at: now() - 4 * 24 * HOUR, notes: "", follow_up_date: null,
+      participants: ["Ben", "Ava"], decisions: [{ id: "d3", body: "Keep one accent colour" }], action_items: [],
+      created_at: now() - 4 * 24 * HOUR, updated_at: now() - 4 * 24 * HOUR,
+    },
+  ];
+  const withStatus = (m: StoredMeeting): Meeting => ({
+    ...m,
+    action_items: m.action_items.map((a) => {
+      const task = tasks.find((x) => x.id === a.task_id);
+      return { ...a, task_id: task ? task.id : null, task_status: task ? task.status : null };
+    }),
+  });
+  const findMeeting = (id: unknown) => meetings.find((m) => m.id === id) ?? fail("NOT_FOUND", "That meeting no longer exists.");
+  const meetingParts = (input: MeetingInput, keep?: StoredMeeting) => {
+    const title = input.title.trim();
+    if (!title) fail("VALIDATION", "Give the meeting a title.");
+    const people: string[] = [];
+    for (const p of input.participants.map((x) => x.trim()).filter(Boolean)) if (!people.some((q) => q.toLowerCase() === p.toLowerCase())) people.push(p);
+    return {
+      title, notes: input.notes, follow_up_date: input.follow_up_date, participants: people,
+      decisions: input.decisions.filter((d) => d.body.trim()).map((d) => ({ id: d.id ?? `d${++seq}`, body: d.body.trim() })),
+      action_items: input.action_items.filter((a) => a.body.trim()).map((a) => ({
+        id: a.id ?? `a${++seq}`, body: a.body.trim(), assignee: a.assignee?.trim() || null,
+        task_id: keep?.action_items.find((o) => o.id === a.id)?.task_id ?? null,
+      })),
+    };
+  };
+  const summarizeMeeting = (m: StoredMeeting): MeetingSummary => ({
+    id: m.id, title: m.title, starts_at: m.starts_at, participants: m.participants, follow_up_date: m.follow_up_date,
+    decisions: m.decisions.length, action_items: m.action_items.length,
+    open_action_items: withStatus(m).action_items.filter((a) => a.task_status !== "COMPLETED" && a.task_status !== "CANCELLED").length,
+  });
   function t(id: string, title: string, priority: Task["priority"], planned: string | null, due: string | null, status: TaskStatus): Task {
     return { id, title, description: "", status, priority, project: null, planned_date: planned, due_date: due, note_id: null, source_action_item_id: null, created_at: now(), updated_at: now(), started_at: null, completed_at: status === "COMPLETED" ? now() : null, cancelled_at: null };
   }
@@ -386,6 +429,45 @@ export function createMock() {
     pet_double_click: () => null,
     pet_menu: () => null,
     notification_test: () => null,
+    meetings_list: (a) => {
+      const f = (a.filters ?? {}) as { participant?: string | null; from?: number | null; to?: number | null };
+      const who = f.participant?.trim().toLowerCase();
+      return meetings
+        .filter((m) => (f.from == null || m.starts_at >= f.from) && (f.to == null || m.starts_at < f.to) && (!who || m.participants.some((p) => p.toLowerCase() === who)))
+        .sort((x, y) => y.starts_at - x.starts_at).map(summarizeMeeting);
+    },
+    meeting_get: (a) => withStatus(findMeeting(a.id)),
+    meeting_create: (a) => {
+      const input = a.input as MeetingInput;
+      const m: StoredMeeting = { id: `m${++seq}`, starts_at: input.starts_at ?? now(), created_at: now(), updated_at: now(), ...meetingParts(input) };
+      meetings.push(m); emit("MeetingCreated", { meeting: withStatus(m) }); return withStatus(m);
+    },
+    meeting_update: (a) => {
+      const m = findMeeting(a.id); const input = a.input as MeetingInput;
+      Object.assign(m, meetingParts(input, m), { starts_at: input.starts_at ?? m.starts_at, updated_at: now() });
+      emit("MeetingUpdated", { meeting: withStatus(m) }); return withStatus(m);
+    },
+    meeting_delete: (a) => { meetings.splice(meetings.indexOf(findMeeting(a.id)), 1); emit("MeetingDeleted", { id: a.id }); return null; },
+    action_item_convert: (a) => {
+      const m = meetings.find((x) => x.action_items.some((i) => i.id === a.actionItemId)) ?? fail("NOT_FOUND", "That action item no longer exists.");
+      const item = m.action_items.find((i) => i.id === a.actionItemId) ?? fail("NOT_FOUND", "That action item no longer exists.");
+      if (item.task_id && tasks.some((x) => x.id === item.task_id)) fail("CONFLICT", "This action item is already a task.");
+      const x = t(`t${++seq}`, item.body, null, null, m.follow_up_date, "PLANNED");
+      x.project = m.title; x.source_action_item_id = item.id;
+      x.description = `${item.assignee ? `Assignee: ${item.assignee}\n` : ""}From the meeting “${m.title}”.`;
+      tasks.push(x); item.task_id = x.id; log(x.id, "CREATED");
+      emit("TaskCreated", { task: x }); emit("MeetingUpdated", { meeting: withStatus(m) }); return x;
+    },
+    participants_suggest: (a) => {
+      const pre = String(a.prefix).trim().toLowerCase();
+      if (!pre) return [];
+      const count = new Map<string, { name: string; n: number }>();
+      for (const p of meetings.flatMap((m) => m.participants)) {
+        const k = p.toLowerCase(); if (!k.startsWith(pre)) continue;
+        count.set(k, { name: count.get(k)?.name ?? p, n: (count.get(k)?.n ?? 0) + 1 });
+      }
+      return [...count.values()].sort((x, y) => y.n - x.n || x.name.localeCompare(y.name)).slice(0, 8).map((v) => v.name);
+    },
     notification_settings_open: () => null,
     data_export: () => ({ path: "C:\\Users\\you\\Documents\\loaf-export.json", bytes: 48_213 }),
     data_import: () => {
@@ -394,11 +476,10 @@ export function createMock() {
     },
     data_delete_all: (a) => {
       if (a.confirm !== "DELETE") fail("VALIDATION", "Type DELETE to confirm.");
-      notes.length = 0; bin.length = 0; tasks.length = 0; reminders.length = 0; labels.length = 0; workUpdates.length = 0; taskEvents.clear();
+      notes.length = 0; bin.length = 0; tasks.length = 0; reminders.length = 0; labels.length = 0; workUpdates.length = 0; taskEvents.clear(); meetings.length = 0;
       // Like the core: preferences and settings go too (so the welcome screen shows again). The
       // core's defaults have app tracking off; the demo turns it on.
       prefs.clear();
-      for (const k of Object.keys(settings)) delete settings[k];
       Object.assign(settings, defaultSettings(), { "tracking.apps": false });
       emit("AllDataDeleted"); return null;
     },

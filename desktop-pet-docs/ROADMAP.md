@@ -122,14 +122,14 @@ The first release is **M1: Notes and daily work management (P0)**. Everything el
 
 | ID | Feature | Status |
 |----|---------|--------|
-| F1-17 | Meeting create/edit + participants | ⬜ |
-| F1-18 | Decisions + action items | ⬜ |
-| F1-19 | Action item → task | ⬜ |
+| F1-17 | Meeting create/edit + participants | ✅ Built 2026-10-12 (core `meetings.rs`, Meetings page, autosave, participant suggestions, filters) |
+| F1-18 | Decisions + action items | ✅ Built 2026-10-12 (add, edit, remove, reorder) |
+| F1-19 | Action item → task | ✅ Built 2026-10-12 (task status shown live on the item) |
 | F1-22 | Minimal pet window | 🟡 Built, Unverified (0.1.1, pulled forward by the owner after testing v0.1.0): hover card, click/double-click/right-click, drag, saved spot. 0.1.2 adds the soft-3D bear and task/reminder reactions with bubbles. Missing: reactions to focus/app time |
 | F1-23 | Today view (R1-70 rest) | 🟡 Partial |
-| F1-24 | Global shortcuts + quick-add popup + keymap | 🟡 Partial, Unverified: `Mod+Shift+L/N/T/P`; no quick-add popup, no remapping |
+| F1-24 | Global shortcuts + quick-add popup + keymap | 🟡 `Mod+Shift+L/N/P` (Unverified). Quick-add popup and `Mod+Shift+T` **dropped by the owner** (2026-10-12). Remapping not built |
 | F1-25 | Settings screens (Pet, Shortcuts, Advanced) | 🟡 Partial — Data (M1), Desktop pet and Shortcuts list (0.1.1) done; Advanced missing |
-| F1-26 | First run + empty states | 🟡 Welcome screen built (2026-10-12): shown once on a fresh Loaf or after Delete all, never to someone with notes or tasks; two start actions (task, note); pet on, tracking and login off. "Log a meeting" joins when meetings exist (F1-17). |
+| F1-26 | First run + empty states | 🟡 Welcome screen built (2026-10-12): shown once on a fresh Loaf or after Delete all, never to someone with notes or tasks; three start actions (task, note, meeting); pet on, tracking and login off. |
 | F1-27 | Cross-OS E2E, signing, **v1.0.0** | ⬜ |
 
 F1-20 and F1-21 (search) are cancelled; their numbers are retired.

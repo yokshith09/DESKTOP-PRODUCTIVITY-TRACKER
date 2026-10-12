@@ -11,15 +11,14 @@ pub enum Action {
     TogglePet,
     ToggleDashboard,
     NewNote,
-    NewTask,
 }
 
 /// `Mod+Shift+<key>` for each action. `Mod` is Cmd on macOS, Ctrl elsewhere.
-pub const KEYS: [(Code, Action); 4] = [
+/// `Mod+Shift+T` (new task) was removed by the owner on 2026-10-12: no quick-add from other apps.
+pub const KEYS: [(Code, Action); 3] = [
     (Code::KeyP, Action::TogglePet),
     (Code::KeyL, Action::ToggleDashboard),
     (Code::KeyN, Action::NewNote),
-    (Code::KeyT, Action::NewTask),
 ];
 
 fn modifiers() -> Modifiers {
@@ -45,7 +44,6 @@ fn run<R: Runtime>(app: &AppHandle<R>, action: Action) {
             }
         }
         Action::NewNote => crate::pet::command(app, "new-note"),
-        Action::NewTask => crate::pet::command(app, "new-task"),
     }
 }
 
@@ -75,13 +73,13 @@ mod tests {
         codes.sort();
         codes.dedup();
         assert_eq!(codes.len(), KEYS.len());
-        for a in [
-            Action::TogglePet,
-            Action::ToggleDashboard,
-            Action::NewNote,
-            Action::NewTask,
-        ] {
+        for a in [Action::TogglePet, Action::ToggleDashboard, Action::NewNote] {
             assert_eq!(KEYS.iter().filter(|(_, b)| *b == a).count(), 1, "{a:?}");
         }
+    }
+
+    #[test]
+    fn mod_shift_t_is_not_taken() {
+        assert!(!KEYS.iter().any(|(c, _)| *c == Code::KeyT));
     }
 }

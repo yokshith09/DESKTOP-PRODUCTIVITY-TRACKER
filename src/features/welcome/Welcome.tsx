@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckSquare, NotebookPen } from "lucide-react";
+import { CheckSquare, NotebookPen, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Bear } from "@/features/shell/Bear";
@@ -28,7 +28,7 @@ export function useFirstRun() {
   return { loading, show, finish };
 }
 
-export type WelcomeNext = "today" | "task" | "note";
+export type WelcomeNext = "today" | "task" | "note" | "meeting";
 
 function Choice({ label, hint, checked, onChange }: { label: string; hint: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -50,14 +50,14 @@ export function Welcome({ onDone }: { onDone: (next: WelcomeNext) => void }) {
 
   return (
     <main className="grid min-h-screen place-items-center bg-background px-4 py-10 text-foreground">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-xl">
         <div className="flex flex-col items-center text-center">
           <Bear pose="wave" animated className="size-28" />
           <h1 className="mt-3 text-2xl font-semibold tracking-tight">Welcome to Loaf</h1>
           <p className="mt-1.5 text-[13.5px] text-muted-foreground">Your notes, tasks and time, kept on this computer. Start with one of these:</p>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-3">
+        <div className="mt-6 grid grid-cols-3 gap-3">
           <button
             type="button" onClick={() => onDone("task")}
             className="flex flex-col items-start gap-2 rounded-xl border bg-card p-4 text-left outline-none transition-colors hover:border-primary/60 focus-visible:ring-2 focus-visible:ring-ring"
@@ -73,6 +73,14 @@ export function Welcome({ onDone }: { onDone: (next: WelcomeNext) => void }) {
             <NotebookPen className="size-5 text-primary" />
             <span className="text-[13px] font-semibold">Write a note</span>
             <span className="text-xs text-muted-foreground">Ideas, plans, anything worth keeping.</span>
+          </button>
+          <button
+            type="button" onClick={() => onDone("meeting")}
+            className="flex flex-col items-start gap-2 rounded-xl border bg-card p-4 text-left outline-none transition-colors hover:border-primary/60 focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Users className="size-5 text-primary" />
+            <span className="text-[13px] font-semibold">Log a meeting</span>
+            <span className="text-xs text-muted-foreground">Decisions and who does what next.</span>
           </button>
         </div>
 

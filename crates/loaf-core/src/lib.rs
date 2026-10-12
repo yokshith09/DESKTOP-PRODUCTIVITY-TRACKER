@@ -14,6 +14,7 @@ pub mod ids;
 pub mod labels;
 pub mod links;
 pub mod logging;
+pub mod meetings;
 pub mod notes;
 pub mod reminders;
 pub mod scheduler;

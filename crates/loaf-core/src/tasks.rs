@@ -468,25 +468,52 @@ pub async fn history(db: &Database, id: &str) -> Result<Vec<TaskEvent>> {
 }
 
 pub async fn create(db: &Database, clock: &dyn Clock, input: TaskInput) -> Result<Task> {
-    let (title, description, project) = (
-        clean_title(&input.title)?,
-        clean_description(&input.description)?,
-        clean_project(input.project.as_deref())?,
-    );
     let (id, now) = (new_id(), clock.now_ms());
     let local = clock.local_date(now).to_string();
+    let input = clean_input(input)?;
     db.write(move |tx| {
-        check_note_exists(tx, &input.note_id)?;
-        tx.execute(
-            "INSERT INTO tasks (id, title, description, status, priority, project, planned_date, due_date, note_id, created_at, updated_at)
-             VALUES (?1, ?2, ?3, 'PLANNED', ?4, ?5, ?6, ?7, ?8, ?9, ?9)",
-            params![id, title, description, input.priority.map(Priority::as_str), project, date_text(input.planned_date), date_text(input.due_date), input.note_id, now],
-        )?;
-        record(tx, &id, &TaskEvent { to_status: Some("PLANNED".into()), to_date: date_text(input.planned_date), ..history_row("CREATED", now, &local) })?;
-        let task = load(tx, &id)?;
+        let task = insert(tx, &id, now, &local, &input, None)?;
         Ok((task.clone(), vec![Event::TaskCreated { at: now, task }]))
     })
     .await
+}
+
+/// Validate and trim a new task's fields (outside the writer).
+pub(crate) fn clean_input(input: TaskInput) -> Result<TaskInput> {
+    Ok(TaskInput {
+        title: clean_title(&input.title)?,
+        description: clean_description(&input.description)?,
+        project: clean_project(input.project.as_deref())?,
+        ..input
+    })
+}
+
+/// Insert a cleaned task inside a write transaction, with its CREATED history row. Meetings use
+/// it to turn an action item into a task in the same transaction (`source_action_item_id`).
+pub(crate) fn insert(
+    tx: &Connection,
+    id: &str,
+    now: i64,
+    local: &str,
+    input: &TaskInput,
+    source_action_item_id: Option<&str>,
+) -> Result<Task> {
+    check_note_exists(tx, &input.note_id)?;
+    tx.execute(
+        "INSERT INTO tasks (id, title, description, status, priority, project, planned_date, due_date, note_id, source_action_item_id, created_at, updated_at)
+         VALUES (?1, ?2, ?3, 'PLANNED', ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?10)",
+        params![id, input.title, input.description, input.priority.map(Priority::as_str), input.project, date_text(input.planned_date), date_text(input.due_date), input.note_id, source_action_item_id, now],
+    )?;
+    record(
+        tx,
+        id,
+        &TaskEvent {
+            to_status: Some("PLANNED".into()),
+            to_date: date_text(input.planned_date),
+            ..history_row("CREATED", now, local)
+        },
+    )?;
+    load(tx, id)
 }
 
 /// The single-line quick-add (R1-21): a title, planned for today.

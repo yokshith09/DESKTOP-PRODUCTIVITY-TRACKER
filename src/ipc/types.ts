@@ -3,6 +3,7 @@ import type { NoteColor, NoteInput as GeneratedNoteInput, NotePatch as Generated
 
 export type {
   AppError, BinNote, DailyLog, ErrorCode, Label, LogEntry, LabelCount, Note, NoteColor, NoteSort, NoteSummary, Priority,
+  ActionItem, ActionItemInput, Decision, DecisionInput, Meeting, MeetingFilters, MeetingInput, MeetingSummary,
   Reminder, Snapshot, Stats, Task, TaskEdit, TaskEvent, TaskFilters, TaskRow, TaskStatus, TaskView, WorkUpdate, AppUsage, DomainUsage, DomainSetting, TimeRange, TrackingStatus, UsageSummary,
 } from "./generated";
 
