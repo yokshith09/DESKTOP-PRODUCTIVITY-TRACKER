@@ -553,6 +553,40 @@ pub async fn data_delete_all(confirm: String, core: State<'_, Core>) -> Result<(
     data::delete_all(&core.db, &*core.clock, &confirm).await
 }
 
+// ---- folders and reset (Settings › Data, Advanced) -----------------------------------------
+
+/// Where Loaf keeps its files, shown read-only in Settings (R1-80).
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct AppPaths {
+    pub data_dir: std::path::PathBuf,
+    pub database: std::path::PathBuf,
+    pub logs: std::path::PathBuf,
+}
+
+#[tauri::command]
+pub fn app_paths(paths: State<'_, AppPaths>) -> AppPaths {
+    paths.inner().clone()
+}
+
+/// Open the data folder or the logs folder in the file manager. Only these two.
+#[tauri::command]
+pub fn folder_open(which: String, paths: State<'_, AppPaths>, app: AppHandle) -> Result<()> {
+    let dir = match which.as_str() {
+        "data" => &paths.data_dir,
+        "logs" => &paths.logs,
+        _ => return Err(AppError::validation("which", "Unknown folder.")),
+    };
+    app.opener()
+        .open_path(dir.to_string_lossy(), None::<&str>)
+        .map_err(|_| AppError::io("Loaf couldn't open that folder."))
+}
+
+/// Settings › Advanced › Reset settings. Data and layout preferences stay.
+#[tauri::command]
+pub async fn settings_reset(settings: State<'_, Arc<SettingsService>>) -> Result<()> {
+    settings.reset_all().await
+}
+
 // ---- links ----------------------------------------------------------------------------------
 
 /// Opens an `http`, `https` or `mailto` link in the default app. Anything else is refused.

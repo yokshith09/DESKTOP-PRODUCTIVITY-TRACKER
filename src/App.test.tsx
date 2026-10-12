@@ -460,3 +460,37 @@ describe("yesterday on Today overview (R1-70)", () => {
     expect(screen.queryByText("Unfinished from yesterday")).toBeNull();
   });
 });
+
+describe("settings (F1-25)", () => {
+  it("changes a global shortcut by pressing the new keys, and refuses one already in use", async () => {
+    const { ipc } = await import("@/ipc");
+    const user = userEvent.setup();
+    render(<App />);
+    await goTo(user, /^Settings/);
+    await user.click(await screen.findByRole("button", { name: "Change shortcut: Open or hide Loaf, from any app" }));
+    expect(screen.getByText(/Press the new keys/)).toBeTruthy();
+    await user.keyboard("{Alt>}{F9}{/Alt}");
+    await waitFor(async () => expect((await ipc.settingsGetAll())["shortcuts.global_open"]).toBe("Alt+F9"));
+    // The pet's combination is taken: nothing changes.
+    await user.click(screen.getByRole("button", { name: "Change shortcut: New note, from any app" }));
+    await user.keyboard("{Control>}{Shift>}p{/Shift}{/Control}");
+    expect(await screen.findByText(/already used by another Loaf shortcut/)).toBeTruthy();
+    expect((await ipc.settingsGetAll())["shortcuts.global_new_note"]).toBeNull();
+    // Back to the default.
+    await user.click(screen.getByRole("button", { name: "Reset shortcut: Open or hide Loaf, from any app" }));
+    await waitFor(async () => expect((await ipc.settingsGetAll())["shortcuts.global_open"]).toBeNull());
+  });
+
+  it("shows where data and logs live, and resets settings after a confirmation", async () => {
+    const { ipc } = await import("@/ipc");
+    const user = userEvent.setup();
+    render(<App />);
+    await ipc.settingSet("pet.size", "L");
+    await goTo(user, /^Settings/);
+    expect(await screen.findByText(/loaf\.db$/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Open logs folder" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Reset settings…" }));
+    await user.click(screen.getByRole("button", { name: "Reset" }));
+    await waitFor(async () => expect((await ipc.settingsGetAll())["pet.size"]).toBe("M"));
+  });
+});

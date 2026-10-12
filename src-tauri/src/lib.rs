@@ -3,6 +3,7 @@
 
 mod autostart;
 mod ipc;
+mod logs;
 mod notify;
 mod pet;
 mod shortcuts;
@@ -174,6 +175,9 @@ pub fn run() {
             pet::pet_double_click,
             pet::pet_menu,
             notify::notification_test,
+            ipc::app_paths,
+            ipc::folder_open,
+            ipc::settings_reset,
             notify::notification_settings_open,
         ])
         .on_window_event(|window, event| {
@@ -197,8 +201,16 @@ pub fn run() {
             }
         })
         .setup(|app| {
+            // Logs first, so everything after (including a failed start) is recorded.
+            let log_dir = app.path().app_log_dir()?;
+            let logs = logs::init(&log_dir).map(Arc::new);
             let data_dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&data_dir)?;
+            app.manage(ipc::AppPaths {
+                data_dir: data_dir.clone(),
+                database: data_dir.join("loaf.db"),
+                logs: log_dir,
+            });
 
             let bus = EventBus::default();
             let clock = Arc::new(SystemClock::new());
@@ -251,7 +263,10 @@ pub fn run() {
             app.manage(Arc::new(pet::PetState::default()));
             app.on_menu_event(|app, event| pet::on_menu(app, event.id().as_ref()));
             pet::start(app.handle().clone(), settings.clone(), &bus);
-            shortcuts::register(app.handle());
+            shortcuts::start(app.handle().clone(), settings.clone(), &bus);
+            if let Some(logs) = logs {
+                logs::follow_setting(logs, settings.clone(), &bus);
+            }
             // The window is created hidden; a normal launch shows it, a login launch does not.
             if !autostart::is_hidden_launch(std::env::args()) {
                 tray::show_main(app.handle());

@@ -8,8 +8,19 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { ipc } from "@/ipc";
+import { errorMessage, ipc } from "@/ipc";
+import { useQuery } from "@tanstack/react-query";
+import { GLOBAL_SHORTCUTS, PET_SHORTCUT } from "./shortcuts";
+import { Keys, ShortcutRow } from "./ShortcutRow";
 import { useSetting } from "@/hooks/useTheme";
+
+/** The main projects Loaf ships with and their licenses (About › Open-source software). */
+const LICENSES: [string, string][] = [
+  ["Tauri", "MIT or Apache-2.0"], ["Rust standard library", "MIT or Apache-2.0"], ["Tokio", "MIT"], ["rusqlite / SQLite", "MIT / public domain"],
+  ["serde", "MIT or Apache-2.0"], ["chrono", "MIT or Apache-2.0"], ["tracing", "MIT"], ["React", "MIT"],
+  ["TanStack Query", "MIT"], ["Radix UI", "MIT"], ["Tailwind CSS", "MIT"], ["lucide icons", "ISC"],
+  ["dnd kit", "MIT"], ["sonner", "MIT"], ["react-markdown / remark-gfm", "MIT"], ["class-variance-authority", "Apache-2.0"], ["clsx, tailwind-merge", "MIT"],
+];
 
 export function SettingsPage() {
   const [theme, setTheme] = useSetting("general.theme");
@@ -22,6 +33,12 @@ export function SettingsPage() {
   const [petOpacity, setPetOpacity] = useSetting("pet.opacity");
   const [exclText, setExclText] = useState<string | null>(null);
   const [confirm, setConfirm] = useState(false);
+  const [logLevel, setLogLevel] = useSetting("advanced.log_level");
+  const [openGlobal] = useSetting("shortcuts.global_open");
+  const [noteGlobal] = useSetting("shortcuts.global_new_note");
+  const globals: Record<string, string | null | undefined> = { "shortcuts.global_open": openGlobal, "shortcuts.global_new_note": noteGlobal };
+  const [confirmReset, setConfirmReset] = useState(false);
+  const { data: paths } = useQuery({ queryKey: ["app-paths"], queryFn: ipc.appPaths });
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <PageHeader title="Settings" />
@@ -86,12 +103,18 @@ export function SettingsPage() {
         </Row>
       </Section>
       <Section title="Keyboard shortcuts">
+        {GLOBAL_SHORTCUTS.map((g) => (
+          <ShortcutRow
+            key={g.key} settingKey={g.key} label={g.label} fallback={g.fallback}
+            taken={[PET_SHORTCUT, ...GLOBAL_SHORTCUTS.filter((o) => o.key !== g.key).map((o) => globals[o.key] ?? o.fallback)]}
+          />
+        ))}
+        <Row label="Show or hide the pet, from any app"><Keys combo={PET_SHORTCUT} /></Row>
         {[
-          [`${mod}+Shift+L`, "Open or hide Loaf, from any app"],
-          [`${mod}+Shift+N`, "New note, from any app"],
-          [`${mod}+Shift+P`, "Show or hide the pet"],
-          [`${mod}+1 … 4`, "Today overview, Tasks, Notes, Time"],
+          [`${mod}+1 … 5`, "Today overview, Tasks, Notes, Time, Meetings"],
+          [`${mod}+T / ${mod}+M`, "New task / new meeting"],
           [`${mod}+K / ${mod}+N`, "Search notes / new note (on Notes)"],
+          [`${mod}+,`, "Settings"],
         ].map(([keys, what]) => (
           <Row key={keys} label={what ?? ""}><span className="rounded-md border bg-muted px-2 py-0.5 font-mono text-[12px]">{keys}</span></Row>
         ))}
@@ -125,10 +148,39 @@ export function SettingsPage() {
         </DialogContent>
       </Dialog>
       <DataSection />
+      <Section title="Advanced">
+        <Row label="Log detail" hint="How much Loaf writes to its log file. Debug helps when reporting a problem; it never includes your notes or task text.">
+          <ToggleGroup type="single" value={logLevel === "debug" || logLevel === "warn" ? logLevel : "info"} onValueChange={(v) => v && void setLogLevel(v as "debug" | "info" | "warn")} aria-label="Log detail">
+            <ToggleGroupItem value="warn">Low</ToggleGroupItem>
+            <ToggleGroupItem value="info">Normal</ToggleGroupItem>
+            <ToggleGroupItem value="debug">Debug</ToggleGroupItem>
+          </ToggleGroup>
+        </Row>
+        <Row label="Log files" hint={paths?.logs ?? ""}>
+          <Button size="sm" variant="secondary" onClick={() => void ipc.folderOpen("logs").catch((e: unknown) => toast.error(errorMessage(e)))}>Open logs folder</Button>
+        </Row>
+        <Row label="Reset settings" hint="Every setting on this page back to its default. Your notes, tasks, meetings and layout stay.">
+          {confirmReset ? (
+            <div className="flex gap-2">
+              <Button size="sm" variant="ghost" onClick={() => setConfirmReset(false)}>Keep</Button>
+              <Button size="sm" variant="destructive" onClick={() => void ipc.settingsReset().then(() => { setConfirmReset(false); toast("Settings are back to their defaults"); }, (e: unknown) => toast.error(errorMessage(e)))}>Reset</Button>
+            </div>
+          ) : (
+            <Button size="sm" variant="secondary" onClick={() => setConfirmReset(true)}>Reset settings…</Button>
+          )}
+        </Row>
+      </Section>
       <Section title="About">
         <Row label="Loaf" hint={`Version ${__APP_VERSION__} · Your notes, tasks and reminders are stored only on this computer.`}>
           <span />
         </Row>
+        <details className="py-3.5 text-[13px]">
+          <summary className="cursor-pointer font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring">Open-source software</summary>
+          <p className="mt-2 text-xs text-muted-foreground">Loaf is built on these projects, used under their licenses:</p>
+          <ul className="mt-2 grid gap-x-6 gap-y-1 text-xs text-muted-foreground sm:grid-cols-2">
+            {LICENSES.map(([name, license]) => <li key={name}><span className="text-foreground">{name}</span> · {license}</li>)}
+          </ul>
+        </details>
       </Section>
     </div>
   );

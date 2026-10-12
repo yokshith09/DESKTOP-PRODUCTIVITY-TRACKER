@@ -1,9 +1,21 @@
 //! System-wide keyboard shortcuts (UI brief §8). They work while Loaf is in the tray or behind
-//! other windows. A shortcut another app already owns is skipped with a warning in the log; the
-//! rest still work.
+//! other windows. Two can be changed in Settings (`shortcuts.global_open`,
+//! `shortcuts.global_new_note`; `null` means the default); they are registered again whenever
+//! those settings change. A shortcut another app already owns is skipped with a warning in the
+//! log; the rest still work.
+//!
+//! `Mod+Shift+T` (new task) was removed by the owner on 2026-10-12. Its setting,
+//! `shortcuts.global_new_task`, is no longer read.
 
+use std::str::FromStr;
+use std::sync::Arc;
+
+use loaf_core::bus::{EventBus, Recv};
+use loaf_core::events::Event;
+use loaf_core::settings_service::SettingsService;
+use serde_json::Value;
 use tauri::{AppHandle, Manager, Runtime};
-use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
+use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
 /// What a shortcut does.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -13,20 +25,34 @@ pub enum Action {
     NewNote,
 }
 
-/// `Mod+Shift+<key>` for each action. `Mod` is Cmd on macOS, Ctrl elsewhere.
-/// `Mod+Shift+T` (new task) was removed by the owner on 2026-10-12: no quick-add from other apps.
-pub const KEYS: [(Code, Action); 3] = [
-    (Code::KeyP, Action::TogglePet),
-    (Code::KeyL, Action::ToggleDashboard),
-    (Code::KeyN, Action::NewNote),
+/// Each action, its setting (if it can be changed) and its default.
+pub const ACTIONS: [(Action, Option<&str>, &str); 3] = [
+    (Action::TogglePet, None, "CmdOrCtrl+Shift+P"),
+    (
+        Action::ToggleDashboard,
+        Some("shortcuts.global_open"),
+        "CmdOrCtrl+Shift+L",
+    ),
+    (
+        Action::NewNote,
+        Some("shortcuts.global_new_note"),
+        "CmdOrCtrl+Shift+N",
+    ),
 ];
 
-fn modifiers() -> Modifiers {
-    if cfg!(target_os = "macos") {
-        Modifiers::SUPER | Modifiers::SHIFT
-    } else {
-        Modifiers::CONTROL | Modifiers::SHIFT
-    }
+/// The combination for each action given the current settings: the setting if it holds a
+/// string, otherwise the default.
+pub fn combos(settings: &std::collections::BTreeMap<String, Value>) -> Vec<(Action, String)> {
+    ACTIONS
+        .iter()
+        .map(|(action, key, default)| {
+            let chosen = key
+                .and_then(|k| settings.get(k))
+                .and_then(Value::as_str)
+                .unwrap_or(default);
+            (*action, chosen.to_owned())
+        })
+        .collect()
 }
 
 fn run<R: Runtime>(app: &AppHandle<R>, action: Action) {
@@ -47,39 +73,82 @@ fn run<R: Runtime>(app: &AppHandle<R>, action: Action) {
     }
 }
 
-pub fn register<R: Runtime>(app: &AppHandle<R>) {
-    for (code, action) in KEYS {
-        let shortcut = Shortcut::new(Some(modifiers()), code);
-        let result = app
-            .global_shortcut()
-            .on_shortcut(shortcut, move |app, _shortcut, event| {
-                if event.state() == ShortcutState::Pressed {
-                    run(app, action);
-                }
-            });
+fn register_all<R: Runtime>(app: &AppHandle<R>, combos: &[(Action, String)]) {
+    let gs = app.global_shortcut();
+    if let Err(error) = gs.unregister_all() {
+        tracing::warn!(%error, "couldn't clear the global shortcuts");
+    }
+    for (action, combo) in combos {
+        let Ok(shortcut) = Shortcut::from_str(combo) else {
+            tracing::warn!(
+                ?action,
+                "a global shortcut setting isn't a valid key combination; skipped"
+            );
+            continue;
+        };
+        let action = *action;
+        let result = gs.on_shortcut(shortcut, move |app, _shortcut, event| {
+            if event.state() == ShortcutState::Pressed {
+                run(app, action);
+            }
+        });
         if let Err(error) = result {
             tracing::warn!(%error, ?action, "a global shortcut is taken by another app; skipped");
         }
     }
 }
 
+/// Register from the settings now, and again whenever a shortcut setting changes.
+pub fn start(app: AppHandle, settings: Arc<SettingsService>, bus: &EventBus) {
+    let mut events = bus.subscribe();
+    tauri::async_runtime::spawn(async move {
+        let apply = |app: &AppHandle, all| register_all(app, &combos(&all));
+        apply(&app, settings.get_all().await.unwrap_or_default());
+        loop {
+            match events.recv().await {
+                Recv::Event(Event::SettingChanged { key, .. }) if key.starts_with("shortcuts.") => {
+                    apply(&app, settings.get_all().await.unwrap_or_default());
+                }
+                Recv::Event(Event::AllDataDeleted { .. }) | Recv::Resync { .. } => {
+                    apply(&app, settings.get_all().await.unwrap_or_default());
+                }
+                Recv::Event(_) => {}
+                Recv::Closed => break,
+            }
+        }
+    });
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::json;
 
     #[test]
-    fn every_action_has_exactly_one_distinct_key() {
-        let mut codes: Vec<_> = KEYS.iter().map(|(c, _)| format!("{c:?}")).collect();
-        codes.sort();
-        codes.dedup();
-        assert_eq!(codes.len(), KEYS.len());
-        for a in [Action::TogglePet, Action::ToggleDashboard, Action::NewNote] {
-            assert_eq!(KEYS.iter().filter(|(_, b)| *b == a).count(), 1, "{a:?}");
+    fn defaults_are_distinct_valid_and_leave_mod_shift_t_free() {
+        let all = combos(&Default::default());
+        let mut keys: Vec<_> = all.iter().map(|(_, c)| c.clone()).collect();
+        keys.sort();
+        keys.dedup();
+        assert_eq!(keys.len(), ACTIONS.len());
+        for (_, c) in &all {
+            assert!(loaf_core::settings::shortcut_is_valid(c), "{c}");
+            assert!(Shortcut::from_str(c).is_ok(), "{c}");
+            assert!(!c.ends_with("+T"));
         }
     }
 
     #[test]
-    fn mod_shift_t_is_not_taken() {
-        assert!(!KEYS.iter().any(|(c, _)| *c == Code::KeyT));
+    fn a_chosen_combination_replaces_the_default_and_null_means_default() {
+        let settings = [
+            ("shortcuts.global_open".to_owned(), json!("Alt+F9")),
+            ("shortcuts.global_new_note".to_owned(), Value::Null),
+        ]
+        .into_iter()
+        .collect();
+        let all = combos(&settings);
+        assert!(all.contains(&(Action::ToggleDashboard, "Alt+F9".to_owned())));
+        assert!(all.contains(&(Action::NewNote, "CmdOrCtrl+Shift+N".to_owned())));
+        assert!(all.contains(&(Action::TogglePet, "CmdOrCtrl+Shift+P".to_owned())));
     }
 }

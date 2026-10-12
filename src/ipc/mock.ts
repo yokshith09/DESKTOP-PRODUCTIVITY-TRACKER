@@ -436,6 +436,15 @@ export function createMock() {
     pet_double_click: () => null,
     pet_menu: () => null,
     notification_test: () => null,
+    app_paths: () => ({ data_dir: "C:\\Users\\you\\AppData\\Roaming\\app.loaf.desktop", database: "C:\\Users\\you\\AppData\\Roaming\\app.loaf.desktop\\loaf.db", logs: "C:\\Users\\you\\AppData\\Local\\app.loaf.desktop\\logs" }),
+    folder_open: () => null,
+    settings_reset: () => {
+      const defaults = defaultSettings();
+      for (const [key, value] of Object.entries(defaults)) {
+        if (JSON.stringify(settings[key]) !== JSON.stringify(value)) { settings[key] = value; emit("SettingChanged", { key, value }); }
+      }
+      return null;
+    },
     meetings_list: (a) => {
       const f = (a.filters ?? {}) as { participant?: string | null; from?: number | null; to?: number | null };
       const who = f.participant?.trim().toLowerCase();
