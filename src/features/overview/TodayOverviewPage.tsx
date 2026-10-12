@@ -11,11 +11,12 @@ import { AgendaCard } from "./AgendaCard";
 import { DoneThisWeek } from "./DoneThisWeek";
 import { MovableTiles, type TileId } from "./MovableTiles";
 import { useAgenda } from "./TodayAgenda";
+import { YesterdayLine, type TaskFocus } from "./YesterdayLine";
 
 interface FeedEvent { at: number; icon: React.ReactNode; text: string; tone?: "good" }
 
 /** Today and the overview in one page: agenda, progress, time, activity. */
-export function TodayOverviewPage() {
+export function TodayOverviewPage({ onShowTasks = () => {} }: { onShowTasks?: (focus: TaskFocus) => void }) {
   const agenda = useAgenda();
   const now = new Date();
   const { data: log } = useDailyLog(ymd(now));
@@ -68,6 +69,7 @@ export function TodayOverviewPage() {
         description={`${dayLabel(now)} · ${agenda.open} open${flagged ? ` · ${flagged} overdue or missed` : ""}`}
         actions={<span className="text-xs text-muted-foreground">Local data · saved</span>}
       />
+      <YesterdayLine onShow={onShowTasks} />
       <MovableTiles tiles={tiles} />
     </div>
   );

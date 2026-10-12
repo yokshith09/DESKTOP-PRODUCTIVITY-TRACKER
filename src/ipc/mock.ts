@@ -155,12 +155,19 @@ export function createMock() {
       };
     };
     const done = Array.from({ length: completed }, (_, i) => entry(i, true));
-    const left = Array.from({ length: planned - completed }, (_, i) => entry(i + 20, false));
+    // Yesterday's leftovers are real open tasks, so "Yesterday: … still open" has somewhere to go.
+    const real = (id: string): LogEntry | null => {
+      const x = tasks.find((y) => y.id === id);
+      return x ? { id: x.id, title: x.title, priority: x.priority, status_at_eod: "PLANNED" } : null;
+    };
+    const left = back === 1
+      ? ["t2", "t3"].map(real).filter((e): e is LogEntry => e !== null)
+      : Array.from({ length: planned - completed }, (_, i) => entry(i + 20, false));
     return {
       date, live: false, reconstructed: back === 4,
       snapshot: {
         date, planned: left, in_progress: [], completed: done, pending: [], cancelled: [], overdue: [],
-        stats: { planned_count: planned, completed_count: completed, completion_ratio: Math.round((completed / planned) * 100) / 100, tasks_created: planned, notes_created: seed % 3, notes_edited: (seed + 1) % 4, meetings: seed % 2 },
+        stats: { planned_count: back === 1 ? completed + left.length : planned, completed_count: completed, completion_ratio: Math.round((completed / planned) * 100) / 100, tasks_created: planned, notes_created: seed % 3, notes_edited: (seed + 1) % 4, meetings: seed % 2 },
         activity: null,
       },
     };

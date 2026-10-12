@@ -21,6 +21,7 @@ import { TasksPage } from "@/features/tasks/TasksPage";
 import { TimePage } from "@/features/time/TimePage";
 import { TodayOverviewPage } from "@/features/overview/TodayOverviewPage";
 import { MeetingsPage } from "@/features/meetings/MeetingsPage";
+import type { TaskFocus } from "@/features/overview/YesterdayLine";
 import { Welcome, useFirstRun, type WelcomeNext } from "@/features/welcome/Welcome";
 
 const PAGES: readonly Page[] = ["today", "tasks", "time", "notes", "meetings", "archive", "bin", "character", "mcp", "settings"];
@@ -32,6 +33,7 @@ function Screen() {
   const [layout, setLayoutState] = useState<NotesLayout>("grid");
   const [editing, setEditing] = useState<string | null>(null);
   const [newMeeting, setNewMeeting] = useState(0);
+  const [taskFocus, setTaskFocus] = useState<TaskFocus | null>(null);
 
   useBusSync();
   const theme = useTheme();
@@ -49,6 +51,7 @@ function Screen() {
   }, []);
   const setPage = (p: Page) => {
     setPageState(p);
+    setTaskFocus(null);
     void ipc.prefsSet("ui.last_view", p);
   };
   const setLayout = (l: NotesLayout) => {
@@ -144,12 +147,12 @@ function Screen() {
               />
             )}
             {page === "today" && (
-              <TodayOverviewPage />
+              <TodayOverviewPage onShowTasks={(focus) => { setPage("tasks"); setTaskFocus(focus); }} />
             )}
             {page === "bin" && <BinPage />}
             {page === "character" && <CharacterPage />}
             {page === "settings" && <SettingsPage />}
-            {page === "tasks" && <TasksPage />}
+            {page === "tasks" && <TasksPage focus={taskFocus} onClearFocus={() => setTaskFocus(null)} />}
             {page === "meetings" && <MeetingsPage newTick={newMeeting} />}
             {page === "time" && <TimePage />}
             {page === "mcp" && <ComingSoon icon={<Plug />} title="MCP" description="Connect external tools and services to Loaf through the Model Context Protocol. This arrives in a later release." />}
