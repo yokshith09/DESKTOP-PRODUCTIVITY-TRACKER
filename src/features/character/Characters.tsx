@@ -250,26 +250,38 @@ export function Bolt({ pose = "idle", animated = false, className }: CharacterPr
   );
 }
 
-/** Ghosty: floats, glows while you type, fades a little when asleep. */
+/** Ghosty: a soft gumdrop ghost with a curling tail. Floats, glows while you type, fades a little asleep. */
 export function Ghosty({ pose = "idle", animated = false, className }: CharacterProps) {
   const { id, url } = useIds();
   const up = pose === "cheer";
-  const sheet = "M44 100 q0 -70 56 -70 q56 0 56 70 v66 q-9 12 -18 0 q-9 -12 -19 0 q-9 12 -19 0 q-10 -12 -19 0 q-9 12 -19 0 q-9 -12 -18 0 z";
+  const sheet = "M100 30 C138 30 156 62 156 100 C156 126 160 146 170 162 C160 170 148 167 140 160 C131 172 116 173 107 163 C97 173 81 173 73 162 C63 170 49 167 42 158 C46 142 44 124 44 100 C44 62 62 30 100 30 Z";
   return (
-    <svg viewBox="0 0 200 200" role="img" aria-label={`Ghosty (${pose})`} className={cn("overflow-visible", className)} style={{ opacity: pose === "sleep" ? 0.75 : 1 }}>
-      <Defs id={id} a="#FFFFFF" b="#EDF0FF" c="#A9B4F5" rim="#E9D5FF" />
-      <Shadow url={url} w={38} />
-      {pose === "type" && <circle cx="100" cy="100" r="80" fill="#A5B4FC" opacity=".25" filter={url("soft")} className={animated ? "pet-glow" : undefined} />}
+    <svg viewBox="0 0 200 200" role="img" aria-label={`Ghosty (${pose})`} className={cn("overflow-visible", className)} style={{ opacity: pose === "sleep" ? 0.8 : 1 }}>
+      <Defs id={id} a="#FFFFFF" b="#F1F0FF" c="#B7B3EC" rim="#C4F1F9" />
+      <defs>
+        <radialGradient id={id("inner")} cx="50%" cy="45%" r="50%"><stop offset="0" stopColor="#fff" stopOpacity=".9" /><stop offset="1" stopColor="#fff" stopOpacity="0" /></radialGradient>
+        <radialGradient id={id("aura")}><stop offset=".5" stopColor="#C7D2FE" stopOpacity=".45" /><stop offset="1" stopColor="#C7D2FE" stopOpacity="0" /></radialGradient>
+      </defs>
+      <Shadow url={url} w={34} y={190} />
       <g className={animated && pose !== "cheer" ? "pet-float" : bodyAnim(pose, animated)}>
-        <Vol url={url} shape={(f) => <path d={sheet} fill={f} />} />
-        <Spec url={url} x={78} y={54} rx={22} ry={11} />
-        {!isTypingPose(pose) && [{ x: 40, r: up ? -50 : 20 }, { x: 160, r: up ? 50 : -20 }].map((a) => (
-          <Vol key={a.x} url={url} transform={`rotate(${a.r} ${a.x} 116)`} shape={(f) => <ellipse cx={a.x} cy="116" rx="10" ry="18" fill={f} />} />
+        <ellipse cx="100" cy="104" rx="74" ry="80" fill={url("aura")} opacity={pose === "type" ? 1 : 0.55} className={animated && pose === "type" ? "pet-glow" : undefined} />
+        {!isTypingPose(pose) && [{ x: 46, r: up ? -60 : 28 }, { x: 154, r: up ? 60 : -28 }].map((a) => (
+          <Vol key={a.x} url={url} transform={`rotate(${a.r} ${a.x} 112)`} shape={(f) => <ellipse cx={a.x} cy={up ? 100 : 122} rx="11" ry="15" fill={f} />} />
         ))}
-        <Eyes url={url} pose={pose} l={82} r={118} y={88} size={7} color="#312E81" />
-        {up ? <ellipse cx="100" cy="110" rx="9" ry="7" fill="#312E81" /> : <path d="M92 108 q8 6 16 0" stroke="#312E81" strokeWidth="2.6" fill="none" strokeLinecap="round" />}
-        <Cheeks url={url} l={68} r={132} y={104} w={9} />
-        <TypingRig url={url} pose={pose} animated={animated} top={124} pocketY={150} shoulder={[48, 112]} arm={10} pocket="#6366F1" />
+        <Vol url={url} shape={(f) => <path d={sheet} fill={f} />} />
+        <ellipse cx="100" cy="98" rx="38" ry="40" fill={url("inner")} opacity=".7" />
+        <Spec url={url} x={76} y={52} rx={20} ry={10} />
+        <ellipse cx="128" cy="44" rx="5" ry="2.5" fill="#fff" opacity=".7" transform="rotate(30 128 44)" />
+        <Eyes url={url} pose={pose} l={83} r={117} y={92} size={8.5} color="#2E2A5B" />
+        {up ? (
+          <g><path d="M91 108 q9 14 18 0 z" fill="#3B2F6B" /><ellipse cx="100" cy="114" rx="4" ry="2" fill="#FB7185" /></g>
+        ) : pose === "sleep" ? (
+          <ellipse cx="100" cy="110" rx="3" ry="2.4" fill="#3B2F6B" opacity=".8" />
+        ) : (
+          <path d="M95 108 q5 5 10 0" stroke="#2E2A5B" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+        )}
+        <Cheeks url={url} l={66} r={134} y={106} w={10} />
+        <TypingRig url={url} pose={pose} animated={animated} top={124} pocketY={152} shoulder={[50, 116]} arm={10} pocket="#6366F1" />
       </g>
       <Zzz on={pose === "sleep"} />
     </svg>
