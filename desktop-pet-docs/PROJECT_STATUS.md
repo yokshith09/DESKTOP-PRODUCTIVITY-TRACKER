@@ -12,7 +12,7 @@ Every claim is tagged with how it was checked. **Fact** = seen in code, tests, G
 1. **Fact:** Loaf is a Tauri v2 app: Rust core (`crates/loaf-core`, no Tauri dependency), thin shell (`src-tauri`), React + TypeScript UI (`src`).
 2. **Fact:** On 2026-10-11 the owner decided: merge now and build in one branch (done: PR #1 merged), no Progress card, calendar shows the next 7 days, autostart is built before the first release, the phase order stays as locked (ADR-015), M1 is labelled v0.1 and v1.0.0 stays for the full Phase 1.
 3. **Fact:** The whole M1 build list is now implemented: Notes (Markdown preview, label manager, shortcuts), Tasks (page, all views, status controls, defer, detail, work updates, delete, search), daily-log history on the Time page, autostart, export/import/delete-all, installer workflow, coverage floors.
-4. **Fact:** Tests run on 2026-10-12: **327** core tests + **15** shell tests pass; **54** frontend tests pass; `cargo clippy -D warnings`, `cargo fmt --check`, `pnpm lint`, `pnpm typecheck`, `pnpm check:core-deps` pass; generated types are fresh.
+4. **Fact:** Tests run on 2026-10-12: **327** core tests + **15** shell tests pass; **57** frontend tests pass; `cargo clippy -D warnings`, `cargo fmt --check`, `pnpm lint`, `pnpm typecheck`, `pnpm check:core-deps` pass; generated types are fresh.
 5. **Fact:** Coverage measured today: `loaf-core` **97.3%** of lines; frontend **88.2%** lines. CI now enforces floors (core ≥ 90% lines; frontend lines/statements ≥ 80, branches ≥ 70, functions ≥ 55).
 6. **Fact (owner, 2026-10-11):** the owner installed v0.1.0 on Windows; the app opens, app tracking lists apps (Loaf, Claude, File Explorer) and tasks can be added. The owner reported: no desktop pet, colours confusing, the dashboard opened full screen, no way to delete every task. All four are addressed in 0.1.1 (§4.6), **Unverified** until the owner installs it.
 7. **Unknown (the main risk):** the rest of the Windows checklist (§8) has not been run line by line. Everything that needs the operating system is **Unverified**: the tray, reminder notifications, the Windows app tracker, opening links, **autostart**, the **file dialogs for export and import**, and the **installer**.
@@ -136,7 +136,7 @@ Every claim is tagged with how it was checked. **Fact** = seen in code, tests, G
 | Pet window (F1-22) | **Built, Unverified** (owner asked for it after testing v0.1.0). Transparent, always-on-top window with the animated bear (breathing, blinking, waving on hover, sleeping after 15 quiet minutes; CSS transforms only). Hover → card with today's total, top 3 apps, top 2 tasks, next reminder, done/open counts; the window grows toward the free side of the screen. Click opens Loaf, double-click hides it, right-click opens a native menu (open/hide, new note, new task, tracking on/off, settings, hide pet, quit), drag moves it and the spot is remembered. Code: `src-tauri/src/pet.rs`, `src/pet/`. **0.1.2:** soft-3D redraw and reactions with speech bubbles (task added, done, all done, started, reminder, deleted; overdue removed in 0.1.3; `src/pet/reactions.ts`); Character page previews every pose. Missing from F1-22: reactions to app/focus time. |
 | Global shortcuts + quick-add popup (F1-24) | **Partial, Unverified**: global `Mod+Shift+L` (show/hide Loaf), `Mod+Shift+N` (new note), `Mod+Shift+T` (new task), `Mod+Shift+P` (show/hide pet) in `src-tauri/src/shortcuts.rs`; a key another app owns is skipped with a log warning. Missing: quick-add popup, remapping. |
 | Settings screens (F1-25) | Partial: Appearance, General, Privacy and tracking, **Desktop pet**, **Keyboard shortcuts** (list only), **Your data**, About. Missing Advanced. |
-| First run (F1-26) | Planned |
+| First run (F1-26) | **Built** (welcome screen S-00, `src/features/welcome/Welcome.tsx`; tests in `App.test.tsx`). Meeting action waits for F1-17. |
 | Phase 2 rest: browser extensions, bridge, macOS collector, open tabs | Planned |
 | Phases 3–7 | Planned |
 
@@ -180,7 +180,7 @@ Fixed since the first audit: D1 time-of-day tests (CI had failed on it), D2 auto
 
 ## 7. Next three actions
 
-1. **M2 (owner, 2026-10-12: "keep moving"; next release only after Phase 2).** Start with F1-26 first run, then F1-24 quick-add, then meetings.
+1. **M2 (owner, 2026-10-12: "keep moving"; next release only after Phase 2).** F1-26 first run done; next F1-24 quick-add, then meetings (F1-17…19).
 2. **Owner: re-check the three 0.1.3 fixes** when convenient: Actions → Release build → Run workflow refreshes the `v0.1.3` draft with them (no version change). Notifications: Settings › Notifications › Send a test notification.
 3. **Signing certificates** (owner): order them now; they are needed for the Phase 2 release.
 

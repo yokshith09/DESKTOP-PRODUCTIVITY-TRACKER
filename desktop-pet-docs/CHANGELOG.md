@@ -4,6 +4,9 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+### 2026-10-12 (M2: first run, F1-26)
+- Added: **welcome screen** on a fresh Loaf (and after Delete all): hello from the bear, "Add your first task" or "Write a note", and three choices — show the pet (on), track app time (off), open at login (off). Shown once; never to someone who already has notes or tasks.
+
 ### 2026-10-12 (owner's test of 0.1.3; no version change: next release after Phase 2)
 - Fixed: reminders can be edited (text, time) and snoozed (10 min, 1 hour, tomorrow 9 AM) from Today and the Notes strip. A new time makes the reminder ring again.
 - Fixed: the pet can be dragged while its card is open. The window is dragged as it is (shrinking it first lost the grab), the card hides during the drag, and the pet's new spot is saved.

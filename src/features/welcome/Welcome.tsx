@@ -1,0 +1,101 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { CheckSquare, NotebookPen } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Bear } from "@/features/shell/Bear";
+import { useNotes, useTasksQuery } from "@/hooks/useLoaf";
+import { useSetting } from "@/hooks/useTheme";
+import { ipc } from "@/ipc";
+
+const KEY = ["prefs", "ui.onboarded"] as const;
+
+/**
+ * Whether to show the welcome screen (S-00, F1-26): never finished it, and there is nothing in
+ * Loaf yet. After Delete all the preferences are gone too, so it shows again. Someone who
+ * already has notes or tasks (an upgrade) never sees it.
+ */
+export function useFirstRun() {
+  const qc = useQueryClient();
+  const onboarded = useQuery({ queryKey: KEY, queryFn: async () => (await ipc.prefsGet<boolean>("ui.onboarded")) === true });
+  const notes = useNotes(false, null, "last_edited");
+  const tasks = useTasksQuery("all");
+  const loading = onboarded.isPending || notes.isPending || tasks.isPending;
+  const show = !loading && !onboarded.data && (notes.data?.length ?? 0) === 0 && (tasks.data?.length ?? 0) === 0;
+  const finish = async () => {
+    qc.setQueryData(KEY, true);
+    await ipc.prefsSet("ui.onboarded", true);
+  };
+  return { loading, show, finish };
+}
+
+export type WelcomeNext = "today" | "task" | "note";
+
+function Choice({ label, hint, checked, onChange }: { label: string; hint: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label className="flex cursor-pointer items-start gap-3 py-3">
+      <span className="min-w-0 flex-1">
+        <span className="block text-[13px] font-medium">{label}</span>
+        <span className="block text-xs text-muted-foreground">{hint}</span>
+      </span>
+      <Switch checked={checked} onCheckedChange={onChange} aria-label={label} />
+    </label>
+  );
+}
+
+/** The first thing a new person sees: hello, the core actions, and three choices. Once. */
+export function Welcome({ onDone }: { onDone: (next: WelcomeNext) => void }) {
+  const [tracking, setTracking] = useSetting("tracking.apps");
+  const [autostart, setAutostart] = useSetting("general.autostart");
+  const [pet, setPet] = useSetting("pet.visible");
+
+  return (
+    <main className="grid min-h-screen place-items-center bg-background px-4 py-10 text-foreground">
+      <div className="w-full max-w-md">
+        <div className="flex flex-col items-center text-center">
+          <Bear pose="wave" animated className="size-28" />
+          <h1 className="mt-3 text-2xl font-semibold tracking-tight">Welcome to Loaf</h1>
+          <p className="mt-1.5 text-[13.5px] text-muted-foreground">Your notes, tasks and time, kept on this computer. Start with one of these:</p>
+        </div>
+
+        <div className="mt-6 grid grid-cols-2 gap-3">
+          <button
+            type="button" onClick={() => onDone("task")}
+            className="flex flex-col items-start gap-2 rounded-xl border bg-card p-4 text-left outline-none transition-colors hover:border-primary/60 focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <CheckSquare className="size-5 text-primary" />
+            <span className="text-[13px] font-semibold">Add your first task</span>
+            <span className="text-xs text-muted-foreground">What do you want to finish today?</span>
+          </button>
+          <button
+            type="button" onClick={() => onDone("note")}
+            className="flex flex-col items-start gap-2 rounded-xl border bg-card p-4 text-left outline-none transition-colors hover:border-primary/60 focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <NotebookPen className="size-5 text-primary" />
+            <span className="text-[13px] font-semibold">Write a note</span>
+            <span className="text-xs text-muted-foreground">Ideas, plans, anything worth keeping.</span>
+          </button>
+        </div>
+
+        <section aria-label="Your choices" className="mt-6 divide-y rounded-xl border bg-card px-4">
+          <Choice
+            label="Show Loaf the bear on your desktop" hint="Hover for today at a glance; click to open Loaf."
+            checked={pet ?? true} onChange={(v) => void setPet(v)}
+          />
+          <Choice
+            label="Track app time" hint="Which app is in front, and for how long. Stays on this computer; window titles are never stored."
+            checked={tracking ?? false} onChange={(v) => void setTracking(v)}
+          />
+          <Choice
+            label="Open Loaf at login" hint="Starts quietly in the tray."
+            checked={autostart ?? false} onChange={(v) => void setAutostart(v)}
+          />
+        </section>
+
+        <div className="mt-6 flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">You can change these any time in Settings.</p>
+          <Button onClick={() => onDone("today")}>Start</Button>
+        </div>
+      </div>
+    </main>
+  );
+}

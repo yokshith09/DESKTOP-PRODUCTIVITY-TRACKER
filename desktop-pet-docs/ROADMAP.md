@@ -129,7 +129,7 @@ The first release is **M1: Notes and daily work management (P0)**. Everything el
 | F1-23 | Today view (R1-70 rest) | 🟡 Partial |
 | F1-24 | Global shortcuts + quick-add popup + keymap | 🟡 Partial, Unverified: `Mod+Shift+L/N/T/P`; no quick-add popup, no remapping |
 | F1-25 | Settings screens (Pet, Shortcuts, Advanced) | 🟡 Partial — Data (M1), Desktop pet and Shortcuts list (0.1.1) done; Advanced missing |
-| F1-26 | First run + empty states | ⬜ |
+| F1-26 | First run + empty states | 🟡 Welcome screen built (2026-10-12): shown once on a fresh Loaf or after Delete all, never to someone with notes or tasks; two start actions (task, note); pet on, tracking and login off. "Log a meeting" joins when meetings exist (F1-17). |
 | F1-27 | Cross-OS E2E, signing, **v1.0.0** | ⬜ |
 
 F1-20 and F1-21 (search) are cancelled; their numbers are retired.
