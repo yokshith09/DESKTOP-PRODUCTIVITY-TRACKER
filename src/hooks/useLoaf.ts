@@ -158,8 +158,10 @@ export function useReminderActions() {
   const create = useAction((title: string, remindAt: number) => ipc.reminderCreate({ title, remind_at: remindAt }), keysToRefresh);
   const done = useAction((id: string, d: boolean) => ipc.reminderSetDone(id, d), keysToRefresh);
   const remove = useAction((id: string) => ipc.reminderDelete(id), keysToRefresh);
+  const edit = useAction((id: string, title: string, remindAt: number) => ipc.reminderUpdate(id, { title, remind_at: remindAt }), keysToRefresh);
   return {
     create: (title: string, remindAt: number) => create.mutateAsync([title, remindAt]),
+    update: (id: string, title: string, remindAt: number) => edit.mutateAsync([id, title, remindAt]),
     setDone: (id: string, d: boolean) => done.mutateAsync([id, d]),
     remove: (id: string) => remove.mutateAsync([id]),
   };

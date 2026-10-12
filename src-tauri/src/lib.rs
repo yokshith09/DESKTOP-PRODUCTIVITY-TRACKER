@@ -3,6 +3,7 @@
 
 mod autostart;
 mod ipc;
+mod notify;
 mod pet;
 mod shortcuts;
 mod tracking;
@@ -20,7 +21,6 @@ use loaf_core::scheduler::{DbLastSeen, Scheduler};
 use loaf_core::settings_service::SettingsService;
 use loaf_core::usage::{self, UsageService};
 use tauri::{AppHandle, Emitter, Manager, RunEvent, WindowEvent};
-use tauri_plugin_notification::NotificationExt;
 use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 /// What the dashboard window remembers between runs: size, place, maximized. Not whether it was
@@ -69,13 +69,7 @@ fn forward_events(app: AppHandle, bus: &EventBus) {
             match events.recv().await {
                 Recv::Event(event) => {
                     if let Event::ReminderDue { reminder, .. } = &event {
-                        // Best effort: a refused or failed notification must not stop the bus.
-                        let _ = app
-                            .notification()
-                            .builder()
-                            .title(&reminder.title)
-                            .body("Reminder")
-                            .show();
+                        notify::reminder(&app, reminder);
                     }
                     let _ = app.emit("loaf://event", &event);
                 }
@@ -172,6 +166,8 @@ pub fn run() {
             pet::pet_click,
             pet::pet_double_click,
             pet::pet_menu,
+            notify::notification_test,
+            notify::notification_settings_open,
         ])
         .on_window_event(|window, event| {
             // Closing the main window hides it; the process keeps running (R0-03).

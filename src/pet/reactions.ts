@@ -34,7 +34,8 @@ export const RULES: Rules = {
     return null;
   },
   TaskDeleted: () => ({ pose: "toss", bubble: "Tossed it", ms: 2400, priority: 1 }),
-  ReminderDue: (e) => ({ pose: "ring", bubble: `Reminder: ${quote(e.reminder.title)}`, ms: 5000, priority: 5 }),
+  // Long enough to be seen when the system notification was swallowed (Do not disturb).
+  ReminderDue: (e) => ({ pose: "ring", bubble: `Reminder: ${quote(e.reminder.title)}`, ms: 15_000, priority: 5 }),
 };
 
 /** The reaction for an event, or null when the pet stays calm. */

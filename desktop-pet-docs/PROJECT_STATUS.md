@@ -12,8 +12,8 @@ Every claim is tagged with how it was checked. **Fact** = seen in code, tests, G
 1. **Fact:** Loaf is a Tauri v2 app: Rust core (`crates/loaf-core`, no Tauri dependency), thin shell (`src-tauri`), React + TypeScript UI (`src`).
 2. **Fact:** On 2026-10-11 the owner decided: merge now and build in one branch (done: PR #1 merged), no Progress card, calendar shows the next 7 days, autostart is built before the first release, the phase order stays as locked (ADR-015), M1 is labelled v0.1 and v1.0.0 stays for the full Phase 1.
 3. **Fact:** The whole M1 build list is now implemented: Notes (Markdown preview, label manager, shortcuts), Tasks (page, all views, status controls, defer, detail, work updates, delete, search), daily-log history on the Time page, autostart, export/import/delete-all, installer workflow, coverage floors.
-4. **Fact:** Tests run on 2026-10-11 (0.1.2): **327** core tests + **13** shell tests pass; **51** frontend tests pass; `cargo clippy -D warnings`, `cargo fmt --check`, `pnpm lint`, `pnpm typecheck`, `pnpm check:core-deps` pass; generated types are fresh.
-5. **Fact:** Coverage measured today: `loaf-core` **97.3%** of lines; frontend **87.7%** lines. CI now enforces floors (core ≥ 90% lines; frontend lines/statements ≥ 80, branches ≥ 70, functions ≥ 55).
+4. **Fact:** Tests run on 2026-10-12: **327** core tests + **15** shell tests pass; **54** frontend tests pass; `cargo clippy -D warnings`, `cargo fmt --check`, `pnpm lint`, `pnpm typecheck`, `pnpm check:core-deps` pass; generated types are fresh.
+5. **Fact:** Coverage measured today: `loaf-core` **97.3%** of lines; frontend **88.2%** lines. CI now enforces floors (core ≥ 90% lines; frontend lines/statements ≥ 80, branches ≥ 70, functions ≥ 55).
 6. **Fact (owner, 2026-10-11):** the owner installed v0.1.0 on Windows; the app opens, app tracking lists apps (Loaf, Claude, File Explorer) and tasks can be added. The owner reported: no desktop pet, colours confusing, the dashboard opened full screen, no way to delete every task. All four are addressed in 0.1.1 (§4.6), **Unverified** until the owner installs it.
 7. **Unknown (the main risk):** the rest of the Windows checklist (§8) has not been run line by line. Everything that needs the operating system is **Unverified**: the tray, reminder notifications, the Windows app tracker, opening links, **autostart**, the **file dialogs for export and import**, and the **installer**.
 8. **Fact:** CI failed on `00ae175` (2026-10-11 08:17 UTC) because the demo data in the frontend tests depended on the time of day. Fixed in `3ed177f` with a regression test; CI is green on it for Windows and macOS.
@@ -180,13 +180,18 @@ Fixed since the first audit: D1 time-of-day tests (CI had failed on it), D2 auto
 
 ## 7. Next three actions
 
-1. **Owner: install the draft release `v0.1.3`** (supersedes 0.1.1 and 0.1.2). Check the reactions: add a task, start it, finish it, finish the last one, let a reminder fire, delete one; leave the PC alone 15 minutes and see the bear sleep, then hover to wake it. Also (built automatically from `main`) and check the pet: it appears bottom-right, hover card, click / double-click / right-click, drag, `Ctrl+Shift+P/L/N/T`, Settings › Desktop pet. Then run the Windows checklist (§8).
-2. **Fix what that finds**, then publish the draft.
-3. **Add signing** (owner's certificates) and decide when to start M2.
+1. **M2 (owner, 2026-10-12: "keep moving"; next release only after Phase 2).** Start with F1-26 first run, then F1-24 quick-add, then meetings.
+2. **Owner: re-check the three 0.1.3 fixes** when convenient: Actions → Release build → Run workflow refreshes the `v0.1.3` draft with them (no version change). Notifications: Settings › Notifications › Send a test notification.
+3. **Signing certificates** (owner): order them now; they are needed for the Phase 2 release.
 
 ---
 
 ## 8. Windows checklist (owner)
+
+**Result on 0.1.3 (owner, 2026-10-12):** everything passed except three lines, now fixed in code and **Unverified**:
+- line 5 **FAIL**: no Windows notification for a reminder. Cause not confirmed (the plugin hides errors). Fix: errors are logged, the taskbar flashes, the pet rings for 15 s, an in-app alert with Done / Snooze appears, Settings › Notifications has a test button and a link to the system settings.
+- reminders could not be edited (none could; the owner noticed it on a missed one). Fix: click a reminder to change its text or time, or snooze it.
+- line 13 **FAIL**: the pet could not be dragged while its card was open. Fix: the grown window is dragged as is; the shell follows the pet and saves the new spot.
 
 Run `pnpm tauri dev` or install the CI build. Write pass or fail next to each line.
 

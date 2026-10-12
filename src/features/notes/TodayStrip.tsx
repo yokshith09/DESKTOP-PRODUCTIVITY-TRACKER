@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PRIORITY, useAgenda } from "@/features/overview/TodayAgenda";
+import { EditReminder } from "@/features/reminders/EditReminder";
 import { Tile } from "@/features/shell/PageHeader";
 import { useReminderActions, useTaskActions } from "@/hooks/useLoaf";
 import { formatWhen } from "@/lib/time";
@@ -15,7 +16,7 @@ export function TodayStrip({ onViewAll, className }: { onViewAll: () => void; cl
   const { setDone } = useTaskActions();
   const reminderActions = useReminderActions();
   const rows = [
-    ...reminders.map((r) => ({ kind: "reminder" as const, id: r.id, title: r.title, when: r.remind_at })),
+    ...reminders.map((r) => ({ kind: "reminder" as const, id: r.id, title: r.title, when: r.remind_at, reminder: r })),
     ...tasks.map(({ task, overdue }) => ({ kind: "task" as const, id: task.id, title: task.title, priority: task.priority, overdue, status: task.status })),
   ];
 
@@ -39,7 +40,13 @@ export function TodayStrip({ onViewAll, className }: { onViewAll: () => void; cl
                 aria-label={`${r.kind === "task" ? "Complete" : "Done:"} ${r.title}`} checked={false}
                 onCheckedChange={() => void (r.kind === "task" ? complete(r.id, r.title) : reminderActions.setDone(r.id, true))}
               />
-              <span className="min-w-0 flex-1 truncate text-[13px]">{r.title}</span>
+              {r.kind === "reminder" ? (
+                <EditReminder reminder={r.reminder}>
+                  <button type="button" aria-label={`Edit reminder “${r.title}”`} className="min-w-0 flex-1 truncate rounded text-left text-[13px] outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring">{r.title}</button>
+                </EditReminder>
+              ) : (
+                <span className="min-w-0 flex-1 truncate text-[13px]">{r.title}</span>
+              )}
               {r.kind === "reminder" ? (
                 <span className={cn("flex items-center gap-1 text-[11px] tabular-nums", r.when < Date.now() ? "text-destructive" : "text-muted-foreground")}>
                   <Bell className="size-3" />{formatWhen(r.when)}
