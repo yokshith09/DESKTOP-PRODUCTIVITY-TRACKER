@@ -28,6 +28,9 @@ export default defineConfig(({ mode }) => ({
   test: {
     environment: "jsdom",
     include: ["src/**/*.test.{ts,tsx}"],
+    // The first test in a file pays for loading the whole app; on the Windows CI runner that
+    // alone took over the 5 s default (2026-10-12). Locally the slowest test takes about 2 s.
+    testTimeout: 15_000,
     coverage: {
       provider: "v8", include: ["src/**"], exclude: ["src/**/*.test.{ts,tsx}", "src/ipc/generated/**"],
       // The floor (G6). Measured 2026-10-11: lines 88, branches 80, functions 65. Raise it as it grows; never lower it to pass.
