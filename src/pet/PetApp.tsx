@@ -39,6 +39,9 @@ export function PetApp() {
   const [panel, setPanel] = useState<Panel>(null);
   const [hovering, setHovering] = useState(false);
   const [hop, setHop] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const draggingRef = useRef(false);
+  draggingRef.current = dragging;
   const [playing, setPlaying] = useState<Reaction | null>(null);
   const timers = useRef<{ enter?: number | undefined; leave?: number | undefined; click?: number | undefined; play?: number | undefined }>({});
   const press = useRef<{ x: number; y: number } | null>(null);
@@ -125,6 +128,7 @@ export function PetApp() {
     timers.current.enter = window.setTimeout(() => void openCard(), 350);
   };
   const onLeave = () => {
+    if (draggingRef.current) return; // the window is moving under the pointer; not a real leave
     setHovering(false);
     clearTimeout(timers.current.enter);
     timers.current.leave = window.setTimeout(() => void closeCard(), 250);
@@ -154,13 +158,23 @@ export function PetApp() {
     const p = press.current;
     if (!p || !(e.buttons & 1) || Math.hypot(e.screenX - p.x, e.screenY - p.y) < DRAG_PX) return;
     press.current = null;
+    // Drag the window as it is: shrinking it first (to drop the card) loses the grab on Windows.
+    // The card is hidden while dragging and the shell works out where the pet ended up.
+    clearTimeout(timers.current.enter);
+    setDragging(true);
     void (async () => {
-      await collapse();
       if (isTauri()) {
         const { getCurrentWindow } = await import("@tauri-apps/api/window");
         await getCurrentWindow().startDragging();
       }
     })();
+  };
+  // The OS owns the pointer during a drag; the first move without a button pressed means it ended.
+  const endDrag = (e: React.PointerEvent) => {
+    if (!dragging || e.buttons & 1) return;
+    setDragging(false);
+    // Lay the card out again for the new spot (it may need to open the other way now).
+    if (panelRef.current) void expand(panelRef.current);
   };
   const onPointerUp = () => {
     if (press.current) click();
@@ -190,11 +204,11 @@ export function PetApp() {
       : null;
 
   return (
-    <div className="flex h-screen w-screen select-none flex-col overflow-hidden" onMouseEnter={onEnter} onMouseLeave={onLeave}>
+    <div className="flex h-screen w-screen select-none flex-col overflow-hidden" onMouseEnter={onEnter} onMouseLeave={onLeave} onPointerMove={endDrag}>
       <p className="sr-only" role="status">{playing?.bubble ?? ""}</p>
       {anchor && extra ? (
         <div className={cn("flex h-full flex-col gap-2", anchor.card === "below" && "flex-col-reverse", anchor.pet === "right" ? "items-end" : "items-start")}>
-          {extra}
+          <div className={cn("contents", dragging && "[&>*]:invisible")}>{extra}</div>
           {bear}
         </div>
       ) : (

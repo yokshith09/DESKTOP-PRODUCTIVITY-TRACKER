@@ -291,7 +291,12 @@ export function createMock() {
     },
     reminder_update: (a) => {
       const r = reminders.find((x) => x.id === a.id) ?? fail("NOT_FOUND", "That reminder no longer exists.");
-      Object.assign(r, a.patch); emit("ReminderUpdated"); return r;
+      const patch = a.patch as { title?: string | null; remind_at?: number };
+      // Like the core: a new time is a new reminder as far as firing goes.
+      if (patch.remind_at !== undefined && patch.remind_at !== r.remind_at) r.fired_at = null;
+      if (patch.title) r.title = patch.title;
+      if (patch.remind_at !== undefined) r.remind_at = patch.remind_at;
+      emit("ReminderUpdated", { reminder: r }); return r;
     },
     reminder_set_done: (a) => {
       const r = reminders.find((x) => x.id === a.id) ?? fail("NOT_FOUND", "That reminder no longer exists.");
@@ -379,6 +384,8 @@ export function createMock() {
     pet_click: () => null,
     pet_double_click: () => null,
     pet_menu: () => null,
+    notification_test: () => null,
+    notification_settings_open: () => null,
     data_export: () => ({ path: "C:\\Users\\you\\Documents\\loaf-export.json", bytes: 48_213 }),
     data_import: () => {
       if (notes.length || tasks.length || reminders.length) fail("CONFLICT", "Import only works into an empty Loaf. Delete all data first, then import.");

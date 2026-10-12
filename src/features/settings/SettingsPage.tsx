@@ -46,6 +46,27 @@ export function SettingsPage() {
           <Switch checked={autostart ?? false} onCheckedChange={(v) => void setAutostart(v)} aria-label="Open Loaf at login" />
         </Row>
       </Section>
+      <Section title="Notifications">
+        <Row
+          label="Reminder alerts"
+          hint="A due reminder shows a system notification, flashes Loaf in the taskbar and makes the pet ring. Nothing showed up? Turn notifications on for Loaf and switch off Do not disturb (Focus) in your system settings."
+        >
+          <div className="flex shrink-0 flex-col items-end gap-1.5">
+            <Button
+              size="sm" variant="secondary"
+              onClick={() => void ipc.notificationTest().then(
+                () => toast("Test sent. If no notification appeared, open the notification settings."),
+                () => toast.error("Loaf couldn't show a notification."),
+              )}
+            >
+              Send a test notification
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => void ipc.notificationSettingsOpen().catch(() => toast.error("Open your system settings to manage notifications."))}>
+              Open notification settings
+            </Button>
+          </div>
+        </Row>
+      </Section>
       <Section title="Desktop pet">
         <Row label="Show the pet" hint={`Loaf the bear sits on your desktop. Click to open Loaf, double-click to hide it, right-click for options, drag to move. ${mod}+Shift+P shows or hides it.`}>
           <Switch checked={petVisible ?? true} onCheckedChange={(v) => void setPetVisible(v)} aria-label="Show the pet" />

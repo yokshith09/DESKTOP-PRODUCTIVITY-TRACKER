@@ -4,6 +4,11 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+### 2026-10-12 (owner's test of 0.1.3; no version change: next release after Phase 2)
+- Fixed: reminders can be edited (text, time) and snoozed (10 min, 1 hour, tomorrow 9 AM) from Today and the Notes strip. A new time makes the reminder ring again.
+- Fixed: the pet can be dragged while its card is open. The window is dragged as it is (shrinking it first lost the grab), the card hides during the drag, and the pet's new spot is saved.
+- Changed: reminder alerts no longer rely only on the system notification: failures are logged, Loaf flashes in the taskbar, the pet rings for 15 s, and an in-app alert offers Done and Snooze. New Settings › Notifications with "Send a test notification" and "Open notification settings".
+
 ### 2026-10-11 (0.1.3 — owner's test of 0.1.2)
 - Fixed: the pet "always slept". It slept by the clock (23:00–06:00), which is when the owner works. It now sleeps only after 15 minutes with nothing happening (no hover, no click, no event from Loaf, no tracked app time) and wakes at once.
 - Removed: the overdue reaction (owner's call). The worried pose stays for later use.

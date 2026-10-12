@@ -318,4 +318,26 @@ describe("Notes screen (against the in-memory shell)", () => {
     await user.click(screen.getByRole("button", { name: "Set reminder" }));
     expect(await screen.findByText("Water the plants")).toBeTruthy();
   });
+
+  it("edits a missed reminder: snoozing it makes it upcoming again", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const edit = await screen.findByRole("button", { name: "Edit reminder “Review the sync PR”" });
+    const row = edit.closest("li") as HTMLElement;
+    expect(within(row).getByText(/Missed/)).toBeTruthy();
+    await user.click(edit);
+    await user.click(await screen.findByRole("button", { name: "In 10 min" }));
+    await waitFor(() => expect(within(screen.getByRole("button", { name: "Edit reminder “Review the sync PR”" }).closest("li") as HTMLElement).queryByText(/Missed/)).toBeNull());
+  });
+
+  it("renames a reminder", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(await screen.findByRole("button", { name: "Edit reminder “Stand-up”" }));
+    const title = await screen.findByLabelText("Remind me to");
+    await user.clear(title);
+    await user.type(title, "Daily stand-up");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByRole("button", { name: "Edit reminder “Daily stand-up”" })).toBeTruthy();
+  });
 });

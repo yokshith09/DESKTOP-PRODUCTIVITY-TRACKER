@@ -67,5 +67,7 @@ export const ipc = {
   petClick: () => call<unknown>("pet_click"),
   petDoubleClick: () => call<unknown>("pet_double_click"),
   petMenu: () => call<unknown>("pet_menu"),
+  notificationTest: () => call<null>("notification_test"),
+  notificationSettingsOpen: () => call<null>("notification_settings_open"),
   taskTransition: (id: string, to: TaskStatus) => call<Task>("task_transition", { id, to }),
 };

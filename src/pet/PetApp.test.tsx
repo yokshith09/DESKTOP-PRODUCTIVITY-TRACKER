@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { ipc, type TaskRow } from "@/ipc";
@@ -6,6 +6,8 @@ import { PetApp } from "./PetApp";
 import { topTasks } from "./PetCard";
 
 beforeAll(() => {
+  // jsdom has no PointerEvent; a MouseEvent carries the same button and position fields.
+  window.PointerEvent ??= class extends MouseEvent {} as never;
   window.matchMedia ??= ((q: string) => ({ matches: false, media: q, addEventListener() {}, removeEventListener() {} })) as never;
 });
 afterEach(() => {
@@ -75,6 +77,22 @@ describe("desktop pet", () => {
     expect(screen.getByRole("img", { name: "Loaf the bear (sleep)" })).toBeTruthy();
     fireEvent.mouseEnter(bear().closest("div.flex") as HTMLElement);
     expect(screen.queryByRole("img", { name: "Loaf the bear (sleep)" })).toBeNull();
+  });
+
+  it("drags with the card open without shrinking the window first, then lays the card out again", async () => {
+    const hover = vi.spyOn(ipc, "petHover");
+    renderPet();
+    fireEvent.mouseEnter(bear().closest("div.flex") as HTMLElement);
+    const card = await screen.findByRole("status", { name: "Today at a glance" }, { timeout: 2000 });
+    hover.mockClear();
+    fireEvent.pointerDown(bear(), { button: 0, buttons: 1, screenX: 10, screenY: 10 });
+    fireEvent.pointerMove(bear(), { buttons: 1, screenX: 40, screenY: 40 });
+    expect(card.parentElement?.className).toContain("invisible");
+    expect(hover).not.toHaveBeenCalledWith(false, 0, 0);
+    // The drag is over: the next move has no button pressed.
+    fireEvent.pointerMove(bear(), { buttons: 0, screenX: 40, screenY: 40 });
+    await waitFor(() => expect(hover).toHaveBeenCalledWith(true, expect.any(Number), expect.any(Number)));
+    expect(hover).not.toHaveBeenCalledWith(false, 0, 0);
   });
 
   it("puts overdue, then in-progress, then high-priority tasks first", () => {

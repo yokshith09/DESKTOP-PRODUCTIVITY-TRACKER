@@ -83,6 +83,16 @@ pub fn expanded(pet: Rect, card_w: u32, card_h: u32, work: Rect) -> (Rect, Ancho
     )
 }
 
+/// Where the pet's square is now, if the grown window (set at `grown`) was dragged to `(x, y)`.
+/// The pet keeps its place inside the grown window, so it moved by the same amount.
+pub fn follow(base: Rect, grown: Rect, x: i32, y: i32) -> Rect {
+    Rect {
+        x: base.x + (x - grown.x),
+        y: base.y + (y - grown.y),
+        ..base
+    }
+}
+
 /// Bottom-right of the work area.
 pub fn default_spot(size: u32, work: Rect) -> (i32, i32) {
     (
@@ -105,6 +115,8 @@ pub struct PetState {
     expanded: AtomicBool,
     /// The pet's own square, while the window is grown.
     base: Mutex<Option<Rect>>,
+    /// The grown window as it was set, to tell whether it was dragged since.
+    grown: Mutex<Option<Rect>>,
     save_pending: AtomicBool,
 }
 
@@ -158,7 +170,7 @@ pub async fn pet_hover(
         return Ok(None);
     };
     if expanded {
-        let pet = match *lock(&state.base) {
+        let pet = match current_base(&w, &state) {
             Some(base) if state.expanded.load(Ordering::SeqCst) => base,
             _ => outer_rect(&w).map_err(internal)?,
         };
@@ -166,6 +178,7 @@ pub async fn pet_hover(
         let work = work_area(&w).unwrap_or(pet);
         let (rect, anchor) = expanded_rect(pet, card_width, card_height, scale, work);
         *lock(&state.base) = Some(pet);
+        *lock(&state.grown) = Some(rect);
         state.expanded.store(true, Ordering::SeqCst);
         w.set_size(PhysicalSize::new(rect.w, rect.h))
             .map_err(internal)?;
@@ -174,17 +187,35 @@ pub async fn pet_hover(
         Ok(Some(anchor))
     } else {
         if state.expanded.load(Ordering::SeqCst) {
-            if let Some(base) = *lock(&state.base) {
+            if let Some(base) = current_base(&w, &state) {
+                let dragged = *lock(&state.base) != Some(base);
                 w.set_size(PhysicalSize::new(base.w, base.h))
                     .map_err(internal)?;
                 w.set_position(PhysicalPosition::new(base.x, base.y))
                     .map_err(internal)?;
+                // The pet was dragged while its card was open: remember the new spot.
+                if dragged {
+                    if let Some(settings) = app.try_state::<Arc<SettingsService>>() {
+                        let _ = settings
+                            .set_pref(POSITION_PREF, json!({ "x": base.x, "y": base.y }))
+                            .await;
+                    }
+                }
             }
             // Let the move events from shrinking pass before moves count as drags again.
             tokio::time::sleep(Duration::from_millis(150)).await;
             state.expanded.store(false, Ordering::SeqCst);
         }
         Ok(None)
+    }
+}
+
+/// The pet's square while the window is grown, following any drag of the grown window.
+fn current_base<R: Runtime>(w: &WebviewWindow<R>, state: &PetState) -> Option<Rect> {
+    let base = (*lock(&state.base))?;
+    match (*lock(&state.grown), w.outer_position()) {
+        (Some(grown), Ok(p)) => Some(follow(base, grown, p.x, p.y)),
+        _ => Some(base),
     }
 }
 
@@ -537,6 +568,32 @@ mod tests {
         };
         let (r, _) = expanded(pet, 100, 50, WORK);
         assert_eq!(r.w, 160);
+    }
+
+    #[test]
+    fn a_dragged_grown_window_carries_the_pet_with_it() {
+        let base = Rect {
+            x: 1000,
+            y: 800,
+            w: 128,
+            h: 128,
+        };
+        let grown = Rect {
+            x: 828,
+            y: 500,
+            w: 300,
+            h: 428,
+        };
+        assert_eq!(follow(base, grown, 828, 500), base);
+        assert_eq!(
+            follow(base, grown, 700, 450),
+            Rect {
+                x: 872,
+                y: 750,
+                w: 128,
+                h: 128
+            }
+        );
     }
 
     #[test]
