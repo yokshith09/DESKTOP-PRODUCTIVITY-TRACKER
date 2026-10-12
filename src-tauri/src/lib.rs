@@ -201,10 +201,17 @@ pub fn run() {
             }
         })
         .setup(|app| {
+            // `LOAF_DATA_DIR` keeps data and logs in one folder of your choice: the end-to-end
+            // tests use it so they never touch the real data. Unset, the OS's usual folders.
+            let (data_dir, log_dir) = match std::env::var_os("LOAF_DATA_DIR") {
+                Some(dir) if !dir.is_empty() => {
+                    let dir = std::path::PathBuf::from(dir);
+                    (dir.clone(), dir.join("logs"))
+                }
+                _ => (app.path().app_data_dir()?, app.path().app_log_dir()?),
+            };
             // Logs first, so everything after (including a failed start) is recorded.
-            let log_dir = app.path().app_log_dir()?;
             let logs = logs::init(&log_dir).map(Arc::new);
-            let data_dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&data_dir)?;
             app.manage(ipc::AppPaths {
                 data_dir: data_dir.clone(),

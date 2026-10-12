@@ -173,6 +173,7 @@ Remaining for release: **G1**, **signing**, version bump, and fixing whatever G1
 | R6 | Feature spec files F0-01…F0-13 still say DRAFT. | `docs/features/*.md` | Low (doc debt) |
 | R7 | GitHub shows the repository as `DESKTOP-PRODUCTIVITY-TRACKER`. This cloud session can only push through the old name, so the **local remote on your PC needs updating by you**: `git remote set-url origin https://github.com/yokshith09/DESKTOP-PRODUCTIVITY-TRACKER.git` | push attempt to the new URL was refused by the session's git proxy | Low |
 | R10 | Until 2026-10-12 the app never started its logger, so no log file or crash report was ever written (F0-13 was built in the core but not wired). Fixed; logs are in the app's log folder (Settings › Advanced › Open logs folder). | `src-tauri/src/logs.rs` | Fixed, Unverified |
+| R11 | The Windows end-to-end job depends on a matching Microsoft Edge Driver (installed by `msedgedriver-tool` in CI). If WebView2 and the driver drift apart, the job fails before any test runs. | `.github/workflows/e2e.yml` | Low |
 | R8 | A session hook reported missing `memory/decisions.md` and `memory/FACTS.md`. They do not exist in this repo. | hook output | Low |
 
 Fixed since the first audit: D1 time-of-day tests (CI had failed on it), D2 autostart switch, D4 two documents named ADR-001 (the RAM one is now ADR-020), a race in the demo shell that made it create two copies of itself on start (events were lost; found while testing delete-all).
@@ -181,7 +182,7 @@ Fixed since the first audit: D1 time-of-day tests (CI had failed on it), D2 auto
 
 ## 7. Next three actions
 
-1. **M2 (owner, 2026-10-12: "keep moving"; next release only after Phase 2).** Done: F1-26 first run, F1-17…19 meetings. Done also: F1-23 (Yesterday line), F1-24, F1-25. M2 left: **F1-27** (end-to-end tests on Windows and macOS, signing). Then M3 (Phase 2), then the release.
+1. **M2 (owner, 2026-10-12: "keep moving"; next release only after Phase 2).** Done: F1-26 first run, F1-17…19 meetings. Done also: F1-23 (Yesterday line), F1-24, F1-25. M2: F1-27 end-to-end tests built (`e2e/`, CI workflow *End-to-end*); only **signing** is left, and it needs the owner's certificates. Next: M3 (Phase 2), then the release.
 2. **Owner: re-check the three 0.1.3 fixes** when convenient: Actions → Release build → Run workflow refreshes the `v0.1.3` draft with them (no version change). Notifications: Settings › Notifications › Send a test notification.
 3. **Signing certificates** (owner): order them now; they are needed for the Phase 2 release.
 

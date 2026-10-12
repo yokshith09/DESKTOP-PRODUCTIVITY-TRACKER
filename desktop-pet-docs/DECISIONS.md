@@ -106,6 +106,8 @@ None are waiting on the owner right now. Questions that will come up next: when 
 | 2026-10-12 | Two global shortcuts are changeable (open/hide Loaf, new note); the pet's stays fixed. A combination needs Ctrl/⌘ or Alt plus a letter, digit or F-key, checked in the core and in the UI | Matches the existing settings keys; Shift-only combos would steal typing |
 | 2026-10-12 | Log level changes apply immediately (reloadable filter), no restart | Debug logging is most useful right when a problem is happening |
 | 2026-10-12 | Reset settings resets settings only, not data or layout preferences | "Reset" next to a Delete-all button must not be a second delete |
+| 2026-10-12 | End-to-end tests drive the real binary with WebDriver (tauri-driver + selenium-webdriver, Node's own test runner) on Windows; macOS gets a launch smoke test only | Tauri's WebDriver works on Windows and Linux, not macOS; one small dependency, no new test framework |
+| 2026-10-12 | `LOAF_DATA_DIR` overrides where data and logs live | Tests (and anyone running a second copy) must never touch real data |
 
 ### Documented conflicts (code differs from a locked document)
 
