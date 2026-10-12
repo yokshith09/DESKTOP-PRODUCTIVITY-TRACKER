@@ -10,6 +10,13 @@
 //!   counter. macOS may ask for Input Monitoring; Loaf asks for it when the switch is turned on.
 //! * Elsewhere: nothing happens.
 //!
+//! It also sends `pet://textbox` (`true`/`false`) whenever *a text box is focused* changes, so the
+//! pet keeps waiting while you could still type and puts the laptop away when you leave the box.
+//! Only that yes/no is read, never the box's contents. Windows: the foreground thread shows a
+//! text caret (`GetGUIThreadInfo`, no permission). macOS: the focused element's Accessibility
+//! role is a text field or text area; this needs the Accessibility permission, and without it
+//! nothing is sent and the pet falls back to a timer.
+//!
 //! Unverified on a real OS: CI builds this, but nobody has typed at it yet.
 
 use std::sync::Arc;
@@ -61,6 +68,7 @@ pub fn start(app: AppHandle, settings: Arc<SettingsService>, bus: &EventBus) {
         let mut on = enabled(settings.get_all().await.unwrap_or_default());
         let mut detector = Detector::default();
         let mut counter = on.then(os::Counter::start).flatten();
+        let mut textbox: Option<bool> = None;
         let mut tick = tokio::time::interval(POLL);
         loop {
             tokio::select! {
@@ -69,6 +77,11 @@ pub fn start(app: AppHandle, settings: Arc<SettingsService>, bus: &EventBus) {
                         if let Some(typing) = detector.step(total, Instant::now()) {
                             let _ = app.emit_to(crate::pet::LABEL, "pet://typing", typing);
                         }
+                    }
+                    let now = os::text_box_focused();
+                    if now.is_some() && now != textbox {
+                        textbox = now;
+                        let _ = app.emit_to(crate::pet::LABEL, "pet://textbox", now == Some(true));
                     }
                     continue;
                 }
@@ -84,6 +97,7 @@ pub fn start(app: AppHandle, settings: Arc<SettingsService>, bus: &EventBus) {
                 on = want;
                 counter = None; // dropping the counter removes the hook
                 detector = Detector::default();
+                textbox = None;
                 let _ = app.emit_to(crate::pet::LABEL, "pet://typing", false);
                 if on {
                     counter = os::Counter::start();
@@ -108,12 +122,27 @@ mod os {
     use windows_sys::Win32::Foundation::{LPARAM, LRESULT, WPARAM};
     use windows_sys::Win32::System::Threading::GetCurrentThreadId;
     use windows_sys::Win32::UI::WindowsAndMessaging::{
-        CallNextHookEx, DispatchMessageW, GetMessageW, PeekMessageW, PostThreadMessageW,
-        SetWindowsHookExW, TranslateMessage, UnhookWindowsHookEx, HC_ACTION, MSG, PM_NOREMOVE,
-        WH_KEYBOARD_LL, WM_KEYDOWN, WM_QUIT, WM_SYSKEYDOWN, WM_USER,
+        CallNextHookEx, DispatchMessageW, GetGUIThreadInfo, GetMessageW, PeekMessageW,
+        PostThreadMessageW, SetWindowsHookExW, TranslateMessage, UnhookWindowsHookEx,
+        GUITHREADINFO, HC_ACTION, MSG, PM_NOREMOVE, WH_KEYBOARD_LL, WM_KEYDOWN, WM_QUIT,
+        WM_SYSKEYDOWN, WM_USER,
     };
 
     static PRESSES: AtomicU64 = AtomicU64::new(0);
+
+    /// Whether the app in front shows a text caret (a text box has the focus).
+    pub fn text_box_focused() -> Option<bool> {
+        let mut info = GUITHREADINFO {
+            cbSize: std::mem::size_of::<GUITHREADINFO>() as u32,
+            ..Default::default()
+        };
+        // SAFETY: `info` is a valid GUITHREADINFO with `cbSize` set; thread 0 means the
+        // foreground thread. Only the caret's window handle is looked at.
+        if unsafe { GetGUIThreadInfo(0, &mut info) } == 0 {
+            return None;
+        }
+        Some(!info.hwndCaret.is_null())
+    }
 
     pub struct Counter {
         thread_id: u32,
@@ -207,6 +236,114 @@ mod os {
     const KEY_DOWN: u32 = 10;
     const LISTEN_EVENT: u32 = 1;
 
+    mod ax {
+        use std::ffi::{c_char, c_void, CStr};
+
+        pub type CFTypeRef = *const c_void;
+        #[link(name = "ApplicationServices", kind = "framework")]
+        extern "C" {
+            pub fn AXIsProcessTrusted() -> u8;
+            pub fn AXUIElementCreateSystemWide() -> CFTypeRef;
+            pub fn AXUIElementCopyAttributeValue(
+                el: CFTypeRef,
+                attr: CFTypeRef,
+                value: *mut CFTypeRef,
+            ) -> i32;
+        }
+        #[link(name = "CoreFoundation", kind = "framework")]
+        extern "C" {
+            pub fn CFStringCreateWithCString(
+                alloc: CFTypeRef,
+                s: *const c_char,
+                encoding: u32,
+            ) -> CFTypeRef;
+            pub fn CFStringGetCString(
+                s: CFTypeRef,
+                buf: *mut c_char,
+                size: isize,
+                encoding: u32,
+            ) -> u8;
+            pub fn CFGetTypeID(cf: CFTypeRef) -> usize;
+            pub fn CFStringGetTypeID() -> usize;
+            pub fn CFRelease(cf: CFTypeRef);
+        }
+        pub const UTF8: u32 = 0x0800_0100;
+
+        /// A CoreFoundation string for `s` (released by the caller).
+        pub fn cfstr(s: &CStr) -> CFTypeRef {
+            // SAFETY: `s` is a valid NUL-terminated string; a null allocator means the default.
+            unsafe { CFStringCreateWithCString(std::ptr::null(), s.as_ptr(), UTF8) }
+        }
+
+        /// `el`'s attribute `name`, retained (the caller releases it), or null.
+        pub fn attr(el: CFTypeRef, name: &CStr) -> CFTypeRef {
+            let key = cfstr(name);
+            if key.is_null() {
+                return std::ptr::null();
+            }
+            let mut value: CFTypeRef = std::ptr::null();
+            // SAFETY: `el` and `key` are valid CF objects; `value` is a valid out pointer.
+            let err = unsafe { AXUIElementCopyAttributeValue(el, key, &mut value) };
+            // SAFETY: `key` was created above and is released once.
+            unsafe { CFRelease(key) };
+            if err == 0 {
+                value
+            } else {
+                std::ptr::null()
+            }
+        }
+
+        /// The text of a CF string, if `cf` is one.
+        pub fn string(cf: CFTypeRef) -> Option<String> {
+            // SAFETY: `cf` is a valid CF object (checked non-null by the caller).
+            if unsafe { CFGetTypeID(cf) != CFStringGetTypeID() } {
+                return None;
+            }
+            let mut buf = [0 as c_char; 64];
+            // SAFETY: `buf` is writable for its full length.
+            let ok = unsafe { CFStringGetCString(cf, buf.as_mut_ptr(), buf.len() as isize, UTF8) };
+            // SAFETY: on success the buffer holds a NUL-terminated string.
+            (ok != 0).then(|| {
+                unsafe { CStr::from_ptr(buf.as_ptr()) }
+                    .to_string_lossy()
+                    .into_owned()
+            })
+        }
+    }
+
+    /// Whether the focused element (in any app) is a text field or text area. `None` without
+    /// the Accessibility permission. Only the element's role is read.
+    pub fn text_box_focused() -> Option<bool> {
+        // SAFETY: plain FFI call with no arguments.
+        if unsafe { ax::AXIsProcessTrusted() } == 0 {
+            return None;
+        }
+        // SAFETY: plain FFI call; the result is released below.
+        let system = unsafe { ax::AXUIElementCreateSystemWide() };
+        if system.is_null() {
+            return None;
+        }
+        let focused = ax::attr(system, c"AXFocusedUIElement");
+        // SAFETY: created above, released once.
+        unsafe { ax::CFRelease(system) };
+        if focused.is_null() {
+            return Some(false);
+        }
+        let role = ax::attr(focused, c"AXRole");
+        // SAFETY: copied above, released once.
+        unsafe { ax::CFRelease(focused) };
+        if role.is_null() {
+            return Some(false);
+        }
+        let name = ax::string(role);
+        // SAFETY: copied above, released once.
+        unsafe { ax::CFRelease(role) };
+        Some(matches!(
+            name.as_deref(),
+            Some("AXTextField" | "AXTextArea" | "AXComboBox" | "AXSearchField")
+        ))
+    }
+
     pub struct Counter;
 
     impl Counter {
@@ -228,6 +365,10 @@ mod os {
 
 #[cfg(not(any(windows, target_os = "macos")))]
 mod os {
+    pub fn text_box_focused() -> Option<bool> {
+        None
+    }
+
     pub struct Counter;
 
     impl Counter {

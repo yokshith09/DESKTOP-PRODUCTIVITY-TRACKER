@@ -84,7 +84,7 @@ export function CharacterPage() {
           </Row>
           <Row
             label="Type along with me"
-            hint="When you type in any app, it takes out a laptop and types too. Loaf only counts key presses, never which keys; nothing is saved or sent. macOS asks for Input Monitoring."
+            hint="When you type in any app, it takes out a laptop and types too, and waits while a text box is open. Loaf only counts key presses (never which keys) and checks whether a text box is focused (never what is in it). Nothing is saved or sent. On macOS, allow Input Monitoring, and Accessibility for the text-box part."
           >
             <Switch checked={typing ?? false} onCheckedChange={(v) => void setTyping(v)} aria-label="Type along with me" />
           </Row>

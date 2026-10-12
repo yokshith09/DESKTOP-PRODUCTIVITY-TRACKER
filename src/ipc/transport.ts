@@ -65,3 +65,18 @@ export function onTyping(cb: (typing: boolean) => void): () => void {
   window.addEventListener("loaf-typing", handler);
   return () => window.removeEventListener("loaf-typing", handler);
 }
+
+/**
+ * Whether a text box has the focus in the app in front, while `pet.typing` is on. Sent only
+ * when it changes and only where the OS can tell (never on macOS without Accessibility).
+ * Outside the app a `loaf-textbox` window event with `detail: boolean` stands in for it.
+ */
+export function onTextBox(cb: (focused: boolean) => void): () => void {
+  if (isTauri()) {
+    const pending = listen<boolean>("pet://textbox", (e) => cb(e.payload));
+    return () => void pending.then((off) => off());
+  }
+  const handler = (e: Event) => cb(Boolean((e as CustomEvent<boolean>).detail));
+  window.addEventListener("loaf-textbox", handler);
+  return () => window.removeEventListener("loaf-textbox", handler);
+}
