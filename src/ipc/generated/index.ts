@@ -24,6 +24,7 @@ export type { NoteInput } from "./NoteInput";
 export type { NotePatch } from "./NotePatch";
 export type { NoteSort } from "./NoteSort";
 export type { NoteSummary } from "./NoteSummary";
+export type { OpenTab } from "./OpenTab";
 export type { Priority } from "./Priority";
 export type { Reminder } from "./Reminder";
 export type { ReminderInput } from "./ReminderInput";

@@ -7,10 +7,33 @@
 //! and [`SiteTracker`] turns those readings into [`DomainSession`]s. Nothing but the host ever
 //! leaves this module; private and incognito windows are never read into a session.
 
+use serde::{Deserialize, Serialize};
+
 use crate::usage::{normalize_host, DomainSession, IDLE_THRESHOLD_MS, SLEEP_GAP_MS};
 
 /// How often the shell looks at the address bar while a browser is in front.
 pub const LOOK_EVERY_MS: u64 = 2_000;
+
+/// One open tab, read live on request (owner decision 2026-10-13: no browser extension; the
+/// shell reads this with the same permission already granted for `tracking.sites`). Never
+/// stored — this is a live list, not a usage record.
+///
+/// `domain` is set only where the OS can say it without switching to the tab: always on macOS
+/// (the browser's scripting dictionary lists every tab's URL directly); on Windows, only for the
+/// tab that is actually showing (its address bar can be read; a background tab's page is not
+/// rendered, so UI Automation has nothing to read for it).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+pub struct OpenTab {
+    pub browser: String,
+    /// Which browser window, 0-based; stable only within one `pet_open_tabs` reading.
+    pub window_index: u32,
+    /// Which tab in that window, 0-based; pass both indices back to `pet_close_tab`.
+    pub tab_index: u32,
+    pub title: Option<String>,
+    pub domain: Option<String>,
+    pub active: bool,
+}
 
 /// The host of what the address bar shows, or `None` when it isn't a website: a browser page
 /// (`chrome://`, `edge://`, `about:`), a file, a search being typed, or empty. `www.` is dropped

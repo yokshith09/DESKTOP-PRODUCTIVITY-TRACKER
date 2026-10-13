@@ -8,6 +8,7 @@ mod notify;
 mod pet;
 mod shortcuts;
 mod sites;
+mod tabs;
 mod tracking;
 mod tray;
 mod typing;
@@ -161,6 +162,8 @@ pub fn run() {
             ipc::domain_set_tracked,
             ipc::domain_set_category,
             ipc::usage_record_domain,
+            tabs::pet_open_tabs,
+            tabs::pet_close_tab,
             ipc::data_export,
             ipc::data_import,
             ipc::data_delete_all,

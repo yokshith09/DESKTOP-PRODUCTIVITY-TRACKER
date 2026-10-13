@@ -79,6 +79,9 @@ export const useWorkUpdates = (id: string | null) =>
   useQuery({ queryKey: ["task", "updates", id], queryFn: () => ipc.workUpdatesList(id ?? ""), enabled: id !== null });
 export const useUpcomingTasks = () => useQuery({ queryKey: ["tasks", "upcoming"], queryFn: () => ipc.tasksQuery("upcoming") });
 export const useTrackingStatus = () => useQuery({ queryKey: ["tracking", "status"], queryFn: ipc.trackingStatus });
+// Open tabs are live, never stored — short-lived, refetched on demand rather than cached long.
+export const useOpenTabs = (enabled: boolean) =>
+  useQuery({ queryKey: ["tabs", "open"], queryFn: ipc.petOpenTabs, enabled, staleTime: 0 });
 export const useUsage = (from: number, to: number) =>
   useQuery({ queryKey: ["usage", from, to], queryFn: () => ipc.usageSummary(from, to), refetchInterval: false });
 export const useAllTasks = () => useQuery({ queryKey: ["tasks", "all"], queryFn: () => ipc.tasksQuery("all") });
