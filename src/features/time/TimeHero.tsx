@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { categoryStyle } from "./categories";
 import { rangeBounds } from "./range";
 import { SessionsDialog, type Detail } from "./SessionsDialog";
+import { SitesEmpty } from "./SitesEmpty";
 
 /** Today's total screen time, large, with the day's shape and where it went by category. */
 export function TimeHero({ className }: { className?: string }) {
@@ -57,11 +58,11 @@ export function TimeHero({ className }: { className?: string }) {
             )}
           </p>
           <div className="mt-5 grid min-h-0 flex-1 gap-5 sm:grid-cols-2">
-            <UsageList label="Apps" empty="No apps yet." items={(usage?.apps ?? []).map((a) => ({
+            <UsageList label="Apps" empty={<p className="text-xs text-muted-foreground">No apps yet.</p>} items={(usage?.apps ?? []).map((a) => ({
               key: a.app, name: a.app, category: a.category, seconds: a.total_seconds, kind: "app" as const,
               tabs: a.is_browser ? (usage?.domains ?? []).filter((d) => d.browser === a.app).map((d) => ({ key: d.domain, name: d.domain, category: d.category, seconds: d.total_seconds, kind: "domain" as const })) : [],
             }))} onOpen={setDetail} />
-            <UsageList label="Websites" empty="No sites yet. They appear once the Loaf browser extension is connected." items={(usage?.domains ?? []).map((d) => ({ key: d.domain, name: d.domain, category: d.category, seconds: d.total_seconds, kind: "domain" as const }))} onOpen={setDetail} />
+            <UsageList label="Websites" empty={<SitesEmpty compact />} items={(usage?.domains ?? []).map((d) => ({ key: d.domain, name: d.domain, category: d.category, seconds: d.total_seconds, kind: "domain" as const }))} onOpen={setDetail} />
           </div>
           <div className="mt-4 shrink-0 border-t pt-3">
             <Bars bars={hours} className="h-14 gap-1" ariaLabel="Time by hour of the day" />
@@ -76,42 +77,55 @@ export function TimeHero({ className }: { className?: string }) {
 interface Item { key: string; name: string; category: string; seconds: number; kind: "app" | "domain"; /** Sites seen in this browser, with their time. */ tabs?: Item[] }
 
 /** Every app or site with its time, longest first; click for the active spans. */
-function UsageList({ label, items, empty, onOpen }: { label: string; items: Item[]; empty: string; onOpen: (d: Detail) => void }) {
+function UsageList({ label, items, empty, onOpen }: { label: string; items: Item[]; empty: React.ReactNode; onOpen: (d: Detail) => void }) {
   const max = items[0]?.seconds ?? 1;
+  const total = items.reduce((n, i) => n + i.seconds, 0);
   return (
     <section aria-label={label} className="flex min-h-0 flex-col">
-      <h3 className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">{label}<span className="tabular-nums text-muted-foreground/70">{items.length}</span></h3>
+      <h3 className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+        {label}
+        <span className="rounded-full bg-muted px-1.5 py-px text-[10px] font-medium tabular-nums normal-case tracking-normal">{items.length}</span>
+        {items.length > 0 && <span className="ml-auto text-[11px] font-medium normal-case tracking-normal tabular-nums">{formatDuration(total)}</span>}
+      </h3>
       {items.length === 0 ? (
-        <p className="text-xs text-muted-foreground">{empty}</p>
+        empty
       ) : (
-        <ul className="-mx-1 min-h-0 flex-1 overflow-y-auto">
-          {items.map((it) => (
-            <li key={it.key}>
-              <Row it={it} max={max} onOpen={onOpen} />
-              {it.tabs && it.tabs.length > 0 && (
-                <ul aria-label={`Sites in ${it.name}`} className="mb-1 ml-2 border-l pl-2">
-                  {it.tabs.map((t) => <Row key={t.key} it={t} max={it.seconds} onOpen={onOpen} small />)}
-                </ul>
-              )}
-            </li>
-          ))}
-        </ul>
+        <div className="relative min-h-0 flex-1">
+          <ul className="slim-scroll absolute inset-0 -mx-1 overflow-y-auto pb-4">
+            {items.map((it) => (
+              <li key={it.key}>
+                <Row it={it} max={max} onOpen={onOpen} />
+                {it.tabs && it.tabs.length > 0 && (
+                  <ul aria-label={`Sites in ${it.name}`} className="mb-1 ml-5 border-l pl-2">
+                    {it.tabs.map((t) => <Row key={t.key} it={t} max={it.seconds} onOpen={onOpen} small />)}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ul>
+          {/* A soft fade instead of a scrollbar's edge: more rows are below. */}
+          <span aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-5 bg-gradient-to-t from-card to-transparent" />
+        </div>
       )}
     </section>
   );
 }
 
 function Row({ it, max, onOpen, small }: { it: Item; max: number; onOpen: (d: Detail) => void; small?: boolean }) {
+  const style = categoryStyle(it.category);
   return (
     <button type="button" onClick={() => onOpen({ kind: it.kind, name: it.name, category: it.category })}
-      aria-label={`${it.name}, ${formatDuration(it.seconds)}. Show when you were active`}
-      className="block w-full rounded-md px-1 py-1.5 text-left outline-none hover:bg-accent/50 focus-visible:ring-2 focus-visible:ring-ring">
-      <span className="flex items-baseline gap-2">
-        <span className={cn("truncate", small ? "text-xs text-muted-foreground" : "text-[13px]")}>{it.name}</span>
-        <span className={cn("ml-auto font-medium tabular-nums", small ? "text-[11px]" : "text-[12px]")}>{formatDuration(it.seconds)}</span>
-      </span>
-      <span className="mt-1 block h-1 overflow-hidden rounded-full bg-muted">
-        <span className={cn("block h-full rounded-full", categoryStyle(it.category).bar)} style={{ width: `${Math.max(2, (it.seconds / Math.max(1, max)) * 100)}%` }} />
+      aria-label={`${it.name}, ${formatDuration(it.seconds)}. Show when you were active`} title={`${it.name} · ${it.category}`}
+      className="flex w-full items-center gap-2.5 rounded-lg px-1.5 py-1.5 text-left outline-none transition-colors hover:bg-accent/50 focus-visible:ring-2 focus-visible:ring-ring">
+      <span aria-hidden className={cn("grid shrink-0 place-items-center rounded-md font-semibold uppercase", small ? "size-5 text-[10px]" : "size-7 text-[11px]", style.tile)}>{it.name.charAt(0)}</span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-baseline gap-2">
+          <span className={cn("truncate", small ? "text-xs text-muted-foreground" : "text-[13px] font-medium")}>{it.name}</span>
+          <span className={cn("ml-auto shrink-0 font-semibold tabular-nums", small ? "text-[11px]" : "text-[12px]")}>{formatDuration(it.seconds)}</span>
+        </span>
+        <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-muted">
+          <span className={cn("block h-full rounded-full", style.bar)} style={{ width: `${Math.max(3, (it.seconds / Math.max(1, max)) * 100)}%` }} />
+        </span>
       </span>
     </button>
   );
