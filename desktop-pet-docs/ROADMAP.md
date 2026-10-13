@@ -165,12 +165,12 @@ F1-20 and F1-21 (search) are cancelled; their numbers are retired.
 **Milestone 2.2 — Data & privacy**
 - Browser / domain sessions, buffered writes (≤1/min)
 - Domain categories
-- Privacy radar **capture**: known-tracker domains flagged on the same per-domain record used for `tracking.exclude_apps`-style do-not-track, incognito excluded, delete data. The report UI that explains this to the person, with evidence and uncertainty, is **M11** — item 9 on the owner's list, scheduled here only because it shares this milestone's browser-extension groundwork; if the owner wants the capture-and-report shipped together, say so and M11 folds back into M3.
+- **Privacy radar capture — blocked on a design decision (DECISIONS U16):** the address bar only shows the page you are on, never the third-party requests that page makes (ad and tracker calls). Seeing those needs a browser extension (ruled out 2026-10-13), a system-level network watcher (Windows DNS event tracing needs administrator rights; nothing equivalent on macOS), or a local proxy. Flagging *visited* sites that are themselves known trackers is possible but nearly useless. Original wording kept below for reference. Privacy radar capture: known-tracker domains flagged on the same per-domain record used for `tracking.exclude_apps`-style do-not-track, incognito excluded, delete data. The report UI that explains this to the person, with evidence and uncertainty, is **M11** — item 9 on the owner's list, scheduled here only because it shares this milestone's browser-extension groundwork; if the owner wants the capture-and-report shipped together, say so and M11 folds back into M3.
 
 **Milestone 2.3 — Dashboard**
-- Today dashboard: time by category, top apps and domains, hourly chart
+- ~~Today dashboard: time by category, top apps and domains, hourly chart~~ — **built** (Today overview and Time page)
 - ~~Open tabs view + close tab~~ — **built 2026-10-13**, see the table above
-- Today vs yesterday
+- ~~Today vs yesterday~~ — **built** ("23m less than yesterday" on Today)
 
 
 ## M4 — Universal Quick Actions *(outline)*
