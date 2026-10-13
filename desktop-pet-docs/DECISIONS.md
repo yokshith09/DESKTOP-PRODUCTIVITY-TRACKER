@@ -12,7 +12,18 @@ One place to see what was decided, by whom, and what is still open. Long reasoni
 
 ## 1. Open decisions
 
-None are waiting on the owner right now. Questions that will come up next: when to start M2, when to add signing, and whether to keep the "Character" and "MCP" sidebar items visible before they do anything.
+### Open since 2026-10-13 (roadmap redesign)
+
+| # | Question | Why it matters |
+|---|----------|-----------------|
+| U12 | Which AI provider for M5 (writing/prompt assistant)? Claude via the Anthropic API is the default fit for this stack; OpenAI or a local model are alternatives. Also: is there a free/local fallback for someone without an API key, and should the key live in the OS keychain (same mechanism M10/MCP will need)? | **Blocks M5 from starting at all** — the provider interface, the settings UI and the "this sends text to the provider" notice all depend on the answer. Nothing else in the new roadmap is blocked on it. |
+| U13 | Old M5 "Developer reactions" (git/build awareness, now M12) is not on the owner's 2026-10-13 feature list. Still wanted, just lower priority, or dropped? | Decides whether M12 stays in the roadmap or is retired like the global-search and Progress-card items in §4.7 of PROJECT_STATUS. Nothing is deleted yet — it is kept, flagged, at the end of the order. |
+| U14 | The owner's 2026-10-13 list orders Voice (now M9) ahead of MCP (now M10). This changes part of **ADR-015**, which locked Developer → MCP → Voice. Confirm the new order (Quick Actions → Writing assistant → Reminders/pet → Meeting-to-action → Focus & wellbeing → Voice → MCP → Privacy-radar report → Developer → Character), or say if ADR-015's order should stand instead. | ADR-015 is a locked architecture decision; this session changed its practical effect without a new ADR entry. The roadmap now reflects the owner's explicit new list, but the ADR document itself is unchanged — flagging this so the discrepancy is never silently resolved either way. |
+| U15 | Item 9, Privacy radar, is scheduled with two parts: capture rides with **M3** (shares the browser-extension groundwork), the report is its own milestone **M11**, later in the order. If the owner wants both shipped together, M11 folds back into M3. | Pure scheduling; doesn't change what gets built, only when the report UI appears relative to Voice/MCP. |
+
+None of these block the roadmap document itself, already updated in `ROADMAP.md`. They block the *code* for M5, M9/M10's relative order, and M12's fate.
+
+### Resolved on 2026-10-11 (owner)
 
 ### Resolved on 2026-10-11 (owner)
 
@@ -55,7 +66,8 @@ None are waiting on the owner right now. Questions that will come up next: when 
 | 2026-10-04 | Bin (30 days) and plain notes search added (reverses part of ADR-017) | PRD amendment v1.4 |
 | 2026-10-04 | App and site time tracking pulled forward from Phase 2: **opt-in, off by default, domain-only (no URLs or titles), local, deletable** (ADR-019) | Architecture decisions |
 | 2026-10-04 | Time = "where my time went": per-app time, browser sites, click for active spans, with period, category and app/site filters; no calendar, no log | `TimePage.tsx` |
-| 2026-10-04 | Today agenda shows time, tasks, reminders; calendar events arrive with MCP (Phase 5) | Roadmap M6 |
+| 2026-10-04 | Today agenda shows time, tasks, reminders; calendar events arrive with MCP (Phase 5) | Roadmap M10 (renumbered 2026-10-13; was M6) |
+| 2026-10-13 | Milestone roadmap redesigned around the owner's new core-features list: added M4 Quick Actions, M5 Writing/prompt assistant, M7 Meeting-to-action (AI), M8 Focus & wellbeing, M11 Privacy-radar report; renumbered old M4→M6, M5→M12, M6→M10, M6b→M10b, M7→M9, M8→M13. See open questions U12–U15 above. | `ROADMAP.md` §2 and the new M4–M13 sections |
 | 2026-10-05 | Remove Progress tile and "Coming up"; Links in their own card; total time in a large tile with Apps and Websites under it | `TodayOverviewPage.tsx` |
 | 2026-10-05 | Today tasks are editable: priority, deadline, reminder | `TaskEditor.tsx` |
 | 2026-10-05 | Overview tiles can be dragged and the order is remembered; Overview page is "fine" | `MovableTiles.tsx` |

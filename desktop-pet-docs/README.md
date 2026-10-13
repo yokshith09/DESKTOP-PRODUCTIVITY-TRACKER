@@ -42,7 +42,9 @@ measured in `F0-01` and `F0-12`. **V-2 (total RAM <100 MB)** is the one that can
 force a new ADR before CP2.
 
 ## Milestones
-`D0–D7 docs` → **CP1** Foundation + verification → CP2 Notes → CP3 Tasks + Daily Log → CP4 Meetings, Pet, Today → **CP5 v1.0.0** → M2 Browser → M3 Pet → M4 Developer → M5 MCP → M5.1 CI → M6 Voice → M7 Characters
+`D0–D7 docs` → **CP1** Foundation + verification → CP2 Notes → CP3 Tasks + Daily Log → CP4 Meetings, Pet, Today → **CP5 v1.0.0** → M3 Capture/privacy → M4 Quick Actions → M5 Writing assistant → M6 Pet (cont.) → M7 Meeting-to-action → M8 Focus & wellbeing → M9 Voice → M10 MCP → M11 Privacy-radar report → M12 Developer → M13 Characters
+
+Full detail and current status: [`ROADMAP.md`](ROADMAP.md) (redesigned 2026-10-13 around the owner's new feature list; this is just the one-line chain).
 
 ## Repository layout
 ```

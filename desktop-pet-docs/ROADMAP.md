@@ -16,7 +16,7 @@ Everything else is reference — open it when a feature needs it:
 
 **Rule from here:** this file tracks plan and status. Evidence for every status is in [`PROJECT_STATUS.md`](PROJECT_STATUS.md). Scope or design changes are one line in [`DECISIONS.md`](DECISIONS.md); a locked document is amended only if it would otherwise contradict the code.
 
-**Last updated:** 2026-10-11, after the M1 build-out (branch `claude/repo-context-review-trprp8`, PR #2). Status words (Complete, Unverified, Partial, Planned…) are defined in PROJECT_STATUS §2. **Unverified** means it compiles and CI is green but nobody has run it on a real machine.
+**Last updated:** 2026-10-13 — milestones M4 onward redesigned around the owner's 2026-10-13 feature list (Quick Actions, Writing/Prompt Assistant, Focus & Wellbeing, an expanded Privacy Radar) and renumbered; see §2 "Renumbering" and `DECISIONS.md` for what changed and what is still open (an AI-provider choice for M5, and whether Developer reactions — old M5, now M12 — is still wanted). Status words (Complete, Unverified, Partial, Planned…) are defined in PROJECT_STATUS §2. **Unverified** means it compiles and CI is green but nobody has run it on a real machine.
 
 ---
 
@@ -43,15 +43,22 @@ The first release is **M1: Notes and daily work management (P0)**. Everything el
 |-----------|------|----------|--------|
 | **M0** | Foundation closure | Real-Windows run, autostart, export/import/delete, perf harness | 🟡 Partial |
 | **M1** | **Notes + daily work (P0, first release, v0.1.0)** | Notes, tasks, search, labels, dates, completion history, daily progress, release gate | 🟡 **Active — code complete, in verification (G1)** |
-| M2 | Phase 1 completion → v1.0.0 | Meetings, pet window, global shortcuts, settings screens, first run | ⬜ |
-| M3 | Browser tracking (Phase 2) | Extensions, bridge, macOS collector, open tabs | 🟡 Windows app tracking built, unverified |
-| M4 | Desktop companion (Phase 3) | Animated pet, reactions, sleep | ⬜ |
-| M5 | Developer reactions (Phase 4) | Git and local build awareness | ⬜ |
-| M6 | MCP (Phase 5, 5.1) | MCP client, OAuth, calendar, GitHub, Gmail, Slack, Notion, CI | ⬜ |
-| M7 | Voice (Phase 6) | Activation, intents, voice → task/note | ⬜ |
-| M8 | Character customization (Phase 7) | 18 characters, outfits | ⬜ |
+| M2 | Phase 1 completion → v1.0.0 | Meetings, pet window, global shortcuts, settings screens, first run | 🟡 code complete; signing blocked on the owner |
+| M3 | Capture, browser tracking & privacy (Phase 2) | App/site time, extensions, macOS collector, open tabs, privacy-radar capture | 🟡 Windows + Mac app/site tracking built, unverified |
+| M4 | Universal Quick Actions | Keyboard-accessible command centre: notes, tasks, search, AI actions | ⬜ |
+| M5 | Context-aware writing & prompt assistant | Message polishing, prompt generation/improvement, controlled refinement | ⬜ **blocked on an AI-provider decision (owner)** |
+| M6 | Reminders & contextual pet, continued | Event-driven reactions to focus/app time, quiet hours, settings | 🟡 base built in M1/M2 (reminders, pet, task/reminder reactions); this finishes it |
+| M7 | Meeting-to-action, AI-assisted | Auto-summary and suggested decisions/action items; audio recording later | 🟡 manual version built in M2 (F1-17…19); the AI parts need M5's provider interface |
+| M8 | Focus & digital wellbeing | Focus timers, task-linked sessions, daily/weekly summaries, goals | ⬜ |
+| M9 | Voice commands & dictation (Phase 6) | STT benchmark, push-to-talk, voice → task/note/search | ⬜ |
+| M10 | MCP connectors (Phase 5, 5.1) | One verified connector first, then GitHub, Calendar, Gmail, Slack, Notion, CI status | ⬜ |
+| M11 | Privacy radar: the report | Evidence-based tracker report with uncertainty shown, not claims | 🟡 capture rides with M3; this is the report UI |
+| M12 | Developer reactions (Phase 4) | Git and local build awareness | ⬜ **not in the owner's 2026-10-13 list — confirm still wanted** |
+| M13 | Character customization (Phase 7) | 18 characters, outfits | 🟡 4 characters + the bear's typing pose pulled forward |
 
-**Order after M2:** Developer → MCP → Voice, as locked in ADR-015 (the owner confirmed this on 2026-10-11). M3 and M4 come before it as in the PRD.
+**Renumbering (2026-10-13):** everything from old M4 onward was never started, so renumbering it is free. Old **M4 Desktop companion** → **M6**; old **M5 Developer** → **M12**; old **M6 MCP** → **M10**; old **M6b CI status** → **M10b**; old **M7 Voice** → **M9**; old **M8 Character** → **M13**. New: **M4 Quick Actions**, **M5 Writing/Prompt assistant**, **M7 Meeting-to-action (AI)**, **M8 Focus & wellbeing**, **M11 Privacy radar report**.
+
+**Order after M3, per the owner's 2026-10-13 feature list:** Quick Actions → Writing assistant → Reminders/pet (finish) → Meeting-to-action (AI) → Focus & wellbeing → Voice → MCP → Privacy radar report → Developer → Character. This **supersedes part of ADR-015** (which had Developer → MCP → Voice): Voice now comes before MCP, and Developer reactions wasn't in the new list at all. See `DECISIONS.md` — this is flagged for the owner to confirm, not silently assumed.
 
 ---
 
@@ -162,90 +169,218 @@ F1-20 and F1-21 (search) are cancelled; their numbers are retired.
 **Milestone 2.2 — Data & privacy**
 - Browser / domain sessions, buffered writes (≤1/min)
 - Domain categories
-- Privacy radar: track / don't track, incognito excluded, delete data
+- Privacy radar **capture**: known-tracker domains flagged on the same per-domain record used for `tracking.exclude_apps`-style do-not-track, incognito excluded, delete data. The report UI that explains this to the person, with evidence and uncertainty, is **M11** — item 9 on the owner's list, scheduled here only because it shares this milestone's browser-extension groundwork; if the owner wants the capture-and-report shipped together, say so and M11 folds back into M3.
 
 **Milestone 2.3 — Dashboard**
 - Today dashboard: time by category, top apps and domains, hourly chart
 - Open tabs view + close tab
 - Today vs yesterday
 
-## M4 — Desktop companion: Phase 3 *(outline)*
-**Milestone 3.1 — Pet engine**
-- Sprite renderer (30 FPS cap, stops when hidden)
-- Idle and hover animations
-- Behaviour state machine
 
-**Milestone 3.2 — Reactions**
-- Task created / completed / pending
-- App focus (editor, design tool)
-- Long-session encouragement, rate-limited
+## M4 — Universal Quick Actions *(outline)*
 
-**Milestone 3.3 — Companion**
-- Sleep mode
-- Startup greeting
-- Pet behaviour settings
+*Owner's feature 2. A keyboard-accessible command centre, reachable from anywhere on the desktop, not just inside the main window.*
 
-## M5 — Developer reactions: Phase 4 *(outline; fully offline)*
-**Milestone 4.1 — Git**
+**Milestone 4.1 — Invocation and shell**
+- Global shortcut opens the command palette as its own small always-on-top window (same pattern as the pet window), so it works while another app has focus
+- Fuzzy search over commands; recent and frequent commands ranked first
+- Esc closes it; it never steals focus it doesn't need
+
+**Milestone 4.2 — Core actions (no AI, ships first)**
+- New note, new task (with the same quick-add parsing already in Today)
+- Search notes and tasks from the palette, jump straight to the result
+- Jump to a page (Today, Time, Notes, Meetings, Settings)
+
+**Milestone 4.3 — AI actions**
+- Depends on **M5**'s provider interface: "Polish this message," "Turn this into a prompt," "Summarize the clipboard"
+- The palette shows AI actions only once a provider is configured (Settings), never a dead button
+- Every AI action opens M5's review screen before anything is copied or sent; the palette never acts unreviewed
+
+**Initial scope:** 4.1 and 4.2 only — a working command centre with zero cloud dependency. 4.3 is a thin front end once M5 exists; it is not blocked on M5 existing when M4 itself is built, only on it being *used*.
+
+---
+
+## M5 — Context-aware writing & prompt assistant *(outline)*
+
+*Owner's feature 3, verbatim brief kept as the spec. This is the project's first feature that sends user text to an external AI provider — a deliberate exception to build principle 3 (local-first data in SQLite), scoped tightly: the text sent is whatever the person explicitly put in, nothing is stored remotely, and nothing leaves the device until the person asks for this specific action.*
+
+**Blocked on one decision only the owner can make, before any code:** which AI provider (Claude via the Anthropic API is the natural default inside this stack; OpenAI or a local model are the alternatives), whether there's a free/local fallback for people without an API key, and how the key is stored (OS keychain, matching the pattern MCP will need anyway in M10). See `DECISIONS.md` §1.
+
+### 5.1 — Writing foundation
+- Shared UI: one interface, three modes (Polish Message / Generate Prompt / Improve Prompt)
+- AI provider interface: one trait the UI calls, so the provider choice above is a plug-in, not a rewrite
+- Draft preservation (the original text is never overwritten until the person accepts), copy, loading and error states
+- Settings: provider, API key (OS keychain), a visible "this sends text to \<provider\>" notice — cloud use is never silent
+
+### 5.2 — Message polishing
+- Rewrite rough messages for WhatsApp, email, professional communication and other messaging platforms
+- Tones: friendly, professional, polite, concise, confident
+- Preserve intent and facts; never invent commitments, dates or excuses the person didn't write
+
+### 5.3 — Prompt generation and improvement
+- Rough idea → structured prompt, using the five-part framework (role/task, dynamic content, detailed instructions, optional examples, repeated critical instructions) — adapted to the task, so a simple request doesn't get an over-engineered prompt
+- Prompt improvement: review an existing prompt for ambiguity, missing context, conflicting instructions, weak constraints, unclear output format; explain the problems, then generate the improved version
+- Task-specific templates for ChatGPT/Claude-style chat prompts, coding-agent prompts and research prompts
+
+### 5.4 — Context engineering
+- Optional context box: paste in relevant text, a document, or (later) authorised project information
+- Never invent missing information; if context materially changes the result and wasn't given, ask once — the spec's own rule
+- Framework selection is automatic: the assistant picks structured prompting, few-shot examples, an output schema or a template based on the task, not a menu the person has to understand first
+
+### 5.5 — Controlled refinement
+- A bounded draft → review → refine → validate loop, with a defined success check and a maximum number of attempts (this is "loop engineering" from the spec — deterministic code owns the bound and the exit condition, the AI only drafts)
+- Review/edit/copy/retry UI: the person always sees the draft before it goes anywhere, can edit it directly, ask for another version, or refine further
+- Nothing is sent on the person's behalf (no auto-send to WhatsApp, no auto-paste into another app) in this milestone — see 5.6 for why that stays deferred
+
+### 5.6 — Cross-application support
+- Ships first inside: the Notes editor, and M4's Quick Actions palette
+- Explicit-input workflow for text copied from WhatsApp, email, ChatGPT, Claude or anywhere else: paste in, get a result, copy out — the person stays in control of the send
+- **Deferred, not in initial scope:** browser extensions for in-page rewriting, system-wide text selection/replacement. Both need platform APIs validated first (accessibility/selection hooks differ per OS and per app) and both would need their own permission story like M3's site reading; revisit after the explicit-input version proves useful
+
+**Initial scope (owner's own list):** message polishing, prompt generation, prompt improvement, optional context, review/edit/copy, retry. **Explicitly deferred:** advanced repository retrieval, unrestricted autonomous loops, large framework libraries, system-wide text replacement.
+
+**Success criterion (owner's words):** people can turn rough thoughts into polished messages or effective prompts directly from their workflow, with less context switching, without losing control of the final output.
+
+---
+
+## M6 — Reminders & contextual pet, continued *(outline)*
+
+*Owner's feature 4. The reminder system and the pet already exist (M1, M2) and already react to task/reminder events. This milestone is what's left: reacting to the kind of events that need the usage-tracking and focus infrastructure from M3/M8, plus making the reaction rules configurable instead of hardcoded.*
+
+**Milestone 6.1 — More triggers**
+- React to a task left open past its deadline, not just a reminder firing (distinct from the dropped "overdue reaction," which fired on every overdue task on every event; this is a single, deliberate nudge)
+- React to a finished focus session (depends on M8)
+- React to unusually long unbroken app time, rate-limited so it nags at most once per stretch
+
+**Milestone 6.2 — Quiet hours and configurability**
+- A quiet-hours window in Settings: no bubbles, no sound, no taskbar flash inside it (notifications still log; nothing is lost, just deferred)
+- Per-reaction-type on/off, reusing the pattern `pet.typing` already set: off by default for anything new, its own switch, explained in one line
+
+**Milestone 6.3 — Already built, verify only**
+- Task/reminder reactions with bubbles (M2), typing-along (M2), text-box waiting (M2) — these need a real-OS pass (PROJECT_STATUS §7), not new code
+
+---
+
+## M7 — Meeting-to-action, AI-assisted *(outline)*
+
+*Owner's feature 7. The manual version — create/edit a meeting, add decisions and action items by hand, convert one to a task — is built (M2, F1-17…19). This milestone is the AI layer on top.*
+
+**Milestone 7.1 — Auto-summary**
+- From the meeting's Markdown notes, suggest a short summary — review-before-save, same as every M5 result
+- Uses M5's provider interface and its bounded refine loop; no new AI plumbing
+
+**Milestone 7.2 — Suggested decisions and action items**
+- Suggest decisions and action items extracted from the notes; the person reviews each one before it's added (never auto-created, matching the spec's "users review the suggestions before they become tasks")
+- Suggestions that look like an action item but lack an owner or date are flagged, not silently guessed
+
+**Milestone 7.3 — Audio** *(later, explicitly deferred by the spec)*
+- Automatic audio recording and transcription into the meeting's transcript field
+- Shares groundwork with **M9** (Voice): once STT is benchmarked there, meeting transcription reuses it rather than picking a second engine
+
+---
+
+## M8 — Focus & digital wellbeing *(outline)*
+
+*Owner's feature 8. New; no existing code. Start with tracking, not intervention — the spec's own order.*
+
+**Milestone 8.1 — Focus sessions**
+- A focus timer, optionally linked to one task (so finishing a session can trigger M6's pet reaction)
+- Local-first: sessions are just another local, deletable record, same shape as the existing usage data
+
+**Milestone 8.2 — Summaries**
+- Daily and weekly focus summaries, alongside the existing Time page rather than a separate page
+- Optional personal goals (e.g. "3 focus sessions a day"); no accountability pressure, no streaks that punish a missed day
+
+**Milestone 8.3 — Later, explicitly conditional**
+- More invasive app-usage monitoring (blocking distracting apps, stricter enforcement) — the spec says "before considering" this, i.e. it needs its own owner decision once sessions alone prove useful, not a default to build toward
+
+---
+
+## M9 — Voice commands & dictation: Phase 6 *(outline; was M7)*
+
+*Owner's feature 5. Reordered ahead of MCP per the owner's 2026-10-13 list — see the note under §2.*
+
+**Milestone 9.1 — Benchmark first**
+- Benchmark speech-to-text engines before committing to one: accuracy, latency, Indian English specifically (the owner's own requirement), and resource use (build principle 2: idle CPU <1%, RAM <100 MB — a local STT model is the risk here)
+- Write up the comparison and pick one before any UI is built
+
+**Milestone 9.2 — Capture & intent**
+- Activation by push-to-talk button (no wake word, no always-on mic — matches build principle 2 and ordinary privacy expectations)
+- Audio capture and intent parsing
+
+**Milestone 9.3 — Actions**
+- Voice → task, voice → note, voice queries ("what's on today"), spoken results
+- Dictation into the note/task editor as an alternative to typing, not just discrete commands
+
+**Milestone 9.4 — Meetings**
+- Meeting transcription into the transcript field (M7.3), once this milestone's STT choice exists
+
+---
+
+## M10 — MCP connectors: Phase 5, 5.1 *(outline; was M6)*
+
+*Owner's feature 6. The owner's own scope: start with one verified integration and a secure permission system, not all five at once.*
+
+**Milestone 10.1 — Foundation**
+- MCP client scaffold
+- OAuth 2.0 + PKCE; tokens in the OS keychain (the same storage M5 needs for its API key — build it once, reuse it)
+- Per-integration toggle in Settings; MCP events routed into Loaf's own event bus
+
+**Milestone 10.2 — First connector, verified**
+- One service, end to end, used for real before adding a second. GitHub or Google Calendar are the two the owner has mentioned by name; the choice is the owner's (it decides what "verified" tests against)
+- Read-only to start: list/show, never write, until the permission system itself has been exercised
+
+**Milestone 10.3 — More services (read-only)**
+- Gmail (+ action-item extraction, which reuses M5/M7's extraction pattern), Google Calendar, Slack, Notion
+- Today's agenda gains calendar events (already in the plan since 2026-10-04 — see DECISIONS.md)
+
+### M10b — CI status: Phase 5.1 *(outline; was M6b)*
+- GitHub Actions status (Jenkins if sizing allows)
+- CI pass/fail pet reactions, reusing M6's reaction and quiet-hours plumbing
+- CI-failure notification and a suggested task (reuses M7's "suggest, don't auto-create" rule)
+
+---
+
+## M11 — Privacy radar: the report *(outline; new)*
+
+*Owner's feature 9. Detection rides with M3 (same browser integration); this milestone is the person-facing report.*
+
+- Show what was detected — known third-party trackers, by domain, with the evidence (which site, which tracker, how many times) — never an unsupported claim about what data was collected, which the person's browser and Loaf cannot actually see
+- Show uncertainty explicitly where it exists (a domain matching a known tracker list is not proof of what it does); the report reads like a researcher's note, not a verdict
+- One place to act: don't track, delete, or see detail — reusing the existing per-domain settings from `tracking.exclude_apps`'s pattern
+
+---
+
+## M12 — Developer reactions: Phase 4 *(outline; was M5)*
+
+*Fully offline, as originally planned. **Not on the owner's 2026-10-13 feature list** — kept here rather than deleted, since removing locked scope without being told isn't right either. Flagged in `DECISIONS.md` for the owner to confirm: still wanted, or drop it?*
+
+**Milestone 12.1 — Git**
 - Repository watcher on `.git` refs
 - Commit and push detection
 
-**Milestone 4.2 — Build**
+**Milestone 12.2 — Build**
 - Local build monitoring
 - Build state in the dashboard
 
-**Milestone 4.3 — Reactions**
-- Pet reactions to git and build events
+**Milestone 12.3 — Reactions**
+- Pet reactions to git and build events (reuses M6's reaction plumbing)
 - Build-failure notification
-- Suggest a task from a failure
+- Suggest a task from a failure (reuses M7's "suggest, review, never auto-create" rule)
 
-## M6 — MCP: Phase 5 *(outline; the largest post-v1 phase; Calendar lives here)*
-**Milestone 5.1 — Foundation**
-- MCP client scaffold
-- OAuth 2.0 + PKCE, tokens in the OS keychain
-- Integration settings and per-integration toggle
-- MCP events routed into Loaf events
+---
 
-**Milestone 5.2 — Services (read-only)**
-- GitHub
-- Gmail (+ action-item extraction)
-- Google Calendar
-- Slack
-- Notion
-
-## M6b — CI status: Phase 5.1 *(outline)*
-**Milestone 5.1.1 — CI**
-- GitHub Actions status (Jenkins if sizing allows)
-- CI pass / fail pet reactions
-- CI-failure notification and task suggestion
-
-## M7 — Voice: Phase 6 *(outline)*
-**Milestone 6.1 — Capture & intent**
-- Activation (button / wake word), no always-on mic
-- Audio capture and JEV provider
-- Intent parsing
-
-**Milestone 6.2 — Actions**
-- Voice → task
-- Voice → note
-- Voice queries
-- Spoken results
-
-**Milestone 6.3 — Meetings**
-- Meeting transcription into the transcript field
-
-## M8 — Character customization: Phase 7 *(outline)*
+## M13 — Character customization: Phase 7 *(outline; was M8)*
 *Pulled forward (owner, 2026-10-12): four character designs and the bear's typing pose exist as a preview; typing along is built for the bear (Unverified on a real OS); the other characters are not selectable yet.*
 
-**Milestone 7.1 — Character system**
+**Milestone 13.1 — Character system**
 - Asset pipeline and lazy loading
 - Character switching UI
 
-**Milestone 7.2 — Wardrobe**
+**Milestone 13.2 — Wardrobe**
 - Outfits and closet
 - Seasonal packs
 
-**Milestone 7.3 — Context**
+**Milestone 13.3 — Context**
 - App-specific reactions
 - Character pack download
-
