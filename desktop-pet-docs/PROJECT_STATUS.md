@@ -196,6 +196,7 @@ Fixed since the first audit: D1 time-of-day tests (CI had failed on it), D2 auto
 - line 5 **FAIL**: no Windows notification for a reminder. Cause not confirmed (the plugin hides errors). Fix: errors are logged, the taskbar flashes, the pet rings for 15 s, an in-app alert with Done / Snooze appears, Settings › Notifications has a test button and a link to the system settings.
 - reminders could not be edited (none could; the owner noticed it on a missed one). Fix: click a reminder to change its text or time, or snooze it.
 - line 13 **FAIL**: the pet could not be dragged while its card was open. Fix: the grown window is dragged as is; the shell follows the pet and saves the new spot.
+- **Re-reported 2026-10-13** (same symptom, after that fix): dragging still failed when the press started exactly on the bear; it worked from elsewhere in the window. Likely cause: only the bear's own small `<button>` had the drag-arming pointer handlers, so a press that (for whatever OS/WebView2 reason) landed a pixel outside its hit box, or on the card beside it, never started a drag — matching "I have to put my cursor somewhere else." Fix: the whole pet window now arms a drag on any press; only the bear itself still opens/hides the dashboard on a plain click. **Still Unverified** — I could not reproduce this without a real Windows PC, so I could not confirm the exact original cause, only make the fix robust to it.
 
 Run `pnpm tauri dev` or install the CI build. Write pass or fail next to each line.
 

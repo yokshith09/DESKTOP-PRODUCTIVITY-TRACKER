@@ -95,6 +95,29 @@ describe("desktop pet", () => {
     expect(hover).not.toHaveBeenCalledWith(false, 0, 0);
   });
 
+  it("a press that starts on the card, not the bear, still drags the window (0.1.3 report)", async () => {
+    const hover = vi.spyOn(ipc, "petHover");
+    renderPet();
+    fireEvent.mouseEnter(bear().closest("div.flex") as HTMLElement);
+    const card = await screen.findByRole("status", { name: "Today at a glance" }, { timeout: 2000 });
+    hover.mockClear();
+    fireEvent.pointerDown(card, { button: 0, buttons: 1, screenX: 10, screenY: 10 });
+    fireEvent.pointerMove(card, { buttons: 1, screenX: 40, screenY: 40 });
+    expect(card.parentElement?.className).toContain("invisible");
+    fireEvent.pointerMove(card, { buttons: 0, screenX: 40, screenY: 40 });
+    await waitFor(() => expect(hover).toHaveBeenCalledWith(true, expect.any(Number), expect.any(Number)));
+  });
+
+  it("a plain click on the card (no drag) does not open or hide the dashboard", async () => {
+    const click = vi.spyOn(ipc, "petClick").mockResolvedValue(null);
+    renderPet();
+    fireEvent.mouseEnter(bear().closest("div.flex") as HTMLElement);
+    const card = await screen.findByRole("status", { name: "Today at a glance" }, { timeout: 2000 });
+    fireEvent.pointerDown(card, { button: 0, buttons: 1, screenX: 10, screenY: 10 });
+    fireEvent.pointerUp(card, { button: 0, screenX: 10, screenY: 10 });
+    expect(click).not.toHaveBeenCalled();
+  });
+
   it("puts overdue, then in-progress, then high-priority tasks first", () => {
     const row = (id: string, over: Partial<TaskRow["task"]>, overdue = false): TaskRow => ({
       overdue,
