@@ -153,13 +153,17 @@ export function PetApp() {
     }, DOUBLE_CLICK_MS);
   };
 
+  // Armed from anywhere in the pet window, not just the visible bear: with the card open the
+  // window is bigger than the bear's own square, and the owner found that pressing on the bear
+  // itself sometimes didn't start a drag there (0.1.3 report) — pressing anywhere in the window
+  // always does, so there's no wrong spot to grab.
   const onPointerDown = (e: React.PointerEvent) => {
     // Only the primary button starts a click or a drag. (jsdom leaves `button` unset.)
     if (e.button !== undefined && e.button !== 0) return;
     wake();
     press.current = { x: e.screenX ?? 0, y: e.screenY ?? 0 };
   };
-  const onPointerMove = (e: React.PointerEvent) => {
+  const startDrag = (e: React.PointerEvent) => {
     const p = press.current;
     if (!p || !(e.buttons & 1) || Math.hypot(e.screenX - p.x, e.screenY - p.y) < DRAG_PX) return;
     press.current = null;
@@ -175,14 +179,26 @@ export function PetApp() {
     })();
   };
   // The OS owns the pointer during a drag; the first move without a button pressed means it ended.
-  const endDrag = (e: React.PointerEvent) => {
-    if (!dragging || e.buttons & 1) return;
+  const endDrag = () => {
     setDragging(false);
     // Lay the card out again for the new spot (it may need to open the other way now).
     if (panelRef.current) void expand(panelRef.current);
   };
-  const onPointerUp = () => {
+  // One pointermove handler for the whole window: arm a drag while pressed, or notice one ended.
+  const onWindowPointerMove = (e: React.PointerEvent) => {
+    if (draggingRef.current) {
+      if (!(e.buttons & 1)) endDrag();
+    } else {
+      startDrag(e);
+    }
+  };
+  // Clicking (as opposed to dragging) only means something on the bear itself; a press that
+  // started elsewhere in the window (e.g. over the card) still arms a drag but opens nothing.
+  const onBearPointerUp = () => {
     if (press.current) click();
+    press.current = null;
+  };
+  const onWindowPointerUp = () => {
     press.current = null;
   };
 
@@ -192,7 +208,7 @@ export function PetApp() {
   const bear = (
     <button
       type="button" aria-label="Loaf. Click to open, double-click to hide, right-click for options"
-      onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
+      onPointerUp={onBearPointerUp}
       onContextMenu={(e) => { e.preventDefault(); void ipc.petMenu(); }}
       onAnimationEnd={(e) => e.target === e.currentTarget && setHop(false)}
       className={cn("shrink-0 cursor-pointer select-none rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring", hop && "pet-hop")}
@@ -211,7 +227,11 @@ export function PetApp() {
       : null;
 
   return (
-    <div className="flex h-screen w-screen select-none flex-col overflow-hidden" onMouseEnter={onEnter} onMouseLeave={onLeave} onPointerMove={endDrag}>
+    <div
+      className="flex h-screen w-screen select-none flex-col overflow-hidden"
+      onMouseEnter={onEnter} onMouseLeave={onLeave}
+      onPointerDown={onPointerDown} onPointerMove={onWindowPointerMove} onPointerUp={onWindowPointerUp}
+    >
       <p className="sr-only" role="status">{playing?.bubble ?? ""}</p>
       {anchor && extra ? (
         <div className={cn("flex h-full flex-col gap-2", anchor.card === "below" && "flex-col-reverse", anchor.pet === "right" ? "items-end" : "items-start")}>
