@@ -4,6 +4,8 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Changed: the Apps / Websites lists on Today are clearer: a category-coloured chip with the first letter, bolder times, a total per column, softer bars and a fade at the bottom instead of a scrollbar with arrows. The empty Websites text no longer mentions a browser extension (there isn't one); it explains website tracking and offers the switch.
+
 - Fixed (CI): a frontend test ("Yesterday: … still open" on Today) failed on the macOS runner because the line took 1.3 s to appear and Testing Library waits 1 s by default. Raised that wait to 5 s for every test (`src/test-setup.ts`).
 - CI (R11, Windows end-to-end): the verbose driver log shows the real failure: Loaf launches, but WebView2 never opens the debugging port the driver asks for, and no `DevToolsActivePort` file is written anywhere. The Defender exclusion from earlier did not help and is kept only because it is harmless. Added a 40-second probe step that starts Loaf with the debug flag itself and reports whether WebView2 starts and whether the flag reaches it, to pick the fix.
 
