@@ -5,12 +5,13 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenu
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Bars, type Bar } from "@/features/charts/Bars";
 import { PageHeader, Tile } from "@/features/shell/PageHeader";
-import { useRecentLogs, useTrackingStatus, useUsage } from "@/hooks/useLoaf";
+import { useRecentLogs, useSettings, useTrackingStatus, useUsage } from "@/hooks/useLoaf";
 import { dayLabel, weekdayNarrow, ymd } from "@/lib/dates";
 import { formatDuration } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { CATEGORIES, categoryStyle } from "./categories";
 import { DailyLogs } from "./DailyLogs";
+import { OpenTabsPanel } from "./OpenTabsPanel";
 import { RANGES, rangeBounds, type RangeKey } from "./range";
 import { TimeCard } from "./TimeCard";
 
@@ -31,6 +32,7 @@ export function TimePage() {
   const [view, setView] = useState<"apps" | "sites">("apps");
   const { from, to, days } = rangeBounds(range);
   const { data: status } = useTrackingStatus();
+  const { data: settings } = useSettings();
   const { data: usage } = useUsage(from, to);
   const logs = useRecentLogs(30);
 
@@ -51,6 +53,7 @@ export function TimePage() {
     active: date.getTime() >= from && date.getTime() < to, title: `${dayLabel(date)}: ${log?.snapshot.stats.completed_count ?? 0} completed`,
   }));
   const tracking = status?.enabled ?? false;
+  const sitesOn = tracking && settings?.["tracking.sites"] === true;
   const filtered = category !== "all" || range !== "today" || view !== "apps";
 
   return (
@@ -122,6 +125,7 @@ export function TimePage() {
       <Tile className="h-64" title="Tasks completed" action={<span className="text-[11px] text-muted-foreground">{done} in this period</span>} bodyClassName="flex p-4">
         <Bars bars={bars} className="flex-1" ariaLabel={`Tasks completed per day: ${bars.map((b) => b.value).join(", ")}`} />
       </Tile>
+      {view === "sites" && <OpenTabsPanel enabled={sitesOn} className="max-h-[26rem]" />}
       <DailyLogs className="max-h-[26rem]" />
       <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Info className="size-3.5" />Time is recorded on this computer only. Window titles and full web addresses are never stored.</p>
     </div>

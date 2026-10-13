@@ -1,7 +1,7 @@
 // Typed IPC client (F0-07): the only place that knows command names and argument shapes.
 import { call } from "./transport";
 import type {
-  UsageSummary, TimeRange, TrackingStatus, BinNote, DailyLog, Reminder, ReminderInput, ReminderPatch, Label, LabelCount, Note, NoteInput, NotePatch, NoteSort, NoteSummary, Task, TaskEdit, TaskEvent, TaskFilters, TaskRow,
+  UsageSummary, TimeRange, TrackingStatus, OpenTab, BinNote, DailyLog, Reminder, ReminderInput, ReminderPatch, Label, LabelCount, Note, NoteInput, NotePatch, NoteSort, NoteSummary, Task, TaskEdit, TaskEvent, TaskFilters, TaskRow,
   TaskStatus, TaskView, WorkUpdate, Meeting, MeetingFilters, MeetingInput, MeetingSummary,
 } from "./types";
 import type { Settings, SettingsKey } from "./settings";
@@ -47,6 +47,9 @@ export const ipc = {
   usageAppSessions: (app: string, from: number, to: number) => call<TimeRange[]>("usage_app_sessions", { app, from, to }),
   usageDomainSessions: (domain: string, from: number, to: number) => call<TimeRange[]>("usage_domain_sessions", { domain, from, to }),
   trackingStatus: () => call<TrackingStatus>("tracking_status"),
+  petOpenTabs: () => call<OpenTab[]>("pet_open_tabs"),
+  petCloseTab: (browser: string, windowIndex: number, tabIndex: number) =>
+    call<boolean>("pet_close_tab", { browser, windowIndex, tabIndex }),
   usageDelete: (from: number | null, to: number | null) => call<unknown>("usage_delete", { from, to }),
   openUrl: (url: string) => call<unknown>("open_url", { url }),
   taskUpdate: (id: string, edit: TaskEdit) => call<Task>("task_update", { id, edit }),

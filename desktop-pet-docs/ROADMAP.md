@@ -150,8 +150,7 @@ F1-20 and F1-21 (search) are cancelled; their numbers are retired.
 | Windows foreground-app tracking, opt-in, domain-only (ADR-019) | 🟡 Built, **Unverified** on Windows |
 | Per-app / per-site time, Time page, filters | ✅ Complete (UI-mock) |
 | Website time from the address bar (Windows: UI Automation; Mac: AppleScript for Chrome/Edge/Brave/Vivaldi), `tracking.sites` | 🟡 Built 2026-10-12, **Unverified** on both |
-| Chrome + Edge extensions (MV3) | ⬜ (later, only for open tabs; native messaging) |
-| Native-messaging bridge to the core | ⬜ (the ingest command `usage_record_domain` exists) |
+| Open tabs, no extension | 🟡 Built 2026-10-13 (owner: the pet does it all with granted permissions). Windows: tab titles via UI Automation, domain for the showing tab only. macOS: every tab's domain via AppleScript (Chrome-family). Close a tab from the list. **Unverified** |
 | Open-tabs list and close tab | ⬜ |
 | Firefox, Safari extensions | ⬜ |
 | macOS foreground-app collector | 🟡 Built 2026-10-12 (NSWorkspace, 1 s), **Unverified** on a Mac |
@@ -161,10 +160,7 @@ F1-20 and F1-21 (search) are cancelled; their numbers are retired.
 ## Outline: Phase 2 remainder *(see M3)*
 **Milestone 2.1 — Capture**
 - App-focus tracking (OS events, no polling)
-- Chrome + Edge extensions (MV3)
-- Native-messaging bridge to the core
-- Firefox extension
-- Safari extension
+- ~~Chrome + Edge extensions (MV3), native-messaging bridge~~ — dropped 2026-10-13: open tabs and site time are both read directly, no extension (see DECISIONS.md)
 
 **Milestone 2.2 — Data & privacy**
 - Browser / domain sessions, buffered writes (≤1/min)
@@ -173,7 +169,7 @@ F1-20 and F1-21 (search) are cancelled; their numbers are retired.
 
 **Milestone 2.3 — Dashboard**
 - Today dashboard: time by category, top apps and domains, hourly chart
-- Open tabs view + close tab
+- ~~Open tabs view + close tab~~ — **built 2026-10-13**, see the table above
 - Today vs yesterday
 
 

@@ -138,6 +138,14 @@ export function createMock() {
     "advanced.log_level": "info",
   });
   const settings = defaultSettings();
+
+  // Open tabs: a small fixed demo set, so the panel has something to show and close in the
+  // mock shell. Real tabs are never stored; this is the design-preview stand-in only.
+  let openTabs: { browser: string; window_index: number; tab_index: number; title: string | null; domain: string | null; active: boolean }[] = [
+    { browser: "Google Chrome", window_index: 0, tab_index: 0, title: "Loaf — Today", domain: "localhost", active: true },
+    { browser: "Google Chrome", window_index: 0, tab_index: 1, title: "GitHub", domain: "github.com", active: false },
+    { browser: "Google Chrome", window_index: 0, tab_index: 2, title: "Stack Overflow", domain: "stackoverflow.com", active: false },
+  ];
   /** Deterministic sample history so the Time screen has something to show. */
   function sampleLog(date: string, back: number): DailyLog | null {
     if (back === 0) return liveLog(date);
@@ -275,6 +283,12 @@ export function createMock() {
     usage_app_sessions: (a) => ranges((x) => x.app === a.app && !x.domain, Number(a.from), Number(a.to)),
     usage_domain_sessions: (a) => ranges((x) => x.domain === a.domain, Number(a.from), Number(a.to)),
     tracking_status: () => ({ supported: true, running: settings["tracking.apps"] === true, enabled: settings["tracking.apps"] === true }),
+    pet_open_tabs: () => (settings["tracking.apps"] === true && settings["tracking.sites"] === true ? openTabs : []),
+    pet_close_tab: (a) => {
+      const before = openTabs.length;
+      openTabs = openTabs.filter((t) => !(t.browser === a.browser && t.window_index === a.windowIndex && t.tab_index === a.tabIndex));
+      return openTabs.length < before;
+    },
     usage_delete: () => null,
     open_url: (a) => { window.open(String(a.url), "_blank", "noopener"); return null; },
 
