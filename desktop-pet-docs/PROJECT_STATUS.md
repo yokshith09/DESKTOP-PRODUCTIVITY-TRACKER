@@ -186,6 +186,7 @@ Fixed since the first audit: D1 time-of-day tests (CI had failed on it), D2 auto
 2. **Owner: re-check the three 0.1.3 fixes** when convenient: Actions → Release build → Run workflow refreshes the `v0.1.3` draft with them (no version change). Notifications: Settings › Notifications › Send a test notification.
 3. **Characters (owner, 2026-10-12, pulled forward):** four designs (3D-lit; Byte dropped) and the bear's typing pose are in as a preview. Typing along is built (`pet.typing`, off by default) — **Unverified**: needs a run on the owner's Windows PC (turn on Character › Type along with me, type in Notepad). Text-box waiting built too (Windows caret check; macOS needs Accessibility) — **Unverified**.
 4. **Signing certificates** (owner): order them now; they are needed for the Phase 2 release.
+5. **Roadmap redesigned 2026-10-13** around the owner's new core-features list (Universal Quick Actions, a context-aware writing/prompt assistant, Focus & Wellbeing, an expanded Privacy Radar). New milestones M4–M13; see `ROADMAP.md` §2 for the full table and `DECISIONS.md` U12–U15 for four open questions: which AI provider for the writing assistant (blocks M5 from starting), whether Developer reactions (now M12) is still wanted, confirming Voice-before-MCP (changes part of locked ADR-015), and whether the Privacy Radar report should ship with M3 instead of waiting for M11. Work continues on **M3** until those are answered.
 
 ---
 

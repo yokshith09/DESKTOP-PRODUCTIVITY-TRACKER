@@ -62,6 +62,8 @@ Feature IDs are authoritative in `docs/06-plan/implementation-plan.md`. No calen
 
 ### Stage C — Product Phases (after first release)
 
+**This table's M2…M7 numbering predates and no longer matches `ROADMAP.md`'s milestone numbers** (which were redesigned and renumbered 2026-10-13 around the owner's new feature list: see `ROADMAP.md` §2). `ROADMAP.md` is the authoritative, maintained milestone list; treat this table as the original phase *order and dependency* intent only, not current numbering or scope.
+
 | Milestone | Phase | Starts when |
 |-----------|-------|-------------|
 | M2 | Browser Intelligence | CP5 shipped (v1.0.0) |

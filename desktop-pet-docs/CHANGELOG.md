@@ -4,6 +4,8 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Docs: milestone roadmap redesigned around the owner's 2026-10-13 core-features list. New milestones M4 Universal Quick Actions, M5 Context-aware writing & prompt assistant, M7 Meeting-to-action (AI), M8 Focus & digital wellbeing, M11 Privacy-radar report. Renumbered: old M4 Desktop companion → M6, old M5 Developer → M12, old M6 MCP → M10, old M6b CI status → M10b, old M7 Voice → M9, old M8 Character → M13. No code changed. Four open questions for the owner in `DECISIONS.md` (U12–U15): AI provider for M5, whether M12 Developer reactions is still wanted, confirming Voice-before-MCP (changes part of locked ADR-015), and whether the Privacy-radar report should ship with M3 instead of M11.
+
 - Added (macOS parity): **app tracking on Mac** (the app in front, once a second; idle from the system; no permission) and **website tracking on Mac** for Chrome, Edge, Brave and Vivaldi via AppleScript (macOS asks once per browser; incognito windows skipped). Safari, Firefox and Arc are not counted on Mac: Safari can't say whether a window is private; the other two can't be asked. More Mac app names recognised (Word, Zoom, Finder…). **Unverified**: built and compiled for macOS, never run on a Mac.
 
 - Added: **Track websites (domain only)** in Settings › Privacy and tracking (off by default, needs app tracking). On Windows, Loaf reads the address bar of the browser in front every 2 s and keeps only the site's name (github.com); paths, searches, browser pages and files are dropped. Private/incognito windows are skipped. Time shows on the Time page per site. No extension needed. **Unverified** on a real PC; macOS not yet.
