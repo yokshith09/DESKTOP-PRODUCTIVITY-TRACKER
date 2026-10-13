@@ -35,6 +35,10 @@ for (let i = 0; i < 120 && exited === null; i++) {
 if (ok) await sleep(3000);
 const alive = exited === null;
 app.kill();
+// Wait for the whole process (and its WebView2 subprocess tree) to actually die before the next
+// CI step runs: a step that returns while Windows is still tearing it down can leave an orphan
+// that confuses the next launch (e.g. the e2e step's own WebDriver session).
+for (let i = 0; i < 40 && exited === null; i++) await sleep(250);
 const crashes = existsSync(join(dataDir, "logs")) ? readdirSync(join(dataDir, "logs")).filter((f) => f.startsWith("crash-")) : [];
 try { rmSync(dataDir, { recursive: true, force: true }); } catch { /* best effort */ }
 

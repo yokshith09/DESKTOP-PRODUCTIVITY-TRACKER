@@ -41,6 +41,12 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           key: e2e
+      - name: Exclude the build output from Windows Defender's real-time scan
+        # Without this, Defender scanning a freshly-built debug .exe on first launch can take
+        # longer than chromedriver/msedgedriver's internal wait for the DevToolsActivePort file,
+        # which then reports "session not created" even though Loaf does start (R11).
+        shell: pwsh
+        run: Add-MpPreference -ExclusionPath "${{ github.workspace }}"
       - run: pnpm install --frozen-lockfile
       - name: Build the app (debug, UI embedded, no installer)
         run: pnpm tauri build --debug --no-bundle
