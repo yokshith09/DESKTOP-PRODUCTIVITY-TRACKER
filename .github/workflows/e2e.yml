@@ -52,6 +52,9 @@ jobs:
         run: pnpm tauri build --debug --no-bundle
       - name: Launch smoke test (does the app start on this runner at all?)
         run: pnpm e2e:smoke
+      - name: Probe WebView2 debugging (diagnostic for R11; never fails the job)
+        continue-on-error: true
+        run: node e2e/probe-webview.mjs
       - name: Install tauri-driver and a matching Microsoft Edge Driver
         shell: pwsh
         run: |
