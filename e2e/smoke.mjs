@@ -3,7 +3,7 @@
 // and writes "Loaf started" to its log, then stop it.
 //
 //   node e2e/smoke.mjs [path-to-binary]
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -16,6 +16,13 @@ if (!existsSync(binary)) {
   process.exit(2);
 }
 const dataDir = mkdtempSync(join(tmpdir(), "loaf-smoke-"));
+/** Stop Loaf and everything it started. On Windows the WebView2 browser process is a child of
+ *  Loaf and survives a plain kill; the next launch on the same profile would then join it and
+ *  ignore its own start-up flags (R11), so the whole tree goes. */
+function stopTree(child) {
+  if (process.platform === "win32" && child.pid) spawnSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
+  else child.kill();
+}
 const app = spawn(binary, [], { stdio: "inherit", env: { ...process.env, LOAF_DATA_DIR: dataDir } });
 let exited = null;
 app.on("exit", (code) => { exited = code ?? -1; });
@@ -34,7 +41,7 @@ for (let i = 0; i < 120 && exited === null; i++) {
 // It must still be running a moment later (no crash right after start).
 if (ok) await sleep(3000);
 const alive = exited === null;
-app.kill();
+stopTree(app);
 // Wait for the whole process (and its WebView2 subprocess tree) to actually die before the next
 // CI step runs: a step that returns while Windows is still tearing it down can leave an orphan
 // that confuses the next launch (e.g. the e2e step's own WebDriver session).

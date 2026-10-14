@@ -37,6 +37,6 @@ console.log(lines.some((l) => l.includes("remote-debugging-port")) ? "debug flag
 const ebw = join(process.env.LOCALAPPDATA ?? "", "app.loaf.desktop", "EBWebView");
 console.log(`${ebw}: ${existsSync(ebw) ? readdirSync(ebw).join(", ") : "(missing)"}`);
 
-app.kill();
+spawnSync("taskkill", ["/pid", String(app.pid), "/T", "/F"], { stdio: "ignore" });
 await sleep(2000);
 try { rmSync(dataDir, { recursive: true, force: true }); } catch { /* best effort */ }
