@@ -252,6 +252,10 @@ F1-20 and F1-21 (search) are cancelled; their numbers are retired.
 - A quiet-hours window in Settings: no bubbles, no sound, no taskbar flash inside it (notifications still log; nothing is lost, just deferred)
 - Per-reaction-type on/off, reusing the pattern `pet.typing` already set: off by default for anything new, its own switch, explained in one line
 
+**Milestone 6.4 — AI assistant notifications (owner request 2026-10-14)**
+- Native notification when Claude Code finishes a task, needs input or fails, even while the owner works in another app. Hook → small helper → local pipe/socket → policy (dedupe, quiet hours, min turn length) → notifier. Plan, acceptance criteria and verification gate: [`docs/features/AN-assistant-notifications.md`](docs/features/AN-assistant-notifications.md) (AN-00…AN-09, ≈19 dev-days)
+- **Not started.** AN-00 (a verification spike on a real Claude Code install) comes first and gates everything else; open questions U17–U22 in DECISIONS.md. Needs M6.2 quiet hours (built once, shared). Other assistants only after AN-00-style verification of their mechanism (AN-09).
+
 **Milestone 6.3 — Already built, verify only**
 - Task/reminder reactions with bubbles (M2), typing-along (M2), text-box waiting (M2) — these need a real-OS pass (PROJECT_STATUS §7), not new code
 

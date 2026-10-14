@@ -4,6 +4,8 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Docs: plan for AI assistant completion notifications (Claude Code hooks first): architecture, nine features with acceptance criteria, privacy rules, platform matrix, and open questions U17–U22. No code yet.
+
 - CI (R11, Windows end-to-end): the probe shows WebView2 starts but the debugging flag never reaches it even when set by hand. Likeliest cause: the earlier smoke-test step killed only `loaf.exe`, leaving the WebView2 browser process running on the same profile folder; later launches join that process and ignore their flags. The smoke test (and the probe) now stop the whole process tree, and a step clears any leftovers before the probe and the end-to-end run. **Unconfirmed** until the next Windows run.
 
 - Changed: the Apps / Websites lists on Today are clearer: a category-coloured chip with the first letter, bolder times, a total per column, softer bars and a fade at the bottom instead of a scrollbar with arrows. The empty Websites text no longer mentions a browser extension (there isn't one); it explains website tracking and offers the switch.
