@@ -52,6 +52,14 @@ jobs:
         run: pnpm tauri build --debug --no-bundle
       - name: Launch smoke test (does the app start on this runner at all?)
         run: pnpm e2e:smoke
+      - name: Stop any WebView2 process the smoke test left behind (R11)
+        # WebView2 joins a browser process already running on the same profile folder and then
+        # ignores the new launch's flags, including the debugging port the driver needs.
+        shell: pwsh
+        run: |
+          Get-Process msedgewebview2, loaf -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+          Start-Sleep -Seconds 2
+          Get-Process msedgewebview2, loaf -ErrorAction SilentlyContinue | Format-Table Id, ProcessName
       - name: Probe WebView2 debugging (diagnostic for R11; never fails the job)
         continue-on-error: true
         run: node e2e/probe-webview.mjs
