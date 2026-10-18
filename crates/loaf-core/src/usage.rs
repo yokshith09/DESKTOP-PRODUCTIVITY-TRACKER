@@ -301,6 +301,35 @@ pub fn category_for_domain(domain: &str) -> &'static str {
         .map_or("Other", |(_, category)| category)
 }
 
+/// Whether a website is itself a well-known advertising or tracking company (itself or a subdomain).
+///
+/// This is all the address bar can tell us: it names the page you are on, never the third-party
+/// requests the page makes (DECISIONS U16, option d). A small fixed list, so a `true` is a fact
+/// about the domain and a `false` means "not on the list", never "clean".
+pub fn is_known_tracker(domain: &str) -> bool {
+    const TRACKERS: &[&str] = &[
+        "doubleclick.net",
+        "googlesyndication.com",
+        "googleadservices.com",
+        "google-analytics.com",
+        "googletagmanager.com",
+        "facebook.net",
+        "scorecardresearch.com",
+        "adnxs.com",
+        "criteo.com",
+        "taboola.com",
+        "outbrain.com",
+        "hotjar.com",
+        "mixpanel.com",
+        "segment.io",
+        "quantserve.com",
+        "amazon-adsystem.com",
+    ];
+    TRACKERS
+        .iter()
+        .any(|t| domain == *t || domain.ends_with(&format!(".{t}")))
+}
+
 /// Check that `input` is a bare host name and return it lower-cased.
 ///
 /// Anything that looks like a URL (a scheme, a path, a query, a port, credentials) is refused:

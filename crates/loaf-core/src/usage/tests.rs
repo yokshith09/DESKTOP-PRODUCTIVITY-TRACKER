@@ -1177,3 +1177,11 @@ fn summary_serializes_with_the_documented_field_names() {
     assert_eq!(v["apps"][0]["is_browser"], json!(false));
     assert_eq!(v["hourly_seconds"].as_array().unwrap().len(), 24);
 }
+
+#[test]
+fn known_trackers_match_the_domain_and_its_subdomains_only() {
+    assert!(is_known_tracker("doubleclick.net"));
+    assert!(is_known_tracker("stats.g.doubleclick.net"));
+    assert!(!is_known_tracker("notdoubleclick.net"));
+    assert!(!is_known_tracker("github.com"));
+}

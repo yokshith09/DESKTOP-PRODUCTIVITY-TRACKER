@@ -44,7 +44,7 @@ The first release is **M1: Notes and daily work management (P0)**. Everything el
 | **M0** | Foundation closure | Real-Windows run, autostart, export/import/delete, perf harness | 🟡 Partial |
 | **M1** | **Notes + daily work (P0, first release, v0.1.0)** | Notes, tasks, search, labels, dates, completion history, daily progress, release gate | 🟡 **Active — code complete, in verification (G1)** |
 | M2 | Phase 1 completion → v1.0.0 | Meetings, pet window, global shortcuts, settings screens, first run | 🟡 code complete; signing blocked on the owner |
-| M3 | Capture, browser tracking & privacy (Phase 2) | App/site time, extensions, macOS collector, open tabs, privacy-radar capture | 🟡 Windows + Mac app/site tracking built, unverified |
+| M3 | Capture, browser tracking & privacy (Phase 2) | App/site time, extensions, macOS collector, open tabs, privacy-radar capture | 🟡 Feature-complete for the option-d scope; shipped as 0.2.0 for owner testing, **Unverified** on Windows and Mac |
 | M4 | Universal Quick Actions | Keyboard-accessible command centre: notes, tasks, search, AI actions | ⬜ |
 | M5 | Context-aware writing & prompt assistant | Message polishing, prompt generation/improvement, controlled refinement | ⬜ **blocked on an AI-provider decision (owner)** |
 | M6 | Reminders & contextual pet, continued | Event-driven reactions to focus/app time, quiet hours, settings | 🟡 base built in M1/M2 (reminders, pet, task/reminder reactions); this finishes it |
@@ -151,8 +151,9 @@ F1-20 and F1-21 (search) are cancelled; their numbers are retired.
 | Per-app / per-site time, Time page, filters | ✅ Complete (UI-mock) |
 | Website time from the address bar (Windows: UI Automation; Mac: AppleScript for Chrome/Edge/Brave/Vivaldi), `tracking.sites` | 🟡 Built 2026-10-12, **Unverified** on both |
 | Open tabs, no extension | 🟡 Built 2026-10-13 (owner: the pet does it all with granted permissions). Windows: tab titles via UI Automation, domain for the showing tab only. macOS: every tab's domain via AppleScript (Chrome-family). Close a tab from the list. **Unverified** |
-| Open-tabs list and close tab | ⬜ |
-| Firefox, Safari extensions | ⬜ |
+| Open-tabs list and close tab | 🟡 Built (see the row above), **Unverified** |
+| Firefox, Safari | ⬜ Not built: no extension by decision; Safari/Firefox on macOS record nothing, Firefox on Windows untested |
+| Known-tracker check for visited sites (U16 option d) | 🟡 Core helper built 2026-10-18 with tests; report UI is M11 |
 | macOS foreground-app collector | 🟡 Built 2026-10-12 (NSWorkspace, 1 s), **Unverified** on a Mac |
 
 ---
