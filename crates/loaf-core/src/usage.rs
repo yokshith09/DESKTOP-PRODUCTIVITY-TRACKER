@@ -618,6 +618,9 @@ pub struct DomainUsage {
     pub total_seconds: i64,
     #[cfg_attr(feature = "ts", ts(type = "number"))]
     pub sessions: i64,
+    /// The site is itself a known advertising or tracking company (`is_known_tracker`). `false`
+    /// means "not on the list", never "clean".
+    pub is_tracker: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -1100,8 +1103,10 @@ fn read_summary(conn: &Connection, tz: Tz, from: i64, to: i64) -> Result<UsageSu
     )?;
     let domains = domains_stmt
         .query_map(params![from, to], |r| {
+            let domain: String = r.get(0)?;
             Ok(DomainUsage {
-                domain: r.get(0)?,
+                is_tracker: is_known_tracker(&domain),
+                domain,
                 browser: r.get::<_, Option<String>>(1)?.unwrap_or_default(),
                 category: r.get(2)?,
                 total_seconds: r.get::<_, i64>(3)? / 1000,

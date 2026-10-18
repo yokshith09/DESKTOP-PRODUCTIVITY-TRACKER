@@ -16,5 +16,9 @@ Unsigned test build. Nothing below has been run on a real Windows PC or Mac by t
 - [ ] Safari, Firefox, Arc record nothing (expected).
 - [ ] Foreground app time records.
 
+## Privacy radar (both)
+- [ ] Time › Sites shows a Privacy radar panel. With normal browsing it should say no visited site is on the known-tracker list.
+- [ ] Visit a site such as doubleclick.net (it may not load; the address bar is enough): it is listed as a known tracker with its time.
+
 ## Known gaps
-Not signed (SmartScreen / Gatekeeper warnings expected). No privacy-radar report yet (M11). Assistant notifications not built.
+Not signed (SmartScreen / Gatekeeper warnings expected). The radar flags only visited sites that are themselves trackers; it cannot see what a page loads (by decision). Assistant notifications not built.

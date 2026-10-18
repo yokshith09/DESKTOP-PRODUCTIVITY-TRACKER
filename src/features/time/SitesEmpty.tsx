@@ -2,6 +2,10 @@ import { Globe } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useSettings } from "@/hooks/useLoaf";
 import { useSetting } from "@/hooks/useTheme";
+import { isMac } from "@/lib/platform";
+
+/** Browsers whose sites are recorded: Mac asks Chrome-family browsers through AppleScript, Windows reads the address bar. */
+export const supportedBrowsers = (mac: boolean) => (mac ? "Chrome, Edge, Brave or Vivaldi" : "Chrome, Edge, Brave or Firefox");
 
 /**
  * What to say when no website time is recorded yet. Site time is read from the browser's address
@@ -15,7 +19,7 @@ export function SitesEmpty({ compact = false }: { compact?: boolean }) {
   if (on) {
     return (
       <p className="text-xs leading-relaxed text-muted-foreground">
-        No sites yet. Browse in Chrome, Edge, Brave or Firefox and the site names show up here. Private windows are never counted.
+        No sites yet. Browse in {supportedBrowsers(isMac)} and the site names show up here. Private windows are never counted.{isMac && " Safari, Firefox and Arc aren’t recorded on Mac."}
       </p>
     );
   }

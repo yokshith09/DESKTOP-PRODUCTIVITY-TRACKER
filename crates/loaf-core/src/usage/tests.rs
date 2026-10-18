@@ -664,6 +664,31 @@ async fn domains_are_lower_cased_and_upsert_first_and_last_seen() {
     assert_eq!(summary.domains[0].category, "Coding");
     assert_eq!(summary.domains[0].total_seconds, 1800);
     assert_eq!(summary.domains[0].sessions, 3);
+    assert!(!summary.domains[0].is_tracker);
+}
+
+#[tokio::test]
+async fn summary_flags_visited_sites_that_are_known_trackers() {
+    let f = fixture();
+    f.usage
+        .record_domain_session("Firefox", "doubleclick.net", T0, T0 + 5 * MIN)
+        .await
+        .unwrap();
+    f.usage
+        .record_domain_session("Firefox", "github.com", T0 + 10 * MIN, T0 + 20 * MIN)
+        .await
+        .unwrap();
+    let summary = f.usage.summary(T0, T0 + 24 * HOUR).await.unwrap();
+    let flag = |d: &str| {
+        summary
+            .domains
+            .iter()
+            .find(|x| x.domain == d)
+            .unwrap()
+            .is_tracker
+    };
+    assert!(flag("doubleclick.net"));
+    assert!(!flag("github.com"));
 }
 
 #[tokio::test]

@@ -140,6 +140,21 @@ Every claim is tagged with how it was checked. **Fact** = seen in code, tests, G
 | Phase 2 rest: browser extensions, bridge, macOS collector, open tabs | Planned |
 | Phases 3–7 | Planned |
 
+### 4.8 Windows vs macOS parity (audit 2026-10-18, from the code; nothing run on either OS by the developer)
+
+| Feature | Windows | macOS | Parity |
+|---|---|---|---|
+| App time | Foreground window events | NSWorkspace, 1 s poll | Yes (different mechanism) |
+| Site time | UI Automation address bar: Chrome, Edge, Brave, Firefox (Firefox untested) | AppleScript: Chrome, Edge, Brave, Vivaldi | **Gap**: Firefox only on Windows, Vivaldi only on Mac; Safari/Arc nowhere |
+| Private windows | Skipped; Chrome/Brave detected by English toolbar text, unknown windows skipped | Skipped via the browser's own incognito flag | **Gap**: Windows detection is English-only (non-English Chrome may record nothing) |
+| Open tabs | Titles for all tabs, domain only for the showing tab | Domain for every tab | **Gap** |
+| Close tab | Tab's own Close button | AppleScript | Yes |
+| Permissions | None | Automation prompt per browser; Accessibility for text-box; Input Monitoring for typing-along | Different by OS |
+| Privacy radar | Same | Same | Yes (uses the stored sites) |
+| Verified on real machine | No | No | n/a |
+
+Not fixable without the other OS: Safari (private windows can't be told apart, kept off on purpose), Arc and Firefox on Mac (no way to ask), Windows localisation. The UI now lists the right browsers per OS.
+
 ### 4.7 Deprecated
 
 | Item | Replaced by |

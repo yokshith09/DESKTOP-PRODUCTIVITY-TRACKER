@@ -250,7 +250,7 @@ export function createMock() {
     for (const x of list) {
       const sec = clip(x, from, to) / 1000;
       if (x.domain) {
-        const cur = domains.get(x.domain) ?? { domain: x.domain, browser: x.app, category: x.category, total_seconds: 0, sessions: 0 };
+        const cur = domains.get(x.domain) ?? { domain: x.domain, browser: x.app, category: x.category, total_seconds: 0, sessions: 0, is_tracker: /(^|\.)(doubleclick\.net|google-analytics\.com|facebook\.net)$/.test(x.domain) };
         cur.total_seconds += sec; cur.sessions += 1; domains.set(x.domain, cur);
       } else {
         const cur = apps.get(x.app) ?? { app: x.app, category: x.category, is_browser: x.is_browser, total_seconds: 0, sessions: 0 };

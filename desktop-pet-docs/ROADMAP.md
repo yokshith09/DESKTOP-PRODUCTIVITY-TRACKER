@@ -52,7 +52,7 @@ The first release is **M1: Notes and daily work management (P0)**. Everything el
 | M8 | Focus & digital wellbeing | Focus timers, task-linked sessions, daily/weekly summaries, goals | ⬜ |
 | M9 | Voice commands & dictation (Phase 6) | STT benchmark, push-to-talk, voice → task/note/search | ⬜ |
 | M10 | MCP connectors (Phase 5, 5.1) | One verified connector first, then GitHub, Calendar, Gmail, Slack, Notion, CI status | ⬜ |
-| M11 | Privacy radar: the report | Evidence-based tracker report with uncertainty shown, not claims | 🟡 capture rides with M3; this is the report UI |
+| M11 | Privacy radar: the report | Evidence-based tracker report with uncertainty shown, not claims | 🟡 the option-d panel shipped with M3 (0.2.0 work); M11 is only what remains: per-site don't-track/delete actions and a richer report |
 | M12 | Developer reactions (Phase 4) | Git and local build awareness | ⬜ **not in the owner's 2026-10-13 list — confirm still wanted** |
 | M13 | Character customization (Phase 7) | 18 characters, outfits | 🟡 4 characters + the bear's typing pose pulled forward |
 
@@ -153,7 +153,8 @@ F1-20 and F1-21 (search) are cancelled; their numbers are retired.
 | Open tabs, no extension | 🟡 Built 2026-10-13 (owner: the pet does it all with granted permissions). Windows: tab titles via UI Automation, domain for the showing tab only. macOS: every tab's domain via AppleScript (Chrome-family). Close a tab from the list. **Unverified** |
 | Open-tabs list and close tab | 🟡 Built (see the row above), **Unverified** |
 | Firefox, Safari | ⬜ Not built: no extension by decision; Safari/Firefox on macOS record nothing, Firefox on Windows untested |
-| Known-tracker check for visited sites (U16 option d) | 🟡 Core helper built 2026-10-18 with tests; report UI is M11 |
+| Known-tracker check for visited sites (U16 option d) | 🟡 Built 2026-10-18: core helper, `is_tracker` on each site, a "Known tracker" tag in the site list and a Privacy radar panel on Time › Sites (known-tracker sites, time on them, sites by category; wording says "not flagged", never "clean"). No third-party request tracking. Tests in Rust and the UI. **Unverified** on a real PC (needs real browsing) |
+| Windows / macOS parity audit (2026-10-18) | 🟡 Done on paper; see PROJECT_STATUS §4.8. Real gaps: Safari/Firefox/Arc on Mac; Windows open-tab domains only for the showing tab; Windows private-window detection is English-only |
 | macOS foreground-app collector | 🟡 Built 2026-10-12 (NSWorkspace, 1 s), **Unverified** on a Mac |
 
 ---

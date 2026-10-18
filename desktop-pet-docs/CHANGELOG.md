@@ -5,6 +5,10 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Added: **Privacy radar** panel on Time › Sites (U16 option d, no request tracking): which visited sites are known ad/tracking companies, time on them, and sites by category. Sites carry an `is_tracker` flag (new field on `DomainUsage`) and show a "Known tracker" tag in the list. Wording says "not flagged", never "clean". **Unverified** with real browsing.
+- Fixed: the empty Sites message told Mac users to browse in Firefox, which Mac does not record; it now lists the browsers each OS can read.
+- Docs: Windows/macOS parity audit (PROJECT_STATUS §4.8).
+
 ## [0.2.0] — 2026-10-18 (Phase 2 test build; unsigned, nothing here is verified on a real PC)
 
 Phase 2 (M3) is feature-complete as far as it can be without a real OS: app and website time, open tabs (no extension), macOS collector, and a known-tracker check for the sites you visit. Every OS-facing part is **Unverified**; the release exists so the owner can test it. See `desktop-pet-docs/RELEASE_0.2.0_TEST.md`.

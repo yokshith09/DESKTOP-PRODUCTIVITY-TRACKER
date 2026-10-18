@@ -4,4 +4,9 @@ export type DomainUsage = { domain: string,
 /**
  * The browser the site was most recently seen in.
  */
-browser: string, category: string, total_seconds: number, sessions: number, };
+browser: string, category: string, total_seconds: number, sessions: number, 
+/**
+ * The site is itself a known advertising or tracking company (`is_known_tracker`). `false`
+ * means "not on the list", never "clean".
+ */
+is_tracker: boolean, };

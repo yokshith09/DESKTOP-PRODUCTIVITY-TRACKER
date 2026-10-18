@@ -24,9 +24,9 @@ interface Props {
   view?: "apps" | "sites";
 }
 
-function Row({ name, category, seconds, max, sessions, expandable, open, onToggle, onOpen, indent }: {
+function Row({ name, category, seconds, max, sessions, expandable, open, onToggle, onOpen, indent, tracker }: {
   name: string; category: string; seconds: number; max: number; sessions: number;
-  expandable?: boolean; open?: boolean; onToggle?: () => void; onOpen: () => void; indent?: boolean;
+  expandable?: boolean; tracker?: boolean; open?: boolean; onToggle?: () => void; onOpen: () => void; indent?: boolean;
 }) {
   const style = categoryStyle(category);
   return (
@@ -48,6 +48,7 @@ function Row({ name, category, seconds, max, sessions, expandable, open, onToggl
           <span className="flex items-baseline gap-2">
             <span className="truncate text-[13px] font-medium">{name}</span>
             <span className="text-[11px] text-muted-foreground">{category}</span>
+            {tracker && <span className="rounded bg-amber-500/15 px-1.5 text-[10px] font-medium text-amber-700 dark:text-amber-400">Known tracker</span>}
             <span className="ml-auto text-[13px] font-medium tabular-nums">{formatDuration(seconds)}</span>
           </span>
           <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-muted">
@@ -104,7 +105,7 @@ export function TimeCard({ from, to, category = null, className, title = "Where 
       ) : sitesView ? (
         <ul className="space-y-0.5">
           {sites.map((d) => (
-            <Row key={d.domain} name={d.domain} category={d.category} seconds={d.total_seconds} max={max} sessions={d.sessions}
+            <Row key={d.domain} name={d.domain} category={d.category} seconds={d.total_seconds} max={max} sessions={d.sessions} tracker={d.is_tracker}
               onOpen={() => setDetail({ kind: "domain", name: d.domain, category: d.category })} />
           ))}
         </ul>
@@ -121,7 +122,7 @@ export function TimeCard({ from, to, category = null, className, title = "Where 
                     onOpen={() => setDetail({ kind: "app", name: a.app, category: a.category })}
                   />
                   {open[a.app] && sites.map((d) => (
-                    <Row key={d.domain} indent name={d.domain} category={d.category} seconds={d.total_seconds} max={a.total_seconds} sessions={d.sessions}
+                    <Row key={d.domain} indent name={d.domain} category={d.category} seconds={d.total_seconds} max={a.total_seconds} sessions={d.sessions} tracker={d.is_tracker}
                       onOpen={() => setDetail({ kind: "domain", name: d.domain, category: d.category })} />
                   ))}
                 </ul>
