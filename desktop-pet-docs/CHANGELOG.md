@@ -4,6 +4,9 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- CI (R11): the first full run after the process-tree fix (881b532) fails the same way. The driver log shows the WebView2 arguments are set by chromedriver itself, and no leftover process exists after the job. Process-tree theory ruled out for now.
+- Docs: assistant notifications now use a pet bubble as the primary channel; quiet mode shows bubbles for assistant events; U17 answered (auto-edit settings with backup); U20 partly answered; U23 added.
+
 - Docs: plan for AI assistant completion notifications (Claude Code hooks first): architecture, nine features with acceptance criteria, privacy rules, platform matrix, and open questions U17–U22. No code yet.
 
 - CI (R11, Windows end-to-end): the probe shows WebView2 starts but the debugging flag never reaches it even when set by hand. Likeliest cause: the earlier smoke-test step killed only `loaf.exe`, leaving the WebView2 browser process running on the same profile folder; later launches join that process and ignore their flags. The smoke test (and the probe) now stop the whole process tree, and a step clears any leftovers before the probe and the end-to-end run. **Unconfirmed** until the next Windows run.

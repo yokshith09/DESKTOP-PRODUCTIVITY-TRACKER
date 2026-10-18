@@ -27,6 +27,10 @@ One place to see what was decided, by whom, and what is still open. Long reasoni
 | U20 | Should "needs your input" break through quiet hours? | Default: no, to match the quiet-hours promise. Changing it means a blocked agent waits until morning. |
 | U21 | Should existing reminders adopt the same quiet hours and policy (M6.2)? | Recommendation: yes, one policy for every notification. |
 | U22 | Claude Code on the web / cloud sessions cannot reach a local pipe. Accept "local sessions only"? | Documented as unsupported; no workaround without a network service, which ADR-010 rejects. |
+| U17 | **Answered 2026-10-18 by owner: auto-edit.** Loaf edits `~/.claude/settings.json` itself (adds its hook entries, keeps everything else, writes a backup first, and offers one-click removal). | Plan AN-07 updated accordingly. Snippet-only mode is no longer planned. |
+| U18 | Message preview (Claude's last message) | Still open. Default when built: off. |
+| U20 | **Answered 2026-10-18 by owner, partly:** in quiet mode (manual or scheduled) assistant events show a small bubble above the pet, with no sound and no OS toast. This overrides the earlier default of "breaks through quiet hours: no". | Conflicts with ROADMAP M6.2 ("no bubbles inside quiet hours"). M6.2 must be amended in the same change, or the owner confirms the conflict. |
+| U23 | Notification channel: is the pet bubble the primary channel, with the OS toast optional (off by default)? | Assumed yes from the owner's wording ("a small bubble above the pet"). Confirm before AN-05. |
 
 None of these block the roadmap document itself, already updated in `ROADMAP.md`. They block the *code* for M5, M9/M10's relative order, and M12's fate.
 

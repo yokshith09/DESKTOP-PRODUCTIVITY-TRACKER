@@ -173,3 +173,13 @@ Replying to a prompt from the notification; reading or summarizing transcripts; 
 ## 11. Open questions (must be empty before READY)
 
 See `DECISIONS.md` U17–U22: auto-edit of `~/.claude/settings.json`; preview default; signing the helper; whether `NeedsInput` may break through quiet hours; whether reminders adopt the same quiet hours and policy; accepting that cloud sessions are unsupported.
+
+
+## Owner decisions, 2026-10-18
+
+- **Primary channel is the pet bubble.** A small bubble above the pet says what happened ("Claude finished <project>", "Claude needs your answer", "Claude failed"). Any assistant can use the same bubble, not only Claude Code. The OS toast is optional and off by default (U23).
+- **Quiet mode** can be set manually (a switch on the pet) or by quiet hours. In quiet mode an assistant event still shows a small bubble, with no sound and no OS toast. Reading it is a click or a dismiss. (U20, overrides the earlier default.)
+- **Install is automatic** (U17): Loaf edits `~/.claude/settings.json` with a backup and an undo. No snippet-only path.
+- **Helper binary (U19):** the hook needs a program to call. Options: (a) a separate tiny signed `loaf-hook.exe`; (b) the existing `loaf.exe` with a fast CLI path that does not open a window. (b) means one binary to sign, but each hook call starts the full app runtime, which must be measured before it is chosen. The signing certificate is the blocker either way.
+- **Conflict to resolve:** ROADMAP M6.2 says "no bubbles inside quiet hours". The owner's new rule keeps bubbles for assistant events. M6.2 must be amended in the same change.
+- **Scope note:** acceptance criteria for AN-05 now include: bubble appears above the pet and follows it; bubble stacks at most 3 and auto-dismisses after 8 s; quiet mode produces no sound and no toast; a notification is never lost (kept in Recent activity).
