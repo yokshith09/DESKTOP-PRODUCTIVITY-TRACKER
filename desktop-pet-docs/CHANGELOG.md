@@ -2,8 +2,10 @@
 
 All notable changes. Newest first. Format follows [Keep a Changelog](https://keepachangelog.com). Everything lives on `main`. `v0.1.0` is the first release; entries below are grouped by date. Dates come from Git.
 
+
 ## [Unreleased]
 
+- CI (R11): root cause found in wry's source. It always sets WebView2's browser arguments, which overrides the `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS` variable msedgedriver uses for `--remote-debugging-port`. Loaf now appends that variable to its window arguments on Windows (no effect when unset). **Unverified** until the Windows e2e job runs.
 - CI (R11): the first full run after the process-tree fix (881b532) fails the same way. The driver log shows the WebView2 arguments are set by chromedriver itself, and no leftover process exists after the job. Process-tree theory ruled out for now.
 - Docs: assistant notifications now use a pet bubble as the primary channel; quiet mode shows bubbles for assistant events; U17 answered (auto-edit settings with backup); U20 partly answered; U23 added.
 

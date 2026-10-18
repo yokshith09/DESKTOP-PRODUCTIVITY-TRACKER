@@ -87,7 +87,29 @@ fn forward_events(app: AppHandle, bus: &EventBus) {
     });
 }
 
+/// WebView2 ignores `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS` once the app passes its own browser
+/// arguments, and wry always does. The end-to-end driver hands its debugging flags over that
+/// variable, so on Windows we append it to each window's arguments ourselves (R11). Unset in
+/// normal use, so this changes nothing for users.
+fn forward_webview_args(context: &mut tauri::Context) {
+    #[cfg(windows)]
+    if let Some(extra) = std::env::var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS")
+        .ok()
+        .filter(|v| !v.trim().is_empty())
+    {
+        for window in &mut context.config_mut().app.windows {
+            window.additional_browser_args = Some(format!(
+                "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection {extra}"
+            ));
+        }
+    }
+    #[cfg(not(windows))]
+    let _ = context;
+}
+
 pub fn run() {
+    let mut context = tauri::generate_context!();
+    forward_webview_args(&mut context);
     let app = tauri::Builder::default()
         // A second launch focuses the existing window and exits (R0-01).
         .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
@@ -288,7 +310,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .build(tauri::generate_context!())
+        .build(context)
         .expect("failed to build Loaf");
 
     app.run(|_app, event| {
