@@ -81,7 +81,7 @@ Legend: **Requested** = in the owner's list; **Technical requirement (TR)** = de
 | FR-35 | In-app announcements and release notes | Distribution | Planned | FM-2 | M | none |
 | FR-36 | Secure auto-update (integrity, recovery, rollback) | Distribution | Blocked | FM-2 | XL | Blocked: signing certificates (owner) |
 | FR-37 | Keyboard-shortcut master switch (off by default; users enable) | Utilities | Planned | FM-1 | S | Open: D-SHORTCUT-DEFAULT (owner-stated: off) |
-| FR-38 | Meetings redesign (flow the owner finds confusing) | Utilities | Planned (deferred, later phase) | FM-13 (new, deferred) | M | Blocked: D-MEETINGS (owner to describe the problem) |
+| FR-38 | Meetings redesign (flow the owner finds confusing) | Utilities | Planned (deferred, later phase) | FM-13 (new, deferred) | M | Blocked: D-MEETINGS (owner will define; ask next time) |
 
 **Verified existing (Unverified on real OS, tests pass):** FR-19 tracking, ROADMAP M1–M3 features. **Partial:** FR-01, FR-20, FR-22, FR-27. Everything else: Planned or Blocked. Nothing is "Complete" on a real OS.
 
@@ -320,7 +320,7 @@ FR-37 and FR-38 come from the owner's 2026-10-19 instructions (shortcut master s
 
 ## 10. Current Focus
 
-**Active milestone: FM-0** (verification of `v2.0.0`). **Mode: documentation only** (owner, 2026-10-19). Blockers: owner's test results; D-VERSION; D-SHORTCUT-DEFAULT. **Single next task:** owner sends the `v2.0.0` test results; Claude then records them in PROJECT_STATUS §8 and drafts FR-37 and FR-38 for owner approval. Update this section after every task.
+**Active milestone: FM-0** (verification of `v2.0.0`). **Mode: documentation only** (owner, 2026-10-19). Blockers: owner's test results for v2.0.0; D-SHORTCUT-DEFAULT upgrade detail. **Single next task:** owner sends the `v2.0.0` test results; Claude then records them in PROJECT_STATUS §8 and drafts FR-37 and FR-38 for owner approval. Update this section after every task.
 
 ## 11. Documentation update protocol (mandatory)
 
@@ -335,9 +335,9 @@ Prefer existing plugins and crates over new dependencies; `keyring` crate for FR
 | ID | Decision | Blocks |
 |---|---|---|
 | D-NAME | Final product name (stays undecided; no renames) | FR-34 |
-| D-VERSION | Source version 0.2.0 vs owner's `v2.0.0` tag | FM-0, FM-2 |
-| D-SHORTCUT-DEFAULT | Confirm that the new master switch is **off by default** for existing installs too (owner said so; this changes current behaviour) | FR-37 |
-| D-MEETINGS | Meetings redesign: owner to describe what does not make sense | FR-38 (later phase) |
+| D-VERSION | **Decided 2026-10-19: keep source version 0.2.0** (owner: "leave it"). Tag `v2.0.0` stays as the owner's label | closed |
+| D-SHORTCUT-DEFAULT | **Owner, 2026-10-19: off by default "in the coming versions".** Open detail: does this also apply to existing installs on upgrade? | FR-37 |
+| D-MEETINGS | **Owner will define it. Owner asked to be asked about it next time Meetings comes up.** Do not start | FR-38 (later phase) |
 | D-ORDER | Merge FM-order with the owner's ROADMAP order; where Project Spaces goes | FM-3+ |
 | D-BACKEND | May any server exist (accounts, telemetry, referrals, gallery)? | FM-9, 10 |
 | D-AI | U12 provider; Ollama as the local default | FM-5 |
