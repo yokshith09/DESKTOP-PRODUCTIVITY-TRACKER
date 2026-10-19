@@ -56,7 +56,7 @@ None of these block the roadmap document itself, already updated in `ROADMAP.md`
 
 ### Owner decisions (from chat)
 
-- **2026-10-19 (owner):** keep all existing features and add the new ones. Keyboard shortcuts are **off by default**; users enable them with a button (FR-37; default for existing installs to be confirmed, D-SHORTCUT-DEFAULT). Keep one Git branch, `main`; the other branch is removed. Code signing **on hold**. Meetings does not make sense to the owner and is redesigned in a later phase (FR-38). Only the feature document and current-state docs for now. Version tag `v2.0.0` pushed, tagged and tested by the owner (see PROJECT_STATUS header; source version still 0.2.0, D-VERSION).
+- **2026-10-19 (owner):** keep all existing features and add the new ones. Keyboard shortcuts are **off by default**; users enable them with a button (FR-37; default for existing installs to be confirmed, D-SHORTCUT-DEFAULT). Keep one Git branch, `main`; the other branch is removed. Code signing **on hold**. Meetings does not make sense to the owner; the owner will define the problem and asked to be asked about it next time Meetings comes up (FR-38, D-MEETINGS). Shortcuts off by default "in the coming versions" (FR-37). Source version stays 0.2.0 (D-VERSION, owner: "leave it"); tag `v2.0.0` is the owner's label. Only the feature document and current-state docs for now.
 
 | Date | Decision | Where it shows |
 |------|----------|----------------|

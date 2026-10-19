@@ -1614,7 +1614,7 @@ Every feature has the same 13 sections: 1 metadata · 2 user story · 3 behaviou
 
 ## FR-37 — Keyboard-shortcut master switch (off by default)
 
-**1 Metadata** — Group: Utilities · Status: **Planned** · Milestone: FM-1 · Effort: S · Decision state: owner-stated default (off); confirm for existing installs (D-SHORTCUT-DEFAULT) · Origin: explicitly requested by owner (2026-10-19) · Evidence: `src-tauri/src/shortcuts.rs` registers global shortcuts at startup with no master switch; only `shortcuts.global_open` and `shortcuts.global_new_note` are settable (`crates/loaf-core/src/settings.rs`).
+**1 Metadata** — Group: Utilities · Status: **Planned** · Milestone: FM-1 · Effort: S · Decision state: owner decided, 2026-10-19: off by default "in the coming versions"; upgrade detail open (D-SHORTCUT-DEFAULT) · Origin: explicitly requested by owner (2026-10-19) · Evidence: `src-tauri/src/shortcuts.rs` registers global shortcuts at startup with no master switch; only `shortcuts.global_open` and `shortcuts.global_new_note` are settable (`crates/loaf-core/src/settings.rs`).
 
 **2 User story** — As a user I want no system-wide keys taken by Loaf until I choose to turn them on.
 
@@ -1624,10 +1624,10 @@ Every feature has the same 13 sections: 1 metadata · 2 user story · 3 behaviou
 
 **5 Technical design** — New key in `loaf-core` settings (`shortcuts.enabled`, bool, default false, validated). `shortcuts::start` registers nothing when it is false and re-registers on change (the existing `register_all` path). In-app shortcuts (`src/hooks/useShortcuts.ts`) read the same flag through `src/ipc/settings.ts`. Mock shell (`src/ipc/mock.ts`) mirrors the default.
 
-**6 Choices and trade-offs** — A single master switch versus per-key switches. Chosen: one master switch, because the owner asked for one button; per-key rebinding stays as it is. Changing the default alters current behaviour for installed copies, so it needs owner confirmation (D-SHORTCUT-DEFAULT).
+**6 Choices and trade-offs** — A single master switch versus per-key switches. Chosen: one master switch, because the owner asked for one button; per-key rebinding stays as it is. Changing the default alters current behaviour, so the upgrade path needs owner confirmation (D-SHORTCUT-DEFAULT).
 
 **7 Ordered tasks**
-1. Confirm D-SHORTCUT-DEFAULT with the owner.
+1. Confirm upgrade behaviour (D-SHORTCUT-DEFAULT) with the owner.
 2. Add `shortcuts.enabled` (default false) to core settings; run `pnpm gen:types`.
 3. Gate registration in `src-tauri/src/shortcuts.rs`.
 4. Gate in-app shortcuts in `src/hooks/useShortcuts.ts`.
@@ -1644,7 +1644,7 @@ Every feature has the same 13 sections: 1 metadata · 2 user story · 3 behaviou
 **10 Acceptance / DoD** — Fresh install registers zero global shortcuts (test); enabling registers the configured keys (test); disabling unregisters all (test); Windows manual check recorded before Complete. Plus docs in 12 updated in the same change.
 
 **11 Checklist**
-- [ ] D-SHORTCUT-DEFAULT confirmed
+- [ ] Upgrade behaviour confirmed (D-SHORTCUT-DEFAULT)
 - [ ] Core setting and default
 - [ ] Global registration gated
 - [ ] In-app shortcuts gated
@@ -1660,7 +1660,7 @@ Every feature has the same 13 sections: 1 metadata · 2 user story · 3 behaviou
 
 ## FR-38 — Meetings redesign (deferred to a later phase)
 
-**1 Metadata** — Group: Utilities · Status: **Planned (deferred by owner)** · Milestone: FM-13 · Effort: M (unknown until described) · Decision state: Blocked on D-MEETINGS · Origin: owner feedback (2026-10-19): "The Meetings feature does not make sense to me and needs fixing, but this can be addressed in a later phase." · Evidence: built as F1-17…19 (`src/features/meetings/MeetingsPage.tsx`, `MeetingEditor.tsx`, `crates/loaf-core/src/meetings.rs`).
+**1 Metadata** — Group: Utilities · Status: **Planned (deferred by owner)** · Milestone: FM-13 · Effort: M (unknown until described) · Decision state: Blocked on D-MEETINGS. Owner will define it and asked to be asked about it next time Meetings comes up · Origin: owner feedback (2026-10-19): "The Meetings feature does not make sense to me and needs fixing, but this can be addressed in a later phase." · Evidence: built as F1-17…19 (`src/features/meetings/MeetingsPage.tsx`, `MeetingEditor.tsx`, `crates/loaf-core/src/meetings.rs`).
 
 **2 User story** — As a user I want meetings to be quick to record and useful afterwards. The owner has not yet said which part fails.
 
@@ -1673,7 +1673,7 @@ Every feature has the same 13 sections: 1 metadata · 2 user story · 3 behaviou
 **6 Choices and trade-offs** — Redesign now versus after the owner's description. Chosen: wait, because the owner asked for a later phase and gave no defect list.
 
 **7 Ordered tasks**
-1. Owner describes what does not make sense (D-MEETINGS).
+1. Owner describes what does not make sense (D-MEETINGS). Ask the owner when Meetings is next discussed; do not start it unprompted.
 2. Walk through the current flow with the owner and log each defect.
 3. Write the redesigned flow here, then get approval.
 4. Only then implement.
