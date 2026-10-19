@@ -1,4 +1,5 @@
 # Loaf — Roadmap
+> Requested-feature inventory, extra milestones (FM-x), test matrix and release gates: [`FEATURE_ROADMAP.md`](FEATURE_ROADMAP.md). Delivery order for M0–M13 stays in this file.
 
 The one page that tracks progress. Flow: **build principles → phases → milestones → features.**
 Everything else is reference — open it when a feature needs it:

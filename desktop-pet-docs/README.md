@@ -21,6 +21,7 @@ Event-driven (no polling) · Idle CPU <1% · RAM <100 MB · Local-first SQLite �
 | D5 | UI/UX Design Brief | [`docs/04-design/ui-ux-brief.md`](docs/04-design/ui-ux-brief.md) | 🔒 Locked 2026-10-03 |
 | D6 | Backend Schema + migration 001 | [`docs/05-backend/`](docs/05-backend/backend-schema.md) | 🔒 Locked 2026-10-03 |
 | D7 | Implementation Plan | [`docs/06-plan/implementation-plan.md`](docs/06-plan/implementation-plan.md) | 🔒 Locked 2026-10-03 |
+| — | Feature roadmap (requested-feature inventory, test matrix, release gates) | [`FEATURE_ROADMAP.md`](FEATURE_ROADMAP.md) | Proposal, awaiting owner review |
 
 ## Decision log
 | Date | Decision |

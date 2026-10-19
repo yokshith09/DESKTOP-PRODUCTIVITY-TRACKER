@@ -12,7 +12,7 @@ Every claim is tagged with how it was checked. **Fact** = seen in code, tests, G
 1. **Fact:** Loaf is a Tauri v2 app: Rust core (`crates/loaf-core`, no Tauri dependency), thin shell (`src-tauri`), React + TypeScript UI (`src`).
 2. **Fact:** On 2026-10-11 the owner decided: merge now and build in one branch (done: PR #1 merged), no Progress card, calendar shows the next 7 days, autostart is built before the first release, the phase order stays as locked (ADR-015), M1 is labelled v0.1 and v1.0.0 stays for the full Phase 1.
 3. **Fact:** The whole M1 build list is now implemented: Notes (Markdown preview, label manager, shortcuts), Tasks (page, all views, status controls, defer, detail, work updates, delete, search), daily-log history on the Time page, autostart, export/import/delete-all, installer workflow, coverage floors.
-4. **Fact:** Tests run on 2026-10-12: **347** core tests + **17** shell tests pass; **70** frontend tests pass; `cargo clippy -D warnings`, `cargo fmt --check`, `pnpm lint`, `pnpm typecheck`, `pnpm check:core-deps` pass; generated types are fresh.
+4. **Fact:** Tests run on 2026-10-19 (`4bad6a2`): **376** Rust tests (core + shell) pass; **111** frontend tests pass (18 files); `cargo clippy -D warnings`, `cargo fmt --check`, `pnpm lint`, `pnpm typecheck`, `pnpm check:core-deps` pass; generated types are fresh.
 5. **Fact:** Coverage measured today: `loaf-core` **97.3%** of lines; frontend **89.7%** lines. CI now enforces floors (core ≥ 90% lines; frontend lines/statements ≥ 80, branches ≥ 70, functions ≥ 55).
 6. **Fact (owner, 2026-10-11):** the owner installed v0.1.0 on Windows; the app opens, app tracking lists apps (Loaf, Claude, File Explorer) and tasks can be added. The owner reported: no desktop pet, colours confusing, the dashboard opened full screen, no way to delete every task. All four are addressed in 0.1.1 (§4.6), **Unverified** until the owner installs it.
 7. **Unknown (the main risk):** the rest of the Windows checklist (§8) has not been run line by line. Everything that needs the operating system is **Unverified**: the tray, reminder notifications, the Windows app tracker, opening links, **autostart**, the **file dialogs for export and import**, and the **installer**.
@@ -50,7 +50,7 @@ Every claim is tagged with how it was checked. **Fact** = seen in code, tests, G
 
 ## 4. Feature audit
 
-**How verification was done:** *core* = `cargo test` (327 pass); *UI-mock* = Vitest against the in-memory demo shell (41 pass); *CI* = Windows + macOS jobs; *human* = used in the real app (none recorded).
+**How verification was done:** *core* = `cargo test --workspace` (376 pass, 2026-10-19); *UI-mock* = Vitest against the in-memory demo shell (111 pass, 2026-10-19); *CI* = Windows + macOS jobs; *human* = used in the real app (none recorded).
 
 ### 4.1 Foundation (Phase 0)
 
@@ -124,7 +124,7 @@ Every claim is tagged with how it was checked. **Fact** = seen in code, tests, G
 | G1 Real-Windows checklist (§8) | **Open — owner** |
 | G2 Export / import / delete all | Unverified (built) |
 | G3 Autostart | Unverified (built) |
-| G4 Installer | **Built, Unverified**: changing the version in `src-tauri/tauri.conf.json` on `main` (or pushing a `v*` tag, or pressing Run workflow) runs `.github/workflows/release.yml`, which builds installers on Windows and macOS and creates a **draft GitHub Release** `v<version>` with them (publishing it = one click, and creates the tag). `webviewInstallMode: embedBootstrapper`. Version is `0.1.0`. The workflow ran successfully on 2026-10-11 and produced `Loaf_0.1.0_x64-setup.exe`, `Loaf_0.1.0_x64_en-US.msi` (Windows) and `Loaf_0.1.0_aarch64.dmg` (Apple Silicon only; no Intel Mac build). None of these installers has been installed or run by a person yet. **Signing: not set up** (needs the owner's certificates). |
+| G4 Installer | **Built, Unverified**: changing the version in `src-tauri/tauri.conf.json` on `main` (or pushing a `v*` tag, or pressing Run workflow) runs `.github/workflows/release.yml`, which builds installers on Windows and macOS and creates a **draft GitHub Release** `v<version>` with them (publishing it = one click, and creates the tag). `webviewInstallMode: embedBootstrapper`. Version at the time of the first build was `0.1.0` (now 0.2.0). The workflow ran successfully on 2026-10-11 and produced `Loaf_0.1.0_x64-setup.exe`, `Loaf_0.1.0_x64_en-US.msi` (Windows) and `Loaf_0.1.0_aarch64.dmg` (Apple Silicon only; no Intel Mac build). None of these installers has been installed or run by a person yet. **Signing: not set up** (needs the owner's certificates). |
 | G5 Time-of-day test bug | Fixed (`3ed177f`) |
 | G6 Coverage floors | Done (core ≥ 90% lines, frontend thresholds) |
 
