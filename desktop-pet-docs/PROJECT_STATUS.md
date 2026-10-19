@@ -1,6 +1,6 @@
 # Loaf — Project Status
 
-**Last updated:** 2026-10-18 (version now 0.2.0, Phase 2 test build, all OS features Unverified) · **Work branch:** `main` (owner decision: one branch). PR #1 and PR #2 are merged. Releases: `v0.1.0` published; `v0.1.1` draft (pet); `0.1.2` adds pet reactions and the soft-3D bear; `0.1.3` drops the overdue reaction and makes the bear sleep only when nothing has happened for 15 minutes.
+**Last updated:** 2026-10-19 · **Owner-reported release:** `v2.0.0` tag (points at `4bad6a2`, the same commit as `v0.2.0`; installed and tested by the owner). Source version in `tauri.conf.json`/`Cargo.toml`/`package.json` is still **0.2.0** (Fact, §4.5). **Work branch:** `main` only (owner decision, 2026-10-19: one branch; `claude/repo-context-review-trprp8` identical to `main` and removed). Code signing **on hold** (owner, 2026-10-19). All OS features Unverified until the owner's test results are recorded. PR #1 and PR #2 are merged. Releases: `v0.1.0` published; `v0.1.1` draft (pet); `0.1.2` adds pet reactions and the soft-3D bear; `0.1.3` drops the overdue reaction and makes the bear sleep only when nothing has happened for 15 minutes.
 **Read this first.** Then [`ROADMAP.md`](ROADMAP.md) (plan), [`DECISIONS.md`](DECISIONS.md) (why) and [`CHANGELOG.md`](CHANGELOG.md) (what changed).
 
 Every claim is tagged with how it was checked. **Fact** = seen in code, tests, Git or CI. **Inference** = a reasoned guess from facts. **Unknown** = no evidence either way.
@@ -40,11 +40,11 @@ Every claim is tagged with how it was checked. **Fact** = seen in code, tests, G
 
 | Item | Detail |
 |------|--------|
-| **Current milestone** | **M1 — Notes + daily work (P0, first release, v0.1).** Code complete; in verification. |
+| **Current milestone** | **M3 — Browser tracking and privacy** is feature-complete for DECISIONS U16 option (d) and shipped as the owner's `v2.0.0` tag (commit `4bad6a2`); the owner has installed and tested it. Status: **Unverified** on a real PC until the owner records results. **No milestone is being built now:** owner instruction (2026-10-19) is docs only until the feature document is agreed. |
 | **Just finished** | Owner's first-test fixes (0.1.1): desktop pet with hover card, click / double-click / right-click menu, drag, global shortcuts; Pet and Shortcuts settings; calmer colours; main window opens at 1180×760 and remembers its size; delete any task. See the CHANGELOG. |
-| **Open work** | G1 (owner runs the Windows checklist, §8). Signing certificates (owner). F0-06 wake-from-sleep and timezone-change hooks (a risk, not a blocker; see §6 R1). |
-| **Blockers** | G1 needs the owner's PC. Signing needs the owner's certificates. |
-| **Next after M1** | M2 — rest of Phase 1 (meetings, pet window, global shortcuts, first run) toward v1.0.0. Not started; not to be started without the owner's go-ahead. |
+| **Open work** | Owner's test results for v2.0.0 (record in §8). Feature document: [`FEATURE_ROADMAP.md`](FEATURE_ROADMAP.md) and [`docs/features/FR-requested-features.md`](docs/features/FR-requested-features.md). Meetings UX needs redesign (owner, 2026-10-19; deferred to a later phase). Shortcut master switch, off by default (new requirement FR-37, not built). |
+| **Blockers** | Signing **on hold** (owner, 2026-10-19). Remote branch deletion of `claude/repo-context-review-trprp8` failed from this session (proxy hang-up); owner to run `git push origin --delete claude/repo-context-review-trprp8`. |
+| **Next** | Owner's order after M3 (`ROADMAP.md`): M4 Quick Actions. Not started; not to start without the owner's go-ahead. |
 
 ---
 
@@ -124,7 +124,7 @@ Every claim is tagged with how it was checked. **Fact** = seen in code, tests, G
 | G1 Real-Windows checklist (§8) | **Open — owner** |
 | G2 Export / import / delete all | Unverified (built) |
 | G3 Autostart | Unverified (built) |
-| G4 Installer | **Built, Unverified**: changing the version in `src-tauri/tauri.conf.json` on `main` (or pushing a `v*` tag, or pressing Run workflow) runs `.github/workflows/release.yml`, which builds installers on Windows and macOS and creates a **draft GitHub Release** `v<version>` with them (publishing it = one click, and creates the tag). `webviewInstallMode: embedBootstrapper`. Version at the time of the first build was `0.1.0` (now 0.2.0). The workflow ran successfully on 2026-10-11 and produced `Loaf_0.1.0_x64-setup.exe`, `Loaf_0.1.0_x64_en-US.msi` (Windows) and `Loaf_0.1.0_aarch64.dmg` (Apple Silicon only; no Intel Mac build). None of these installers has been installed or run by a person yet. **Signing: not set up** (needs the owner's certificates). |
+| G4 Installer | **Built, Unverified** (version in source is still `0.2.0` while the owner's tag is `v2.0.0`; see header). Signing **on hold**: changing the version in `src-tauri/tauri.conf.json` on `main` (or pushing a `v*` tag, or pressing Run workflow) runs `.github/workflows/release.yml`, which builds installers on Windows and macOS and creates a **draft GitHub Release** `v<version>` with them (publishing it = one click, and creates the tag). `webviewInstallMode: embedBootstrapper`. Version at the time of the first build was `0.1.0` (now 0.2.0). The workflow ran successfully on 2026-10-11 and produced `Loaf_0.1.0_x64-setup.exe`, `Loaf_0.1.0_x64_en-US.msi` (Windows) and `Loaf_0.1.0_aarch64.dmg` (Apple Silicon only; no Intel Mac build). None of these installers has been installed or run by a person yet. **Signing: not set up** (needs the owner's certificates). |
 | G5 Time-of-day test bug | Fixed (`3ed177f`) |
 | G6 Coverage floors | Done (core ≥ 90% lines, frontend thresholds) |
 
@@ -200,7 +200,7 @@ Fixed since the first audit: D1 time-of-day tests (CI had failed on it), D2 auto
 1. **M2 (owner, 2026-10-12: "keep moving"; next release only after Phase 2).** Done: F1-26 first run, F1-17…19 meetings. Done also: F1-23 (Yesterday line), F1-24, F1-25. M2: F1-27 end-to-end tests built (`e2e/`, CI workflow *End-to-end*); only **signing** is left, and it needs the owner's certificates. Next: M3 (Phase 2), then the release. M3 started 2026-10-12: website time from the address bar, and Mac parity (app + site tracking on Mac). All Unverified on real machines.
 2. **Owner: re-check the three 0.1.3 fixes** when convenient: Actions → Release build → Run workflow refreshes the `v0.1.3` draft with them (no version change). Notifications: Settings › Notifications › Send a test notification.
 3. **Characters (owner, 2026-10-12, pulled forward):** four designs (3D-lit; Byte dropped) and the bear's typing pose are in as a preview. Typing along is built (`pet.typing`, off by default) — **Unverified**: needs a run on the owner's Windows PC (turn on Character › Type along with me, type in Notepad). Text-box waiting built too (Windows caret check; macOS needs Accessibility) — **Unverified**.
-4. **Signing certificates** (owner): order them now; they are needed for the Phase 2 release.
+4. **Code signing: on hold** (owner, 2026-10-19). Not a blocker for the current docs work. Release artifacts stay unsigned and Unverified.
 5. **Roadmap redesigned 2026-10-13** around the owner's new core-features list (Universal Quick Actions, a context-aware writing/prompt assistant, Focus & Wellbeing, an expanded Privacy Radar). New milestones M4–M13; see `ROADMAP.md` §2 for the full table and `DECISIONS.md` U12–U15 for four open questions: which AI provider for the writing assistant (blocks M5 from starting), whether Developer reactions (now M12) is still wanted, confirming Voice-before-MCP (changes part of locked ADR-015), and whether the Privacy Radar report should ship with M3 instead of waiting for M11. Work continues on **M3** until those are answered.
 6. **AI assistant notifications (owner request 2026-10-14):** plan written, nothing built — [`docs/features/AN-assistant-notifications.md`](docs/features/AN-assistant-notifications.md), ROADMAP M6.4. Starts with spike AN-00 on a real Claude Code install; waiting on owner answers U17–U22.
 

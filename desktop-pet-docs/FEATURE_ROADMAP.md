@@ -1,12 +1,14 @@
 # FEATURE_ROADMAP — canonical feature and release roadmap
 
-**Audited:** 2026-10-19 on `main` @ `4bad6a2` (v0.2.0, unsigned) · **Product name:** undecided — "Loaf" is a working name in code and docs; nothing here renames it (see §13, D-NAME).
+**Audited:** 2026-10-19 on `main` @ `8368daa`. Owner-reported release: **`v2.0.0`** (tag at `4bad6a2`, installed and tested by the owner); source version is still 0.2.0 (see §2 finding 10). Unsigned; **signing on hold** (owner, 2026-10-19) · **Product name:** undecided — "Loaf" is a working name in code and docs; nothing here renames it (see §13, D-NAME).
 
-> **How this file relates to the others (no duplicate sources of truth).** Milestone M0–M13 *delivery order* stays in [`ROADMAP.md`](ROADMAP.md). *Current state* stays in [`PROJECT_STATUS.md`](PROJECT_STATUS.md). *Decisions* stay in [`DECISIONS.md`](DECISIONS.md). User-visible history stays in [`CHANGELOG.md`](CHANGELOG.md). This file adds what those do not hold: the **complete requested-feature inventory** (FR-01…FR-36), a milestone plan for the features ROADMAP.md does not cover (FM-0…FM-12), the test matrix, traceability, release gates and the documentation protocol. Per-feature 13-point specs live in [`docs/features/FR-requested-features.md`](docs/features/FR-requested-features.md); older specs: [`docs/features/README.md`](docs/features/README.md), [`AN-assistant-notifications.md`](docs/features/AN-assistant-notifications.md). Product/design sources: [PRD](docs/02-prd/PRD.md) · [TRD](docs/03-trd/TRD.md) · [UI/UX brief](docs/04-design/ui-ux-brief.md) · [App flow](docs/04-design/app-flow.md) · [Schema](docs/05-backend/backend-schema.md) · [Implementation plan](docs/06-plan/implementation-plan.md).
+> **How this file relates to the others (no duplicate sources of truth).** Milestone M0–M13 *delivery order* stays in [`ROADMAP.md`](ROADMAP.md). *Current state* stays in [`PROJECT_STATUS.md`](PROJECT_STATUS.md). *Decisions* stay in [`DECISIONS.md`](DECISIONS.md). User-visible history stays in [`CHANGELOG.md`](CHANGELOG.md). This file adds what those do not hold: the **complete requested-feature inventory** (FR-01…FR-38), a milestone plan for the features ROADMAP.md does not cover (FM-0…FM-12), the test matrix, traceability, release gates and the documentation protocol. Per-feature 13-point specs live in [`docs/features/FR-requested-features.md`](docs/features/FR-requested-features.md); older specs: [`docs/features/README.md`](docs/features/README.md), [`AN-assistant-notifications.md`](docs/features/AN-assistant-notifications.md). Product/design sources: [PRD](docs/02-prd/PRD.md) · [TRD](docs/03-trd/TRD.md) · [UI/UX brief](docs/04-design/ui-ux-brief.md) · [App flow](docs/04-design/app-flow.md) · [Schema](docs/05-backend/backend-schema.md) · [Implementation plan](docs/06-plan/implementation-plan.md).
 
 > **Conflict to resolve before anyone starts FM-3 or later:** the owner's recorded order after M3 is Quick Actions → Writing → Reminders/pet → Meeting-to-action → Focus → Voice → MCP → Privacy report → Developer → Character ([`ROADMAP.md`](ROADMAP.md)). Project Spaces, Credentials, Community and Computer Use are **not in that order at all**. The FM-order below is a *proposal*; `ROADMAP.md` stays authoritative until the owner approves a merge of the two (D-ORDER).
 
 ## 1. Product scope
+
+**Owner instructions, 2026-10-19 (binding for this document):** (a) keep every existing feature and add the requested ones; (b) all application keyboard shortcuts are **off by default** and users enable them, with an enable/disable button (FR-37); (c) keep one Git branch (`main`) and remove the others; (d) code signing on hold; (e) the Meetings feature does not make sense to the owner and needs redesign, to be done in a later phase (FR-38); (f) for now, only the feature document and current-state documentation are in scope: **no feature code is built yet**.
 
 Loaf is a local-first Windows/macOS desktop pet and productivity companion (Tauri v2 shell, Rust core `crates/loaf-core`, React/TypeScript UI). Non-negotiables already locked: local-first SQLite, no browser extension, event-driven (idle CPU <1%, RAM <100 MB), one feature at a time, tests with every change. Features that need a server, secrets, cloud AI or OS control change those assumptions and are marked **Blocked** until the owner decides (§13).
 
@@ -31,7 +33,10 @@ Audit findings (each tagged):
 6. **[Likely]** Browser time may be shown in both apps and websites lists; not verified (FR-24).
 7. **[Certain]** Every OS-facing feature is Unverified; Windows is checked only by the owner and e2e; macOS only by CI. Parity gaps: PROJECT_STATUS §4.8.
 8. **[Certain]** Documentation drift: PROJECT_STATUS §1/§4 counts, §3 "active milestone", §4.5 version; `CLAUDE.md` still says active milestone M1; R6 says F0 specs are DRAFT. Counts are corrected in this change; milestone wording needs the owner (D-ORDER).
-9. **[Likely]** About 18 of the 36 requested features have no precursor in the code at all; about 10 conflict with locked decisions or need a server/secrets (Blocked).
+10. **[Certain]** Owner-reported `v2.0.0` tag points at `4bad6a2`, the same commit as `v0.2.0`, whose source version is 0.2.0. So the owner's installed build reports a version that differs from the tag name, unless the owner built with a different version. Decision needed (D-VERSION): bump source to 2.0.0 in one change, or keep 0.2.0 and treat the tag as a label.
+11. **[Certain]** Global shortcuts are registered at startup with no master switch (`src-tauri/src/shortcuts.rs`; only `shortcuts.global_open` and `shortcuts.global_new_note` are configurable). They are therefore **on by default**, which conflicts with the owner's instruction (FR-37).
+12. **[Certain]** Meetings is built (F1-17…19: `src/features/meetings`, `crates/loaf-core/src/meetings.rs`). The owner says the flow does not make sense; no defect list has been given yet (FR-38 needs one).
+13. **[Likely]** About 18 of the 36 requested features have no precursor in the code at all; about 10 conflict with locked decisions or need a server/secrets (Blocked).
 
 ## 3. Feature inventory
 
@@ -75,6 +80,8 @@ Legend: **Requested** = in the owner's list; **Technical requirement (TR)** = de
 | FR-34 | Product website and downloads | Distribution | Planned | FM-9 | M | Blocked: product name (undecided) |
 | FR-35 | In-app announcements and release notes | Distribution | Planned | FM-2 | M | none |
 | FR-36 | Secure auto-update (integrity, recovery, rollback) | Distribution | Blocked | FM-2 | XL | Blocked: signing certificates (owner) |
+| FR-37 | Keyboard-shortcut master switch (off by default; users enable) | Utilities | Planned | FM-1 | S | Open: D-SHORTCUT-DEFAULT (owner-stated: off) |
+| FR-38 | Meetings redesign (flow the owner finds confusing) | Utilities | Planned (deferred, later phase) | FM-13 (new, deferred) | M | Blocked: D-MEETINGS (owner to describe the problem) |
 
 **Verified existing (Unverified on real OS, tests pass):** FR-19 tracking, ROADMAP M1–M3 features. **Partial:** FR-01, FR-20, FR-22, FR-27. Everything else: Planned or Blocked. Nothing is "Complete" on a real OS.
 
@@ -108,9 +115,9 @@ Dependency map: FM-0 → FM-1 → FM-2; FM-3 → FM-4, FM-8(project-aware), FM-6
 One milestone is active at a time: **FM-0**. Effort: S ≤1 day · M 2–4 · L 1–2 weeks · XL >2 weeks (single developer + Claude; assumes owner answers decisions within a day and tests on Windows).
 
 ### FM-0 — Verify 0.2.0 and reconcile docs  **[ACTIVE]**
-- **Goal / value:** know what really works before building more. · **Status:** In progress (code done; real-OS run by owner pending). · **Evidence:** 376 + 111 tests pass; release draft unsigned; tag push blocked from this session.
+- **Goal / value:** know what really works before building more. · **Status:** In progress (owner has installed and tested `v2.0.0`; results not yet recorded here). · **Evidence:** 376 Rust + 111 frontend tests pass on `8368daa`; tag `v2.0.0` pushed by owner; source version mismatch (finding 10).
 - **Features:** FR-19. · **Prerequisites:** owner PC. · **Effort:** S.
-- **Tasks (ordered):** 1 owner pushes tag/creates release; 2 owner runs `RELEASE_0.2.0_TEST.md` and Windows checklist G1; 3 record results in PROJECT_STATUS; 4 fix defects; 5 reconcile ROADMAP active-milestone wording and `CLAUDE.md`.
+- **Tasks (ordered):** 1 owner sends test results for `v2.0.0` (`RELEASE_0.2.0_TEST.md` and the Windows checklist); 2 record them in PROJECT_STATUS §8; 3 decide D-VERSION; 4 fix defects; 5 reconcile ROADMAP active-milestone wording and `CLAUDE.md`.
 - **Tests:** T-19-01…03. · **Acceptance:** each checklist line has a recorded pass/fail; failures logged as risks. · **DoD:** docs updated; no unexecuted result claimed.
 - **Risks:** R-owner-time. · **Next action:** owner runs the Windows checklist and reports results.
 
@@ -121,7 +128,7 @@ One milestone is active at a time: **FM-0**. Effort: S ≤1 day · M 2–4 · L 
 - **Risks:** FR-25 undefined without screenshot. · **Next action:** write FR-23 order-stability test in `src/features/overview`.
 
 ### FM-2 — Signed releases, updater, release notes
-- **Features:** FR-35, FR-36, TR-01. · **Status:** Blocked (owner certificates). · **Prereq:** FM-0 · **Effort:** XL.
+- **Features:** FR-35, FR-36, TR-01. · **Status:** Blocked — **code signing on hold** by owner (2026-10-19). Updater design may still be written; nothing signed ships until the owner lifts the hold. · **Prereq:** FM-0 · **Effort:** XL.
 - **Tasks:** 1 owner orders certificates; 2 updater signing keys; 3 add `tauri-plugin-updater`; 4 What's-new dialog; 5 tampered-artifact and interrupted-update tests; 6 rollback doc.
 - **Tests:** T-35, T-36. · **Acceptance:** tampered artifact rejected; previous version recoverable. · **Risks:** cert lead time; SmartScreen reputation. · **Next action:** owner orders signing certificates.
 
@@ -161,6 +168,10 @@ One milestone is active at a time: **FM-0**. Effort: S ≤1 day · M 2–4 · L 
 
 ### FM-11 — Cloud AI fallback
 - **Features:** FR-29. · **Status:** Blocked (D-CLOUD, FR-13). · **Effort:** L.
+
+### FM-13 — Meetings redesign (deferred, later phase)
+- **Features:** FR-38. · **Status:** Planned, deferred by owner. · **Prereq:** owner description of what does not work. · **Effort:** M (unknown until described).
+- **Next action:** owner lists the parts of Meetings that do not make sense.
 
 ### FM-12 — Computer-Use Assistant
 - **Features:** FR-30. · **Status:** Blocked (D-COMPUTER, TR-08). · **Effort:** XL.
@@ -237,6 +248,10 @@ Commands are the repo's real ones: `cargo test --workspace`, `pnpm test`, `pnpm 
 | T-34-01 | FR-34 | E2E | links resolve | missing | `link checker` | CI (Windows e2e) | Both in CI | Not run |
 | T-35-01 | FR-35 | Component | shows once per version | missing | `pnpm test` | CI + local | Both in CI | Not run |
 | T-36-01 | FR-36 | Manual-Win | update from 0.2.0 to next, tampered artifact rejected | missing | `checklist` | Manual (owner PC) | Windows | Not run |
+| T-37-01 | FR-37 | Unit | shortcuts are not registered when the switch is off (default) | missing | `cargo test --workspace` | CI + local | Both in CI | Not run |
+| T-37-02 | FR-37 | Component | enable/disable button toggles registration; state survives restart | missing | `pnpm test` | CI + local | Both in CI | Not run |
+| T-37-03 | FR-37 | Manual-Win | Ctrl+Shift shortcut works only after enabling | missing | checklist | Manual (owner PC) | Windows | Not run |
+| T-38-01 | FR-38 | Manual-Win | owner walkthrough of the current Meetings flow, defects logged | missing | checklist | Manual (owner PC) | Windows | Not run |
 
 ## 7. Requirements traceability
 
@@ -279,7 +294,7 @@ Commands are the repo's real ones: `cargo test --workspace`, `pnpm test`, `pnpm 
 | FR-35 | Owner request (inventory §1.9) | FM-2 | T-35-01…01 | Planned |
 | FR-36 | Owner request (inventory §1.9) | FM-2 | T-36-01…01 | Blocked |
 
-Inventory §1 numbering: 1 Companion · 2 Productivity · 3 Student & developer · 4 Utilities · 5 AI · 8 Community · 9 Distribution. Item 6 (Project Spaces) = FR-06/09/11/14; item 7 (Credentials) = FR-13; item 10 (naming) = D-NAME.
+FR-37 and FR-38 come from the owner's 2026-10-19 instructions (shortcut master switch; Meetings redesign). Inventory §1 numbering: 1 Companion · 2 Productivity · 3 Student & developer · 4 Utilities · 5 AI · 8 Community · 9 Distribution. Item 6 (Project Spaces) = FR-06/09/11/14; item 7 (Credentials) = FR-13; item 10 (naming) = D-NAME.
 
 ## 8. Release gates
 
@@ -305,7 +320,7 @@ Inventory §1 numbering: 1 Companion · 2 Productivity · 3 Student & developer 
 
 ## 10. Current Focus
 
-**Active milestone: FM-0.** Blockers: owner Windows run. **Single next task:** owner runs `RELEASE_0.2.0_TEST.md`; in parallel Claude may do FM-1's FR-23 test, which needs no decision. Update this section after every task.
+**Active milestone: FM-0** (verification of `v2.0.0`). **Mode: documentation only** (owner, 2026-10-19). Blockers: owner's test results; D-VERSION; D-SHORTCUT-DEFAULT. **Single next task:** owner sends the `v2.0.0` test results; Claude then records them in PROJECT_STATUS §8 and drafts FR-37 and FR-38 for owner approval. Update this section after every task.
 
 ## 11. Documentation update protocol (mandatory)
 
@@ -320,6 +335,9 @@ Prefer existing plugins and crates over new dependencies; `keyring` crate for FR
 | ID | Decision | Blocks |
 |---|---|---|
 | D-NAME | Final product name (stays undecided; no renames) | FR-34 |
+| D-VERSION | Source version 0.2.0 vs owner's `v2.0.0` tag | FM-0, FM-2 |
+| D-SHORTCUT-DEFAULT | Confirm that the new master switch is **off by default** for existing installs too (owner said so; this changes current behaviour) | FR-37 |
+| D-MEETINGS | Meetings redesign: owner to describe what does not make sense | FR-38 (later phase) |
 | D-ORDER | Merge FM-order with the owner's ROADMAP order; where Project Spaces goes | FM-3+ |
 | D-BACKEND | May any server exist (accounts, telemetry, referrals, gallery)? | FM-9, 10 |
 | D-AI | U12 provider; Ollama as the local default | FM-5 |

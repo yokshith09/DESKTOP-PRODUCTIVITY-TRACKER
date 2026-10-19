@@ -5,6 +5,8 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Docs (2026-10-19): owner's `v2.0.0` release recorded; feature document extended with FR-37 (keyboard-shortcut master switch, off by default; currently shortcuts are on by default) and FR-38 (Meetings redesign, deferred). Branch cleanup: `main` is the only branch to keep. Code signing on hold. No code changed.
+
 - Docs: added `FEATURE_ROADMAP.md` (audit of the code and tests, full requested-feature inventory FR-01…FR-36, milestones FM-0…FM-12, test matrix, release gates) and `docs/features/FR-requested-features.md` (one 13-point spec per feature). No code changed; no feature was built. Corrected stale test counts in PROJECT_STATUS (376 Rust, 111 frontend).
 
 - Added: **Privacy radar** panel on Time › Sites (U16 option d, no request tracking): which visited sites are known ad/tracking companies, time on them, and sites by category. Sites carry an `is_tracker` flag (new field on `DomainUsage`) and show a "Known tracker" tag in the list. Wording says "not flagged", never "clean". **Unverified** with real browsing.

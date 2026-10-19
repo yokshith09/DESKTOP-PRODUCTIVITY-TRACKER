@@ -56,6 +56,8 @@ None of these block the roadmap document itself, already updated in `ROADMAP.md`
 
 ### Owner decisions (from chat)
 
+- **2026-10-19 (owner):** keep all existing features and add the new ones. Keyboard shortcuts are **off by default**; users enable them with a button (FR-37; default for existing installs to be confirmed, D-SHORTCUT-DEFAULT). Keep one Git branch, `main`; the other branch is removed. Code signing **on hold**. Meetings does not make sense to the owner and is redesigned in a later phase (FR-38). Only the feature document and current-state docs for now. Version tag `v2.0.0` pushed, tagged and tested by the owner (see PROJECT_STATUS header; source version still 0.2.0, D-VERSION).
+
 | Date | Decision | Where it shows |
 |------|----------|----------------|
 | 2026-10-03 | PRD §9 D-1 … D-10 approved; documents D0–D7 locked | PRD, `desktop-pet-docs/README.md` |

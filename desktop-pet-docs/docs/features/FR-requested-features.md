@@ -1611,3 +1611,87 @@ Every feature has the same 13 sections: 1 metadata · 2 user story · 3 behaviou
 **13 Dependencies / exclusions** — Depends on: owner certs. Excludes: Silent forced updates.
 
 ---
+
+## FR-37 — Keyboard-shortcut master switch (off by default)
+
+**1 Metadata** — Group: Utilities · Status: **Planned** · Milestone: FM-1 · Effort: S · Decision state: owner-stated default (off); confirm for existing installs (D-SHORTCUT-DEFAULT) · Origin: explicitly requested by owner (2026-10-19) · Evidence: `src-tauri/src/shortcuts.rs` registers global shortcuts at startup with no master switch; only `shortcuts.global_open` and `shortcuts.global_new_note` are settable (`crates/loaf-core/src/settings.rs`).
+
+**2 User story** — As a user I want no system-wide keys taken by Loaf until I choose to turn them on.
+
+**3 Behaviour / workflow** — One setting, `shortcuts.enabled`, default `false`. Settings › Shortcuts shows an Enable / Disable button and a status line. When off, no global shortcut is registered and in-app shortcuts are inactive. When on, the configured keys register immediately; a key another app owns is skipped with the existing log warning.
+
+**4 Plain language** — Shortcuts are off until you turn them on.
+
+**5 Technical design** — New key in `loaf-core` settings (`shortcuts.enabled`, bool, default false, validated). `shortcuts::start` registers nothing when it is false and re-registers on change (the existing `register_all` path). In-app shortcuts (`src/hooks/useShortcuts.ts`) read the same flag through `src/ipc/settings.ts`. Mock shell (`src/ipc/mock.ts`) mirrors the default.
+
+**6 Choices and trade-offs** — A single master switch versus per-key switches. Chosen: one master switch, because the owner asked for one button; per-key rebinding stays as it is. Changing the default alters current behaviour for installed copies, so it needs owner confirmation (D-SHORTCUT-DEFAULT).
+
+**7 Ordered tasks**
+1. Confirm D-SHORTCUT-DEFAULT with the owner.
+2. Add `shortcuts.enabled` (default false) to core settings; run `pnpm gen:types`.
+3. Gate registration in `src-tauri/src/shortcuts.rs`.
+4. Gate in-app shortcuts in `src/hooks/useShortcuts.ts`.
+5. Enable / Disable button and status in `SettingsPage` / shortcuts settings.
+6. Mock shell default.
+
+**8 Tests**
+- T-37-01 · Unit · no shortcut registered when the switch is off (`cargo test --workspace`) · missing
+- T-37-02 · Component · button toggles state and persists across restart (`pnpm test`) · missing
+- T-37-03 · Manual-Win · Ctrl+Shift shortcut works only after enabling · missing
+
+**9 Edge cases** — Switch changed while the app is in the tray; another app already owns a key; settings written by an older version without the key.
+
+**10 Acceptance / DoD** — Fresh install registers zero global shortcuts (test); enabling registers the configured keys (test); disabling unregisters all (test); Windows manual check recorded before Complete. Plus docs in 12 updated in the same change.
+
+**11 Checklist**
+- [ ] D-SHORTCUT-DEFAULT confirmed
+- [ ] Core setting and default
+- [ ] Global registration gated
+- [ ] In-app shortcuts gated
+- [ ] Enable / Disable button
+- [ ] Mock shell default
+- [ ] T-37-01 to T-37-03 run and recorded
+
+**12 Documentation updates** — This spec and checklist; FEATURE_ROADMAP.md status; PROJECT_STATUS; CHANGELOG (user wording); DECISIONS (the default); settings reference if one exists.
+
+**13 Dependencies / exclusions** — Depends on: existing shortcut code (M2 F1-…; `src-tauri/src/shortcuts.rs`). Excludes: new shortcuts, per-key on/off, changes to key defaults.
+
+---
+
+## FR-38 — Meetings redesign (deferred to a later phase)
+
+**1 Metadata** — Group: Utilities · Status: **Planned (deferred by owner)** · Milestone: FM-13 · Effort: M (unknown until described) · Decision state: Blocked on D-MEETINGS · Origin: owner feedback (2026-10-19): "The Meetings feature does not make sense to me and needs fixing, but this can be addressed in a later phase." · Evidence: built as F1-17…19 (`src/features/meetings/MeetingsPage.tsx`, `MeetingEditor.tsx`, `crates/loaf-core/src/meetings.rs`).
+
+**2 User story** — As a user I want meetings to be quick to record and useful afterwards. The owner has not yet said which part fails.
+
+**3 Behaviour / workflow** — Not defined yet. Current behaviour is documented in `ROADMAP.md` (F1-17…19: create/edit, participants, filters). The redesign will be written after the owner describes the problem.
+
+**4 Plain language** — Meetings is being rethought; nothing changes now.
+
+**5 Technical design** — Not defined. Do not change code before the owner describes the problem.
+
+**6 Choices and trade-offs** — Redesign now versus after the owner's description. Chosen: wait, because the owner asked for a later phase and gave no defect list.
+
+**7 Ordered tasks**
+1. Owner describes what does not make sense (D-MEETINGS).
+2. Walk through the current flow with the owner and log each defect.
+3. Write the redesigned flow here, then get approval.
+4. Only then implement.
+
+**8 Tests** — To be defined after step 3. Manual walkthrough logged as T-38-01 (Manual-Win, missing).
+
+**9 Edge cases** — Not defined yet.
+
+**10 Acceptance / DoD** — Owner approves the written redesign; each agreed defect is closed with a test; Windows check recorded.
+
+**11 Checklist**
+- [ ] Owner description received
+- [ ] Defect list written
+- [ ] Redesign approved
+- [ ] Implemented, tested, documented
+
+**12 Documentation updates** — This spec; ROADMAP M2/F1-17…19 wording; PROJECT_STATUS §4; CHANGELOG when shipped.
+
+**13 Dependencies / exclusions** — Depends on: owner input. Excludes: any change in the current phase.
+
+---
