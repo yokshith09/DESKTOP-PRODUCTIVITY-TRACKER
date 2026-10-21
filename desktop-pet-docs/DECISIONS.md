@@ -56,6 +56,9 @@ None of these block the roadmap document itself, already updated in `ROADMAP.md`
 
 ### Owner decisions (from chat)
 
+- **2026-10-21 (owner), character pipeline (FR-39):** D-UPLOAD **allowed** (personal photos may be uploaded; consent text and local-first processing required). D-FORMAT **approved** as a starting point; the owner says the format will be found by trial and error. D-RIVE **yes, run the one-character trial**. D-CHARS: the owner will supply reference images and Claude designs the built-in characters. Source: `docs/character/CHARACTER_PIPELINE_RESEARCH.md` §10.
+- **2026-10-21 (owner), order of work:** define and complete **all local features and characters first** (including personalised human characters and several built-in characters). **Cloud and AI integration come after**, and the V2 issues the owner will list are fixed before new features.
+
 - **2026-10-19 (owner):** keep all existing features and add the new ones. Keyboard shortcuts are **off by default**; users enable them with a button (FR-37; default for existing installs to be confirmed, D-SHORTCUT-DEFAULT). Keep one Git branch, `main`; the other branch is removed. Code signing **on hold**. Meetings does not make sense to the owner; the owner will define the problem and asked to be asked about it next time Meetings comes up (FR-38, D-MEETINGS). Shortcuts off by default "in the coming versions" (FR-37). Source version stays 0.2.0 (D-VERSION, owner: "leave it"); tag `v2.0.0` is the owner's label. Only the feature document and current-state docs for now.
 
 | Date | Decision | Where it shows |

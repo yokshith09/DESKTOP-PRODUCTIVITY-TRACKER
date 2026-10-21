@@ -408,7 +408,18 @@ Non-square images; transparent-background failures; very small or very large sou
 
 ---
 
-## 10. Unresolved decisions (owner)
+## 10. Decisions (owner, 2026-10-21) and open items
+
+| ID | Decision |
+|---|---|
+| D-UPLOAD | **Allowed.** Consent text and local-first processing required |
+| D-FORMAT | **Approved as a starting point; find the format by trial and error** |
+| D-RIVE | **Yes, run the one-character trial** |
+| D-CHARS | **Owner supplies reference images; Claude designs the built-in characters** |
+
+Still open: **D-GEN** (image generator for personalised characters: local, cloud or none), **D-LICENCE** (acceptance of sources; Sprite Pet Skill on hold).
+
+## 10a. Earlier list of unresolved decisions (kept for history)
 
 | ID | Decision | Why it matters |
 |---|---|---|

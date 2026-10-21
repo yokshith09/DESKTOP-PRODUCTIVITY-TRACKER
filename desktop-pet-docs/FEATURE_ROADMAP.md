@@ -101,6 +101,8 @@ Legend: **Requested** = in the owner's list; **Technical requirement (TR)** = de
 
 ## 4. Release scope and phases
 
+**Order decided by the owner, 2026-10-21:** (1) fix the V2 issues the owner will list; (2) define and complete **all local features and characters**; (3) only then cloud and AI integration (FM-9 to FM-12 move after local completion). Cloud-dependent features stay Blocked until then.
+
 | Phase | Goal | Milestones | Exclusions | Exit criteria |
 |---|---|---|---|---|
 | A Stabilise | 0.2.0 verified, dashboard correct, safe updates | FM-0, FM-1, FM-2 | New features | Windows checklist passes; signed build; updater test |
@@ -336,6 +338,10 @@ Prefer existing plugins and crates over new dependencies; `keyring` crate for FR
 | ID | Decision | Blocks |
 |---|---|---|
 | D-NAME | Final product name (stays undecided; no renames) | FR-34 |
+| D-UPLOAD | **Decided 2026-10-21: allowed.** Consent text and local-first processing required (FR-02, FR-39) | closed |
+| D-FORMAT | **Approved 2026-10-21 as a starting point**; format to be found by trial and error (FR-39) | open (iterative) |
+| D-RIVE | **Decided 2026-10-21: run the one-character Rive trial** (FR-39 §3.3) | open (trial) |
+| D-CHARS | **Decided 2026-10-21: owner supplies reference images; Claude designs the built-in characters** | open (inputs) |
 | D-VERSION | **Decided 2026-10-19: keep source version 0.2.0** (owner: "leave it"). Tag `v2.0.0` stays as the owner's label | closed |
 | D-SHORTCUT-DEFAULT | **Owner, 2026-10-19: off by default "in the coming versions".** Open detail: does this also apply to existing installs on upgrade? | FR-37 |
 | D-MEETINGS | **Owner will define it. Owner asked to be asked about it next time Meetings comes up.** Do not start | FR-38 (later phase) |
