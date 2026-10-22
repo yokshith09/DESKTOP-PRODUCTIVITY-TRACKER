@@ -12,15 +12,15 @@ export const CHARACTER_POSES = ["idle", "type", "wait", "cheer", "sleep"] as con
 export type CharacterPose = (typeof CHARACTER_POSES)[number];
 export interface CharacterProps { pose?: CharacterPose; animated?: boolean; className?: string }
 
-type Url = (n: string) => string;
+export type Url = (n: string) => string;
 
-function useIds() {
+export function useIds() {
   const u = useId().replace(/:/g, "");
   return { id: (n: string) => `${n}-${u}`, url: (n: string) => `url(#${n}-${u})` };
 }
 
 /** Gradients and filters every character uses. `a` light, `b` mid, `c` dark; `rim` is the bounce light. */
-function Defs({ id, a, b, c, rim = "#BFE3FF" }: { id: (n: string) => string; a: string; b: string; c: string; rim?: string }) {
+export function Defs({ id, a, b, c, rim = "#BFE3FF" }: { id: (n: string) => string; a: string; b: string; c: string; rim?: string }) {
   return (
     <defs>
       <radialGradient id={id("body")} cx="36%" cy="28%" r="80%" fx="30%" fy="22%">
@@ -45,7 +45,7 @@ function Defs({ id, a, b, c, rim = "#BFE3FF" }: { id: (n: string) => string; a: 
 }
 
 /** One lit volume: the same shape drawn with base colour, core shadow and rim light. */
-function Vol({ url, shape, className, transform }: { url: Url; shape: (fill: string) => ReactNode; className?: string | undefined; transform?: string | undefined }) {
+export function Vol({ url, shape, className, transform }: { url: Url; shape: (fill: string) => ReactNode; className?: string | undefined; transform?: string | undefined }) {
   return (
     <g className={className} transform={transform}>
       {shape(url("body"))}
@@ -56,17 +56,17 @@ function Vol({ url, shape, className, transform }: { url: Url; shape: (fill: str
 }
 
 /** A soft white glint where the key light hits. */
-function Spec({ url, x, y, rx, ry, r = -20 }: { url: Url; x: number; y: number; rx: number; ry: number; r?: number }) {
+export function Spec({ url, x, y, rx, ry, r = -20 }: { url: Url; x: number; y: number; rx: number; ry: number; r?: number }) {
   return <ellipse cx={x} cy={y} rx={rx} ry={ry} fill={url("spec")} transform={`rotate(${r} ${x} ${y})`} />;
 }
 
 /** Contact shadow under a part where it meets another (ambient occlusion). */
-function AO({ url, x, y, rx, ry }: { url: Url; x: number; y: number; rx: number; ry: number }) {
+export function AO({ url, x, y, rx, ry }: { url: Url; x: number; y: number; rx: number; ry: number }) {
   return <ellipse cx={x} cy={y} rx={rx} ry={ry} fill={url("ao")} />;
 }
 
 /** Two-layer floor shadow: a tight dark core and a wide soft spread. */
-function Shadow({ url, w = 56, y = 189 }: { url: Url; w?: number; y?: number }) {
+export function Shadow({ url, w = 56, y = 189 }: { url: Url; w?: number; y?: number }) {
   return (
     <g>
       <ellipse cx="100" cy={y} rx={w} ry="8" fill="#000" opacity=".16" filter={url("soft")} />
@@ -94,7 +94,7 @@ function Eyes({ url, pose, l, r, y, size = 8, color = "#1a1210" }: { url: Url; p
   );
 }
 
-function Cheeks({ url, l, r, y, w = 10 }: { url: Url; l: number; r: number; y: number; w?: number }) {
+export function Cheeks({ url, l, r, y, w = 10 }: { url: Url; l: number; r: number; y: number; w?: number }) {
   return <g><ellipse cx={l} cy={y} rx={w} ry={w * 0.6} fill={url("blush")} /><ellipse cx={r} cy={y} rx={w} ry={w * 0.6} fill={url("blush")} /></g>;
 }
 

@@ -3,7 +3,9 @@ import { Button } from "@/components/ui/button";
 import { PageHeader, Panel } from "@/features/shell/PageHeader";
 import { BEAR_POSES, Bear, type BearPose } from "@/features/shell/Bear";
 import { BACK_TURN_SHAKE, playEmote, type EmoteRun } from "@/pet/emotes";
-import { CHARACTERS, CHARACTER_POSES } from "./Characters";
+import { CHARACTERS, CHARACTER_POSES, type CharacterPose } from "./Characters";
+import { TURNED_VIEWS } from "./CharacterViews";
+import type { TurnedPose } from "@/features/shell/BearViews";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -17,6 +19,42 @@ const POSE_LABELS: Record<BearPose, string> = {
   catch: "Task added", worried: "Worried", ring: "Reminder", toss: "Task deleted",
   turn: "Three-quarter view", back: "Back view", back_look: "Looking back",
 };
+
+/** One built-in character with its own back-turn shake preview (personal-photo characters never get one). */
+function CharacterCard({ id, name, what, Component }: { id: keyof typeof TURNED_VIEWS; name: string; what: string; Component: (typeof CHARACTERS)[number]["Component"] }) {
+  const [view, setView] = useState<TurnedPose | null>(null);
+  const run = useRef<EmoteRun | null>(null);
+  useEffect(() => () => run.current?.cancel(), []);
+  const Turned = TURNED_VIEWS[id];
+  const play = () => {
+    run.current?.cancel();
+    const reduced = typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    run.current = playEmote<"front">(BACK_TURN_SHAKE, { restore: "front", set: (p) => setView(p === "front" ? null : p), reducedMotion: reduced });
+  };
+  return (
+    <Panel className="p-4">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-semibold">{name} <span className="font-normal text-muted-foreground">{what}</span></p>
+        <Button size="sm" variant="secondary" onClick={play}>Play back-turn shake</Button>
+      </div>
+      {view ? (
+        <figure className="mt-2 text-center">
+          <Turned key={view} pose={view} animated className="mx-auto size-20" />
+          <figcaption className="text-[10px] text-muted-foreground">turned</figcaption>
+        </figure>
+      ) : (
+        <div className="mt-2 grid grid-cols-5 gap-1">
+          {CHARACTER_POSES.map((p: CharacterPose) => (
+            <figure key={p} className="text-center">
+              <Component pose={p} animated className="mx-auto size-20" />
+              <figcaption className="text-[10px] text-muted-foreground">{p === "type" ? "typing" : p === "wait" ? "waiting" : p}</figcaption>
+            </figure>
+          ))}
+        </div>
+      )}
+    </Panel>
+  );
+}
 
 function Row({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
@@ -116,17 +154,7 @@ export function CharacterPage() {
         <p className="mt-0.5 text-xs text-muted-foreground">Coming in a later version. Each one types along with you, cheers when you finish, and naps when you rest.</p>
         <div className="mt-3 grid gap-3 lg:grid-cols-2">
           {CHARACTERS.map(({ key, name, what, Component }) => (
-            <Panel key={key} className="p-4">
-              <p className="text-sm font-semibold">{name} <span className="font-normal text-muted-foreground">{what}</span></p>
-              <div className="mt-2 grid grid-cols-5 gap-1">
-                {CHARACTER_POSES.map((p) => (
-                  <figure key={p} className="text-center">
-                    <Component pose={p} animated className="mx-auto size-20" />
-                    <figcaption className="text-[10px] text-muted-foreground">{p === "type" ? "typing" : p === "wait" ? "waiting" : p}</figcaption>
-                  </figure>
-                ))}
-              </div>
-            </Panel>
+            <CharacterCard key={key} id={key} name={name} what={what} Component={Component} />
           ))}
         </div>
       </section>

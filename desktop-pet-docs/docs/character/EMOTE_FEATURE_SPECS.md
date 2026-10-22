@@ -224,3 +224,7 @@ Decisions of 2026-10-22 (owner):
 - **D-EMOTE-MILESTONE: closed.** Defined in EM-06 (Claude's plan; numbers tunable).
 - **D-EMOTE-ART: partly closed.** Bear back and three-quarter views built. The other two built-in characters still need them; a personal photo character never will.
 - Detailed per-feature docs wait until the character system is consistent and final (owner).
+
+## Addendum 2026-10-22: back-turn shake coverage
+
+Built (Unverified on a real PC): drawn `turn`, `back` and `back_look` views for the bear and for Mochi, Pip, Bolt and Ghosty, played by the same `BACK_TURN_SHAKE` sequence. Personal-photo characters (CH-05, CH-06) are excluded by owner decision: `back_turn_shake` is not offered for them. Not yet wired to the pet window, the right-click Emotes menu or the registry (FM-8b-0/1).

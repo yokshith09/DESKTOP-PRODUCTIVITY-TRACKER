@@ -1,7 +1,7 @@
-import type { BearPose } from "@/features/shell/Bear";
+import type { TurnedPose } from "@/features/shell/BearViews";
 
 /** One beat of an emote: show `pose` for `ms`. */
-export interface EmoteStep { pose: BearPose; ms: number }
+export interface EmoteStep { pose: TurnedPose; ms: number }
 
 /**
  * Back-turn shake (FR-40): turn away, look back over the shoulder, rock the hips, turn
@@ -21,10 +21,10 @@ export const EMOTE_STATIC_MS = 700;
 
 export interface EmoteRun { cancel: () => void }
 
-interface PlayOptions {
+interface PlayOptions<P extends string> {
   /** The pose to go back to when the emote ends or is cancelled. */
-  restore: BearPose;
-  set: (pose: BearPose) => void;
+  restore: P;
+  set: (pose: P | TurnedPose) => void;
   reducedMotion?: boolean;
   onDone?: (completed: boolean) => void;
 }
@@ -34,7 +34,7 @@ interface PlayOptions {
  * one still three-quarter pose. `cancel()` takes a short exit through the three-quarter view,
  * or goes straight back under reduced motion. Calling `cancel()` after the end does nothing.
  */
-export function playEmote(steps: readonly EmoteStep[], { restore, set, reducedMotion = false, onDone }: PlayOptions): EmoteRun {
+export function playEmote<P extends string>(steps: readonly EmoteStep[], { restore, set, reducedMotion = false, onDone }: PlayOptions<P>): EmoteRun {
   let timer: ReturnType<typeof setTimeout> | undefined;
   let finished = false;
 

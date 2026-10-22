@@ -345,3 +345,7 @@ Phase A = prototype (built-in only). Phase B = personal characters that need no 
 CH-07 and CH-01 → CH-02 → CH-03 (bear export first) → CH-04 → CH-08 trial (in parallel with CH-03) → CH-05 (after the upload method is chosen) → CH-06 (phase C).
 
 **Emotes (FR-40)** follow CH-02/CH-03: registry and state machine first, then simple front-view emotes, then the rest. See [EMOTE_FEATURE_SPECS.md](EMOTE_FEATURE_SPECS.md).
+
+## Addendum 2026-10-22: turned views
+
+Mochi, Pip, Bolt and Ghosty each have drawn three-quarter, back and look-back views (`src/features/character/CharacterViews.tsx`), previewed on the Character page (**Unverified**). CH-05 and CH-06 (personal photo) get no back views.
