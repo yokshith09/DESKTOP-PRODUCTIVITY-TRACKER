@@ -90,7 +90,7 @@ Legend: **Requested** = in the owner's list; **Technical requirement (TR)** = de
 | FR-44 | Time tiles resizable and filled | Time | Planned (extends FR-22) | FM-V2 | M | — |
 | FR-45 | Purpose-built date/time picker with presets | UI | Planned | FM-V2 | M | — |
 | FR-46 | Retention and auto-delete (preview, Bin first) | Data | Planned | FM-V2 | M | Q3: Time history + completed tasks |
-| FR-47 | Remove Logs rows from Settings (UI only) | Settings | Planned | FM-V2 | XS | — |
+| FR-47 | Remove Logs rows from Settings (UI only) | Settings | Built, Unverified | FM-V2 | XS | — |
 | FR-48 | Editable pet-window shortcuts, default off | Companion | Planned | FM-V2 | S | — |
 | FR-49 | Character accessories | Companion | Planned | FM-CS | M | Built as OpenPets wardrobe outfits; Q4 moved to FR-49a |
 | FR-50 | Sprite-pack format and Character Studio | Companion | Planned; spec docs/character/CHARACTER_STUDIO_SPEC.md | FM-CS | XL | D-SIZE closed (192x208); packs built, Unverified |
@@ -103,7 +103,7 @@ Legend: **Requested** = in the owner's list; **Technical requirement (TR)** = de
 | FR-57 | Linux build | Platform | Planned; Unverified until run | FM-LIN | M | — |
 | FR-59 | Cursor gaze rows (OpenPets V2 format, 16 look directions) | Companion | Planned | FM-CS | M | — |
 | FR-60 | Drag-and-throw and wander for the pet | Companion | Planned | M6 | M | — |
-| FR-61 | Rename links (V2-16) | Links | Planned | FM-V2 | S | — |
+| FR-61 | Rename links (V2-16) | Links | Built, Unverified | FM-V2 | S | — |
 | FR-62 | Browser tabs on the dashboard: switch and close, no extension (UI Automation) | Time | Built (tabs.rs), Unverified; hidden behind app+site tracking — make findable | FM-V2 | S | — |
 | FR-63 | Import any OpenPets/Codex pet pack | Companion | Partial, Unverified (folder + Codex scan + use as pet) | FM-CS | L | ZIP import to do |
 | FR-64 | Wardrobe: outfits and schedules (replaces FR-49) | Companion | Planned | FM-CS | L | — |

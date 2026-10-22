@@ -254,6 +254,30 @@ describe("Notes screen (against the in-memory shell)", () => {
     expect(await screen.findByRole("button", { name: "Open linear.app" })).toBeTruthy();
   });
 
+  it("a link can be renamed and its address changed (FR-61)", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(await screen.findByRole("button", { name: "Add link" }));
+    await user.type(await screen.findByLabelText("Paste links"), "example.org/docs");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await user.click(await screen.findByRole("button", { name: "Rename example.org" }));
+    // Not a link: refused, nothing changes.
+    await user.clear(screen.getByLabelText("Link address"));
+    await user.type(screen.getByLabelText("Link address"), "not a link");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByText("That isn't a link.")).toBeTruthy();
+    await user.clear(screen.getByLabelText("Link address"));
+    await user.type(screen.getByLabelText("Link address"), "example.org/handbook");
+    await user.clear(screen.getByLabelText("Link name"));
+    await user.type(screen.getByLabelText("Link name"), "Course handbook");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByRole("button", { name: "Open Course handbook" })).toBeTruthy();
+    // Esc cancels an edit.
+    await user.click(screen.getByRole("button", { name: "Rename Course handbook" }));
+    await user.keyboard("{Escape}");
+    expect(await screen.findByRole("button", { name: "Open Course handbook" })).toBeTruthy();
+  });
+
   it("Notes has search and New note, shows Today first, then the next 7 days, Pinned, and the rest", async () => {
     const user = userEvent.setup();
     render(<App />);
@@ -493,14 +517,15 @@ describe("settings (F1-25)", () => {
     await waitFor(async () => expect((await ipc.settingsGetAll())["shortcuts.global_open"]).toBeNull());
   });
 
-  it("shows where data and logs live, and resets settings after a confirmation", async () => {
+  it("shows where data lives, has no log rows (FR-47), and resets settings after a confirmation", async () => {
     const { ipc } = await import("@/ipc");
     const user = userEvent.setup();
     render(<App />);
     await ipc.settingSet("pet.size", "L");
     await goTo(user, /^Settings/);
     expect(await screen.findByText(/loaf\.db$/)).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Open logs folder" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Open logs folder" })).toBeNull();
+    expect(screen.queryByRole("group", { name: "Log detail" })).toBeNull();
     await user.click(screen.getByRole("button", { name: "Reset settings…" }));
     await user.click(screen.getByRole("button", { name: "Reset" }));
     await waitFor(async () => expect((await ipc.settingsGetAll())["pet.size"]).toBe("M"));

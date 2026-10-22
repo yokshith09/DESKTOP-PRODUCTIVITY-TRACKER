@@ -50,10 +50,10 @@ This is the one page that says **what we build, in what order, and when each thi
 | FR-44 | Time tiles resizable, no empty space | Drag-to-resize with grid snap; tiles grow to fill the row | No gaps at any window size | M | Planned |
 | FR-45 | Date/time picker | Presets (Today, Tomorrow, This weekend, Next week, In 3 days), month grid, time list | Used in tasks, reminders, meetings | M | Planned |
 | FR-46 | Auto-delete (Q3) | Per type: Time/activity history and completed tasks; Never / 30 / 90 days / 6 months / 1 year; preview first, goes to Bin | Older data moves to Bin on schedule; notes, meetings, open tasks never touched | M | Planned |
-| FR-47 | Remove Logs rows from Settings | UI only, logging stays | Rows gone | XS | Planned |
+| FR-47 | Remove Logs rows from Settings | UI only, logging stays | Rows gone | XS | **Built, Unverified** |
 | FR-48 | Editable pet-window shortcuts, default off | Record new keys, conflict check | Shortcut changes saved and work | S | Planned |
 | FR-62 | Browser tabs on the dashboard (Q4) — **already built** (Time tab "Open tabs", `tabs.rs`), hidden unless app + website tracking are both on; remaining work: make it findable | List open tabs of Chrome/Edge/Firefox, click to switch, ✕ to close. **No extension**: Windows UI Automation. Off by default, titles never stored | A 1-day spike works on Windows; else reported back | L | Planned, **spike first** |
-| FR-61 | **Rename links (V2-16, new)** | Edit a link's name (and URL) in place from the Links card and Notes | Rename saved and shown everywhere | S | Planned |
+| FR-61 | **Rename links (V2-16, new)** | Edit a link's name (and URL) in place from the Links card and Notes | Rename saved and shown everywhere | S | **Built in the Links card, Unverified** (Notes Links section comes with FR-42) |
 | FR-52 | Meeting action items on Today (Q6 yes) | Converted tasks appear on Today with a "from: <meeting>" chip | Chip shown, click opens the meeting | S | Planned |
 
 **Order inside FM-V2:** FR-47 → FR-61 → FR-42 → FR-41 → FR-43 → FR-52 → FR-45 → FR-44 → FR-46 → FR-48 → FR-62 spike.

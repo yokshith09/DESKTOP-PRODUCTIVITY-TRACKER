@@ -24,6 +24,16 @@ export function useShortcuts() {
       return made.length;
     },
     remove: (id: string) => save(shortcuts.filter((s) => s.id !== id)),
+    /**
+     * Rename a link and optionally change its address (FR-61). Returns false, and changes
+     * nothing, when the address is not a link. An empty name falls back to the site name.
+     */
+    rename: async (id: string, name: string, url: string) => {
+      const [link] = parseLinks(url.trim());
+      if (!link) return false;
+      await save(shortcuts.map((s) => (s.id === id ? { ...s, url: link.url, label: name.trim().slice(0, 40) || link.label } : s)));
+      return true;
+    },
     open: async (url: string) => {
       try {
         await ipc.openUrl(url);

@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { errorMessage, ipc } from "@/ipc";
-import { useQuery } from "@tanstack/react-query";
 import { GLOBAL_SHORTCUTS, PET_SHORTCUT } from "./shortcuts";
 import { Keys, ShortcutRow } from "./ShortcutRow";
 import { useSetting } from "@/hooks/useTheme";
@@ -34,12 +33,10 @@ export function SettingsPage() {
   const [petOpacity, setPetOpacity] = useSetting("pet.opacity");
   const [exclText, setExclText] = useState<string | null>(null);
   const [confirm, setConfirm] = useState(false);
-  const [logLevel, setLogLevel] = useSetting("advanced.log_level");
   const [openGlobal] = useSetting("shortcuts.global_open");
   const [noteGlobal] = useSetting("shortcuts.global_new_note");
   const globals: Record<string, string | null | undefined> = { "shortcuts.global_open": openGlobal, "shortcuts.global_new_note": noteGlobal };
   const [confirmReset, setConfirmReset] = useState(false);
-  const { data: paths } = useQuery({ queryKey: ["app-paths"], queryFn: ipc.appPaths });
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <PageHeader title="Settings" />
@@ -156,16 +153,7 @@ export function SettingsPage() {
       </Dialog>
       <DataSection />
       <Section title="Advanced">
-        <Row label="Log detail" hint="How much Loaf writes to its log file. Debug helps when reporting a problem; it never includes your notes or task text.">
-          <ToggleGroup type="single" value={logLevel === "debug" || logLevel === "warn" ? logLevel : "info"} onValueChange={(v) => v && void setLogLevel(v as "debug" | "info" | "warn")} aria-label="Log detail">
-            <ToggleGroupItem value="warn">Low</ToggleGroupItem>
-            <ToggleGroupItem value="info">Normal</ToggleGroupItem>
-            <ToggleGroupItem value="debug">Debug</ToggleGroupItem>
-          </ToggleGroup>
-        </Row>
-        <Row label="Log files" hint={paths?.logs ?? ""}>
-          <Button size="sm" variant="secondary" onClick={() => void ipc.folderOpen("logs").catch((e: unknown) => toast.error(errorMessage(e)))}>Open logs folder</Button>
-        </Row>
+        {/* Log rows removed (FR-47, owner V2-07): logging stays on for bug reports, it is just not shown. */}
         <Row label="Reset settings" hint="Every setting on this page back to its default. Your notes, tasks, meetings and layout stay.">
           {confirmReset ? (
             <div className="flex gap-2">

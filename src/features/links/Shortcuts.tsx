@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { ExternalLink, Link2, Plus, X } from "lucide-react";
+import { ExternalLink, Link2, Pencil, Plus, X } from "lucide-react";
 import { Tile } from "@/features/shell/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useShortcuts } from "@/hooks/useShortcuts";
+import type { Shortcut } from "@/ipc";
 import { parseLinks } from "@/lib/links";
 
 export function AddLink({ onAdd }: { onAdd: (text: string, name?: string) => Promise<number> }) {
@@ -57,9 +58,36 @@ const hostOf = (url: string) => {
   try { return new URL(url).hostname.replace(/^www\./, "") || url; } catch { return url; }
 };
 
+/** Edit a link's name and address in place (FR-61). Enter saves, Esc cancels. */
+function EditLink({ link, onSave, onDone }: { link: Shortcut; onSave: (name: string, url: string) => Promise<boolean>; onDone: () => void }) {
+  const [name, setName] = useState(link.label);
+  const [url, setUrl] = useState(link.url);
+  const [error, setError] = useState(false);
+  const submit = async () => {
+    if (await onSave(name, url)) onDone();
+    else setError(true);
+  };
+  return (
+    <form
+      className="flex w-full flex-col gap-1.5 rounded-md bg-accent/50 p-1.5"
+      onSubmit={(e) => { e.preventDefault(); void submit(); }}
+      onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); onDone(); } }}
+    >
+      <Input autoFocus aria-label="Link name" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} className="h-8 text-[13px]" />
+      <Input aria-label="Link address" value={url} aria-invalid={error} onChange={(e) => { setUrl(e.target.value); setError(false); }} className="h-8 text-[12px]" />
+      {error && <p className="text-[11px] text-destructive">That isn't a link.</p>}
+      <div className="flex justify-end gap-1.5">
+        <Button type="button" size="sm" variant="ghost" onClick={onDone}>Cancel</Button>
+        <Button type="submit" size="sm">Save</Button>
+      </div>
+    </form>
+  );
+}
+
 /** Pasted links as their own card. Click opens the page in the default browser. */
 export function LinksCard({ className }: { className?: string }) {
-  const { shortcuts, add, remove, open } = useShortcuts();
+  const { shortcuts, add, remove, open, rename } = useShortcuts();
+  const [editing, setEditing] = useState<string | null>(null);
   return (
     <Tile className={className} title="Links" count={shortcuts.length} action={<AddLink onAdd={add} />}>
       {shortcuts.length === 0 ? (
@@ -72,7 +100,9 @@ export function LinksCard({ className }: { className?: string }) {
         </div>
       ) : (
         <ul>
-          {shortcuts.map((s) => (
+          {shortcuts.map((s) => editing === s.id ? (
+            <li key={s.id}><EditLink link={s} onSave={(name, url) => rename(s.id, name, url)} onDone={() => setEditing(null)} /></li>
+          ) : (
             <li key={s.id} className="group flex items-center gap-1 rounded-md hover:bg-accent/50">
               <button
                 type="button" onClick={() => void open(s.url)} title={s.url} aria-label={`Open ${s.label}`}
@@ -84,6 +114,12 @@ export function LinksCard({ className }: { className?: string }) {
                   <span className="block truncate text-[11px] text-muted-foreground">{hostOf(s.url)}</span>
                 </span>
                 <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" />
+              </button>
+              <button
+                type="button" onClick={() => setEditing(s.id)} aria-label={`Rename ${s.label}`}
+                className="grid size-7 shrink-0 place-items-center rounded text-muted-foreground opacity-0 outline-none hover:bg-accent hover:text-foreground focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring group-hover:opacity-100"
+              >
+                <Pencil className="size-3.5" />
               </button>
               <button
                 type="button" onClick={() => void remove(s.id)} aria-label={`Remove ${s.label}`}
