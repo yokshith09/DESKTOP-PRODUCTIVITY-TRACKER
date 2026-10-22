@@ -1,6 +1,6 @@
 //! Pet library (FR-63): import Codex / OpenPets pet packs and list them. Thin: the checks are in
 //! `loaf_core::pets`. Loaf's own copies live in `<data>/pets`; packs installed by Codex or the
-//! Petdex CLI are read in place from `~/.codex/pets`. Unverified on a real Windows or Mac PC.
+//! Petdex CLI are read in place from `~/.codex/pets` and `~/.petdex/pets`. Unverified on a real Windows or Mac PC.
 
 use std::path::PathBuf;
 
@@ -16,18 +16,23 @@ fn loaf_dir(paths: &AppPaths) -> PathBuf {
     paths.data_dir.join("pets")
 }
 
-fn codex_dir(app: &AppHandle) -> Option<PathBuf> {
-    app.path()
-        .home_dir()
-        .ok()
-        .map(|h| h.join(".codex").join("pets"))
+/// Folders other tools install pets into: Codex (`~/.codex/pets`) and the Petdex CLI
+/// (`~/.petdex/pets`). Read in place, never changed.
+fn shared_dirs(app: &AppHandle) -> Vec<PathBuf> {
+    let Ok(home) = app.path().home_dir() else {
+        return Vec::new();
+    };
+    vec![
+        home.join(".codex").join("pets"),
+        home.join(".petdex").join("pets"),
+    ]
 }
 
-/// Every installed pack: Loaf's own first, then Codex's (a Loaf copy wins on the same id).
+/// Every installed pack: Loaf's own first, then Codex's and Petdex's (a Loaf copy wins on the same id).
 fn all(app: &AppHandle, paths: &AppPaths) -> Vec<(PetPack, PathBuf)> {
     let mut found = pets::scan(&loaf_dir(paths), PetSource::Loaf);
-    if let Some(codex) = codex_dir(app) {
-        for (pack, sheet) in pets::scan(&codex, PetSource::Codex) {
+    for dir in shared_dirs(app) {
+        for (pack, sheet) in pets::scan(&dir, PetSource::Codex) {
             if !found.iter().any(|(p, _)| p.id == pack.id) {
                 found.push((pack, sheet));
             }

@@ -43,7 +43,7 @@ describe("pet library", () => {
     const set = vi.spyOn(ipc, "settingSet").mockResolvedValue(null);
     renderLibrary();
     expect(await screen.findByText("Boba")).toBeTruthy();
-    expect(screen.getByText(/From Codex pets/)).toBeTruthy();
+    expect(screen.getByText(/From Codex \/ Petdex/)).toBeTruthy();
     // Codex's own packs can't be removed from Loaf; imported ones can.
     expect(screen.queryByRole("button", { name: "Remove Boba" })).toBeNull();
     expect(screen.getByRole("button", { name: "Remove Pip" })).toBeTruthy();

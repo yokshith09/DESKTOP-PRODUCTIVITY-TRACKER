@@ -21,7 +21,7 @@ function PackCard({ pack, active, onUse, onRemove }: { pack: PetPack; active: bo
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold">{pack.display_name}</p>
         <p className="truncate text-xs text-muted-foreground">
-          {pack.source === "codex" ? "From Codex pets" : "Imported"} · {pack.rows === 11 ? "V2" : "V1"}
+          {pack.source === "codex" ? "From Codex / Petdex" : "Imported"} · {pack.rows === 11 ? "V2" : "V1"}
         </p>
       </div>
       <Button size="sm" variant={active ? "default" : "outline"} aria-pressed={active} onClick={onUse}>
@@ -73,7 +73,7 @@ export function PetLibrary() {
         <div>
           <h2 className="text-[15px] font-semibold">Pet library</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Any Codex or OpenPets pet works here: pets in your <code>.codex/pets</code> folder show up by themselves, or import a pet folder.
+            Any Codex or OpenPets pet works here: pets installed by Codex or Petdex (<code>.codex/pets</code>, <code>.petdex/pets</code>) show up by themselves, or import a pet folder.
           </p>
         </div>
         <Button size="sm" variant="secondary" disabled={busy} onClick={() => void importPack()}>
@@ -95,7 +95,7 @@ export function PetLibrary() {
         ))}
       </div>
       {packs.length === 0 && (
-        <p className="mt-2 text-xs text-muted-foreground">No pets yet. Get one from a Codex pet gallery (for example petdex.dev), unzip it, then import the folder.</p>
+        <p className="mt-2 text-xs text-muted-foreground">No pets yet. Install one with Petdex (for example <code>npx petdex install boba</code>) and it appears here, or unzip a downloaded pet and import the folder.</p>
       )}
     </section>
   );
