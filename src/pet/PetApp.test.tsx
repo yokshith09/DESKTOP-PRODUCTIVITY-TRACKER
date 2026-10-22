@@ -30,6 +30,26 @@ const tap = (el: HTMLElement) => {
 };
 
 describe("desktop pet", () => {
+  it("shows the chosen pet pack instead of the bear (FR-63)", async () => {
+    const all = await ipc.settingsGetAll();
+    vi.spyOn(ipc, "settingsGetAll").mockResolvedValue({ ...all, "pet.pack": "boba" });
+    const sheet = vi.spyOn(ipc, "petsSheet").mockResolvedValue("data:image/webp;base64,AA==");
+    renderPet();
+    const pet = await screen.findByRole("img", { name: /^boba \(/ });
+    expect(sheet).toHaveBeenCalledWith("boba");
+    // The bear's current pose plays as one of the pack's rows (idle, or running while you work).
+    expect(["idle", "running"]).toContain(pet.getAttribute("data-row"));
+    expect(screen.queryByRole("img", { name: /Loaf the bear/ })).toBeNull();
+  });
+
+  it("falls back to the bear when the chosen pack is missing (FR-63)", async () => {
+    const all = await ipc.settingsGetAll();
+    vi.spyOn(ipc, "settingsGetAll").mockResolvedValue({ ...all, "pet.pack": "gone" });
+    vi.spyOn(ipc, "petsSheet").mockRejectedValue({ code: "NOT_FOUND", message: "That pet is not installed." });
+    renderPet();
+    expect(await screen.findByRole("img", { name: /Loaf the bear/ })).toBeTruthy();
+  });
+
   it("hovering shows today's card beside the pet", async () => {
     const hover = vi.spyOn(ipc, "petHover");
     renderPet();

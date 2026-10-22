@@ -5,6 +5,7 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Tests (2026-10-22): desktop pet shows the chosen pack and falls back to the bear; `TESTS_NEW_FEATURES.md` lists every automated test and manual Windows step for FR-63, FR-47, FR-61, FR-42.
 - Added (2026-10-22, FR-42, Unverified): a task can **open its linked note** or **make a new note from itself**; a note lists its **Linked tasks**, each opening the task; the **Links card is in Notes** too (V2-08). Core: task filter by `note_id`.
 - Removed (2026-10-22, FR-47): the Log detail and Log files rows in Settings (logging itself stays on). Added (FR-61): rename a link and change its address in place from the Links card (pencil button; invalid address refused; Esc cancels). Unverified on Windows.
 - Added (2026-10-22, Unverified): **Pet library** (FR-63, first slice) — Character page lists Codex/OpenPets pets found in `~/.codex/pets` and lets you import a pet folder; preview plays the pack; "Use" makes it the desktop pet, with reactions mapped to the OpenPets rows (`loaf_core::pets` checker, `pets_*` commands, `pet.pack` setting, `SpritePet`). Also scans `~/.petdex/pets`. ZIP import not yet. Licence: MIT (`LICENSE`); art CC BY 4.0. Docs: owner answers on blockers, light local-AI options, name suggestions.

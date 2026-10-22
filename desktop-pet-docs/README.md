@@ -19,7 +19,8 @@ desktop-pet-docs/
 ├── CHANGELOG.md              ← what changed
 ├── ROADMAP.md                ← milestone table M0-M13 (detail behind MASTER_PLAN)
 ├── FEATURE_ROADMAP.md        ← every FR-xx in one table, tests, release gates
-├── RELEASE_0.2.0_TEST.md     ← owner's Windows test checklist
+├── RELEASE_0.2.0_TEST.md     ← owner's Windows test checklist (v2.0.0)
+├── TESTS_NEW_FEATURES.md     ← tests for everything built after v2.0.0 (automated + manual)
 └── docs/
     ├── BLOCKERS_AND_OPTIONS.md   ← every blocker, options, recommendation
     ├── V2_ISSUES.md              ← owner's V2 bug list → features
