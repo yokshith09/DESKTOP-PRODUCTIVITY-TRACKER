@@ -46,7 +46,7 @@ A pack is a picture sheet of your pet doing things, plus a small file saying whi
 5. Accessories layers and slots.
 6. Reaction mapping UI.
 7. Import/export.
-8. Real art for the `derived` rows.
+8. ~~Real art for the `derived` rows~~ done 2026-10-22 (jump, sad, review poses).
 
 ## 8. Tests
 Layout (done: `spritePack.test.tsx`); validator rejects wrong size, extra files, non-PNG; renderer steps frames and respects reduced motion; accessory slots save and restore; import is atomic.

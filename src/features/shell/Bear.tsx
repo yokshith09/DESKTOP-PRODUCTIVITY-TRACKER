@@ -1,10 +1,11 @@
 import { useId } from "react";
 import { cn } from "@/lib/utils";
 import { BackLaptop, Pocket } from "@/features/character/Laptop";
+import { Clipboard, Tear } from "@/features/character/SpriteProps";
 import { BearDefs, BearTurned, TURNED_POSES, isTurnedPose } from "./BearViews";
 
 /** Everything the bear can do. Reactions (src/pet/reactions.ts) pick one of these. */
-const FRONT_POSES = ["idle", "wave", "sleep", "work", "type", "wait", "stow", "cheer", "party", "catch", "worried", "ring", "toss"] as const;
+const FRONT_POSES = ["idle", "wave", "sleep", "work", "type", "wait", "stow", "cheer", "party", "catch", "worried", "ring", "toss", "jump", "sad", "review"] as const;
 /** Front poses are what reactions use; the turned views (BearViews.tsx) exist for emotes such as the back-turn shake. */
 export const BEAR_POSES = [...FRONT_POSES, ...TURNED_POSES] as const;
 export type BearPose = (typeof BEAR_POSES)[number];
@@ -13,7 +14,7 @@ type FrontPose = (typeof FRONT_POSES)[number];
 type Eyes = "open" | "happy" | "closed" | "down";
 type Mouth = "smile" | "open" | "worried";
 type Arms = "down" | "wave" | "up" | "hold" | "throw" | "reach";
-type Prop = "laptop" | "card" | "bell" | "ball" | "confetti" | "zzz" | null;
+type Prop = "laptop" | "card" | "bell" | "ball" | "confetti" | "zzz" | "tear" | "clipboard" | null;
 
 interface Look { eyes: Eyes; mouth: Mouth; arms: Arms; prop: Prop; body?: string; brows?: boolean }
 
@@ -34,6 +35,10 @@ const LOOKS: Record<FrontPose, Look> = {
   worried: { eyes: "open", mouth: "worried", arms: "down", prop: null, body: "bear-shake", brows: true },
   ring: { eyes: "happy", mouth: "open", arms: "hold", prop: "bell", body: "bear-breathe" },
   toss: { eyes: "happy", mouth: "smile", arms: "throw", prop: "ball", body: "bear-breathe" },
+  // Sprite-pack poses (FR-50): mid-air jump, the "failed" row, and reading over a clipboard.
+  jump: { eyes: "open", mouth: "open", arms: "up", prop: null, body: "bear-jump" },
+  sad: { eyes: "down", mouth: "worried", arms: "down", prop: "tear", body: "bear-breathe-slow", brows: true },
+  review: { eyes: "down", mouth: "smile", arms: "hold", prop: "clipboard", body: "bear-breathe" },
 };
 
 const CONFETTI = [
@@ -115,6 +120,7 @@ export function Bear({ pose = "idle", animated = false, className, style }: { po
             <circle cx="117" cy="152" r="5" fill="#22C55E" />
           </g>
         )}
+        {look.prop === "clipboard" && <Clipboard y={124} />}
         {look.prop === "bell" && (
           <g className={anim("bear-bell")} style={{ transformOrigin: "100px 120px" }}>
             <path d="M100 120 c-14 0 -18 12 -18 24 l-5 8 h46 l-5 -8 c0 -12 -4 -24 -18 -24 z" fill={url("gold")} />
@@ -215,6 +221,7 @@ export function Bear({ pose = "idle", animated = false, className, style }: { po
           {look.mouth === "worried" && (
             <path d="M100 93 v4 M90 104 q5 -5 10 0 q5 5 10 0" fill="none" stroke="#3A2620" strokeWidth="2.6" strokeLinecap="round" />
           )}
+          {look.prop === "tear" && <Tear x={66} y={82} />}
           {pose === "worried" && (
             <path d="M150 52 q6 10 0 14 q-6 -4 0 -14 z" fill="#93C5FD" stroke="#60A5FA" strokeWidth="1" className={anim("bear-sweat")} />
           )}

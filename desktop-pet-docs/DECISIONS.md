@@ -182,3 +182,19 @@ Source: the owner's V2 testing message. Issues are logged in `docs/V2_ISSUES.md`
 | Guide with a skip option | Credits "Built by QUORBIT TECHNOLOGIES" (FR-51). |
 
 Still open: Q1-Q6 in `docs/V2_ISSUES.md`, D-SIZE (sprite cell size), D-MCP-SHAPE, D-PLUGIN-MODEL, D-LICENCE, AI provider.
+
+## 2026-10-22 (later) — Owner answers Q2, Q3, Q6; auto-chosen items
+
+| Decision | Detail |
+|---|---|
+| Backend: not now | Stay local-only. A written privacy statement comes first, when the backend is actually built. |
+| Q2 (reverses V2-03) | Notifications **do** show above the pet, and emote speech bubbles too. V2-03 becomes "make the pop-ups above the pet work properly", not "remove them". |
+| Q3 auto-delete | Applies to Time/activity history and completed tasks: data the user no longer needs after the days pass. Notes, meetings and open tasks are not auto-deleted. Deletion still goes to the Bin first. |
+| Q6 | Yes: tasks converted from meeting action items appear on Today, labelled with the meeting name. |
+| D-SIZE (auto-chosen) | 192×208 cells, 8×9 atlas: keeps compatibility with the hatch-pet/OpenPets layout. Revisit only if a real OpenPets pack proves different. |
+| D-LICENCE (auto-chosen) | Built-in pack art: CC BY 4.0 (share and remix with credit to QUORBIT TECHNOLOGIES). Owner may change before the gallery opens. |
+| AI provider (auto-chosen) | Local first: Ollama (MIT licence, runs on the PC, no account, nothing leaves the machine). A bring-your-own cloud key can be added later as opt-in. Note: no GPU is assumed, so small models only and slower answers. |
+| D-MCP-SHAPE, D-PLUGIN-MODEL | **HOLD** (owner). |
+| Sprite rows | All 9 rows now have drawn art; `running-left` is the right-facing art mirrored and re-lit (standard sprite practice). |
+
+Still open: Q1 (toast stack vs bell), Q4 ("tabs opened"), Q5 (confirm the V2-01 link plan).

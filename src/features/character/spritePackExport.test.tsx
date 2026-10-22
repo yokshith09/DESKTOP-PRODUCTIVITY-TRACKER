@@ -7,7 +7,7 @@ import { describe, it } from "vitest";
 import { Bear } from "@/features/shell/Bear";
 import { TURNED_VIEWS } from "./CharacterViews";
 import { CHARACTERS } from "./Characters";
-import { ATLAS_H, ATLAS_W, ROWS, buildManifest, frameTransform } from "./spritePack";
+import { ATLAS_H, ATLAS_W, ROWS, buildManifest, frameTransform, relightForMirror } from "./spritePack";
 
 const TURNED = new Set(["turn", "back", "back_look"]);
 const all = [
@@ -37,7 +37,8 @@ describe.skipIf(!process.env.EXPORT_PACKS)("export sprite packs", () => {
       const cells: string[] = [];
       ROWS.forEach((row, r) => {
         for (let f = 0; f < row.frames; f++) {
-          const inner = art(c.key, row.pose, `${r}-${f}`).replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "");
+          const drawn = art(c.key, row.pose, `${r}-${f}`).replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "");
+          const inner = row.source === "mirrored" ? relightForMirror(drawn) : drawn;
           cells.push(`<g transform="${frameTransform(r, f)}">${inner}</g>`);
         }
       });

@@ -5,6 +5,7 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Added (2026-10-22, Unverified): drawn sprite poses `jump`, `sad` and `review` for Loaf, Mochi, Pip, Bolt and Ghosty (clipboard, tear, sad brows); the jumping, failed and review rows now use them, running-left is mirrored and re-lit; packs regenerated. Docs: owner answers Q2, Q3, Q6 and auto-chosen D-SIZE, D-LICENCE, AI provider.
 - Added (2026-10-22, Unverified): sprite-pack layout (`spritePack.ts`, tests), an opt-in pack exporter and `scripts/svg-to-png.mjs`, and generated packs for Loaf, Mochi, Pip, Bolt, Ghosty under `packs/` (8x9 atlas of 192x208 cells; rows with no drawn art are marked `derived`). Not used by the app yet.
 - Docs (2026-10-22): V2 issue log (`docs/V2_ISSUES.md`), specs FR-41..FR-58 (`docs/features/FR-v2-features.md`), owner decisions recorded, student-first delivery order approved in ROADMAP.md; no code changed.
 - Docs (2026-10-22): OpenPets competitor audit and project state report with a proposed student-first order; no code changed.

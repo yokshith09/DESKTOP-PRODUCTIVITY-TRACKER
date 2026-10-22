@@ -25,7 +25,7 @@
       "name": "running-left",
       "frames": 8,
       "pose": "turn",
-      "source": "derived"
+      "source": "mirrored"
     },
     {
       "name": "waving",
@@ -36,14 +36,14 @@
     {
       "name": "jumping",
       "frames": 5,
-      "pose": "cheer",
-      "source": "derived"
+      "pose": "jump",
+      "source": "drawn"
     },
     {
       "name": "failed",
       "frames": 8,
-      "pose": "idle",
-      "source": "derived"
+      "pose": "sad",
+      "source": "drawn"
     },
     {
       "name": "waiting",
@@ -60,10 +60,10 @@
     {
       "name": "review",
       "frames": 6,
-      "pose": "type",
-      "source": "derived"
+      "pose": "review",
+      "source": "drawn"
     }
   ],
-  "license": "Project art, licence undecided (D-LICENCE)",
+  "license": "CC BY 4.0, credit QUORBIT TECHNOLOGIES (auto-chosen 2026-10-22, owner may change)",
   "status": "Unverified"
 }
