@@ -6,6 +6,7 @@ mod ipc;
 mod logs;
 mod notify;
 mod pet;
+mod pets;
 mod shortcuts;
 mod sites;
 mod tabs;
@@ -185,6 +186,10 @@ pub fn run() {
             ipc::domain_set_category,
             ipc::usage_record_domain,
             tabs::pet_open_tabs,
+            pets::pets_list,
+            pets::pets_import,
+            pets::pets_remove,
+            pets::pets_sheet,
             tabs::pet_close_tab,
             ipc::data_export,
             ipc::data_import,

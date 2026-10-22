@@ -52,7 +52,7 @@ This is the one page that says **what we build, in what order, and when each thi
 | FR-46 | Auto-delete (Q3) | Per type: Time/activity history and completed tasks; Never / 30 / 90 days / 6 months / 1 year; preview first, goes to Bin | Older data moves to Bin on schedule; notes, meetings, open tasks never touched | M | Planned |
 | FR-47 | Remove Logs rows from Settings | UI only, logging stays | Rows gone | XS | Planned |
 | FR-48 | Editable pet-window shortcuts, default off | Record new keys, conflict check | Shortcut changes saved and work | S | Planned |
-| FR-62 | Browser tabs on the dashboard (Q4) | List open tabs of Chrome/Edge/Firefox, click to switch, ✕ to close. **No extension**: Windows UI Automation. Off by default, titles never stored | A 1-day spike works on Windows; else reported back | L | Planned, **spike first** |
+| FR-62 | Browser tabs on the dashboard (Q4) — **already built** (Time tab "Open tabs", `tabs.rs`), hidden unless app + website tracking are both on; remaining work: make it findable | List open tabs of Chrome/Edge/Firefox, click to switch, ✕ to close. **No extension**: Windows UI Automation. Off by default, titles never stored | A 1-day spike works on Windows; else reported back | L | Planned, **spike first** |
 | FR-61 | **Rename links (V2-16, new)** | Edit a link's name (and URL) in place from the Links card and Notes | Rename saved and shown everywhere | S | Planned |
 | FR-52 | Meeting action items on Today (Q6 yes) | Converted tasks appear on Today with a "from: <meeting>" chip | Chip shown, click opens the meeting | S | Planned |
 
@@ -100,7 +100,7 @@ Tour of each tab on first run, skippable at any step; Guide page in Settings; cr
 | Studio preview | Row picker plays each row at its real timing | All 9 rows play | Planned |
 | Accessories as **wardrobe outfits** (FR-49) | Hat, glasses, scarf, bow, headphones drawn per character; saved as OpenPets `wardrobe` outfits with optional schedule (e.g. scarf in winter) | Outfit switches live and by schedule | Planned |
 | Cursor gaze (FR-59) | V2 format: 2 extra rows, 16 look directions | Pet eyes follow the cursor | Planned |
-| Import any OpenPets/Codex pack (FR-63) | ZIP/folder/drag-drop, validated, preview, Codex folder scan | A real OpenPets pack runs in Loaf | Planned |
+| Import any OpenPets/Codex pack (FR-63) | ZIP/folder/drag-drop, validated, preview, Codex folder scan | A real OpenPets pack runs in Loaf | **Partial, Unverified**: folder import, `~/.codex/pets` scan, preview, use as pet built; ZIP and drag-drop to do |
 | Wardrobe with schedules (FR-64) | Outfits incl. graduation cap, pajamas; time/day/date rules | Outfit changes on schedule; loads in OpenPets | Planned |
 | Pet gallery (FR-66) | Static catalog on **GitHub Pages** (owner-approved), install with one click, hash-checked | Install works; no request until opened | Planned |
 | Export pack | Export the current character (+ outfits) as a pack ZIP | ZIP passes OpenPets validation | Planned |
@@ -163,16 +163,14 @@ FM-BE accounts/uploads (FR-56) · FM-PLUG plugins (FR-55, FR-77 SDK) · FR-76 co
 | Open | Blocks | Recommended way out |
 |---|---|---|
 | Windows test of v2.0.0 | P0 → Complete | Owner runs RELEASE_0.2.0_TEST.md |
-| AI provider | P6 | Hybrid: local Ollama + optional own key; 1-day speed spike |
-| Code signing | installers, plugins | Open-source → SignPath (free); else Azure Trusted Signing via QUORBIT |
-| D-PLUGIN-MODEL | FR-55, FR-77 | Declarative (JSON-only) plugins first |
-| D-MCP-SHAPE | FR-54, FR-76 | stdio + named pipe + 3 tools (OpenPets shape) |
-| Backend + privacy statement | P7 only | Not needed until P7 |
+| AI runtime | P6 | Local (llama.cpp sidecar + small Apache model, Ollama if present) + BYOK; we never pay; 1-day spike |
+| Code signing | installers | **Open source (decided)** → apply to SignPath Foundation once the repo is public |
+| Backend | P7 only | Closed for now (owner) |
 | Personal-photo characters | FR-80 | "Draw-your-own from parts" first; photos after AI |
 | Product name | FR-34 | Owner gives 5-10 names; we check domains/trademarks |
 | FR-62 tabs spike | FR-62 | Us, day 1 of build |
 
-Closed 2026-10-22: gallery on GitHub Pages · Hindi + Telugu first · role profiles (FR-83) · Q1 toast stack · Q2 bubbles above pet stay · Q3 auto-delete Time + completed tasks · Q4 browser tabs on dashboard · Q5 link plan · Q6 meeting tasks on Today · D-SIZE 192×208 (confirmed by OpenPets source) · D-LICENCE CC BY 4.0 · student-first order.
+Closed 2026-10-22: open source (MIT) · plugins = art packs only · MCP shape approved · gallery on GitHub Pages · Hindi + Telugu first · role profiles (FR-83) · Q1 toast stack · Q2 bubbles above pet stay · Q3 auto-delete Time + completed tasks · Q4 browser tabs on dashboard · Q5 link plan · Q6 meeting tasks on Today · D-SIZE 192×208 (confirmed by OpenPets source) · D-LICENCE CC BY 4.0 · student-first order.
 
 ---
 

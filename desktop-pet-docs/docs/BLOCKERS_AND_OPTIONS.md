@@ -1,5 +1,7 @@
 # Blockers — options to unblock each one (2026-10-22)
 
+> **Owner answers (2026-10-22):** open source → SignPath route · AI: local + BYOK, never paid by us, wants lighter than Ollama · plugins = art packs only · MCP shape approved · backend closed · Windows: owner releases a build and tests · product name: suggestions below.
+
 Every remaining blocker, the realistic ways out, a recommendation, and the **one action** that unblocks it. Tags: [Certain] checked fact · [Likely] strong inference · [Guessing] needs checking before you rely on it.
 
 | # | Blocker | Blocks | Who acts | Recommended way out | Unblocking action |
@@ -31,7 +33,21 @@ Nothing can be called Complete without it (project rule).
 | C. We host the AI | We pay per user | Data goes to us | Fast | L + backend + billing |
 | D. **Hybrid A + B** | Free by default | Local by default, cloud only if the user adds a key | Fast when keyed | M |
 
-**Recommendation: D.** Matches local-first, costs us nothing, works for students without money. **Unblock:** let us do a 1-day spike measuring Ollama on your PC (task-from-sentence and note summary, timed). If it's too slow, B alone.
+**Lighter local options than Ollama** (owner asked):
+
+| Runtime | Size | How it ships | Licence | Notes |
+|---|---|---|---|---|
+| **llama.cpp server** (`llama-server`) | [Likely] ~5-20 MB binary | Bundled as a Tauri sidecar, started only while AI is used | MIT | Same engine Ollama uses, without Ollama's service; OpenAI-compatible API |
+| llamafile | model + runtime in one file | Download on demand | Apache-2.0 | Easiest for users; big single file |
+| mistral.rs | Rust crate, in-process | Compiled into Loaf | MIT | No second process; adds build time and binary size |
+| Candle (Hugging Face) | Rust crate | Compiled in | MIT/Apache | Lowest level, most work |
+| Ollama | separate app, [Likely] hundreds of MB | User installs | MIT | Detect it if already installed |
+
+**Models that run on a normal CPU** (downloaded on first use, never bundled): Qwen2.5 0.5B / 1.5B (Apache-2.0), SmolLM2 360M / 1.7B (Apache-2.0), Phi-3.5-mini 3.8B (MIT). [Likely] 1-1.5B models at 4-bit are ~1 GB and answer in a few seconds on a laptop CPU. Avoid models with non-open licences for a default.
+
+**Recommendation now:** llama.cpp sidecar + Qwen2.5 1.5B (or SmolLM2 1.7B) as the local default; use Ollama if the user already has it; BYOK for OpenAI/Anthropic/Gemini. Spike: time "make a task from this sentence" and "summarise this note" on the owner's PC.
+
+**Earlier recommendation: D.** Matches local-first, costs us nothing, works for students without money. **Unblock:** let us do a 1-day spike measuring Ollama on your PC (task-from-sentence and note summary, timed). If it's too slow, B alone.
 - Voice later (M9): whisper.cpp (MIT) for speech-to-text, Piper (MIT) for speech — both run on CPU. [Likely]
 
 ## 3. Code signing
@@ -72,7 +88,23 @@ Nothing can be called Complete without it (project rule).
 ## 7. Personal-photo characters
 Needs an image model ([Certain] no GPU → cloud) and a privacy review of face photos. **Ways:** (a) cloud AI with explicit consent and no storage, (b) "draw-your-own" in the Studio by picking parts (no photo, no AI — could ship earlier), (c) keep holding. **Recommendation:** (b) as a stepping stone; (a) after #2.
 
-## 8. Product name
+## 8. Product name — suggestions (owner asked for names only)
+Checks still needed before choosing: domain, Microsoft Store, GitHub org, trademark search.
+
+| Name | Why |
+|---|---|
+| **Loaf** (keep) | Short, friendly, already in the code; the bear is a "loaf" |
+| **Studdy** | Study buddy; student-first; pet-like |
+| **Desko** | Desk companion; easy to say in any language |
+| **Pebble Pal** | Small, cute, companion |
+| **Kudo** | Praise when you finish work; short |
+| **Mochi Desk** | Uses a built-in character's name |
+| **Tidy Pet** | Productivity + pet |
+| **Focusling** | Focus + little creature |
+| **Byte Buddy** | Developer flavour; may be taken (Java library "Byte Buddy") — check |
+| **Chotu** | Hindi/Telugu-friendly "little one"; home-market feel |
+
+Old text: 
 **Way:** you give 5-10 candidates → we check: domain (.app/.com), Microsoft Store and app-store names, GitHub org, existing trademarks (India IP office, USPTO, EUIPO search). [Certain] "Loaf" is the working name only.
 
 ## 9. Browser tabs spike (ours)

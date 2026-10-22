@@ -25,6 +25,8 @@ export type { NotePatch } from "./NotePatch";
 export type { NoteSort } from "./NoteSort";
 export type { NoteSummary } from "./NoteSummary";
 export type { OpenTab } from "./OpenTab";
+export type { PetPack } from "./PetPack";
+export type { PetSource } from "./PetSource";
 export type { Priority } from "./Priority";
 export type { Reminder } from "./Reminder";
 export type { ReminderInput } from "./ReminderInput";

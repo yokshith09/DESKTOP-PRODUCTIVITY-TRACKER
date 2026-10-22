@@ -234,3 +234,18 @@ Still open: none of Q1-Q7 except the Q4 spike result.
 - **Role profiles (FR-83):** first run asks Student / Developer / Student who codes / General; each role sets which features start on or off; users can turn anything on; privacy features stay off for every role. Matrix in `docs/features/FR-83-role-profiles.md`.
 - **Planning is closed.** Next phase is building only, in MASTER_PLAN order. Blocker options: `docs/BLOCKERS_AND_OPTIONS.md` (owner to decide: open-source yes/no, AI hybrid spike, plugin model B, MCP shape).
 - Cleanup: removed unused UI code (`separator.tsx`, `tabs.tsx`, `charts/Ring.tsx`); pack PNG previews no longer committed (WebP is the pack file); superseded docs moved to `docs/archive/` (not deleted); docs README has a hierarchy map.
+
+## 2026-10-22 (owner answers on blockers) — open source, AI, plugins, MCP; pet library built
+
+| Decision | Detail |
+|---|---|
+| **Loaf is open source** | Code: MIT (`LICENSE`, copyright QUORBIT TECHNOLOGIES — owner may change the holder). Character art: CC BY 4.0. Unblocks code signing through **SignPath Foundation (free for open source)**; apply once the repo is public. |
+| AI | Local first, **BYOK** kept, **we never pay for AI**. Local runtime: lighter than Ollama preferred — see `docs/BLOCKERS_AND_OPTIONS.md` §2 (llama.cpp sidecar or in-process Rust, small Apache-licensed models). Spike still needed to pick. |
+| **Plugin model** | Plugins = **packs** (art only, no code): characters, wardrobe outfits, activities. Users add them to their library/wardrobe. Closes D-PLUGIN-MODEL. Code plugins (FR-77) not planned. |
+| MCP shape | Approved: stdio + named pipe + per-run token; tools status / react / say. Closes D-MCP-SHAPE. |
+| Backend | Closed for now. |
+| Personal-photo characters | Still on hold (no answer). |
+| Product name | Owner asks for suggestions only (`docs/BLOCKERS_AND_OPTIONS.md` §8). |
+| Windows test | Owner will release a build, install it, then test. |
+| **Codex pet library: built now** | FR-63 first slice: import a pet folder, auto-list `~/.codex/pets` (Petdex/Codex installs), preview, "Use" as the desktop pet; reactions map to OpenPets rows. ZIP import and catalog later. Third-party pets are **not bundled** in Loaf: each pet's licence belongs to its creator. Unverified on Windows. |
+| Finding | Browser tabs on the dashboard (FR-62) already exist (`src-tauri/src/tabs.rs`, Time tab "Open tabs") but only appear when **both** app and website tracking are on. FR-62 reduces to making this visible/understandable. |

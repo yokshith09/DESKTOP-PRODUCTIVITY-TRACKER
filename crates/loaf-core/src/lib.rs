@@ -16,6 +16,7 @@ pub mod links;
 pub mod logging;
 pub mod meetings;
 pub mod notes;
+pub mod pets;
 pub mod reminders;
 pub mod scheduler;
 pub mod settings;

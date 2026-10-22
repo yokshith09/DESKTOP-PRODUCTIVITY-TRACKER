@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { isTauri } from "@tauri-apps/api/core";
 import { Bear, type BearPose } from "@/features/shell/Bear";
+import { ROW_FOR_POSE, SpritePet } from "@/features/character/SpritePet";
 import { useSettings, useTodayTasks } from "@/hooks/useLoaf";
 import { useTheme } from "@/hooks/useTheme";
 import { ipc, onEvent, type TaskRow } from "@/ipc";
@@ -35,6 +36,9 @@ export function PetApp() {
   const { data: settings } = useSettings();
   const { data: openToday = [] } = useTodayTasks();
   const size = SIZES[settings?.["pet.size"] ?? "M"];
+  // A pet pack from the library replaces the bear (FR-63); reactions map to its rows.
+  const packId = settings?.["pet.pack"] ?? null;
+  const { data: sheet } = useQuery({ queryKey: ["pets", "sheet", packId], queryFn: () => ipc.petsSheet(packId ?? ""), enabled: !!packId, staleTime: Infinity, retry: false });
   const opacity = (settings?.["pet.opacity"] ?? 100) / 100;
   const [anchor, setAnchor] = useState<Anchor | null>(null);
   const [panel, setPanel] = useState<Panel>(null);
@@ -216,7 +220,11 @@ export function PetApp() {
     >
       {/* key: a new reaction restarts its animation even when the pose repeats. One key for the
           whole typing sequence, so the laptop comes out once and isn't pulled out again. */}
-      <Bear key={playing ? `${playing.pose}-${playing.bubble}` : typing !== "off" ? "typing" : pose} pose={pose} animated className="pointer-events-none size-full" />
+      {packId && sheet ? (
+        <SpritePet sheet={sheet} row={ROW_FOR_POSE[pose]} size={size} label={`${packId} (${pose})`} className="pointer-events-none mx-auto" />
+      ) : (
+        <Bear key={playing ? `${playing.pose}-${playing.bubble}` : typing !== "off" ? "typing" : pose} pose={pose} animated className="pointer-events-none size-full" />
+      )}
     </button>
   );
 

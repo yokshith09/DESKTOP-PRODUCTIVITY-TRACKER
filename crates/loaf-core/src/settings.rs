@@ -36,6 +36,9 @@ pub enum SettingsKey {
     /// key-press counter (never which key) and, on macOS, the Input Monitoring permission.
     #[serde(rename = "pet.typing")]
     PetTyping,
+    /// The installed pet pack shown instead of the built-in bear (FR-63); null = the bear.
+    #[serde(rename = "pet.pack")]
+    PetPack,
 
     // shortcuts (F1-24 registers these)
     #[serde(rename = "shortcuts.global_open")]
@@ -102,6 +105,7 @@ impl SettingsKey {
             Self::PetOpacity => "pet.opacity",
             Self::PetAlwaysOnTop => "pet.always_on_top",
             Self::PetTyping => "pet.typing",
+            Self::PetPack => "pet.pack",
             Self::ShortcutsGlobalOpen => "shortcuts.global_open",
             Self::ShortcutsGlobalNewNote => "shortcuts.global_new_note",
             Self::ShortcutsGlobalNewTask => "shortcuts.global_new_task",
@@ -123,6 +127,7 @@ impl SettingsKey {
             "pet.opacity" => Some(Self::PetOpacity),
             "pet.always_on_top" => Some(Self::PetAlwaysOnTop),
             "pet.typing" => Some(Self::PetTyping),
+            "pet.pack" => Some(Self::PetPack),
             "shortcuts.global_open" => Some(Self::ShortcutsGlobalOpen),
             "shortcuts.global_new_note" => Some(Self::ShortcutsGlobalNewNote),
             "shortcuts.global_new_task" => Some(Self::ShortcutsGlobalNewTask),
@@ -145,6 +150,7 @@ impl SettingsKey {
             Self::PetOpacity => json!(100),
             Self::PetAlwaysOnTop => json!(true),
             Self::PetTyping => json!(false),
+            Self::PetPack => json!(null),
             Self::ShortcutsGlobalOpen => json!(null),
             Self::ShortcutsGlobalNewNote => json!(null),
             Self::ShortcutsGlobalNewTask => json!(null),
@@ -166,6 +172,15 @@ impl SettingsKey {
             | Self::TrackingSites => {
                 if !value.is_boolean() {
                     return Err(AppError::validation(self.as_str(), "must be a boolean"));
+                }
+            }
+            Self::PetPack => {
+                let ok = value.is_null() || value.as_str().is_some_and(crate::pets::id_is_valid);
+                if !ok {
+                    return Err(AppError::validation(
+                        self.as_str(),
+                        "must be null or a pet id",
+                    ));
                 }
             }
             Self::GeneralTheme => {
@@ -285,6 +300,7 @@ pub fn all_defaults() -> BTreeMap<String, Value> {
         SettingsKey::PetOpacity,
         SettingsKey::PetAlwaysOnTop,
         SettingsKey::PetTyping,
+        SettingsKey::PetPack,
         SettingsKey::ShortcutsGlobalOpen,
         SettingsKey::ShortcutsGlobalNewNote,
         SettingsKey::ShortcutsGlobalNewTask,
@@ -339,7 +355,7 @@ mod tests {
     #[test]
     fn all_defaults_exist() {
         let defaults = all_defaults();
-        assert_eq!(defaults.len(), 15);
+        assert_eq!(defaults.len(), 16);
         assert_eq!(
             defaults["tracking.sites"],
             json!(false),

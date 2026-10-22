@@ -104,8 +104,8 @@ Legend: **Requested** = in the owner's list; **Technical requirement (TR)** = de
 | FR-59 | Cursor gaze rows (OpenPets V2 format, 16 look directions) | Companion | Planned | FM-CS | M | — |
 | FR-60 | Drag-and-throw and wander for the pet | Companion | Planned | M6 | M | — |
 | FR-61 | Rename links (V2-16) | Links | Planned | FM-V2 | S | — |
-| FR-62 | Browser tabs on the dashboard: switch and close, no extension (UI Automation) | Time | Planned, spike first | FM-V2 | L | — |
-| FR-63 | Import any OpenPets/Codex pet pack | Companion | Planned | FM-CS | L | — |
+| FR-62 | Browser tabs on the dashboard: switch and close, no extension (UI Automation) | Time | Built (tabs.rs), Unverified; hidden behind app+site tracking — make findable | FM-V2 | S | — |
+| FR-63 | Import any OpenPets/Codex pet pack | Companion | Partial, Unverified (folder + Codex scan + use as pet) | FM-CS | L | ZIP import to do |
 | FR-64 | Wardrobe: outfits and schedules (replaces FR-49) | Companion | Planned | FM-CS | L | — |
 | FR-65 | Activities (emotes as one-shot animations) | Companion | Planned | M6 | M | — |
 | FR-66 | Pet gallery / catalog | Companion | Planned | FM-CS | L | GitHub Pages (decided) |
@@ -119,7 +119,7 @@ Legend: **Requested** = in the owner's list; **Technical requirement (TR)** = de
 | FR-74 | Calendar reminders (.ics, then Google/Outlook) | Integrations | Planned | M10 | L | — |
 | FR-75 | Talk to your pet (AI chat + voice) | AI | On hold | M5/M9 | XL | AI provider |
 | FR-76 | Coding-agent integration | Developers | On hold | FM-INT | L | D-MCP-SHAPE |
-| FR-77 | Plugin SDK | Platform | On hold | FM-PLUG | XL | D-PLUGIN-MODEL, signing |
+| FR-77 | Plugin SDK (code plugins) | Platform | Not planned — owner: plugins are art packs | — | — | — |
 | FR-78 | LAN mode | Companion | Planned (last) | P5 | L | — |
 | FR-79 | Languages | Shell | Planned | P5 | L | Hindi + Telugu first (decided) |
 | FR-80 | AI Pet Studio | Companion | On hold | FM-CS | XL | AI provider, personal characters |

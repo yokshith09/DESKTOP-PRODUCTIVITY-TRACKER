@@ -132,7 +132,7 @@ export function createMock() {
 
   const defaultSettings = (): Record<string, unknown> => ({
     "general.autostart": false, "general.theme": "dark", "general.font_size": "M",
-    "pet.visible": true, "pet.size": "M", "pet.opacity": 100, "pet.always_on_top": true, "pet.typing": false,
+    "pet.visible": true, "pet.size": "M", "pet.opacity": 100, "pet.always_on_top": true, "pet.typing": false, "pet.pack": null,
     "shortcuts.global_open": null, "shortcuts.global_new_note": null, "shortcuts.global_new_task": null,
     "tracking.apps": true, "tracking.exclude_apps": [], "tracking.sites": false,
     "advanced.log_level": "info",
@@ -283,6 +283,10 @@ export function createMock() {
     usage_app_sessions: (a) => ranges((x) => x.app === a.app && !x.domain, Number(a.from), Number(a.to)),
     usage_domain_sessions: (a) => ranges((x) => x.domain === a.domain, Number(a.from), Number(a.to)),
     tracking_status: () => ({ supported: true, running: settings["tracking.apps"] === true, enabled: settings["tracking.apps"] === true }),
+    pets_list: () => [],
+    pets_import: () => null,
+    pets_remove: () => null,
+    pets_sheet: () => fail("NOT_FOUND", "No pets in the browser preview."),
     pet_open_tabs: () => (settings["tracking.apps"] === true && settings["tracking.sites"] === true ? openTabs : []),
     pet_close_tab: (a) => {
       const before = openTabs.length;
