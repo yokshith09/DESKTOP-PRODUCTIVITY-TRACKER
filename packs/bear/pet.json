@@ -1,0 +1,69 @@
+{
+  "id": "bear",
+  "displayName": "Loaf",
+  "description": "Loaf, the bear",
+  "spritesheetPath": "spritesheet.png",
+  "cell": {
+    "width": 192,
+    "height": 208
+  },
+  "columns": 8,
+  "rows": [
+    {
+      "name": "idle",
+      "frames": 6,
+      "pose": "idle",
+      "source": "drawn"
+    },
+    {
+      "name": "running-right",
+      "frames": 8,
+      "pose": "turn",
+      "source": "drawn"
+    },
+    {
+      "name": "running-left",
+      "frames": 8,
+      "pose": "turn",
+      "source": "derived"
+    },
+    {
+      "name": "waving",
+      "frames": 4,
+      "pose": "cheer",
+      "source": "drawn"
+    },
+    {
+      "name": "jumping",
+      "frames": 5,
+      "pose": "cheer",
+      "source": "derived"
+    },
+    {
+      "name": "failed",
+      "frames": 8,
+      "pose": "idle",
+      "source": "derived"
+    },
+    {
+      "name": "waiting",
+      "frames": 6,
+      "pose": "wait",
+      "source": "drawn"
+    },
+    {
+      "name": "running",
+      "frames": 6,
+      "pose": "type",
+      "source": "drawn"
+    },
+    {
+      "name": "review",
+      "frames": 6,
+      "pose": "type",
+      "source": "derived"
+    }
+  ],
+  "license": "Project art, licence undecided (D-LICENCE)",
+  "status": "Unverified"
+}
