@@ -2,7 +2,7 @@
   "id": "ghosty",
   "displayName": "Ghosty",
   "description": "Ghosty, the ghost",
-  "spritesheetPath": "spritesheet.png",
+  "spritesheetPath": "spritesheet.webp",
   "cell": {
     "width": 192,
     "height": 208

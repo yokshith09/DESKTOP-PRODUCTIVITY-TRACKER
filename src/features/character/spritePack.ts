@@ -87,7 +87,7 @@ export interface PackManifest {
 export function buildManifest(id: string, displayName: string, description: string): PackManifest {
   return {
     id, displayName, description,
-    spritesheetPath: "spritesheet.png",
+    spritesheetPath: "spritesheet.webp",
     cell: { width: CELL_W, height: CELL_H },
     columns: COLS,
     rows: ROWS.map((r) => ({ name: r.name, frames: r.frames, pose: r.pose, source: r.source })),

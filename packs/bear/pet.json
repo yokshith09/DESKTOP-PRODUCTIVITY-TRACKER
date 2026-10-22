@@ -2,7 +2,7 @@
   "id": "bear",
   "displayName": "Loaf",
   "description": "Loaf, the bear",
-  "spritesheetPath": "spritesheet.png",
+  "spritesheetPath": "spritesheet.webp",
   "cell": {
     "width": 192,
     "height": 208

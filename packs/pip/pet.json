@@ -2,7 +2,7 @@
   "id": "pip",
   "displayName": "Pip",
   "description": "Pip, the penguin",
-  "spritesheetPath": "spritesheet.png",
+  "spritesheetPath": "spritesheet.webp",
   "cell": {
     "width": 192,
     "height": 208

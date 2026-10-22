@@ -198,3 +198,16 @@ Still open: Q1-Q6 in `docs/V2_ISSUES.md`, D-SIZE (sprite cell size), D-MCP-SHAPE
 | Sprite rows | All 9 rows now have drawn art; `running-left` is the right-facing art mirrored and re-lit (standard sprite practice). |
 
 Still open: Q1 (toast stack vs bell), Q4 ("tabs opened"), Q5 (confirm the V2-01 link plan).
+
+## 2026-10-22 (evening) — Owner answers Q1, Q4, Q5; AI on hold; OpenPets research
+
+| Decision | Detail |
+|---|---|
+| Q2 confirmed | Notifications and emote bubbles above the pet stay and are fixed (FR-43). |
+| AI provider: HOLD | Supersedes the auto-choice (Ollama) above. M5 and quiz-from-notes stay blocked. |
+| Q1: toast stack | Bottom-right stack, auto-dismiss, action button (FR-41). No bell. |
+| Q5: V2-01 plan confirmed | "Open note" on the task, "Linked tasks" in the note, "Create note from task" (FR-42). |
+| Q4: browser tabs on the dashboard | Show the tabs open in the user's browsers, switch to one, close one, all from the dashboard. **Constraint:** no browser extension (locked). Proposed method: Windows UI Automation reads the tab strip of Chrome, Edge and Firefox, selects and closes tabs through the accessibility tree. Off by default, local only, titles never stored. Risk: breaks when a browser changes its UI; macOS/Linux need separate work. Needs a spike before it is promised. |
+| Pack file format | OpenPets research (below) shows `spritesheet.webp` is the standard; packs now ship `spritesheet.webp` (and a PNG preview), and `pet.json` points at the WebP. |
+
+Still open: none of Q1-Q7 except the Q4 spike result.

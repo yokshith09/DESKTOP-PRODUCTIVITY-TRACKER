@@ -74,3 +74,15 @@ Their positioning: a **companion for people who run AI coding agents**. The pet 
 - Further OpenPets facts (search results and the GitHub page; the site itself was unreachable, so **unconfirmed**): pet bundle = `pet.json` + spritesheet; in-app Pet Gallery plus a web catalog with a submit page; Pet Studio (describe or upload, then it animates); user-configurable reaction mapping; plugin SDK v3 with a sandboxed window, permissions approved at install, network limited to declared hosts; MCP tools `openpets_status`, `openpets_react`, `openpets_say`; macOS, Windows, Linux AppImage; MIT.
 - Owner decisions: backend YES, gallery YES, plugins from the website YES, Linux YES, local MCP YES, sprite packs instead of Rive. Specs: FR-50, FR-54..FR-57; Studio: `../character/CHARACTER_STUDIO_SPEC.md`.
 - Not copying: AI "describe to animate" (waits for AI and the personal-character HOLD).
+
+## Research 2026-10-22 (evening): what the pet format really is
+
+openpets.dev, docs.openpets.dev and openpets.app could not be resolved from this environment (DNS failure); GitHub could. Findings:
+
+- Several unrelated projects use the name "OpenPets"; they share the **Codex Pets** bundle: a folder with `pet.json` and `spritesheet.webp`.
+- [alterhq/openpets](https://github.com/alterhq/openpets) (MIT, macOS): `pet.json` has `id`, `displayName`, `description`, `spritesheetPath`; atlas is 8 columns x 9 rows, width divisible by 8, height by 9. Row order: idle, running-right, running-left, waving, jumping, failed, waiting, running, review — **identical to our `ROWS`**. Pets are found in `~/.codex/pets/`, `~/.config/openpets/pets/` and similar.
+- [X-T-E-R/OpenPet](https://github.com/X-T-E-R/OpenPet) (GPL-3.0, Windows-first Tauri app): its bundled pack is 1536x1872, cells 192x208 — **confirms D-SIZE**. Imports from Petdex, Codex Pets, SpriteYard, Codex Pet Shop by URL, stores locally, CLI/MCP/HTTP control. Closest competitor to Loaf on Windows.
+- The OpenPets docs (via search snippet) list optional `category`, `subcategory`, `sourceUrl`, `xHandle`, and frames of at least 192x208.
+- Not found: per-row frame counts, an official JSON schema, a Character Studio. The "studio" seen elsewhere is a generator/validator site (openpets.app), not an editor.
+
+Effect on Loaf: our layout matches; we switched to WebP. Our extra `pet.json` fields (`cell`, `rows`, `license`, `status`) should be ignored by other apps but this is **Unverified** until a pack is loaded in OpenPet on Windows.

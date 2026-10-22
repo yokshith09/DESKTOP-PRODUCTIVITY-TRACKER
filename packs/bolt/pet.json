@@ -2,7 +2,7 @@
   "id": "bolt",
   "displayName": "Bolt",
   "description": "Bolt, the robot",
-  "spritesheetPath": "spritesheet.png",
+  "spritesheetPath": "spritesheet.webp",
   "cell": {
     "width": 192,
     "height": 208
