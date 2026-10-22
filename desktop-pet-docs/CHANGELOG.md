@@ -5,6 +5,8 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Docs (2026-10-22): Emote and Reactions System specified (FR-40, `docs/character/EMOTE_FEATURE_SPECS.md`): registry, state machine, Emotes menu, eight emotes, fallbacks, accessibility. Feasibility added to the character research (§14): the current bear has no back or three-quarter view, so `back_turn_shake` stays unavailable until art exists. Owner decisions recorded (limited release OK, Peekoo reference, full-image motion later, no GPU). No code changed.
+
 - Docs (2026-10-19): owner's `v2.0.0` release recorded; feature document extended with FR-37 (keyboard-shortcut master switch, off by default; currently shortcuts are on by default) and FR-38 (Meetings redesign, deferred). Branch cleanup: `main` is the only branch to keep. Code signing on hold. No code changed.
 
 - Docs: added `FEATURE_ROADMAP.md` (audit of the code and tests, full requested-feature inventory FR-01…FR-36, milestones FM-0…FM-12, test matrix, release gates) and `docs/features/FR-requested-features.md` (one 13-point spec per feature). No code changed; no feature was built. Corrected stale test counts in PROJECT_STATUS (376 Rust, 111 frontend).

@@ -514,3 +514,37 @@ Still open: **D-GEN** (image generator for personalised characters: local, cloud
 - Verified this session: licence files for BiRefNet (MIT), LivePortrait code (MIT), MediaPipe (Apache-2.0), SAM 2 (Apache-2.0), diffusers (Apache-2.0), Real-ESRGAN (BSD-3-Clause), hatch-pet (Apache-2.0), ComfyUI pipeline (MIT), Rive runtime on npm (MIT); rembg MIT from its README badge.
 - Not verified: all model weight licences; LivePortrait VRAM; SAM 2 VRAM; Live2D and Shimeji licences; any competitor's quality claims.
 - Not run: any model on our machine.
+
+---
+
+## 14. Emote feasibility: back and three-quarter poses (2026-10-22, Planned, nothing built)
+
+Spec: [EMOTE_FEATURE_SPECS.md](EMOTE_FEATURE_SPECS.md). This section answers: can the current art and format play the eight requested emotes, and which route is better?
+
+**Finding 1 [Certain, from reading `src/features/shell/Bear.tsx`]:** the bear is one front-facing inline SVG (`viewBox 0 0 200 200`) with 13 poses (`idle, wave, sleep, work, type, wait, stow, cheer, party, catch, worried, ring, toss`). Arms have a `side: "l"|"r"` helper only. There is **no back view, profile or three-quarter view.** A CSS horizontal flip shows the *front* mirrored, so it must not be used to imitate a turn.
+
+**Finding 2 [Certain, from CH-01]:** the proposed `loaf-character` package can hold any frames per state, so it *can* carry back and three-quarter frames, but needs a manifest `pose_tags` field (not yet defined) and the frames must be drawn. The format does not generate them.
+
+**Finding 3 [Likely]:** a personal character from one photo (CH-05) shows one view; it has no back and no three-quarter pose, so `back_turn_shake` is permanently unavailable there. Do not invent a back from a front photo without a generative model, and generative models are out (no GPU, owner 2026-10-22).
+
+**Per emote:**
+
+| Emote | Front-only sprite sheet | Rive (layered rig) | Verdict |
+|---|---|---|---|
+| `back_turn_shake` | Not possible; needs ~8 turnaround frames per character | A rigged Y-turn is poor in 2D; usually art swaps. Needs back/side art anyway | **Unavailable until art exists** |
+| `chaotic_dance` | Possible with 36–48 frames; looks repetitive | Better: layers move independently, procedural variety | Rive better, sprite acceptable |
+| `tiny_tantrum` | Possible, needs crossed-arms and sit art | Easy with bones/layers | Either |
+| `moonwalk_escape` | Possible with side-feet art; window moves either way | Easy | Either; window-move cost is the same |
+| `dramatic_crying` | Possible with tear overlay | Easy | Either |
+| `smug_taunt` | Possible; needs wink and side walk | Easy | Either |
+| `instant_sleep` | Possible; reuse `sleep` | Easy | Either |
+| `over_the_top_celebration` | Possible | Easy | Either |
+
+**Sprite sheets versus the approved one-character Rive trial (CH-08):**
+- *Sprite sheets* (hatch-pet style, 8×9 atlas of 192×208 cells; or our per-state PNG folders): predictable, tiny runtime, easy to validate, any artist or tool can make them; weak for random, procedural motion; art volume grows linearly (8 emotes × characters × frames).
+- *Rive*: small files, state machine built in, MIT web runtime `@rive-app/canvas` 2.45.0, smooth blends; needs authoring in the Rive editor (free tier, **not open-source**; the runtime is), the Rust-side/Tauri behaviour is **Unverified**, and the trial is not yet run.
+- **Recommendation [Likely]:** do not choose yet. Build the registry and state machine renderer-agnostic (EM-01/02), implement the simple front-view emotes on the sprite player (CH-02), and let the CH-08 trial decide the renderer for `chaotic_dance`. `back_turn_shake` is gated by art, not by the renderer.
+
+**What would settle it:** (1) the CH-08 trial result; (2) the owner's reference images and a turnaround sheet for one character; (3) an owner Windows check of window movement for Moonwalk.
+
+**Owner decisions (2026-10-22) affecting this document:** limited first release of a personal character (few states from one photo, honestly labelled) is accepted; Peekoo is the reference competitor; face motion is not faces-only and may use the full image, built after the character studio has more characters; no GPU. So the Stage 2 LivePortrait/GPU option in §4 and CH-06 is dropped; the CPU-only local-warp path remains.

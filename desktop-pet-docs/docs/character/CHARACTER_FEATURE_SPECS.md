@@ -180,6 +180,8 @@ Phase A = prototype (built-in only). Phase B = personal characters that need no 
 
 ## CH-05 — Personal character from one photo
 
+> **2026-10-22 (owner):** a limited first release (few states from one photo, honestly labelled) is accepted. Peekoo is the reference competitor.
+
 **1 Metadata** — Group: Companion · Status: **Planned** · Milestone: FM-8 · Effort: XL · Decision: upload **allowed** [Decision]; generation method **open** (see research §13 and the upload-method analysis) · Origin: owner request ("upload image → automatic generation → animated preview → approve and save").
 
 **2 User story** — As a user, I upload one photo and get an animated character I can approve and save, without drawing frames or choosing poses.
@@ -222,6 +224,8 @@ Phase A = prototype (built-in only). Phase B = personal characters that need no 
 ---
 
 ## CH-06 — Personal human character (face-aware motion)
+
+> **Revised 2026-10-22 (owner):** motion is **not faces-only**; it may use the whole image. Built **after the character studio has more characters**. **No GPU:** the learned-animator (LivePortrait-style) option is dropped; CPU-only local 2D warp remains. Emotes (FR-40) do not apply to personal characters unless the needed poses exist, see [EMOTE_FEATURE_SPECS.md](EMOTE_FEATURE_SPECS.md).
 
 **1 Metadata** — Group: Companion · Status: **Planned** · Milestone: FM-8 (phase C) · Effort: XL · Decision: [Open] which face-motion method; licence of model weights unverified · Origin: owner request (personalised humans).
 
@@ -337,3 +341,5 @@ Phase A = prototype (built-in only). Phase B = personal characters that need no 
 ## Build order (proposed, for owner approval)
 
 CH-07 and CH-01 → CH-02 → CH-03 (bear export first) → CH-04 → CH-08 trial (in parallel with CH-03) → CH-05 (after the upload method is chosen) → CH-06 (phase C).
+
+**Emotes (FR-40)** follow CH-02/CH-03: registry and state machine first, then simple front-view emotes, then the rest. See [EMOTE_FEATURE_SPECS.md](EMOTE_FEATURE_SPECS.md).
