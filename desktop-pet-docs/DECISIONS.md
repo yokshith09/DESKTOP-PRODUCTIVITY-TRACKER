@@ -211,3 +211,10 @@ Still open: Q1 (toast stack vs bell), Q4 ("tabs opened"), Q5 (confirm the V2-01 
 | Pack file format | OpenPets research (below) shows `spritesheet.webp` is the standard; packs now ship `spritesheet.webp` (and a PNG preview), and `pet.json` points at the WebP. |
 
 Still open: none of Q1-Q7 except the Q4 spike result.
+
+## 2026-10-22 (night) — Master plan; OpenPets source research
+
+- `MASTER_PLAN.md` is the single plan: phases P0-P7, milestones, every feature with "done when". All owner questions Q1-Q6 are closed.
+- OpenPets researched from its source (OpenPetsHQ/openpets 4.1.0, MIT): `docs/competitors/OPENPETS_RESEARCH_2026-10-22.md`. Their site does not resolve from our build environment.
+- Packs: `pet.json` now holds only the four OpenPets fields; our own details moved to `loaf.json` so strict importers do not reject unknown keys.
+- New features: FR-59 cursor gaze rows, FR-60 drag-and-throw and wander, FR-61 rename links (V2-16). Accessories (FR-49) will use the OpenPets `wardrobe` format; emotes export as OpenPets `activities`.

@@ -7,7 +7,7 @@ import { describe, it } from "vitest";
 import { Bear } from "@/features/shell/Bear";
 import { TURNED_VIEWS } from "./CharacterViews";
 import { CHARACTERS } from "./Characters";
-import { ATLAS_H, ATLAS_W, ROWS, buildManifest, frameTransform, relightForMirror } from "./spritePack";
+import { ATLAS_H, ATLAS_W, ROWS, buildLoafInfo, buildPetJson, frameTransform, relightForMirror } from "./spritePack";
 
 const TURNED = new Set(["turn", "back", "back_look"]);
 const all = [
@@ -43,7 +43,8 @@ describe.skipIf(!process.env.EXPORT_PACKS)("export sprite packs", () => {
         }
       });
       writeFileSync(resolve(dir, "atlas.svg"), `<svg xmlns="http://www.w3.org/2000/svg" width="${ATLAS_W}" height="${ATLAS_H}" viewBox="0 0 ${ATLAS_W} ${ATLAS_H}">${cells.join("")}</svg>`);
-      writeFileSync(resolve(dir, "pet.json"), JSON.stringify(buildManifest(c.key, c.name, `${c.name}, ${c.what}`), null, 2) + "\n");
+      writeFileSync(resolve(dir, "pet.json"), JSON.stringify(buildPetJson(c.key, c.name, `${c.name}, ${c.what}`), null, 2) + "\n");
+      writeFileSync(resolve(dir, "loaf.json"), JSON.stringify(buildLoafInfo(), null, 2) + "\n");
     });
   }
 });

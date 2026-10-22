@@ -19,6 +19,7 @@
 | V2-13 | Meetings: what could make it more useful; action items on Today with the meeting named | Action items convert to tasks but the task does not say which meeting. | Source label on the task, plus suggestions in FR-52. | FR-52 | Planned |
 | V2-14 | Project Spaces optional, off by default, appears in the left menu when on | FR-06 is Planned. | Setting "Enable Project Spaces" adds the sidebar item. | FR-53 | Planned |
 | V2-15 | Sprite characters, not Rive; Character Studio like OpenPets | Rive trial blocked; characters are inline SVG. | Sprite-pack format and Studio. | FR-50 | Planned |
+| V2-16 | Link names cannot be edited | Links card only adds and removes | Rename in place (name and URL) | FR-61 | Planned |
 
 ## Open questions for the owner
 

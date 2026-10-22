@@ -5,6 +5,7 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Docs (2026-10-22): `MASTER_PLAN.md` (phases, milestones, features with done-when), OpenPets source research, V2-16 rename links logged. Changed: pack `pet.json` holds only the OpenPets fields; extras in `loaf.json` (Unverified).
 - Changed (2026-10-22, Unverified): packs now ship `spritesheet.webp` (the Codex/OpenPets standard) and `pet.json` points at it; OpenPets format research recorded; owner answers Q1, Q4, Q5; AI provider on hold.
 - Added (2026-10-22, Unverified): drawn sprite poses `jump`, `sad` and `review` for Loaf, Mochi, Pip, Bolt and Ghosty (clipboard, tear, sad brows); the jumping, failed and review rows now use them, running-left is mirrored and re-lit; packs regenerated. Docs: owner answers Q2, Q3, Q6 and auto-chosen D-SIZE, D-LICENCE, AI provider.
 - Added (2026-10-22, Unverified): sprite-pack layout (`spritePack.ts`, tests), an opt-in pack exporter and `scripts/svg-to-png.mjs`, and generated packs for Loaf, Mochi, Pip, Bolt, Ghosty under `packs/` (8x9 atlas of 192x208 cells; rows with no drawn art are marked `derived`). Not used by the app yet.

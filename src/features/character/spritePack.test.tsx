@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { render } from "@testing-library/react";
 import { Bear } from "@/features/shell/Bear";
 import { CHARACTERS, SPRITE_POSES } from "./Characters";
-import { ATLAS_H, ATLAS_W, COLS, ROWS, buildManifest, frameTransform, relightForMirror } from "./spritePack";
+import { ATLAS_H, ATLAS_W, COLS, ROWS, buildManifest, buildPetJson, frameTransform, relightForMirror } from "./spritePack";
 
 describe("sprite pack layout", () => {
   it("is 8 columns x 9 rows of 192x208 cells", () => {
@@ -39,6 +39,13 @@ describe("sprite pack layout", () => {
     expect(out).toContain('fx="70%"');
     expect(out).toContain('cy="28%"');
     expect(out).toContain('x1="1" y1="0" x2="0"');
+  });
+});
+
+describe("pet.json", () => {
+  it("has only the OpenPets fields and points at the WebP", () => {
+    expect(Object.keys(buildPetJson("pip", "Pip", "Pip, the penguin")).sort()).toEqual(["description", "displayName", "id", "spritesheetPath"]);
+    expect(buildPetJson("a", "A", "d").spritesheetPath).toBe("spritesheet.webp");
   });
 });
 

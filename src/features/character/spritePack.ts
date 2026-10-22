@@ -72,11 +72,11 @@ export function relightForMirror(svg: string): string {
 
 const col = (frame: number) => frame;
 
-export interface PackManifest {
-  id: string;
-  displayName: string;
-  description: string;
-  spritesheetPath: string;
+/** `pet.json`: only the fields OpenPets/Codex pets define (docs/pets.md in OpenPetsHQ/openpets). */
+export interface PetJson { id: string; displayName: string; description: string; spritesheetPath: string }
+
+/** `loaf.json`: our own details, kept out of pet.json so strict importers never see unknown keys. */
+export interface LoafPackInfo {
   cell: { width: number; height: number };
   columns: number;
   rows: { name: string; frames: number; pose: string; source: RowSource }[];
@@ -84,14 +84,22 @@ export interface PackManifest {
   status: "Unverified";
 }
 
-export function buildManifest(id: string, displayName: string, description: string): PackManifest {
+export type PackManifest = PetJson & LoafPackInfo;
+
+export function buildPetJson(id: string, displayName: string, description: string): PetJson {
+  return { id, displayName, description, spritesheetPath: "spritesheet.webp" };
+}
+
+export function buildLoafInfo(): LoafPackInfo {
   return {
-    id, displayName, description,
-    spritesheetPath: "spritesheet.webp",
     cell: { width: CELL_W, height: CELL_H },
     columns: COLS,
     rows: ROWS.map((r) => ({ name: r.name, frames: r.frames, pose: r.pose, source: r.source })),
     license: "CC BY 4.0, credit QUORBIT TECHNOLOGIES (auto-chosen 2026-10-22, owner may change)",
     status: "Unverified",
   };
+}
+
+export function buildManifest(id: string, displayName: string, description: string): PackManifest {
+  return { ...buildPetJson(id, displayName, description), ...buildLoafInfo() };
 }

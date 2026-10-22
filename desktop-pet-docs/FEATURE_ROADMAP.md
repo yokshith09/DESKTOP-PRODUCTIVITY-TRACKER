@@ -84,23 +84,27 @@ Legend: **Requested** = in the owner's list; **Technical requirement (TR)** = de
 | FR-38 | Meetings redesign (flow the owner finds confusing) | Utilities | Planned (deferred, later phase) | FM-13 (new, deferred) | M | Blocked: D-MEETINGS (owner will define; ask next time) |
 | FR-39 | Personalised 2D character system: built-in characters, sprite/package format, optional personal character | Companion | Research done; detailed specs CH-01…CH-08 in docs/character/CHARACTER_FEATURE_SPECS.md (Planned); build not started | FM-8 | XL | Open: D-GEN, D-UPLOAD, D-FORMAT, D-SIZE, D-RIVE, D-LICENCE, D-CHARS (see docs/character/CHARACTER_PIPELINE_RESEARCH.md) |
 | FR-40 | Emote and Reactions System: registry, state machine, right-click Emotes menu, 8 emotes (back_turn_shake, chaotic_dance, tiny_tantrum, moonwalk_escape, dramatic_crying, smug_taunt, instant_sleep, over_the_top_celebration), optional double-click/random/favourites, optional contextual reactions (off by default) | Companion | **Planned**; spec docs/character/EMOTE_FEATURE_SPECS.md; nothing built. `back_turn_shake` blocked on back/three-quarter art; focus-complete reaction blocked on FR-05 | FM-8b (proposed, after FM-8) | XL | Open: D-EMOTE-ORDER, D-EMOTE-MILESTONE, D-EMOTE-DOUBLECLICK, D-EMOTE-ART, D-EMOTE-MASTER |
-| FR-41 | Toasts and return-to-dashboard after add/edit | UI | Planned; spec FR-v2-features.md | FM-V2 | M | Open: Q1 |
-| FR-42 | Actionable links: Open note, Linked tasks on a note, Links in Notes, create note from task | Notes/Tasks | Planned | FM-V2 | M | Open: Q5 |
-| FR-43 | No pop-ups above the pet (setting, off by default) | Companion | Planned | FM-V2 | S | Open: Q2 |
+| FR-41 | Toasts and return-to-dashboard after add/edit | UI | Planned; spec FR-v2-features.md | FM-V2 | M | Q1 answered: toast stack |
+| FR-42 | Actionable links: Open note, Linked tasks on a note, Links in Notes, create note from task | Notes/Tasks | Planned | FM-V2 | M | Q5 confirmed |
+| FR-43 | Pop-ups above the pet fixed (owner reversed: they stay, emotes too) | Companion | Planned | FM-V2 | S | Q2 answered |
 | FR-44 | Time tiles resizable and filled | Time | Planned (extends FR-22) | FM-V2 | M | — |
 | FR-45 | Purpose-built date/time picker with presets | UI | Planned | FM-V2 | M | — |
-| FR-46 | Retention and auto-delete (preview, Bin first) | Data | Planned | FM-V2 | M | Open: Q3 |
+| FR-46 | Retention and auto-delete (preview, Bin first) | Data | Planned | FM-V2 | M | Q3: Time history + completed tasks |
 | FR-47 | Remove Logs rows from Settings (UI only) | Settings | Planned | FM-V2 | XS | — |
 | FR-48 | Editable pet-window shortcuts, default off | Companion | Planned | FM-V2 | S | — |
-| FR-49 | Character accessories | Companion | Planned | FM-CS | M | Open: Q4 |
-| FR-50 | Sprite-pack format and Character Studio | Companion | Planned; spec docs/character/CHARACTER_STUDIO_SPEC.md | FM-CS | XL | Open: D-SIZE |
+| FR-49 | Character accessories | Companion | Planned | FM-CS | M | Built as OpenPets wardrobe outfits; Q4 moved to FR-49a |
+| FR-50 | Sprite-pack format and Character Studio | Companion | Planned; spec docs/character/CHARACTER_STUDIO_SPEC.md | FM-CS | XL | D-SIZE closed (192x208); packs built, Unverified |
 | FR-51 | Guide page, tour, quiz, "Built by QUORBIT TECHNOLOGIES" | Onboarding | Planned | FM-GUIDE | M | — |
-| FR-52 | Meeting action items on Today with source chip | Meetings | Planned | FM-ST | S | Open: Q6 |
+| FR-52 | Meeting action items on Today with source chip | Meetings | Planned | FM-V2 | S | Q6: yes |
 | FR-53 | Project Spaces, opt-in sidebar | Projects | Planned (FR-06) | FM-PS | L | — |
 | FR-54 | Local MCP server | Integrations | Planned | FM-INT | L | Open: D-MCP-SHAPE |
 | FR-55 | Plugins from the website | Platform | Planned; signing on HOLD | FM-PLUG | XL | Open: D-PLUGIN-MODEL |
 | FR-56 | Backend and gallery | Platform | Planned; needs privacy statement | FM-BE | XL | — |
 | FR-57 | Linux build | Platform | Planned; Unverified until run | FM-LIN | M | — |
+| FR-59 | Cursor gaze rows (OpenPets V2 format, 16 look directions) | Companion | Planned | FM-CS | M | — |
+| FR-60 | Drag-and-throw and wander for the pet | Companion | Planned | M6 | M | — |
+| FR-61 | Rename links (V2-16) | Links | Planned | FM-V2 | S | — |
+| FR-49a | Browser tabs on the dashboard: switch and close, no extension (UI Automation) | Time | Planned, spike first | FM-V2 | L | — |
 | FR-58 | Student pack | Students | Planned; quiz waits for AI | FM-ST | L | — |
 
 **Verified existing (Unverified on real OS, tests pass):** FR-19 tracking, ROADMAP M1–M3 features. **Partial:** FR-01, FR-20, FR-22, FR-27. Everything else: Planned or Blocked. Nothing is "Complete" on a real OS.
