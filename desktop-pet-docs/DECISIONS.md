@@ -159,6 +159,26 @@ None of these block the roadmap document itself, already updated in `ROADMAP.md`
 | D-9 home = Today + Dashboard | Home = Today overview | PRD amendment v1.4 |
 | R1-46, R1-84 hide activity and tracking until Phase 2 | Shown when tracking is on | PRD amendment v1.4 |
 
-## 2026-10-22 — Student-first positioning (proposed, not approved)
+## 2026-10-22 — Owner decisions after testing v2.0.0 (source 0.2.0)
 
-Owner wants the app student-centric, then developer, then other users. Proposal and a changed order are in `docs/PROJECT_STATE_REPORT_2026-10-22.md` §7. It would reorder ROADMAP.md, so **ROADMAP.md stays authoritative until the owner approves**. Competitor audit of OpenPets: `docs/competitors/OPENPETS_AUDIT.md` (informational; no milestone change).
+Source: the owner's V2 testing message. Issues are logged in `docs/V2_ISSUES.md`; specs are FR-41..FR-58 in `docs/features/FR-v2-features.md`.
+
+| Decision | Detail |
+|----------|--------|
+| **Student-first positioning: APPROVED** | Students first, developers second, everyone else third. Milestone ids are kept; only the delivery order changes (see ROADMAP.md "Delivery order"). Supersedes the "proposed" note. |
+| Backend: YES (closes D-BACKEND) | Needs a written privacy statement first: Loaf stays local-first, and nothing leaves the PC unless the owner of the data opts in. |
+| Gallery: YES | Static catalog first (FR-56). |
+| Rive dropped; sprite characters | Packs follow the OpenPets/Codex sprite-sheet layout (FR-50). Rive trial closed as not pursued. |
+| Character Studio like OpenPets | Spec: `docs/character/CHARACTER_STUDIO_SPEC.md`. |
+| Plugins downloadable from the website | `.loafplugin`, permission prompt, sandbox (FR-55). Code signing is on hold. |
+| Linux build: YES | AppImage and .deb (FR-57). Unverified until run on Linux. |
+| Local MCP server: YES | Connects only to applications on this PC; shape proposed in D-MCP-SHAPE (stdio + local socket, no open port). |
+| Pet window shortcuts editable, default OFF | FR-48. |
+| Project Spaces: opt-in, default OFF | Setting adds a left-menu item (FR-53). |
+| Developer reactions (M12): confirmed | Comes after the student pack. |
+| Personal-photo characters: HOLD | Owner will say when. |
+| Code signing: HOLD | Plugins and installers show an unsigned warning until then. |
+| Quiz from notes | Waits for AI integration (M5). |
+| Guide with a skip option | Credits "Built by QUORBIT TECHNOLOGIES" (FR-51). |
+
+Still open: Q1-Q6 in `docs/V2_ISSUES.md`, D-SIZE (sprite cell size), D-MCP-SHAPE, D-PLUGIN-MODEL, D-LICENCE, AI provider.

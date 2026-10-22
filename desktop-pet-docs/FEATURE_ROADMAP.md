@@ -2,7 +2,7 @@
 
 **Audited:** 2026-10-19 on `main` @ `8368daa`. Owner-reported release: **`v2.0.0`** (tag at `4bad6a2`, installed and tested by the owner); source version is still 0.2.0 (see §2 finding 10). Unsigned; **signing on hold** (owner, 2026-10-19) · **Product name:** undecided — "Loaf" is a working name in code and docs; nothing here renames it (see §13, D-NAME).
 
-> **How this file relates to the others (no duplicate sources of truth).** Milestone M0–M13 *delivery order* stays in [`ROADMAP.md`](ROADMAP.md). *Current state* stays in [`PROJECT_STATUS.md`](PROJECT_STATUS.md). *Decisions* stay in [`DECISIONS.md`](DECISIONS.md). User-visible history stays in [`CHANGELOG.md`](CHANGELOG.md). This file adds what those do not hold: the **complete requested-feature inventory** (FR-01…FR-40), a milestone plan for the features ROADMAP.md does not cover (FM-0…FM-12), the test matrix, traceability, release gates and the documentation protocol. Per-feature 13-point specs live in [`docs/features/FR-requested-features.md`](docs/features/FR-requested-features.md); older specs: [`docs/features/README.md`](docs/features/README.md), [`AN-assistant-notifications.md`](docs/features/AN-assistant-notifications.md). Product/design sources: [PRD](docs/02-prd/PRD.md) · [TRD](docs/03-trd/TRD.md) · [UI/UX brief](docs/04-design/ui-ux-brief.md) · [App flow](docs/04-design/app-flow.md) · [Schema](docs/05-backend/backend-schema.md) · [Implementation plan](docs/06-plan/implementation-plan.md).
+> **How this file relates to the others (no duplicate sources of truth).** Milestone M0–M13 *delivery order* stays in [`ROADMAP.md`](ROADMAP.md). *Current state* stays in [`PROJECT_STATUS.md`](PROJECT_STATUS.md). *Decisions* stay in [`DECISIONS.md`](DECISIONS.md). User-visible history stays in [`CHANGELOG.md`](CHANGELOG.md). This file adds what those do not hold: the **complete requested-feature inventory** (FR-01…FR-58), a milestone plan for the features ROADMAP.md does not cover (FM-0…FM-12), the test matrix, traceability, release gates and the documentation protocol. Per-feature 13-point specs live in [`docs/features/FR-requested-features.md`](docs/features/FR-requested-features.md); older specs: [`docs/features/README.md`](docs/features/README.md), [`AN-assistant-notifications.md`](docs/features/AN-assistant-notifications.md). Product/design sources: [PRD](docs/02-prd/PRD.md) · [TRD](docs/03-trd/TRD.md) · [UI/UX brief](docs/04-design/ui-ux-brief.md) · [App flow](docs/04-design/app-flow.md) · [Schema](docs/05-backend/backend-schema.md) · [Implementation plan](docs/06-plan/implementation-plan.md).
 
 > **Conflict to resolve before anyone starts FM-3 or later:** the owner's recorded order after M3 is Quick Actions → Writing → Reminders/pet → Meeting-to-action → Focus → Voice → MCP → Privacy report → Developer → Character ([`ROADMAP.md`](ROADMAP.md)). Project Spaces, Credentials, Community and Computer Use are **not in that order at all**. The FM-order below is a *proposal*; `ROADMAP.md` stays authoritative until the owner approves a merge of the two (D-ORDER).
 
@@ -84,6 +84,24 @@ Legend: **Requested** = in the owner's list; **Technical requirement (TR)** = de
 | FR-38 | Meetings redesign (flow the owner finds confusing) | Utilities | Planned (deferred, later phase) | FM-13 (new, deferred) | M | Blocked: D-MEETINGS (owner will define; ask next time) |
 | FR-39 | Personalised 2D character system: built-in characters, sprite/package format, optional personal character | Companion | Research done; detailed specs CH-01…CH-08 in docs/character/CHARACTER_FEATURE_SPECS.md (Planned); build not started | FM-8 | XL | Open: D-GEN, D-UPLOAD, D-FORMAT, D-SIZE, D-RIVE, D-LICENCE, D-CHARS (see docs/character/CHARACTER_PIPELINE_RESEARCH.md) |
 | FR-40 | Emote and Reactions System: registry, state machine, right-click Emotes menu, 8 emotes (back_turn_shake, chaotic_dance, tiny_tantrum, moonwalk_escape, dramatic_crying, smug_taunt, instant_sleep, over_the_top_celebration), optional double-click/random/favourites, optional contextual reactions (off by default) | Companion | **Planned**; spec docs/character/EMOTE_FEATURE_SPECS.md; nothing built. `back_turn_shake` blocked on back/three-quarter art; focus-complete reaction blocked on FR-05 | FM-8b (proposed, after FM-8) | XL | Open: D-EMOTE-ORDER, D-EMOTE-MILESTONE, D-EMOTE-DOUBLECLICK, D-EMOTE-ART, D-EMOTE-MASTER |
+| FR-41 | Toasts and return-to-dashboard after add/edit | UI | Planned; spec FR-v2-features.md | FM-V2 | M | Open: Q1 |
+| FR-42 | Actionable links: Open note, Linked tasks on a note, Links in Notes, create note from task | Notes/Tasks | Planned | FM-V2 | M | Open: Q5 |
+| FR-43 | No pop-ups above the pet (setting, off by default) | Companion | Planned | FM-V2 | S | Open: Q2 |
+| FR-44 | Time tiles resizable and filled | Time | Planned (extends FR-22) | FM-V2 | M | — |
+| FR-45 | Purpose-built date/time picker with presets | UI | Planned | FM-V2 | M | — |
+| FR-46 | Retention and auto-delete (preview, Bin first) | Data | Planned | FM-V2 | M | Open: Q3 |
+| FR-47 | Remove Logs rows from Settings (UI only) | Settings | Planned | FM-V2 | XS | — |
+| FR-48 | Editable pet-window shortcuts, default off | Companion | Planned | FM-V2 | S | — |
+| FR-49 | Character accessories | Companion | Planned | FM-CS | M | Open: Q4 |
+| FR-50 | Sprite-pack format and Character Studio | Companion | Planned; spec docs/character/CHARACTER_STUDIO_SPEC.md | FM-CS | XL | Open: D-SIZE |
+| FR-51 | Guide page, tour, quiz, "Built by QUORBIT TECHNOLOGIES" | Onboarding | Planned | FM-GUIDE | M | — |
+| FR-52 | Meeting action items on Today with source chip | Meetings | Planned | FM-ST | S | Open: Q6 |
+| FR-53 | Project Spaces, opt-in sidebar | Projects | Planned (FR-06) | FM-PS | L | — |
+| FR-54 | Local MCP server | Integrations | Planned | FM-INT | L | Open: D-MCP-SHAPE |
+| FR-55 | Plugins from the website | Platform | Planned; signing on HOLD | FM-PLUG | XL | Open: D-PLUGIN-MODEL |
+| FR-56 | Backend and gallery | Platform | Planned; needs privacy statement | FM-BE | XL | — |
+| FR-57 | Linux build | Platform | Planned; Unverified until run | FM-LIN | M | — |
+| FR-58 | Student pack | Students | Planned; quiz waits for AI | FM-ST | L | — |
 
 **Verified existing (Unverified on real OS, tests pass):** FR-19 tracking, ROADMAP M1–M3 features. **Partial:** FR-01, FR-20, FR-22, FR-27. Everything else: Planned or Blocked. Nothing is "Complete" on a real OS.
 
@@ -326,6 +344,8 @@ FR-37 and FR-38 come from the owner's 2026-10-19 instructions (shortcut master s
 
 **Active milestone: FM-0** (verification of `v2.0.0`). **Mode: documentation only** (owner, 2026-10-19). Blockers: owner's test results for v2.0.0; D-SHORTCUT-DEFAULT upgrade detail. **Single next task:** owner sends the `v2.0.0` test results; Claude then records them in PROJECT_STATUS §8 and drafts FR-37 and FR-38 for owner approval. Update this section after every task.
 
+**Update 2026-10-22:** active work is the documentation of FR-41..FR-58 and the student-first order (ROADMAP.md "Delivery order"). Next code milestone: FM-V2. Mode stays documentation-first until the owner says build.
+
 ## 11. Documentation update protocol (mandatory)
 
 After **each feature, milestone and phase**: (1) update the feature spec and tick its checklist; (2) update status here and in `ROADMAP.md`; (3) update `PROJECT_STATUS.md`; (4) add a user-facing line to `CHANGELOG.md`; (5) update affected TRD / schema / app-flow docs; (6) record test results (command, date, count); (7) update §10 Current Focus. **Never** mark work Complete while tests, acceptance criteria or docs are outstanding; **never** state OS behaviour or test results that were not executed; **never** delete, reset, overwrite or discard user work — migrations are additive and preceded by a backup.
@@ -338,6 +358,10 @@ Prefer existing plugins and crates over new dependencies; `keyring` crate for FR
 
 | ID | Decision | Blocks |
 |---|---|---|
+| D-SIZE | Sprite cell size: 192×208 (OpenPets-compatible, unconfirmed) or 256×256 | FR-50 |
+| D-MCP-SHAPE | Local MCP transport (proposed stdio + local socket) | FR-54 |
+| D-PLUGIN-MODEL | Plugin package, sandbox and permissions | FR-55 |
+| Q1-Q6 | See docs/V2_ISSUES.md | FM-V2 |
 | D-NAME | Final product name (stays undecided; no renames) | FR-34 |
 | D-EMOTE-ORDER | Approve FM-8b (emotes) after FM-8 and the order in EMOTE_FEATURE_SPECS §3 | closed 2026-10-22 (approved) |
 | D-EMOTE-MILESTONE | Define "milestone" for contextual reactions | closed 2026-10-22 (planned in EM-06; numbers tunable) |

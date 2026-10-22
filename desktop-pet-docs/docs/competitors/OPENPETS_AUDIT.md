@@ -67,3 +67,10 @@ Their positioning: a **companion for people who run AI coding agents**. The pet 
 1. Add D-COMPETE-OPENPETS as **informational**; no milestone change.
 2. Park "loaf-mcp" as an idea under developer stage (see PROJECT_STATE_REPORT §8). Needs an owner decision on opt-in and transport before any code.
 3. Re-check OpenPets by actually installing it on the owner's PC; this audit cannot replace that.
+
+
+## Update 2026-10-22 (owner decisions and extra research)
+
+- Further OpenPets facts (search results and the GitHub page; the site itself was unreachable, so **unconfirmed**): pet bundle = `pet.json` + spritesheet; in-app Pet Gallery plus a web catalog with a submit page; Pet Studio (describe or upload, then it animates); user-configurable reaction mapping; plugin SDK v3 with a sandboxed window, permissions approved at install, network limited to declared hosts; MCP tools `openpets_status`, `openpets_react`, `openpets_say`; macOS, Windows, Linux AppImage; MIT.
+- Owner decisions: backend YES, gallery YES, plugins from the website YES, Linux YES, local MCP YES, sprite packs instead of Rive. Specs: FR-50, FR-54..FR-57; Studio: `../character/CHARACTER_STUDIO_SPEC.md`.
+- Not copying: AI "describe to animate" (waits for AI and the personal-character HOLD).

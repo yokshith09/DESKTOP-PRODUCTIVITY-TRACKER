@@ -17,7 +17,7 @@ Everything else is reference — open it when a feature needs it:
 
 **Rule from here:** this file tracks plan and status. Evidence for every status is in [`PROJECT_STATUS.md`](PROJECT_STATUS.md). Scope or design changes are one line in [`DECISIONS.md`](DECISIONS.md); a locked document is amended only if it would otherwise contradict the code.
 
-**Last updated:** 2026-10-13 — milestones M4 onward redesigned around the owner's 2026-10-13 feature list (Quick Actions, Writing/Prompt Assistant, Focus & Wellbeing, an expanded Privacy Radar) and renumbered; see §2 "Renumbering" and `DECISIONS.md` for what changed and what is still open (an AI-provider choice for M5, and whether Developer reactions — old M5, now M12 — is still wanted). Status words (Complete, Unverified, Partial, Planned…) are defined in PROJECT_STATUS §2. **Unverified** means it compiles and CI is green but nobody has run it on a real machine.
+**Last updated:** 2026-10-22 — student-first delivery order approved and V2 milestones added (see "Delivery order"); earlier: 2026-10-13 — milestones M4 onward redesigned around the owner's 2026-10-13 feature list (Quick Actions, Writing/Prompt Assistant, Focus & Wellbeing, an expanded Privacy Radar) and renumbered; see §2 "Renumbering" and `DECISIONS.md` for what changed and what is still open (an AI-provider choice for M5, and whether Developer reactions — old M5, now M12 — is still wanted). Status words (Complete, Unverified, Partial, Planned…) are defined in PROJECT_STATUS §2. **Unverified** means it compiles and CI is green but nobody has run it on a real machine.
 
 ---
 
@@ -59,7 +59,26 @@ The first release is **M1: Notes and daily work management (P0)**. Everything el
 
 **Renumbering (2026-10-13):** everything from old M4 onward was never started, so renumbering it is free. Old **M4 Desktop companion** → **M6**; old **M5 Developer** → **M12**; old **M6 MCP** → **M10**; old **M6b CI status** → **M10b**; old **M7 Voice** → **M9**; old **M8 Character** → **M13**. New: **M4 Quick Actions**, **M5 Writing/Prompt assistant**, **M7 Meeting-to-action (AI)**, **M8 Focus & wellbeing**, **M11 Privacy radar report**.
 
-**Order after M3, per the owner's 2026-10-13 feature list:** Quick Actions → Writing assistant → Reminders/pet (finish) → Meeting-to-action (AI) → Focus & wellbeing → Voice → MCP → Privacy radar report → Developer → Character. This **supersedes part of ADR-015** (which had Developer → MCP → Voice): Voice now comes before MCP, and Developer reactions wasn't in the new list at all. See `DECISIONS.md` — this is flagged for the owner to confirm, not silently assumed.
+### Delivery order (student-first, approved 2026-10-22)
+
+M-ids are unchanged; this is the order we build in. Specs for the new rows are in `docs/features/FR-v2-features.md`.
+
+| Order | Milestone | What | Notes |
+|-------|-----------|------|-------|
+| 1 | M1 / M2 gates | Windows verification of v2.0.0 | Owner-side; blocks nothing below but nothing is "Complete" without it |
+| 2 | **FM-V2** V2 fix pack | FR-41..FR-48: toasts, actionable links, no pet pop-ups, resizable Time tiles, date/time picker, retention, remove Logs, editable pet shortcuts | Owner's bug list; open Q1-Q6 |
+| 3 | **FM-ST** Student pack | FR-58 plus FR-52: course label, focus linked to a task, weekly report, exam countdown, quick capture, meeting action items on Today | Quiz from notes waits for AI |
+| 4 | **FM-GUIDE** Guide | FR-51: tour, Guide page, "Built by QUORBIT TECHNOLOGIES" | Skippable |
+| 5 | **FM-CS** Character Studio and sprite packs | FR-49, FR-50: accessories, pack format, Studio | Personal photos on HOLD |
+| 6 | M8 Focus and wellbeing | Timers, summaries, goals | Builds on the student pack |
+| 7 | **FM-PS** Project Spaces (opt-in, off by default) | FR-53 | Shared by students and developers |
+| 8 | M12 Developer reactions | Git and build awareness, CI status | Confirmed by the owner |
+| 9 | **FM-INT** Local MCP server | FR-54 | Local only; D-MCP-SHAPE open |
+| 10 | **FM-LIN** Linux build | FR-57 | Unverified until run on Linux |
+| 11 | **FM-BE** Backend and gallery, **FM-PLUG** plugins | FR-56, FR-55 | Needs the privacy statement; code signing on HOLD |
+| 12 | M4, M5, M7, M9, M10, M11, M13 | As in the table above | M5 blocked on the AI provider |
+
+**Order after M3 before 2026-10-22 (superseded by the table above), per the owner's 2026-10-13 feature list:** Quick Actions → Writing assistant → Reminders/pet (finish) → Meeting-to-action (AI) → Focus & wellbeing → Voice → MCP → Privacy radar report → Developer → Character. This **supersedes part of ADR-015** (which had Developer → MCP → Voice): Voice now comes before MCP, and Developer reactions wasn't in the new list at all. See `DECISIONS.md` — this is flagged for the owner to confirm, not silently assumed.
 
 ---
 
