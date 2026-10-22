@@ -452,3 +452,65 @@ Still open: **D-GEN** (image generator for personalised characters: local, cloud
 - Decisions: [`DECISIONS.md`](../../DECISIONS.md)
 - Changelog: [`CHANGELOG.md`](../../CHANGELOG.md)
 - Source of the current character: `src/features/shell/Bear.tsx`, `src/pet/PetApp.tsx`, `src/pet/reactions.ts`, `src-tauri/src/pet.rs`
+
+---
+
+## 13. Personal upload: what competitors do and what we can build (2026-10-22)
+
+**Owner question:** how should the upload image method work, what do competitors do, and which open-source tools fit? Owner's rule: prefer open-source tools, skills, plugins and connectors; external licences may be open-source, checked version by version.
+
+### 13.1 Competitors (self-reported; not tested by us)
+
+| Product | Platform | Input | What it promises | Our view |
+|---|---|---|---|---|
+| **Peekoo** | native macOS and Windows | one photo | mascot from a photo; walks, climbs window edges, naps | Closest to our target. Quality **unverified**. Closed source and pricing not checked. |
+| **MomoPlanet** | macOS and Windows | **three clear photos** of the same pet | private desktop companion; free tier with two fixed actions, paid packs | Pets only. Multi-photo input is a sign that one photo is hard. |
+| **Wallpets Custom Lab** | with its desktop app | **three photos** of a cat or dog | custom wallpet | Pets only. Multi-photo input again. |
+| **FriendPet** | Chrome extension | photo | pet walks across web pages | **Excluded**: owner's no-extension decision. |
+
+[Fact] Sources: the search results and product pages listed in the session notes (Product Hunt listings, vendor pages). [Inference] Most competitors ask for several photos or limit what they promise; none we found publishes a quality benchmark.
+
+### 13.2 What we can build, by method
+
+| Method | What it produces | Runs where | Code licence (verified this session) | Weights licence | Hardware (ours: 6 GB VRAM) | Verdict |
+|---|---|---|---|---|---|---|
+| **M1 Deformation only** (mask → parts → local warp: breathe, blink, tilt, sway) | idle, blink, sleep (closed eyes overlay), happy squash | CPU | Our code | n/a | Fine | **Recommended start.** Works for characters and humans, one photo, no generative model. Limited states. |
+| **M1a Background removal** — BiRefNet | mask | CPU/GPU | **MIT** (`ZhengPeng7/BiRefNet`, LICENSE read) | **Unverified** | Small models fine | Use. Verify the weights licence before shipping. |
+| **M1b rembg** | mask (wraps models) | CPU/GPU | **MIT** (README badge; LICENSE file not fetched) | depends on model used | Fine on CPU | Alternative to BiRefNet. |
+| **M1c Face landmarks** — MediaPipe | face mesh, selfie segmentation | CPU | **Apache-2.0** (`google-ai-edge/mediapipe` LICENSE read) | **Unverified** (model files) | CPU | Use for humans: blink and gaze regions. |
+| **M2 Click-to-select parts** — SAM 2 | user taps hair, shirt, etc. | GPU preferred | **Apache-2.0** (`facebookresearch/sam2` LICENSE read) | **Unverified** | Small variant likely fits 6 GB; **unverified** | Optional refinement step. |
+| **M3 Learned face animation** — LivePortrait | natural head and face motion from one photo | NVIDIA GPU; CPU slow | **MIT** (`KwaiVGI/LivePortrait` LICENSE read) | **Unverified** (Hugging Face unreachable; page gives no licence line) | **Not stated** by the project; tested on NVIDIA GPU | Opt-in add-on for human characters, **after** its weights licence and VRAM are measured on our PC. |
+| **M4 Generative completion** (side view, closed eyes, new poses) — Stable Diffusion via diffusers | new frames from text/image | GPU | diffusers **Apache-2.0** (LICENSE read) | Stable Diffusion weights **Unverified this session** | Possible for small models with memory tricks; **[Assumption]** not measured | Opt-in only, after measuring on our PC. |
+| **Upscale** — Real-ESRGAN | sharper small photos | CPU/GPU | **BSD-3-Clause** (`xinntao/Real-ESRGAN` LICENSE read) | **Unverified** | Fine | Optional. |
+| **M5 Cloud generation** | anything | remote | depends on provider | depends | none | Later phase, explicit consent, not default. |
+| ComfyUI pipeline | greyscale sheets | GPU ≥ 24 GB | MIT | model licences vary | **Not feasible** | Rejected (§2). |
+| Sprite Pet Skill | sheets | Electron | **not stated** | — | — | Hold (§2). |
+| Live2D Cubism, Spine | rigged 2D | desktop editor | **Unverified** (live2d.com unreachable; Spine not checked) | — | — | Not evaluated further; not open source. |
+| Shimeji-style desktop pets | sprite pets | desktop | **Unverified** (repo page returned 404) | — | — | Reference for behaviour only. |
+
+**Popularity** (GitHub pages, 2026-10-21): BiRefNet not checked; LivePortrait, MediaPipe, SAM 2 and diffusers not checked in this round. Popularity is not a licence and not a quality measure.
+
+### 13.3 Recommendation
+
+**Do not hold the upload feature.** Build it in three stages, each shipped only when measured:
+
+1. **Stage 1 (no generative model, CPU, all platforms):** M1 + M1a/M1b + M1c (+ optional M2). Output: idle, blink, breathing, tilt, sleep overlay, happy squash. The UI says which states are "animated" and which are "not available". This is the honest first version of CH-05.
+2. **Stage 2 (human characters, optional GPU):** M3, only after its weights licence is confirmed and its VRAM and speed are measured on our 6 GB card. Adds natural face motion.
+3. **Stage 3 (opt-in, measured):** M4 for missing poses, only if Stage 1 quality is not enough and the measured cost fits 6 GB. M5 cloud only with explicit consent, after the cloud phase.
+
+**Risks:**
+- Stage 1 gives fewer states than competitors promise. We say so in the preview.
+- Learned models carry weights licences that are often different from the code licence. Each one needs its own check before it is shipped.
+- Face-related processing needs a privacy note and must stay local by default.
+
+### 13.4 Open questions for the owner
+
+1. Is "fewer states, honestly labelled" acceptable for the first personal-character release (Stage 1)?
+2. Does the owner want human-face motion (Stage 2) at all?
+3. Is an opt-in GPU requirement acceptable for Stage 2, or should it be CPU-only?
+
+### 13.5 Verification status of this section
+
+- Verified this session: licence files for BiRefNet (MIT), LivePortrait code (MIT), MediaPipe (Apache-2.0), SAM 2 (Apache-2.0), diffusers (Apache-2.0), Real-ESRGAN (BSD-3-Clause), hatch-pet (Apache-2.0), ComfyUI pipeline (MIT), Rive runtime on npm (MIT); rembg MIT from its README badge.
+- Not verified: all model weight licences; LivePortrait VRAM; SAM 2 VRAM; Live2D and Shimeji licences; any competitor's quality claims.
+- Not run: any model on our machine.

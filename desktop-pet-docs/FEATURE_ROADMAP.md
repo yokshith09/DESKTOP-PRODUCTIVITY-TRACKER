@@ -82,7 +82,7 @@ Legend: **Requested** = in the owner's list; **Technical requirement (TR)** = de
 | FR-36 | Secure auto-update (integrity, recovery, rollback) | Distribution | Blocked | FM-2 | XL | Blocked: signing certificates (owner) |
 | FR-37 | Keyboard-shortcut master switch (off by default; users enable) | Utilities | Planned | FM-1 | S | Open: D-SHORTCUT-DEFAULT (owner-stated: off) |
 | FR-38 | Meetings redesign (flow the owner finds confusing) | Utilities | Planned (deferred, later phase) | FM-13 (new, deferred) | M | Blocked: D-MEETINGS (owner will define; ask next time) |
-| FR-39 | Personalised 2D character system: built-in characters, sprite/package format, optional personal character | Companion | Research done (docs only); build not started | FM-8 | XL | Open: D-GEN, D-UPLOAD, D-FORMAT, D-SIZE, D-RIVE, D-LICENCE, D-CHARS (see docs/character/CHARACTER_PIPELINE_RESEARCH.md) |
+| FR-39 | Personalised 2D character system: built-in characters, sprite/package format, optional personal character | Companion | Research done; detailed specs CH-01…CH-08 in docs/character/CHARACTER_FEATURE_SPECS.md (Planned); build not started | FM-8 | XL | Open: D-GEN, D-UPLOAD, D-FORMAT, D-SIZE, D-RIVE, D-LICENCE, D-CHARS (see docs/character/CHARACTER_PIPELINE_RESEARCH.md) |
 
 **Verified existing (Unverified on real OS, tests pass):** FR-19 tracking, ROADMAP M1–M3 features. **Partial:** FR-01, FR-20, FR-22, FR-27. Everything else: Planned or Blocked. Nothing is "Complete" on a real OS.
 
