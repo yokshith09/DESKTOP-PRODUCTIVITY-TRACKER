@@ -330,6 +330,8 @@ Phase A = prototype (built-in only). Phase B = personal characters that need no 
 
 **10 Acceptance** — A written go/no-go with numbers and a list of problems. If go: a follow-up spec. If no-go: the reason is recorded in `DECISIONS.md`.
 
+**Trial status (2026-10-22): Blocked, not started, no result.** A `.riv` can only be authored in the Rive editor (free tier, not open source; terms unverified), which cannot run in this environment, so I cannot produce the file or any numbers. What is known: runtime `@rive-app/canvas` 2.45.0 is MIT. What the owner must do: create a free Rive account, build or import the bear's states, export a `.riv`, and place it at `src/assets/rive/bear.riv`. Then the playback harness and measurements can be built. No claim is made that Rive is better or worse.
+
 **11 Checklist** — [ ] editor account [ ] states authored [ ] playback [ ] numbers [ ] owner comparison [ ] decision recorded.
 
 **12 Doc updates** — This spec; research §3 comparison (replace estimates with measured values); `DECISIONS.md`; `CHANGELOG.md` only if the trial ships.

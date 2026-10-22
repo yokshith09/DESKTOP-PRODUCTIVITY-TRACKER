@@ -83,7 +83,14 @@
 - **User story:** Optionally the pet celebrates a finished focus session or a milestone.
 - **Behaviour:** setting `pet.auto_reactions` = off (default). When on, per-trigger switches: `focus_complete`, `milestone`. Mapping (editable): focus complete → `over_the_top_celebration` (or a smaller reaction), milestone → `chaotic_dance`. Cooldown 10 min; max 3 per day by default; suppressed during meetings/quiet hours and when emotes are disabled.
 - **Dependencies:** **FR-05 Focus (Planned, not built)** for `focus_complete`. The existing `reactions.ts` already reacts to task events (`TaskCreated→catch`, done→`cheer`/`party`, `ReminderDue→ring`); those stay as they are and are not emotes.
-- **Milestone definition (open, D-EMOTE-MILESTONE):** proposal: 10th/50th/100th task done, 7-day streak. Needs owner approval.
+- **Milestone definition (D-EMOTE-MILESTONE, planned by Claude on the owner's instruction 2026-10-22; owner may still tune the numbers):**
+  - **Counted milestones (lifetime, local data only):** the 10th, 50th, 100th and then every 100th task completed; and a 7-day, 30-day streak (a day counts if at least one task was completed).
+  - **Not milestones:** a single task (already handled by `cheer`/`party`), tasks created, tasks deleted, anything the user did while the pet was hidden.
+  - **Fires once per milestone:** the last celebrated milestone is stored, so a deleted and re-completed task never re-triggers it.
+  - **Gates:** `pet.emotes_enabled` on, `pet.auto_reactions` on, `milestone` switch on, not dragging, not in quiet hours; shared cooldown 10 min and 3 per day with `focus_complete`. A milestone that is suppressed is dropped, never queued for later.
+  - **Priority:** a milestone replaces the normal `cheer` for that task (one winner), it does not play after it.
+  - **Order of reaction size:** 10th → `chaotic_dance` short; 50th/100th/streaks → `over_the_top_celebration`. Mapping editable later in the character studio.
+  - **`focus_complete`** is defined here but cannot ship before FR-05 Focus exists.
 - **Tasks:** event→emote rule table beside `RULES` in `reactions.ts`; cooldown + daily cap; settings; tests.
 - **Tests:** default off; each switch; cooldown; daily cap; suppressed while `dragging`; no reaction when emote unavailable (silently use the existing reaction).
 - **Risks:** double-firing with existing `party` pose. Mitigation: one winner by priority.
@@ -142,14 +149,15 @@ Common to all: manual trigger from EM-03; cancellable at any time; restore on ex
 ### 2.1 `back_turn_shake` — Back-Turn Shake
 - **User story:** I trigger a cheeky little wiggle: the pet turns its back to me and shakes its tail end, then turns back.
 - **Behaviour:** stand → bend slightly forward (anticipation) → turn to show its back (three-quarter, then back view) → look over the shoulder → shake the backside side-to-side 3–4 times (playful, cartoon, clothed/furry) → turn back via three-quarter → return smoothly to the stored pose. No zoom, no close-up, fully non-explicit.
-- **Requires:** frames for `three_quarter_l/r` and `back`. **The current bear has none.** Do not mirror the front.
+- **Requires:** frames for `three_quarter_l/r` and `back`. **The bear now has them (2026-10-22):** `turn` (three-quarter), `back` and `back_look` (back body, head turned over the shoulder), drawn as separate views in `src/features/shell/BearViews.tsx`, not mirrored. Only the right-facing three-quarter exists; left is not drawn. Other characters still have none. Do not mirror the front.
+- **Built so far (Unverified on a real PC):** the views, the sequence runner `playEmote` (`src/pet/emotes.ts`: turn, back, look back and shake, back, turn, restore; cancel plays a quick exit; reduced motion shows one static pose), and a preview button on the Character page. Not yet wired to the pet window, the right-click menu, or the registry (FM-8b-0/1).
 - **Feasibility:** see research doc §14. Sprite-sheet route needs ~8 new frames per character; Rive route needs a rig with a rotating body (Y-turn is hard in 2D and normally done by swapping art). **Result: unavailable until art exists.**
 - **Dependencies:** EM-01, EM-02, CH-01 `pose_tags`, art from CH-03 (new brief: add back + three-quarter turnaround to each built-in character).
 - **Tasks:** art brief for turnaround sheet; manifest `requires` tags; availability check; frame set; timing; tests.
 - **Tests:** unavailable with front-only character (menu shows reason); no CSS fake; cancel at each phase restores facing; reduced motion; double-click mapping falls back silently.
 - **Edge cases:** a user-uploaded photo character (CH-05) has no back view → permanently unavailable; humans (CH-06) likewise.
 - **Risks:** art cost; turnaround consistency; content taste. **Acceptance:** plays only with all required poses; otherwise cleanly unavailable; ends exactly in the starting pose.
-- **DoD:** feature flag; tests green; art reviewed by owner. **Checklist:** [ ] art brief [ ] frames [ ] manifest [ ] tests [ ] owner review. **Status: Planned; Blocked on art.**
+- **DoD:** feature flag; tests green; art reviewed by owner. **Checklist:** [ ] art brief [ ] frames [ ] manifest [ ] tests [ ] owner review. **Status: In progress for the bear only: art and sequence built and tested in jsdom; owner has not seen it on a real screen, so Unverified. Not wired into the pet window yet.**
 
 ### 2.2 `chaotic_dance` — Chaotic Dance
 - **User story:** I want a silly burst of random dance.
@@ -209,8 +217,10 @@ Dependencies: CH-01/CH-02 (format, player) before FM-8b-1; CH-03 art for any rea
 - **Top risks:** (1) art volume; (2) back/three-quarter art missing; (3) Moonwalk window motion on real OSes; (4) irritation from random/auto reactions (defaults off); (5) double-click collisions with existing behaviour; (6) renderer choice not yet decided (CH-08).
 
 ## 5. Open decisions
-- **D-EMOTE-ORDER:** approve FM-8b after FM-8, and the order in §3.
-- **D-EMOTE-MILESTONE:** what counts as a "milestone"? (proposal in EM-06).
-- **D-EMOTE-DOUBLECLICK:** what double-click does today and whether it should be remappable.
-- **D-EMOTE-ART:** commission/design turnaround (back + three-quarter) for the three built-in characters, or ship `back_turn_shake` later.
-- **D-EMOTE-MASTER:** default for `pet.emotes_enabled` (proposed: on, manual only).
+Decisions of 2026-10-22 (owner):
+- **D-EMOTE-ORDER: closed.** FM-8b order in §3 approved.
+- **D-EMOTE-MASTER: closed.** `pet.emotes_enabled` defaults **on**. How a character looks, behaves and what it can do will be designed later in the character studio.
+- **D-EMOTE-DOUBLECLICK: closed.** Keep today's behaviour: double-click hides the main window (`pet_double_click` → `hide_main`). Remapping is not planned.
+- **D-EMOTE-MILESTONE: closed.** Defined in EM-06 (Claude's plan; numbers tunable).
+- **D-EMOTE-ART: partly closed.** Bear back and three-quarter views built. The other two built-in characters still need them; a personal photo character never will.
+- Detailed per-feature docs wait until the character system is consistent and final (owner).

@@ -1,10 +1,14 @@
 import { useId } from "react";
 import { cn } from "@/lib/utils";
 import { BackLaptop, Pocket } from "@/features/character/Laptop";
+import { BearDefs, BearTurned, TURNED_POSES, isTurnedPose } from "./BearViews";
 
 /** Everything the bear can do. Reactions (src/pet/reactions.ts) pick one of these. */
-export const BEAR_POSES = ["idle", "wave", "sleep", "work", "type", "wait", "stow", "cheer", "party", "catch", "worried", "ring", "toss"] as const;
+const FRONT_POSES = ["idle", "wave", "sleep", "work", "type", "wait", "stow", "cheer", "party", "catch", "worried", "ring", "toss"] as const;
+/** Front poses are what reactions use; the turned views (BearViews.tsx) exist for emotes such as the back-turn shake. */
+export const BEAR_POSES = [...FRONT_POSES, ...TURNED_POSES] as const;
 export type BearPose = (typeof BEAR_POSES)[number];
+type FrontPose = (typeof FRONT_POSES)[number];
 
 type Eyes = "open" | "happy" | "closed" | "down";
 type Mouth = "smile" | "open" | "worried";
@@ -14,7 +18,7 @@ type Prop = "laptop" | "card" | "bell" | "ball" | "confetti" | "zzz" | null;
 interface Look { eyes: Eyes; mouth: Mouth; arms: Arms; prop: Prop; body?: string; brows?: boolean }
 
 /** Face, arms and prop per pose. The body class is the whole-body motion (CSS, transforms only). */
-const LOOKS: Record<BearPose, Look> = {
+const LOOKS: Record<FrontPose, Look> = {
   idle: { eyes: "open", mouth: "smile", arms: "down", prop: null, body: "bear-breathe" },
   wave: { eyes: "happy", mouth: "open", arms: "wave", prop: null, body: "bear-breathe" },
   sleep: { eyes: "closed", mouth: "smile", arms: "down", prop: "zzz", body: "bear-breathe-slow" },
@@ -48,6 +52,7 @@ export function Bear({ pose = "idle", animated = false, className, style }: { po
   const u = useId().replace(/:/g, "");
   const g = (name: string) => `${name}-${u}`;
   const url = (name: string) => `url(#${g(name)})`;
+  if (isTurnedPose(pose)) return <BearTurned pose={pose} animated={animated} className={className} style={style} />;
   const look = LOOKS[pose];
   const anim = (cls: string | undefined) => (animated ? cls : undefined);
   const arm = (side: "l" | "r") => {
@@ -79,24 +84,7 @@ export function Bear({ pose = "idle", animated = false, className, style }: { po
 
   return (
     <svg viewBox="0 0 200 200" role="img" aria-label={`Loaf the bear (${pose})`} className={cn("overflow-visible", className)} style={style}>
-      <defs>
-        <radialGradient id={g("fur")} cx="34%" cy="24%" r="88%"><stop offset="0" stopColor="#F8DAB0" /><stop offset=".42" stopColor="#E3A465" /><stop offset=".85" stopColor="#B4702F" /><stop offset="1" stopColor="#8C5221" /></radialGradient>
-        <radialGradient id={g("dark")} cx="34%" cy="24%" r="92%"><stop offset="0" stopColor="#EBB880" /><stop offset=".6" stopColor="#B87634" /><stop offset="1" stopColor="#82491B" /></radialGradient>
-        {/* Form shading: clear in the middle, darker toward the far edge. */}
-        <radialGradient id={g("shade")} cx="38%" cy="30%" r="75%"><stop offset=".55" stopColor="#5A2E0E" stopOpacity="0" /><stop offset="1" stopColor="#5A2E0E" stopOpacity=".38" /></radialGradient>
-        {/* Rim light: warm bounce on the lower right edge. */}
-        <radialGradient id={g("rim")} cx="78%" cy="82%" r="40%"><stop offset=".6" stopColor="#FFD9A0" stopOpacity="0" /><stop offset=".92" stopColor="#FFD9A0" stopOpacity=".35" /><stop offset="1" stopColor="#FFD9A0" stopOpacity="0" /></radialGradient>
-        <radialGradient id={g("belly")} cx="40%" cy="28%" r="82%"><stop offset="0" stopColor="#FFF6E6" /><stop offset=".7" stopColor="#F1CE9E" /><stop offset="1" stopColor="#D9A86E" /></radialGradient>
-        <radialGradient id={g("ear")} cx="40%" cy="35%" r="80%"><stop offset="0" stopColor="#FFC9BE" /><stop offset="1" stopColor="#CF7A6C" /></radialGradient>
-        <radialGradient id={g("pad")} cx="40%" cy="35%" r="80%"><stop offset="0" stopColor="#F5B1A3" /><stop offset="1" stopColor="#B86A5C" /></radialGradient>
-        <radialGradient id={g("nose")} cx="35%" cy="30%" r="80%"><stop offset="0" stopColor="#7A5545" /><stop offset="1" stopColor="#1E110C" /></radialGradient>
-        <radialGradient id={g("eye")} cx="35%" cy="30%" r="80%"><stop offset="0" stopColor="#6A4A3E" /><stop offset="1" stopColor="#120B08" /></radialGradient>
-        <radialGradient id={g("gloss")} cx="30%" cy="20%" r="60%"><stop offset="0" stopColor="#fff" stopOpacity=".8" /><stop offset="1" stopColor="#fff" stopOpacity="0" /></radialGradient>
-        <linearGradient id={g("metal")} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#E5E7EB" /><stop offset="1" stopColor="#9CA3AF" /></linearGradient>
-        <linearGradient id={g("gold")} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#FDE68A" /><stop offset=".6" stopColor="#F59E0B" /><stop offset="1" stopColor="#B45309" /></linearGradient>
-        <filter id={g("soft")} x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3.5" /></filter>
-        <filter id={g("ao")} x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5" /></filter>
-      </defs>
+      <BearDefs g={g} />
 
       {/* Ground shadow: shrinks while the bear is in the air. */}
       <ellipse cx="100" cy="188" rx="38" ry="3.5" fill="#000" opacity=".3" filter={url("soft")} />

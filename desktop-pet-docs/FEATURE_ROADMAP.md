@@ -339,9 +339,10 @@ Prefer existing plugins and crates over new dependencies; `keyring` crate for FR
 | ID | Decision | Blocks |
 |---|---|---|
 | D-NAME | Final product name (stays undecided; no renames) | FR-34 |
-| D-EMOTE-ORDER | Approve FM-8b (emotes) after FM-8 and the order in EMOTE_FEATURE_SPECS §3 | open |
-| D-EMOTE-MILESTONE | Define "milestone" for contextual reactions (proposal: 10/50/100 tasks done, 7-day streak) | open |
-| D-EMOTE-ART | Back and three-quarter turnaround art for built-in characters (needed by back_turn_shake) | open |
+| D-EMOTE-ORDER | Approve FM-8b (emotes) after FM-8 and the order in EMOTE_FEATURE_SPECS §3 | closed 2026-10-22 (approved) |
+| D-EMOTE-MILESTONE | Define "milestone" for contextual reactions | closed 2026-10-22 (planned in EM-06; numbers tunable) |
+| D-EMOTE-MASTER / D-EMOTE-DOUBLECLICK | Master switch default on; double-click keeps hiding the main window | closed 2026-10-22 |
+| D-EMOTE-ART | Back and three-quarter turnaround art for built-in characters (needed by back_turn_shake) | partly closed: bear built (Unverified); other characters open |
 | D-UPLOAD | **Decided 2026-10-21: allowed.** Consent text and local-first processing required (FR-02, FR-39) | closed |
 | D-FORMAT | **Approved 2026-10-21 as a starting point**; format to be found by trial and error (FR-39) | open (iterative) |
 | D-RIVE | **Decided 2026-10-21: run the one-character Rive trial** (FR-39 §3.3) | open (trial) |

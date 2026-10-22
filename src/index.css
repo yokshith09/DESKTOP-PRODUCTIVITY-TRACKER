@@ -202,6 +202,11 @@ html.pet * { scrollbar-width: none; }
 @keyframes bear-card-in { from { transform: translateY(-90px) rotate(-12deg); opacity: 0; } 60% { opacity: 1; } }
 .bear-shake { animation: bear-shake 0.5s ease-in-out 4; }
 @keyframes bear-shake { 25% { transform: rotate(-2.5deg); } 75% { transform: rotate(2.5deg); } }
+/* Back-turn shake (FR-40): hips and tail rock while the paws and feet stay planted. */
+.bear-butt-shake { transform-box: view-box; transform-origin: 100px 150px; animation: bear-butt 0.2s ease-in-out infinite alternate; }
+@keyframes bear-butt { from { transform: translateX(-3px) rotate(-5deg); } to { transform: translateX(3px) rotate(5deg); } }
+.bear-tail-wag { transform-box: fill-box; transform-origin: center; animation: bear-tail 0.1s ease-in-out infinite alternate; }
+@keyframes bear-tail { from { transform: translateX(-3px); } to { transform: translateX(3px); } }
 .bear-sweat { animation: bear-sweat 1.6s ease-in infinite; }
 @keyframes bear-sweat { 0% { opacity: 0; transform: translateY(-4px); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(10px); } }
 .bear-bell { animation: bear-bell 0.32s ease-in-out infinite alternate; }

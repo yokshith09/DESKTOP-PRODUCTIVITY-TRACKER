@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PageHeader, Panel } from "@/features/shell/PageHeader";
 import { BEAR_POSES, Bear, type BearPose } from "@/features/shell/Bear";
+import { BACK_TURN_SHAKE, playEmote, type EmoteRun } from "@/pet/emotes";
 import { CHARACTERS, CHARACTER_POSES } from "./Characters";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
@@ -14,6 +15,7 @@ const SIZES = { S: 64, M: 96, L: 128 } as const;
 const POSE_LABELS: Record<BearPose, string> = {
   idle: "Idle", wave: "Hello (hover)", type: "Typing with you", wait: "Waiting for you", stow: "Laptop away", sleep: "Sleepy", work: "Working", cheer: "Task done", party: "All done",
   catch: "Task added", worried: "Worried", ring: "Reminder", toss: "Task deleted",
+  turn: "Three-quarter view", back: "Back view", back_look: "Looking back",
 };
 
 function Row({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
@@ -37,6 +39,13 @@ export function CharacterPage() {
   const [onTop, setOnTop] = useSetting("pet.always_on_top");
   const [typing, setTyping] = useSetting("pet.typing");
   const px = SIZES[size ?? "M"];
+  const emote = useRef<EmoteRun | null>(null);
+  useEffect(() => () => emote.current?.cancel(), []);
+  const playBackTurn = () => {
+    emote.current?.cancel();
+    const reduced = typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    emote.current = playEmote(BACK_TURN_SHAKE, { restore: "idle", set: (p) => { setPose(p); setReplay((n) => n + 1); }, reducedMotion: reduced });
+  };
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -62,6 +71,7 @@ export function CharacterPage() {
                 {POSE_LABELS[p]}
               </Button>
             ))}
+            <Button size="sm" variant="secondary" onClick={playBackTurn}>Play back-turn shake</Button>
           </div>
         </Panel>
 
