@@ -1,0 +1,69 @@
+# Competitor audit — OpenPets
+
+**Date:** 2026-10-22 · **Status:** research only, no code changed · **Product name:** undecided, not renamed.
+
+## 0. Source quality (read first)
+
+- Sources: [openpets.dev](https://openpets.dev/), [AI desktop pets page](https://openpets.dev/ai-desktop-pets), [OpenPetsHQ/openpets](https://github.com/OpenPetsHQ/openpets). Direct fetch of the site failed from this environment (DNS/403); the GitHub page and search results worked.
+- Several repositories and forks share the name "openpets". The official one is **likely** OpenPetsHQ/openpets. [Likely]
+- Pet Studio, "35 MB" and "four animation states" come from search snippets only, not from running the app. [Likely]
+- Nobody ran OpenPets for this audit. Everything below is **Unverified** feature claims, not tested behaviour.
+
+## 1. What they do [Likely unless noted]
+
+| Area | OpenPets | Evidence |
+|---|---|---|
+| Core | Desktop pet that sits on screen and reacts to AI coding agents | site, repo |
+| Agent link | Agents report status / react / say through MCP | repo |
+| Pets | A gallery / catalog of community pets | site |
+| Pet Studio | Make a pet from a photo (few animation states) | snippet only |
+| Extensibility | Plugin SDK with sandbox and declared permissions | repo |
+| Platforms | Windows, macOS, Linux | site |
+| Licence | MIT | repo [Certain that the repo shows a licence; MIT per page] |
+| Data | Local-first, user brings their own AI keys | site |
+
+Their positioning: a **companion for people who run AI coding agents**. The pet is the display; the agent is the source of events.
+
+## 2. What we do and they do not [Likely]
+
+- Notes, tasks, daily progress, search, labels, export/import/delete-all (M1). OpenPets is not a productivity store.
+- App-time and site-time tracking, privacy panel (M3, option d).
+- Reminders with pet reactions; five hand-drawn characters (bear, Mochi, Pip, Bolt, Ghosty) with typing/wait/cheer/sleep poses and drawn turned views.
+- Planned: focus, Project Spaces, student tools, Meetings, voice.
+
+## 3. What they do and we do not
+
+| Gap | Why it matters | Our answer |
+|---|---|---|
+| Agent/MCP integration | Their whole hook | M10 is MCP **connectors** (we call out), not an MCP **server** (agents call us). Different thing. |
+| Community gallery | Growth loop | Needs a server → blocked by D-BACKEND. Not before local features are final. |
+| Plugin SDK | Ecosystem | Large attack surface. Not before core is stable. |
+| Linux build | Reach | Unplanned. Tauri supports it; we have no tester. |
+| Photo→pet in public | Marketing | We have it as CH-05/06, Limited first release. |
+
+## 4. What is possible for us, what is not
+
+**Possible, cheap, local-only** [Likely]
+1. A small **local MCP server** ("loaf-mcp"): tools `set_status`, `say`, `react`, plus read-only `list_tasks`/`add_task`. Binds to 127.0.0.1 or a stdio transport, opt-in, off by default. This lets coding agents drive the pet and lets students/devs add tasks by voice-of-agent. Reuses the emote registry (FM-8b).
+2. Pet reactions to **our own** events (focus end, task done, deadline) — already planned (M6, EM-06).
+3. A **local character pack format** (zip with manifest + SVG/PNG states) for sharing by file, no server. This is the seed of a gallery without a backend.
+
+**Possible, but expensive or risky**
+- Plugin sandbox: needs a permission model, review, and signing (signing is on hold). Do not start.
+- Linux: build probably works; support cost is the problem, not code.
+
+**Not possible / not wise** [Certain for our locked decisions]
+- Browser extension — ruled out permanently by the owner.
+- Public gallery or accounts without a server — blocked by D-BACKEND.
+- Beating them on agent integrations by volume: they are the specialist; we should not chase every agent.
+- GPU image generation — owner said no GPU.
+
+## 5. Strategic read
+
+[Likely] OpenPets competes for the **developer** segment. The owner now wants **students first**. That makes them a secondary competitor: overlap is the pet and the dev-agent hook, not notes/tasks/focus. Do not copy their roadmap; take one idea (local MCP status hook) and one lesson (a shareable pack format).
+
+## 6. Recommended next steps (owner decides)
+
+1. Add D-COMPETE-OPENPETS as **informational**; no milestone change.
+2. Park "loaf-mcp" as an idea under developer stage (see PROJECT_STATE_REPORT §8). Needs an owner decision on opt-in and transport before any code.
+3. Re-check OpenPets by actually installing it on the owner's PC; this audit cannot replace that.

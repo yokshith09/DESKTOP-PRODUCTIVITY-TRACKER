@@ -158,3 +158,7 @@ None of these block the roadmap document itself, already updated in `ROADMAP.md`
 | R1-09 label list in the sidebar | Label chips on Notes | Owner decision 2026-10-04 |
 | D-9 home = Today + Dashboard | Home = Today overview | PRD amendment v1.4 |
 | R1-46, R1-84 hide activity and tracking until Phase 2 | Shown when tracking is on | PRD amendment v1.4 |
+
+## 2026-10-22 — Student-first positioning (proposed, not approved)
+
+Owner wants the app student-centric, then developer, then other users. Proposal and a changed order are in `docs/PROJECT_STATE_REPORT_2026-10-22.md` §7. It would reorder ROADMAP.md, so **ROADMAP.md stays authoritative until the owner approves**. Competitor audit of OpenPets: `docs/competitors/OPENPETS_AUDIT.md` (informational; no milestone change).

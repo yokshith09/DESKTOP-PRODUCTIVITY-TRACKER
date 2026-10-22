@@ -5,6 +5,7 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Docs (2026-10-22): OpenPets competitor audit and project state report with a proposed student-first order; no code changed.
 - Added (2026-10-22, Unverified on a real PC): bear three-quarter, back and look-back views (`BearViews.tsx`, drawn, not mirrored), `playEmote` sequence runner with cancel and reduced-motion handling, and a "Play back-turn shake" preview on the Character page. Tests added. Owner decisions on emotes recorded; milestone rules planned in EM-06; Rive trial recorded as blocked.
 - Added (2026-10-22, Unverified on a real PC): drawn three-quarter, back and look-back views for the four built-in characters Mochi, Pip, Bolt and Ghosty (`CharacterViews.tsx`), each with a "Play back-turn shake" preview on the Character page; `playEmote` now works for any character. Tests added (`CharacterViews.test.tsx`). Personal-photo characters get no back-turn shake.
 - Docs (2026-10-22): Emote and Reactions System specified (FR-40, `docs/character/EMOTE_FEATURE_SPECS.md`): registry, state machine, Emotes menu, eight emotes, fallbacks, accessibility. Feasibility added to the character research (§14): the current bear has no back or three-quarter view, so `back_turn_shake` stays unavailable until art exists. Owner decisions recorded (limited release OK, Peekoo reference, full-image motion later, no GPU). No code changed.
