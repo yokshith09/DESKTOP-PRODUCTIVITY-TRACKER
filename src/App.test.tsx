@@ -126,6 +126,31 @@ describe("Notes screen (against the in-memory shell)", () => {
     expect(screen.queryByRole("button", { name: "Open Refactor the tray menu" })).toBeNull();
   });
 
+  it("a task makes a linked note, opens it, and the note lists the task back (FR-42)", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await goTo(user, /^Tasks/);
+    await user.click(await screen.findByRole("button", { name: "Open Refactor the tray menu" }));
+    const task = await screen.findByRole("dialog");
+    await user.click(within(task).getByRole("button", { name: "New note from this task" }));
+    // The note opens on top, titled like the task, and shows the task under "Linked tasks".
+    const linked = await screen.findByRole("region", { name: "Linked tasks" });
+    expect(within(linked).getByRole("button", { name: "Open task Refactor the tray menu" })).toBeTruthy();
+    const dialogs = screen.getAllByRole("dialog");
+    const note = dialogs[dialogs.length - 1] as HTMLElement;
+    expect((within(note).getByRole("textbox", { name: "Title" }) as HTMLInputElement).value).toBe("Refactor the tray menu");
+    await user.keyboard("{Escape}");
+    // Back on the task: the link now opens the note instead of offering a new one.
+    expect(await within(task).findByRole("button", { name: "Open note" })).toBeTruthy();
+  });
+
+  it("Notes shows the Links card too (FR-42, V2-08)", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await openNotes(user);
+    expect(await screen.findByRole("button", { name: "Add link" })).toBeTruthy();
+  });
+
   it("a note previews as Markdown, never as raw HTML", async () => {
     const user = userEvent.setup();
     render(<App />);

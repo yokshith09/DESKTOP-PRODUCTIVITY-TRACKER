@@ -10,7 +10,9 @@ import { mod } from "@/lib/platform";
 import { cn } from "@/lib/utils";
 import { timeAgo } from "@/lib/time";
 import { ipc, NOTE_COLORS, type Note, type NoteColor } from "@/ipc";
-import { keys, useLabels, useNoteActions } from "@/hooks/useLoaf";
+import { keys, useLabels, useNoteActions, useTasksQuery } from "@/hooks/useLoaf";
+import { TaskDetail } from "@/features/tasks/TaskDetail";
+import { STATUS_LABEL } from "@/lib/taskStatus";
 import { COLOR_NAMES } from "./colors";
 import { MarkdownView } from "./MarkdownView";
 
@@ -27,6 +29,31 @@ export function NoteEditor({ noteId, onClose }: { noteId: string | null; onClose
     <Dialog open={noteId !== null} onOpenChange={(o) => !o && onClose()}>
       {note && noteId === note.id && <EditorBody key={note.id} note={note} onClose={onClose} />}
     </Dialog>
+  );
+}
+
+/** FR-42: the tasks that link to this note; each opens its task. */
+function LinkedTasks({ noteId }: { noteId: string }) {
+  const { data: rows = [] } = useTasksQuery("all", { note_id: noteId });
+  const [open, setOpen] = useState<string | null>(null);
+  if (rows.length === 0) return null;
+  return (
+    <section aria-label="Linked tasks" className="pt-3">
+      <p className="mb-1 text-xs font-medium text-muted-foreground">Linked tasks</p>
+      <ul className="flex flex-wrap gap-1.5">
+        {rows.map(({ task }) => (
+          <li key={task.id}>
+            <button
+              type="button" onClick={() => setOpen(task.id)} aria-label={`Open task ${task.title}`}
+              className="rounded-md border border-foreground/15 px-2 py-1 text-xs hover:bg-foreground/8"
+            >
+              {task.title} <span className="text-muted-foreground">· {STATUS_LABEL[task.status]}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+      <TaskDetail taskId={open} onClose={() => setOpen(null)} />
+    </section>
   );
 }
 
@@ -133,6 +160,7 @@ function EditorBody({ note, onClose }: { note: Note; onClose: () => void }) {
             className="max-h-[50vh] min-h-64 resize-none overflow-y-auto bg-transparent text-[15px] leading-relaxed outline-none placeholder:text-muted-foreground"
           />
         )}
+        <LinkedTasks noteId={note.id} />
         {note.labels.length > 0 && (
           <div className="flex flex-wrap gap-1.5 pt-2">
             {note.labels.map((l) => (

@@ -8,6 +8,7 @@ import { Kbd } from "@/components/ui/kbd";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { WeekCalendar } from "@/features/calendar/WeekCalendar";
 import { PageHeader } from "@/features/shell/PageHeader";
+import { LinksCard } from "@/features/links/Shortcuts";
 import type { Page } from "@/features/shell/Sidebar";
 import { mod } from "@/lib/platform";
 import { useNoteActions, useNotes, useSearch } from "@/hooks/useLoaf";
@@ -77,7 +78,9 @@ export function NotesPage({ archived, labelId, labelName, labels, onLabel, sort,
       {mode === "notes" && (
         <div className="grid gap-4 lg:grid-cols-12 lg:[&>*]:h-72">
           <TodayStrip className="lg:col-span-4" onViewAll={() => onNavigate("today")} />
-          <WeekCalendar className="lg:col-span-8" />
+          <WeekCalendar className="lg:col-span-5" />
+          {/* Links in Notes too, not only on Today (FR-42, owner V2-08). */}
+          <LinksCard className="lg:col-span-3" />
         </div>
       )}
       <div>

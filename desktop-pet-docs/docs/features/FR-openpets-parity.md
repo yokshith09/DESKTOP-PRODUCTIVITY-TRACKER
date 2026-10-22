@@ -219,7 +219,9 @@
 
 ---
 
-## FR-72 — Launch Buddy (open apps, sites and files from the pet)
+## FR-72 — Launch Buddy: startup greeting + launch sets
+
+> **Correction 2026-10-22:** OpenPets' *Launch Buddy* is a **startup greeting** (the pet greets you when the computer starts, with gentle timing, a reaction and optional sound), not an app launcher. FR-72 now covers both: (a) the greeting — on by default for every role, sound off by default, at most once per login; (b) launch sets as below.
 
 **1 Metadata** — Group: Productivity · Status: Planned · Milestone: M4 · Effort: M · Merges FR-09 One-Click Workspace Launcher. OpenPets: Launch Buddy.
 **2 Story** — As a user I want to open my study set-up (apps, links, files) with one click.
@@ -238,7 +240,7 @@
 **1 Metadata** — Group: Utilities · Status: Planned · Milestone: M12 · Effort: S · OpenPets: System Resources.
 **2 Story** — As a developer I want to glance at CPU, RAM, disk and battery near my pet.
 **3 Behaviour** — Off by default; small badge next to the pet; pet looks tired above 90% CPU for 1 minute.
-**5 Technical** — `sysinfo` crate (MIT), sampled every 5 s **only while the badge is visible**. GPU omitted (no-GPU rule).
+**5 Technical** — `sysinfo` crate (MIT), sampled every 5 s **only while the badge is visible**. GPU and disk meters optional, off by default, like OpenPets (showing GPU use does not break the no-GPU rule, which is about not *needing* a GPU).
 **7/8** — T-73-01 unit: threshold logic · T-73-02 Manual-Win: idle CPU of Loaf stays <1% with badge on.
 **4/6/9/10/11** — Plain: "how busy your PC is". Acceptance: off by default, budget kept. **13 Deps** — none.
 

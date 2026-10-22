@@ -45,7 +45,7 @@ This is the one page that says **what we build, in what order, and when each thi
 | ID | Feature | Defined as | Done when | Size | Status |
 |---|---|---|---|---|---|
 | FR-41 | Toast stack (Q1) | Small cards bottom-right: "Task saved · Undo", auto-dismiss 5 s, max 3 stacked; after add/edit the user returns to Today | Every add/edit/delete shows one toast; tests for stack, dismiss, undo | M | Planned |
-| FR-42 | Actionable task↔note links (Q5 confirmed) | "Open note" button on a task; "Linked tasks" list in the note; "Create note from task"; Links section inside Notes (V2-08) | Clicking a link opens the target; both sides show the link | M | Planned |
+| FR-42 | Actionable task↔note links (Q5 confirmed) | "Open note" button on a task; "Linked tasks" list in the note; "Create note from task"; Links section inside Notes (V2-08) | Clicking a link opens the target; both sides show the link | M | **Built, Unverified** |
 | FR-43 | Pop-ups above the pet, fixed (Q2) | Notifications and emote bubbles stay above the pet; positioned so they never go off-screen, one at a time, readable | Bubble visible at every screen edge; tests for placement | S | Planned |
 | FR-44 | Time tiles resizable, no empty space | Drag-to-resize with grid snap; tiles grow to fill the row | No gaps at any window size | M | Planned |
 | FR-45 | Date/time picker | Presets (Today, Tomorrow, This weekend, Next week, In 3 days), month grid, time list | Used in tasks, reminders, meetings | M | Planned |

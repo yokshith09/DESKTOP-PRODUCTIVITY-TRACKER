@@ -7,4 +7,8 @@ import type { TaskStatus } from "./TaskStatus";
  * sense: `status` and a *planned*-date range in `All`, a *completion*-date range in `Completed`.
  * Dates are inclusive local days.
  */
-export type TaskFilters = { status?: TaskStatus | null, priority?: Priority | null, project?: string | null, from?: string | null, to?: string | null, };
+export type TaskFilters = { status?: TaskStatus | null, priority?: Priority | null, project?: string | null, from?: string | null, to?: string | null, 
+/**
+ * Only tasks linked to this note (FR-42: "Linked tasks" in the note).
+ */
+note_id?: string | null, };

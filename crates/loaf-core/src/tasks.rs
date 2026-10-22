@@ -807,6 +807,8 @@ pub struct TaskFilters {
     pub project: Option<String>,
     pub from: Option<NaiveDate>,
     pub to: Option<NaiveDate>,
+    /// Only tasks linked to this note (FR-42: "Linked tasks" in the note).
+    pub note_id: Option<String>,
 }
 
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
@@ -897,6 +899,10 @@ pub async fn query(
         if let Some(project) = &filters.project {
             clauses.push("lower(project) = lower(?)".into());
             args.push(project.trim().to_owned().into());
+        }
+        if let Some(note_id) = &filters.note_id {
+            clauses.push("note_id = ?".into());
+            args.push(note_id.clone().into());
         }
         args.extend(order_args);
 
@@ -2247,6 +2253,31 @@ mod tests {
         };
         assert_eq!(names(&f, TaskView::Today, loaf.clone()).await.len(), 2);
         assert_eq!(names(&f, TaskView::All, loaf).await.len(), 2);
+    }
+
+    #[tokio::test]
+    async fn the_note_filter_lists_only_tasks_linked_to_that_note() {
+        let f = setup();
+        let note = crate::notes::create(&f.db, &f.clock, crate::notes::NoteInput::default())
+            .await
+            .unwrap();
+        for (title, linked) in [("linked", true), ("other", false)] {
+            create(
+                &f.db,
+                &f.clock,
+                TaskInput {
+                    note_id: linked.then(|| note.id.clone()),
+                    ..titled(title)
+                },
+            )
+            .await
+            .unwrap();
+        }
+        let only = TaskFilters {
+            note_id: Some(note.id.clone()),
+            ..Default::default()
+        };
+        assert_eq!(names(&f, TaskView::All, only).await, ["linked"]);
     }
 
     #[tokio::test]

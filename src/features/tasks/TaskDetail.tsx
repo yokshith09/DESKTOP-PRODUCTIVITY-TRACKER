@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { CalendarClock, CalendarPlus, Flag, FolderKanban, History, Link2, MessageSquarePlus, Trash2, X } from "lucide-react";
+import { CalendarClock, CalendarPlus, ExternalLink, FilePlus2, Flag, FolderKanban, History, Link2, MessageSquarePlus, Trash2, X } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { NoteEditor } from "@/features/notes/NoteEditor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -10,7 +12,8 @@ import { ymd } from "@/lib/dates";
 import { STATUS_LABEL, isFinished, transitionsFrom } from "@/lib/taskStatus";
 import { clockTime, formatWhen } from "@/lib/time";
 import { cn } from "@/lib/utils";
-import type { Priority, Task, TaskEvent } from "@/ipc";
+import { errorMessage, ipc, type Priority, type Task, type TaskEvent } from "@/ipc";
+import { toast } from "sonner";
 import { toEdit } from "./edit";
 
 const NONE = "none";
@@ -65,6 +68,20 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
   const [update, setUpdate] = useState("");
   const [deferTo, setDeferTo] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [openNote, setOpenNote] = useState<string | null>(null);
+  const qc = useQueryClient();
+  /** FR-42: make a note from this task (title and details), link it, and open it. */
+  const noteFromTask = async () => {
+    try {
+      const note = await ipc.noteCreate({ title: title.trim() || task.title, body: description });
+      await actions.update(task.id, { ...toEdit(task), note_id: note.id });
+      setNoteId(note.id);
+      await qc.invalidateQueries({ queryKey: ["notes"] });
+      setOpenNote(note.id);
+    } catch (e) {
+      toast.error(errorMessage(e));
+    }
+  };
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30_000); return () => clearInterval(t); }, []);
 
@@ -128,6 +145,11 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
               <option value="">None</option>
               {notes.map((n) => <option key={n.id} value={n.id}>{n.title || "Untitled"}</option>)}
             </select>
+            {noteId ? (
+              <Button size="sm" variant="outline" className="mt-1.5 w-full" onClick={() => setOpenNote(noteId)}><ExternalLink />Open note</Button>
+            ) : (
+              <Button size="sm" variant="outline" className="mt-1.5 w-full" onClick={() => void noteFromTask()}><FilePlus2 />New note from this task</Button>
+            )}
           </Field>
         </div>
 
@@ -193,6 +215,7 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
           <Button size="sm" disabled={!dirty || !title.trim()} onClick={() => void save()}>Save changes</Button>
         </div>
       </div>
+      <NoteEditor noteId={openNote} onClose={() => setOpenNote(null)} />
     </>
   );
 }

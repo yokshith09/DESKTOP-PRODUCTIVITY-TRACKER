@@ -396,7 +396,7 @@ export function createMock() {
 
     tasks_query: (a) => {
       const open = (x: Task) => x.status !== "CANCELLED" && x.status !== "COMPLETED";
-      const f = (a.filters ?? {}) as { status?: TaskStatus | null; priority?: Task["priority"]; project?: string | null; from?: string | null; to?: string | null };
+      const f = (a.filters ?? {}) as { status?: TaskStatus | null; priority?: Task["priority"]; project?: string | null; from?: string | null; to?: string | null; note_id?: string | null };
       let rows: Task[];
       switch (a.view) {
         case "all": rows = [...tasks].sort((p, q) => Number(!open(p)) - Number(!open(q))); break;
@@ -407,6 +407,7 @@ export function createMock() {
       }
       if (f.priority) rows = rows.filter((x) => x.priority === f.priority);
       if (f.project) rows = rows.filter((x) => x.project === f.project);
+      if (f.note_id) rows = rows.filter((x) => x.note_id === f.note_id);
       if (f.status && a.view === "all") rows = rows.filter((x) => x.status === f.status);
       const day = (x: Task) => a.view === "completed" ? new Date(x.completed_at ?? 0).toISOString().slice(0, 10) : (x.planned_date ?? "");
       if (f.from) rows = rows.filter((x) => day(x) >= (f.from ?? ""));
