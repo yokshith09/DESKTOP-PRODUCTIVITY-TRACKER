@@ -1,4 +1,4 @@
-// Rasterise packs/<id>/atlas.svg to spritesheet.webp (the Codex/OpenPets standard) and spritesheet.png with the installed Chromium (Playwright).
+// Rasterise packs/<id>/atlas.svg to spritesheet.webp (the Codex/OpenPets standard) with the installed Chromium (Playwright); spritesheet.png is an untracked local preview.
 // Usage: NODE_PATH=<dir with playwright-core> node scripts/svg-to-png.mjs [packsDir]. playwright-core is NOT a project dependency (kept out on purpose); CHROMIUM_PATH points at a Chromium.
 /* global document */
 import { readdirSync, existsSync, readFileSync, writeFileSync } from "node:fs";

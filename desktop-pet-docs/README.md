@@ -9,7 +9,34 @@ A lightweight, local-first desktop companion for Windows and macOS: notes, tasks
 ## Non-negotiables
 Event-driven (no polling) · Idle CPU <1% · RAM <100 MB · Local-first SQLite · Pet present from v1 · Windows + macOS parity
 
-## Documentation
+## Documentation map (read top to bottom)
+
+```
+desktop-pet-docs/
+├── MASTER_PLAN.md            ← START HERE: phases, milestones, every feature with "done when"
+├── PROJECT_STATUS.md         ← what is built, tested, unverified (evidence)
+├── DECISIONS.md              ← every owner decision, dated
+├── CHANGELOG.md              ← what changed
+├── ROADMAP.md                ← milestone table M0-M13 (detail behind MASTER_PLAN)
+├── FEATURE_ROADMAP.md        ← every FR-xx in one table, tests, release gates
+├── RELEASE_0.2.0_TEST.md     ← owner's Windows test checklist
+└── docs/
+    ├── BLOCKERS_AND_OPTIONS.md   ← every blocker, options, recommendation
+    ├── V2_ISSUES.md              ← owner's V2 bug list → features
+    ├── features/                 ← full specs (13 sections each)
+    │   ├── F0-*                  foundation (built)
+    │   ├── FR-requested-features.md   FR-01…FR-38
+    │   ├── FR-v2-features.md          FR-41…FR-58
+    │   ├── FR-openpets-parity.md      FR-59…FR-82
+    │   └── FR-83-role-profiles.md     role-based defaults
+    ├── character/                ← character, emote, Studio specs
+    ├── competitors/              ← OpenPets research
+    ├── 00-product … 06-plan/     ← locked founding documents (product, principles, PRD, TRD, design, schema, plan)
+    ├── learning/                 ← notes
+    └── archive/                  ← superseded, kept for history
+```
+
+## Founding documents (locked)
 
 | ID | Document | Path | Status |
 |----|----------|------|--------|

@@ -1,6 +1,6 @@
 # Character system — detailed feature specifications
 
-**Parent:** FR-39 in [`FEATURE_ROADMAP.md`](../../FEATURE_ROADMAP.md) · **Research:** [`CHARACTER_PIPELINE_RESEARCH.md`](CHARACTER_PIPELINE_RESEARCH.md) · **Status of all specs below:** **Planned** (no code written). **Date:** 2026-10-22.
+**Parent:** FR-39 in [`FEATURE_ROADMAP.md`](../../FEATURE_ROADMAP.md) · **Research:** [`../archive/CHARACTER_PIPELINE_RESEARCH.md`](../archive/CHARACTER_PIPELINE_RESEARCH.md) · **Status of all specs below:** **Planned** (no code written). **Date:** 2026-10-22.
 
 **Owner decisions these specs rely on (2026-10-21):** personal photo upload is **allowed** (with consent and local processing); the package format is **approved as a starting point** and will be found by trial and error; a **Rive trial** on one character goes ahead; the owner supplies **reference images** and Claude designs the built-in characters; **open-source tools are preferred**; external tool licences may be open-source, checked version by version.
 

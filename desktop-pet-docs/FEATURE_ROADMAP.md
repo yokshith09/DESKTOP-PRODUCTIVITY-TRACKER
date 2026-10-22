@@ -82,7 +82,7 @@ Legend: **Requested** = in the owner's list; **Technical requirement (TR)** = de
 | FR-36 | Secure auto-update (integrity, recovery, rollback) | Distribution | Blocked | FM-2 | XL | Blocked: signing certificates (owner) |
 | FR-37 | Keyboard-shortcut master switch (off by default; users enable) | Utilities | Planned | FM-1 | S | Open: D-SHORTCUT-DEFAULT (owner-stated: off) |
 | FR-38 | Meetings redesign (flow the owner finds confusing) | Utilities | Planned (deferred, later phase) | FM-13 (new, deferred) | M | Blocked: D-MEETINGS (owner will define; ask next time) |
-| FR-39 | Personalised 2D character system: built-in characters, sprite/package format, optional personal character | Companion | Research done; detailed specs CH-01…CH-08 in docs/character/CHARACTER_FEATURE_SPECS.md (Planned); build not started | FM-8 | XL | Open: D-GEN, D-UPLOAD, D-FORMAT, D-SIZE, D-RIVE, D-LICENCE, D-CHARS (see docs/character/CHARACTER_PIPELINE_RESEARCH.md) |
+| FR-39 | Personalised 2D character system: built-in characters, sprite/package format, optional personal character | Companion | Research done; detailed specs CH-01…CH-08 in docs/character/CHARACTER_FEATURE_SPECS.md (Planned); build not started | FM-8 | XL | Open: D-GEN, D-UPLOAD, D-FORMAT, D-SIZE, D-RIVE, D-LICENCE, D-CHARS (see docs/archive/CHARACTER_PIPELINE_RESEARCH.md) |
 | FR-40 | Emote and Reactions System: registry, state machine, right-click Emotes menu, 8 emotes (back_turn_shake, chaotic_dance, tiny_tantrum, moonwalk_escape, dramatic_crying, smug_taunt, instant_sleep, over_the_top_celebration), optional double-click/random/favourites, optional contextual reactions (off by default) | Companion | **Planned**; spec docs/character/EMOTE_FEATURE_SPECS.md; nothing built. `back_turn_shake` blocked on back/three-quarter art; focus-complete reaction blocked on FR-05 | FM-8b (proposed, after FM-8) | XL | Open: D-EMOTE-ORDER, D-EMOTE-MILESTONE, D-EMOTE-DOUBLECLICK, D-EMOTE-ART, D-EMOTE-MASTER |
 | FR-41 | Toasts and return-to-dashboard after add/edit | UI | Planned; spec FR-v2-features.md | FM-V2 | M | Q1 answered: toast stack |
 | FR-42 | Actionable links: Open note, Linked tasks on a note, Links in Notes, create note from task | Notes/Tasks | Planned | FM-V2 | M | Q5 confirmed |
@@ -108,7 +108,7 @@ Legend: **Requested** = in the owner's list; **Technical requirement (TR)** = de
 | FR-63 | Import any OpenPets/Codex pet pack | Companion | Planned | FM-CS | L | — |
 | FR-64 | Wardrobe: outfits and schedules (replaces FR-49) | Companion | Planned | FM-CS | L | — |
 | FR-65 | Activities (emotes as one-shot animations) | Companion | Planned | M6 | M | — |
-| FR-66 | Pet gallery / catalog | Companion | Planned | FM-CS | L | Hosting choice |
+| FR-66 | Pet gallery / catalog | Companion | Planned | FM-CS | L | GitHub Pages (decided) |
 | FR-67 | Multiple pets; pet per Project Space | Companion | Planned | M13 | L | FR-53 |
 | FR-68 | Size presets, reaction pace, reaction mapping | Companion | Planned | M6 | S | — |
 | FR-69 | Wellbeing: calm corner, water, mood, routines | Wellbeing | Planned | M8 | L | — |
@@ -121,10 +121,11 @@ Legend: **Requested** = in the owner's list; **Technical requirement (TR)** = de
 | FR-76 | Coding-agent integration | Developers | On hold | FM-INT | L | D-MCP-SHAPE |
 | FR-77 | Plugin SDK | Platform | On hold | FM-PLUG | XL | D-PLUGIN-MODEL, signing |
 | FR-78 | LAN mode | Companion | Planned (last) | P5 | L | — |
-| FR-79 | Languages | Shell | Planned | P5 | L | Owner picks languages |
+| FR-79 | Languages | Shell | Planned | P5 | L | Hindi + Telugu first (decided) |
 | FR-80 | AI Pet Studio | Companion | On hold | FM-CS | XL | AI provider, personal characters |
 | FR-81 | Wayland support (part of FR-57) | Platform | Planned | FM-LIN | S | — |
 | FR-82 | Flashcards from notes, usage buddy | Students | Planned | FM-ST | M | — |
+| FR-83 | Role profiles: Student / Developer / Student who codes / General set feature defaults | Shell | Planned | FM-GUIDE | M | — |
 | FR-58 | Student pack | Students | Planned; quiz waits for AI | FM-ST | L | — |
 
 **Verified existing (Unverified on real OS, tests pass):** FR-19 tracking, ROADMAP M1–M3 features. **Partial:** FR-01, FR-20, FR-22, FR-27. Everything else: Planned or Blocked. Nothing is "Complete" on a real OS.

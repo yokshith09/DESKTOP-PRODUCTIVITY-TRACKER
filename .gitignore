@@ -14,3 +14,4 @@ coverage/
 # Spikes are throwaway and never merged (05-learning-fundamentals.md)
 /spikes/
 packs/*/atlas.svg
+packs/*/spritesheet.png

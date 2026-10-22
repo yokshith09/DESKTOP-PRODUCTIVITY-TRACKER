@@ -1,5 +1,7 @@
 # Loaf — Master plan (phases, milestones, features)
 
+> **Planning is closed (owner, 2026-10-22).** From here we only build, top to bottom. New ideas go to DECISIONS.md as one line and wait for the next planning round. Blockers and the ways to unblock them: [`docs/BLOCKERS_AND_OPTIONS.md`](docs/BLOCKERS_AND_OPTIONS.md).
+
 **Date:** 2026-10-22 · **Source version:** 0.2.0 (owner label v2.0.0) · **Positioning:** student-first, local-first desktop pet + productivity.
 
 This is the one page that says **what we build, in what order, and when each thing is done**. Detail lives elsewhere: full 13-point specs in [`docs/features/FR-v2-features.md`](docs/features/FR-v2-features.md) (FR-41…FR-58) and [`docs/features/FR-openpets-parity.md`](docs/features/FR-openpets-parity.md) (FR-59…FR-82, every OpenPets feature) and [`docs/features/`](docs/features/README.md); evidence in [`PROJECT_STATUS.md`](PROJECT_STATUS.md); reasons in [`DECISIONS.md`](DECISIONS.md); competitor in [`docs/competitors/OPENPETS_RESEARCH_2026-10-22.md`](docs/competitors/OPENPETS_RESEARCH_2026-10-22.md).
@@ -71,7 +73,9 @@ This is the one page that says **what we build, in what order, and when each thi
 | Quick capture | One shortcut → new note or task from anywhere | Works while app is in the tray |
 | Quiz from notes | Questions generated from notes | **On hold** (AI provider) |
 
-### FM-GUIDE Guide (FR-51)
+### FM-GUIDE Guide (FR-51) + Role profiles (FR-83)
+First run asks Student / Developer / Student who codes / General; each role sets which features start on or off (matrix in [`docs/features/FR-83-role-profiles.md`](docs/features/FR-83-role-profiles.md)); users can switch anything; privacy features off for every role.
+
 Tour of each tab on first run, skippable at any step; Guide page in Settings; credit line "Built by QUORBIT TECHNOLOGIES". Done when a new user can finish or skip the tour and reopen it later.
 
 ### M8 Focus & wellbeing (FR-05, FR-69, FR-70)
@@ -98,7 +102,7 @@ Tour of each tab on first run, skippable at any step; Guide page in Settings; cr
 | Cursor gaze (FR-59) | V2 format: 2 extra rows, 16 look directions | Pet eyes follow the cursor | Planned |
 | Import any OpenPets/Codex pack (FR-63) | ZIP/folder/drag-drop, validated, preview, Codex folder scan | A real OpenPets pack runs in Loaf | Planned |
 | Wardrobe with schedules (FR-64) | Outfits incl. graduation cap, pajamas; time/day/date rules | Outfit changes on schedule; loads in OpenPets | Planned |
-| Pet gallery (FR-66) | Static online catalog, install with one click, hash-checked | Install works; no request until opened | Planned |
+| Pet gallery (FR-66) | Static catalog on **GitHub Pages** (owner-approved), install with one click, hash-checked | Install works; no request until opened | Planned |
 | Export pack | Export the current character (+ outfits) as a pack ZIP | ZIP passes OpenPets validation | Planned |
 | Personal photo characters | — | — | **On hold** |
 
@@ -138,7 +142,7 @@ Tour of each tab on first run, skippable at any step; Guide page in Settings; cr
 | M9 Voice | Push-to-talk → task/note/search | STT engine choice later |
 | M11 Privacy radar report | Per-site evidence report | — |
 | FR-74 Calendar reminders | .ics import first, Google/Outlook later | With M10 connectors |
-| FR-79 Languages | Picker; owner picks first languages | — |
+| FR-79 Languages | Picker; **Hindi and Telugu first** (owner-approved), then the OpenPets 8 | — |
 | FR-78 LAN mode | Pet walks between your PCs | Last; off by default |
 | FR-81 Wayland | Part of Linux build | Unverified |
 
@@ -154,20 +158,21 @@ FM-BE accounts/uploads (FR-56) · FM-PLUG plugins (FR-55, FR-77 SDK) · FR-76 co
 
 ---
 
-## Decisions — all answered except these
+## Blockers — see docs/BLOCKERS_AND_OPTIONS.md
 
-| Open | Blocks | Who |
+| Open | Blocks | Recommended way out |
 |---|---|---|
-| Windows test results for v2.0.0 | P0 → Complete | Owner |
-| FR-62 spike result | Browser tabs feature | Us (spike), then owner |
-| AI provider | P6 | Owner (on hold) |
-| D-MCP-SHAPE, D-PLUGIN-MODEL | FM-INT, FM-PLUG | Owner (on hold) |
-| Backend + privacy statement | P7 | Owner (later) |
-| Code signing | Installers, plugins | Owner (on hold) |
-| Personal-photo characters | FM-CS extra | Owner (on hold) |
-| Product name | Website (FR-34) | Owner |
+| Windows test of v2.0.0 | P0 → Complete | Owner runs RELEASE_0.2.0_TEST.md |
+| AI provider | P6 | Hybrid: local Ollama + optional own key; 1-day speed spike |
+| Code signing | installers, plugins | Open-source → SignPath (free); else Azure Trusted Signing via QUORBIT |
+| D-PLUGIN-MODEL | FR-55, FR-77 | Declarative (JSON-only) plugins first |
+| D-MCP-SHAPE | FR-54, FR-76 | stdio + named pipe + 3 tools (OpenPets shape) |
+| Backend + privacy statement | P7 only | Not needed until P7 |
+| Personal-photo characters | FR-80 | "Draw-your-own from parts" first; photos after AI |
+| Product name | FR-34 | Owner gives 5-10 names; we check domains/trademarks |
+| FR-62 tabs spike | FR-62 | Us, day 1 of build |
 
-Closed 2026-10-22: Q1 toast stack · Q2 bubbles above pet stay · Q3 auto-delete Time + completed tasks · Q4 browser tabs on dashboard · Q5 link plan · Q6 meeting tasks on Today · D-SIZE 192×208 (confirmed by OpenPets source) · D-LICENCE CC BY 4.0 · student-first order.
+Closed 2026-10-22: gallery on GitHub Pages · Hindi + Telugu first · role profiles (FR-83) · Q1 toast stack · Q2 bubbles above pet stay · Q3 auto-delete Time + completed tasks · Q4 browser tabs on dashboard · Q5 link plan · Q6 meeting tasks on Today · D-SIZE 192×208 (confirmed by OpenPets source) · D-LICENCE CC BY 4.0 · student-first order.
 
 ---
 

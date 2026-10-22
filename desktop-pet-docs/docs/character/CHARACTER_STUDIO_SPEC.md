@@ -63,7 +63,7 @@ Owner picks a character, adds an accessory, sees all nine rows, exports and re-i
 - [ ] Validator, renderer, Studio, accessories, mapping, import/export
 
 ## 12. Docs to update
-PROJECT_STATUS, ROADMAP, FEATURE_ROADMAP FR-49/FR-50, CHANGELOG, `OPENPETS_AUDIT.md`.
+PROJECT_STATUS, ROADMAP, FEATURE_ROADMAP FR-49/FR-50, CHANGELOG, `../competitors/OPENPETS_RESEARCH_2026-10-22.md`.
 
 ## 13. Dependencies and exclusions
 Excluded: personal photos (HOLD), Rive, AI generation, code signing. The gallery (FR-56) and plugins (FR-55) reuse this pack format.

@@ -1,6 +1,6 @@
 # Emote and Reactions System — feature specifications (FR-40)
 
-> **Status: Planned. Nothing here is built.** No code, no assets, no dependencies were added. Written 2026-10-22 from a read of `src/features/shell/Bear.tsx`, `src/pet/PetApp.tsx`, `src/pet/reactions.ts` and `src-tauri/src/pet.rs`. Owner decisions (2026-10-22) that shape this file are in [DECISIONS.md](../../DECISIONS.md). Character format and player: [CHARACTER_FEATURE_SPECS.md](CHARACTER_FEATURE_SPECS.md) (CH-01, CH-02). Feasibility: [CHARACTER_PIPELINE_RESEARCH.md](CHARACTER_PIPELINE_RESEARCH.md) §14.
+> **Status: Planned. Nothing here is built.** No code, no assets, no dependencies were added. Written 2026-10-22 from a read of `src/features/shell/Bear.tsx`, `src/pet/PetApp.tsx`, `src/pet/reactions.ts` and `src-tauri/src/pet.rs`. Owner decisions (2026-10-22) that shape this file are in [DECISIONS.md](../../DECISIONS.md). Character format and player: [CHARACTER_FEATURE_SPECS.md](CHARACTER_FEATURE_SPECS.md) (CH-01, CH-02). Feasibility: [CHARACTER_PIPELINE_RESEARCH.md](../archive/CHARACTER_PIPELINE_RESEARCH.md) §14.
 
 **Hierarchy:** Project goal → Phase → Milestone → Feature → Implementation tasks → Tests → Acceptance criteria.
 
