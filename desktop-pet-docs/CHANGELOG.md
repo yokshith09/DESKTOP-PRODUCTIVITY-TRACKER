@@ -5,6 +5,7 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Docs (2026-10-22): all OpenPets features planned (FR-59…FR-82) with specs in `docs/features/FR-openpets-parity.md`; MASTER_PLAN updated with a parity table; stale FR-41/43/49 specs marked superseded.
 - Docs (2026-10-22): `MASTER_PLAN.md` (phases, milestones, features with done-when), OpenPets source research, V2-16 rename links logged. Changed: pack `pet.json` holds only the OpenPets fields; extras in `loaf.json` (Unverified).
 - Changed (2026-10-22, Unverified): packs now ship `spritesheet.webp` (the Codex/OpenPets standard) and `pet.json` points at it; OpenPets format research recorded; owner answers Q1, Q4, Q5; AI provider on hold.
 - Added (2026-10-22, Unverified): drawn sprite poses `jump`, `sad` and `review` for Loaf, Mochi, Pip, Bolt and Ghosty (clipboard, tear, sad brows); the jumping, failed and review rows now use them, running-left is mirrored and re-lit; packs regenerated. Docs: owner answers Q2, Q3, Q6 and auto-chosen D-SIZE, D-LICENCE, AI provider.

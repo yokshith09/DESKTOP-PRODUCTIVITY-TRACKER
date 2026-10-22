@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-22 · **Source version:** 0.2.0 (owner label v2.0.0) · **Positioning:** student-first, local-first desktop pet + productivity.
 
-This is the one page that says **what we build, in what order, and when each thing is done**. Detail lives elsewhere: full 13-point specs in [`docs/features/FR-v2-features.md`](docs/features/FR-v2-features.md) (FR-41+) and [`docs/features/`](docs/features/README.md); evidence in [`PROJECT_STATUS.md`](PROJECT_STATUS.md); reasons in [`DECISIONS.md`](DECISIONS.md); competitor in [`docs/competitors/OPENPETS_RESEARCH_2026-10-22.md`](docs/competitors/OPENPETS_RESEARCH_2026-10-22.md).
+This is the one page that says **what we build, in what order, and when each thing is done**. Detail lives elsewhere: full 13-point specs in [`docs/features/FR-v2-features.md`](docs/features/FR-v2-features.md) (FR-41…FR-58) and [`docs/features/FR-openpets-parity.md`](docs/features/FR-openpets-parity.md) (FR-59…FR-82, every OpenPets feature) and [`docs/features/`](docs/features/README.md); evidence in [`PROJECT_STATUS.md`](PROJECT_STATUS.md); reasons in [`DECISIONS.md`](DECISIONS.md); competitor in [`docs/competitors/OPENPETS_RESEARCH_2026-10-22.md`](docs/competitors/OPENPETS_RESEARCH_2026-10-22.md).
 
 **Status words:** Complete (run on a real OS) · Unverified (built, tests pass, nobody ran it on a real OS) · Partial · Planned · On hold (owner) · Blocked (needs something outside the code).
 
@@ -50,11 +50,11 @@ This is the one page that says **what we build, in what order, and when each thi
 | FR-46 | Auto-delete (Q3) | Per type: Time/activity history and completed tasks; Never / 30 / 90 days / 6 months / 1 year; preview first, goes to Bin | Older data moves to Bin on schedule; notes, meetings, open tasks never touched | M | Planned |
 | FR-47 | Remove Logs rows from Settings | UI only, logging stays | Rows gone | XS | Planned |
 | FR-48 | Editable pet-window shortcuts, default off | Record new keys, conflict check | Shortcut changes saved and work | S | Planned |
-| FR-49a | Browser tabs on the dashboard (Q4) | List open tabs of Chrome/Edge/Firefox, click to switch, ✕ to close. **No extension**: Windows UI Automation. Off by default, titles never stored | A 1-day spike works on Windows; else reported back | L | Planned, **spike first** |
+| FR-62 | Browser tabs on the dashboard (Q4) | List open tabs of Chrome/Edge/Firefox, click to switch, ✕ to close. **No extension**: Windows UI Automation. Off by default, titles never stored | A 1-day spike works on Windows; else reported back | L | Planned, **spike first** |
 | FR-61 | **Rename links (V2-16, new)** | Edit a link's name (and URL) in place from the Links card and Notes | Rename saved and shown everywhere | S | Planned |
 | FR-52 | Meeting action items on Today (Q6 yes) | Converted tasks appear on Today with a "from: <meeting>" chip | Chip shown, click opens the meeting | S | Planned |
 
-**Order inside FM-V2:** FR-47 → FR-61 → FR-42 → FR-41 → FR-43 → FR-52 → FR-45 → FR-44 → FR-46 → FR-48 → FR-49a spike.
+**Order inside FM-V2:** FR-47 → FR-61 → FR-42 → FR-41 → FR-43 → FR-52 → FR-45 → FR-44 → FR-46 → FR-48 → FR-62 spike.
 **Release:** v0.2.1 for owner testing.
 
 ---
@@ -74,8 +74,13 @@ This is the one page that says **what we build, in what order, and when each thi
 ### FM-GUIDE Guide (FR-51)
 Tour of each tab on first run, skippable at any step; Guide page in Settings; credit line "Built by QUORBIT TECHNOLOGIES". Done when a new user can finish or skip the tour and reopen it later.
 
-### M8 Focus & wellbeing (FR-05)
-Pomodoro timer with the pet reacting; daily/weekly summaries; goals. Borrowed ideas from OpenPets plugins: breathing break, water reminder, mood check-in (all off by default).
+### M8 Focus & wellbeing (FR-05, FR-69, FR-70)
+| ID | Feature | Done when |
+|---|---|---|
+| FR-05 | Pomodoro focus with the pet reacting; daily/weekly summaries; goals | Session logged to a task; summary screen |
+| FR-69 | Calm corner (breathing, grounding, relaxation, meditation, sounds), water reminder, mood check-in, morning/evening routines | Each works offline; only Calm corner on by default |
+| FR-70 | Timer and quick reminders from the pet menu, snooze | Fires on time while minimised |
+| FR-82 | Flashcards from notes (term : meaning, drag to match), usage buddy | Quiz runs from a note; usage nudge off by default |
 
 **Release:** v0.3.0.
 
@@ -90,12 +95,21 @@ Pomodoro timer with the pet reacting; daily/weekly summaries; goals. Borrowed id
 | Pack import | Import any Codex/OpenPets pack (ZIP or folder), validate, preview | A downloaded pack runs as the Loaf pet | Planned |
 | Studio preview | Row picker plays each row at its real timing | All 9 rows play | Planned |
 | Accessories as **wardrobe outfits** (FR-49) | Hat, glasses, scarf, bow, headphones drawn per character; saved as OpenPets `wardrobe` outfits with optional schedule (e.g. scarf in winter) | Outfit switches live and by schedule | Planned |
-| Cursor gaze (FR-59, new) | V2 format: 2 extra rows, 16 look directions | Pet eyes follow the cursor | Planned |
+| Cursor gaze (FR-59) | V2 format: 2 extra rows, 16 look directions | Pet eyes follow the cursor | Planned |
+| Import any OpenPets/Codex pack (FR-63) | ZIP/folder/drag-drop, validated, preview, Codex folder scan | A real OpenPets pack runs in Loaf | Planned |
+| Wardrobe with schedules (FR-64) | Outfits incl. graduation cap, pajamas; time/day/date rules | Outfit changes on schedule; loads in OpenPets | Planned |
+| Pet gallery (FR-66) | Static online catalog, install with one click, hash-checked | Install works; no request until opened | Planned |
 | Export pack | Export the current character (+ outfits) as a pack ZIP | ZIP passes OpenPets validation | Planned |
 | Personal photo characters | — | — | **On hold** |
 
 ### M6 Reminders & contextual pet (finish) · M13 Character customisation
-Emotes (FR-40) exported as OpenPets **activities**; drag-and-throw and wander (FR-60, new); quiet hours.
+| ID | Feature | Done when |
+|---|---|---|
+| FR-65 | Activities: emotes as one-shot animations, in the menu and in packs | All 8 emotes play and export |
+| FR-60 | Drag, throw with physics, wander (off by default), multi-monitor | Throw always lands on screen |
+| FR-68 | Size presets, Normal/Relaxed pace, "when X play Y" mapping | Applies without restart |
+| FR-67 | Up to 3 pets; a pet per Project Space | RAM stays <100 MB |
+| FR-71 | Care mode (productivity feeds the pet, no punishment), fortune cookie, magic 8-ball | Off by default |
 
 **Release:** v0.4.0.
 
@@ -108,6 +122,8 @@ Emotes (FR-40) exported as OpenPets **activities**; drag-and-throw and wander (F
 | FM-PS (FR-53) | Project Spaces, opt-in, off by default: notes, tasks, links, files per project; sidebar item appears when on |
 | M4 Quick Actions | Keyboard command centre: new note/task, search, open link |
 | M12 Developer reactions | Pet reacts to git commits, local builds, CI status |
+| FR-72 Launch Buddy | Saved launch sets (apps, links, files) from pet/Quick Actions/Space (merges FR-09) |
+| FR-73 System resources badge | CPU/RAM/disk/battery, off by default |
 
 **Release:** v0.5.0.
 
@@ -121,16 +137,20 @@ Emotes (FR-40) exported as OpenPets **activities**; drag-and-throw and wander (F
 | FM-INT (FR-54) | Local MCP server | **Shape on hold** (D-MCP-SHAPE); OpenPets' status/react/say is the reference |
 | M9 Voice | Push-to-talk → task/note/search | STT engine choice later |
 | M11 Privacy radar report | Per-site evidence report | — |
+| FR-74 Calendar reminders | .ics import first, Google/Outlook later | With M10 connectors |
+| FR-79 Languages | Picker; owner picks first languages | — |
+| FR-78 LAN mode | Pet walks between your PCs | Last; off by default |
+| FR-81 Wayland | Part of Linux build | Unverified |
 
 **Release:** v0.6.0.
 
 ---
 
 ## P6 — AI (on hold: AI provider)
-M5 writing & prompt assistant · M7 meeting summaries and suggested actions · quiz from notes · Study companion (FR-12) · error translator (FR-16).
+FR-75 talk to your pet (chat + voice, actions) · FR-80 AI Pet Studio (photo/idea → pet; also needs personal characters) · M5 writing & prompt assistant · M7 meeting summaries and suggested actions · quiz from notes · Study companion (FR-12) · error translator (FR-16).
 
 ## P7 — Online (on hold: backend + privacy statement, plugin model, code signing)
-FM-BE gallery (FR-56) · FM-PLUG plugins (FR-55) · sharing, referrals, leaderboards (FR-04, FR-10, FR-31).
+FM-BE accounts/uploads (FR-56) · FM-PLUG plugins (FR-55, FR-77 SDK) · FR-76 coding-agent integration (with FR-54, D-MCP-SHAPE) · sharing, referrals, leaderboards (FR-04, FR-10, FR-31).
 
 ---
 
@@ -139,7 +159,7 @@ FM-BE gallery (FR-56) · FM-PLUG plugins (FR-55) · sharing, referrals, leaderbo
 | Open | Blocks | Who |
 |---|---|---|
 | Windows test results for v2.0.0 | P0 → Complete | Owner |
-| FR-49a spike result | Browser tabs feature | Us (spike), then owner |
+| FR-62 spike result | Browser tabs feature | Us (spike), then owner |
 | AI provider | P6 | Owner (on hold) |
 | D-MCP-SHAPE, D-PLUGIN-MODEL | FM-INT, FM-PLUG | Owner (on hold) |
 | Backend + privacy statement | P7 | Owner (later) |
@@ -148,3 +168,36 @@ FM-BE gallery (FR-56) · FM-PLUG plugins (FR-55) · sharing, referrals, leaderbo
 | Product name | Website (FR-34) | Owner |
 
 Closed 2026-10-22: Q1 toast stack · Q2 bubbles above pet stay · Q3 auto-delete Time + completed tasks · Q4 browser tabs on dashboard · Q5 link plan · Q6 meeting tasks on Today · D-SIZE 192×208 (confirmed by OpenPets source) · D-LICENCE CC BY 4.0 · student-first order.
+
+---
+
+## OpenPets parity — every feature they have, where it lands
+
+| OpenPets feature | Loaf ID | Phase |
+|---|---|---|
+| Sprite packs (V1) | FR-50 | P3 (built, Unverified) |
+| Cursor gaze (V2) | FR-59 | P3 |
+| Drag/throw, wander, multi-monitor | FR-60 | P3 |
+| Import packs, Codex pets, install links | FR-63 | P3 |
+| Wardrobe + schedules | FR-64 | P3 |
+| Activities | FR-65 | P3 |
+| Catalog/gallery | FR-66 | P3 |
+| Pet per workspace / agent, multiple pets | FR-67 | P3 |
+| Size presets, reaction pace, mapping | FR-68 | P3 |
+| Anxiety Aid, Water, Mood, Routines | FR-69 | P2 |
+| Simple Timer, Quick Reminders | FR-70 | P2 |
+| Virtual Pet, Fortune Cookie, Magic 8-Ball | FR-71 | P3 |
+| Launch Buddy | FR-72 | P4 |
+| System Resources | FR-73 | P4 |
+| Calendar Airmail | FR-74 | P5 |
+| Talk to the pet (AI chat/voice) | FR-75 | P6 (on hold) |
+| Coding-agent MCP + hooks | FR-76 | P7 (on hold) |
+| Plugin SDK | FR-77 | P7 (on hold) |
+| LAN mode | FR-78 | P5 (last) |
+| 8 languages | FR-79 | P5 |
+| AI Pet Studio | FR-80 | P6 (on hold) |
+| Wayland | FR-81 | P5 |
+| Vocabulary drag & drop, Usage Buddy | FR-82 | P2 |
+| Spotify Buddy, Higgsfield Watch | — | Not copied (low value) |
+
+**What Loaf has that OpenPets does not:** notes, tasks, meetings, daily progress, app/website time tracking, privacy radar, student pack, Project Spaces, typing-along pet, hand-drawn built-in characters (5 vs their 1), Tauri (lighter than Electron).

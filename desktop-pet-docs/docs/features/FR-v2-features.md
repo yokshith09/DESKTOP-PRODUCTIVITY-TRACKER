@@ -8,7 +8,7 @@ Common to every spec: **12 Docs** = spec + checklist, FEATURE_ROADMAP, ROADMAP, 
 
 ## FR-41 — Notifications as toasts, and return to the dashboard after add/edit
 
-**1 Metadata** — Group: Shell · Status: Planned · Milestone: FM-V2 · Effort: M · Decision: Q1 open · Origin: owner V2-02 · Evidence: toast library already used in `SettingsPage.tsx` (`toast.error`).
+**1 Metadata** — Group: Shell · Status: Planned · Milestone: FM-V2 · Effort: M · Decision: Q1 **closed 2026-10-22: toast stack, no bell** · Origin: owner V2-02 · Evidence: toast library already used in `SettingsPage.tsx` (`toast.error`).
 **2 Story** — As a user I want a clear pop-up when something happens, and after I add or edit a task I want to land back on the dashboard.
 **3 Behaviour** — One toast stack, bottom-right. Types: success, info, warning, error, with an optional action ("Undo", "Open"). Auto-dismiss 5 s (errors 8 s), pausable on hover, max 3 visible, keyboard dismiss with Esc. Saving a new task from Today or Quick add returns to Today; editing from Today returns to Today; editing from Tasks stays in Tasks. Navigate-back target = the screen the user came from.
 **4 Plain language** — Little messages appear, say what happened, and go away. After you add a task you are back where you started.
@@ -41,6 +41,8 @@ Common to every spec: **12 Docs** = spec + checklist, FEATURE_ROADMAP, ROADMAP, 
 ---
 
 ## FR-43 — No pop-ups above the pet
+
+> **Superseded 2026-10-22 (owner Q2):** pop-ups above the pet **stay**, emote bubbles included. New scope: make them appear correctly (on-screen at every edge, one at a time, readable). Spec below is kept for history; behaviour section is replaced by this note.
 
 **1 Metadata** — Group: Companion · Status: Planned · Milestone: FM-V2 · Effort: S · Decision: Q2 open · Origin: V2-03.
 **2 Story** — I do not want text bubbles above the pet.
@@ -143,6 +145,8 @@ Common to every spec: **12 Docs** = spec + checklist, FEATURE_ROADMAP, ROADMAP, 
 ---
 
 ## FR-49 — Character accessories (and the "tabs" question)
+
+> **Superseded 2026-10-22:** accessories are built as OpenPets wardrobe outfits — see FR-64 in `FR-openpets-parity.md`. The "tabs" question (Q4) became FR-62 (browser tabs on the dashboard).
 
 **1 Metadata** — Group: Companion · Status: Planned · Milestone: FM-CS (Character Studio) · Effort: L · Origin: V2-09, V2-10 (Blocked on Q4).
 **2 Story** — I can put accessories on my character.

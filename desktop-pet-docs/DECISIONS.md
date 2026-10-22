@@ -218,3 +218,12 @@ Still open: none of Q1-Q7 except the Q4 spike result.
 - OpenPets researched from its source (OpenPetsHQ/openpets 4.1.0, MIT): `docs/competitors/OPENPETS_RESEARCH_2026-10-22.md`. Their site does not resolve from our build environment.
 - Packs: `pet.json` now holds only the four OpenPets fields; our own details moved to `loaf.json` so strict importers do not reject unknown keys.
 - New features: FR-59 cursor gaze rows, FR-60 drag-and-throw and wander, FR-61 rename links (V2-16). Accessories (FR-49) will use the OpenPets `wardrobe` format; emotes export as OpenPets `activities`.
+
+## 2026-10-22 (late) — Owner: all OpenPets features in Loaf
+
+- Every OpenPets feature is planned: FR-59…FR-82, specs in `docs/features/FR-openpets-parity.md`, mapping table in `MASTER_PLAN.md`.
+- Features needing on-hold decisions stay on hold: talk-to-pet AI (FR-75), coding-agent MCP (FR-76), plugin SDK (FR-77), AI Pet Studio (FR-80).
+- Because plugins are on hold, OpenPets' plugin features (wellbeing, timer, fun pack, launcher, system badge) are built **into** Loaf.
+- Not copied: Spotify Buddy, Higgsfield Watch (low value). Electron not adopted (Tauri stays).
+- FR-49 accessories → FR-64 wardrobe; FR-49a → FR-62; FR-09 merged into FR-72.
+- Open for the owner: hosting for the gallery (FR-66), first extra languages (FR-79).

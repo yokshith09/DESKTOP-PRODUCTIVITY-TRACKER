@@ -104,7 +104,27 @@ Legend: **Requested** = in the owner's list; **Technical requirement (TR)** = de
 | FR-59 | Cursor gaze rows (OpenPets V2 format, 16 look directions) | Companion | Planned | FM-CS | M | — |
 | FR-60 | Drag-and-throw and wander for the pet | Companion | Planned | M6 | M | — |
 | FR-61 | Rename links (V2-16) | Links | Planned | FM-V2 | S | — |
-| FR-49a | Browser tabs on the dashboard: switch and close, no extension (UI Automation) | Time | Planned, spike first | FM-V2 | L | — |
+| FR-62 | Browser tabs on the dashboard: switch and close, no extension (UI Automation) | Time | Planned, spike first | FM-V2 | L | — |
+| FR-63 | Import any OpenPets/Codex pet pack | Companion | Planned | FM-CS | L | — |
+| FR-64 | Wardrobe: outfits and schedules (replaces FR-49) | Companion | Planned | FM-CS | L | — |
+| FR-65 | Activities (emotes as one-shot animations) | Companion | Planned | M6 | M | — |
+| FR-66 | Pet gallery / catalog | Companion | Planned | FM-CS | L | Hosting choice |
+| FR-67 | Multiple pets; pet per Project Space | Companion | Planned | M13 | L | FR-53 |
+| FR-68 | Size presets, reaction pace, reaction mapping | Companion | Planned | M6 | S | — |
+| FR-69 | Wellbeing: calm corner, water, mood, routines | Wellbeing | Planned | M8 | L | — |
+| FR-70 | Timer and quick reminders from the pet | Productivity | Planned | M8 | S | — |
+| FR-71 | Care mode, fortune cookie, magic 8-ball | Companion | Planned | M13 | M | — |
+| FR-72 | Launch Buddy (merges FR-09) | Productivity | Planned | M4 | M | — |
+| FR-73 | System resources badge | Utilities | Planned | M12 | S | — |
+| FR-74 | Calendar reminders (.ics, then Google/Outlook) | Integrations | Planned | M10 | L | — |
+| FR-75 | Talk to your pet (AI chat + voice) | AI | On hold | M5/M9 | XL | AI provider |
+| FR-76 | Coding-agent integration | Developers | On hold | FM-INT | L | D-MCP-SHAPE |
+| FR-77 | Plugin SDK | Platform | On hold | FM-PLUG | XL | D-PLUGIN-MODEL, signing |
+| FR-78 | LAN mode | Companion | Planned (last) | P5 | L | — |
+| FR-79 | Languages | Shell | Planned | P5 | L | Owner picks languages |
+| FR-80 | AI Pet Studio | Companion | On hold | FM-CS | XL | AI provider, personal characters |
+| FR-81 | Wayland support (part of FR-57) | Platform | Planned | FM-LIN | S | — |
+| FR-82 | Flashcards from notes, usage buddy | Students | Planned | FM-ST | M | — |
 | FR-58 | Student pack | Students | Planned; quiz waits for AI | FM-ST | L | — |
 
 **Verified existing (Unverified on real OS, tests pass):** FR-19 tracking, ROADMAP M1–M3 features. **Partial:** FR-01, FR-20, FR-22, FR-27. Everything else: Planned or Blocked. Nothing is "Complete" on a real OS.
