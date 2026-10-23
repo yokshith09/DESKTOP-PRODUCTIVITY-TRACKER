@@ -308,3 +308,7 @@ Still open: none of Q1-Q7 except the Q4 spike result.
 - FR-44 built as snapped layout presets (width + height) instead of free drag-resize: same outcome, far less to break in a webview. Owner may still ask for drag later.
 - Owner: "release 0.3.0" → source version bumped 0.2.0 → 0.3.0 (supersedes D-VERSION "stays 0.2.0"); the release workflow builds a **draft**; the owner tests before publishing.
 - **FR-88 now strip replaced by FR-110:** only the focus timer sits above/below the pet; the rest goes on the hover card. New setting to turn the hover card off; then hovering shows the info as a bubble. The four FR-88 open questions are superseded.
+
+## 2026-10-23 (late) — page-mascot audit
+- Audited koboyo.com/page-mascot (`docs/competitors/PAGE_MASCOT_AUDIT_2026-10-23.md`): MIT, head-only cursor-watching characters for websites. We may reuse the art with the MIT notice and credit, **except `kamran` (a real person's likeness)**. They don't fit the Codex full-body format; proposed FR-112 "head pet that watches your cursor" — **awaiting owner decision, not built**.
+- Release test checklist: `RELEASE_0.3.0_CHECKLIST.md`.

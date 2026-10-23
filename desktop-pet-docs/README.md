@@ -35,6 +35,7 @@ desktop-pet-docs/
     │   ├── FR-84-87-owner-requests.md community server, routine, diary, reactions
     │   ├── FR-88-now-strip.md         now strip spec draft + student-pack preview notes
     │   ├── FR-92-97-companion-principles.md  no-guilt, attention ladder, budget, birthdays, backup
+    │   ├── FR-106-110-task-upgrades.md task links, stars, days, repeat, focus timer
     │   └── FR-98-103-growth-plan.md   festival outfits, recap, groups, leaderboard, drops, photo-to-pet
     ├── character/                ← character, emote, Studio, art spec, animation plan
     ├── competitors/              ← OpenPets research
