@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
 import { ipc } from "@/ipc";
 import { GAP_CHOICES, MAX_PER_DAY_RANGE, parseNudges, type NudgeState } from "@/lib/nudges";
+import { useRepeatRemindPrefs } from "@/features/tasks/useRepeatReminder";
 import { Row, Section } from "./parts";
 
 const KEY = ["prefs", "ui.nudges"] as const;
@@ -15,6 +16,7 @@ const select = "h-8 rounded-md border border-input bg-card px-2 text-[13px] outl
 export function NudgeSettings() {
   const qc = useQueryClient();
   const { data } = useQuery({ queryKey: KEY, queryFn: async () => parseNudges(await ipc.prefsGet("ui.nudges")) });
+  const repeat = useRepeatRemindPrefs();
   if (!data) return null;
   const save = async (patch: Partial<NudgeState>) => {
     const next = { ...data, ...patch };
@@ -43,6 +45,15 @@ export function NudgeSettings() {
             </>
           )}
           <Switch checked={data.quiet.on} onCheckedChange={(on) => void save({ quiet: { ...data.quiet, on } })} aria-label="Quiet hours" />
+        </div>
+      </Row>
+      <Row label="Repeating tasks still open" hint="Once in the evening the pet names the repeating tasks you haven't ticked today. Counts as one nudge.">
+        <div className="flex items-center gap-2">
+          {repeat.state.on && (
+            <input type="time" aria-label="Repeating tasks reminder time" className={select} value={repeat.state.at}
+              onChange={(e) => e.target.value && void repeat.save({ ...repeat.state, at: e.target.value, remindedOn: null })} />
+          )}
+          <Switch checked={repeat.state.on} onCheckedChange={(on) => void repeat.save({ ...repeat.state, on })} aria-label="Repeating tasks reminder" />
         </div>
       </Row>
     </Section>

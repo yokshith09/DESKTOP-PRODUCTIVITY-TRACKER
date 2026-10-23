@@ -8,4 +8,8 @@ remind_at: number, note_id: string | null,
 /**
  * Set once `ReminderDue` has been published for the current `remind_at`.
  */
-fired_at: number | null, done_at: number | null, created_at: number, };
+fired_at: number | null, done_at: number | null, created_at: number, 
+/**
+ * Starred reminders come first (FR-107).
+ */
+starred: boolean, };

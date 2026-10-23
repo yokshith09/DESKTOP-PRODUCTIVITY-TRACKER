@@ -4,8 +4,8 @@ import { yesterdaySummary } from "./YesterdayLine";
 
 const e = (id: string): LogEntry => ({ id, title: id });
 const row = (id: string, status: TaskRow["task"]["status"]): TaskRow => ({
-  overdue: false,
-  task: { id, title: id, description: "", status, priority: null, project: null, planned_date: null, due_date: null, note_id: null, source_action_item_id: null, created_at: 0, updated_at: 0, started_at: null, completed_at: null, cancelled_at: null },
+  overdue: false, done_today: false,
+  task: { id, title: id, description: "", status, priority: null, project: null, planned_date: null, due_date: null, note_id: null, source_action_item_id: null, created_at: 0, updated_at: 0, started_at: null, completed_at: null, cancelled_at: null, starred: false, repeat: null, repeat_until: null, days: [], links: [] },
 });
 const log = (left: LogEntry[]): DailyLog => ({
   date: "2026-10-11", live: false, reconstructed: false,

@@ -297,3 +297,9 @@ Still open: none of Q1-Q7 except the Q4 spike result.
 - Known consequence (accepted for now, raise again if it bites): when the pet is hidden or turned off, these messages are **not shown anywhere**. Errors are the risky ones. Option for later: show errors inline next to the control that failed.
 - Owner: stop building new features; fix the remaining FM-V2 items, then make the path clear and release a version (draft). Student-pack screens to be improved and a "now strip" (FR-88) preview built — previews only, no code.
 - Previews done (same night): student pack redesigned and the now strip added as board 4 (`docs/features/FR-88-now-strip.md`). Choices made inside the preview, for the owner to confirm: leaderboard default **Nobody**; classes don't remind by default; suggestions are rule-based on this PC (no AI), at most one a day; the strip is not a notification. **Open:** the four FR-88 questions in that file.
+
+## 2026-10-23 (late night) — Task upgrades, focus timer by the pet
+- Owner: build now; the owner decides when to release ("ill give you command when we should release").
+- Tasks: multiple **links** shown next to the task (FR-106); **star** for tasks and reminders (FR-107); **chosen days** (FR-108); **repeating** with a tick per day, an evening reminder for unticked ones and a record of days not ticked (FR-109). Spec: `docs/features/FR-106-110-task-upgrades.md`.
+- No-guilt applied to FR-109: days not ticked are shown neutrally ("not ticked"), counted as "done N of the last M", reminder once a day through the nudge budget.
+- **FR-88 now strip replaced by FR-110:** only the focus timer sits above/below the pet; the rest goes on the hover card. New setting to turn the hover card off; then hovering shows the info as a bubble. The four FR-88 open questions are superseded.

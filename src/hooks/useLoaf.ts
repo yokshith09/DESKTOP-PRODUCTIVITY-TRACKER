@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { daysAgo, ymd } from "@/lib/dates";
 import { notify } from "@/lib/notify";
-import { errorMessage, ipc, onEvent, type NoteInput, type NotePatch, type NoteSort, type TaskEdit, type TaskFilters, type TaskStatus, type TaskView, type MeetingFilters, type MeetingInput } from "@/ipc";
+import { errorMessage, ipc, onEvent, type NoteInput, type NotePatch, type NoteSort, type TaskEdit, type LinkInput, type TaskPlan, type TaskFilters, type TaskStatus, type TaskView, type MeetingFilters, type MeetingInput } from "@/ipc";
 
 export const keys = {
   notes: (archived: boolean, labelId: string | null, sort: NoteSort) => ["notes", archived, labelId, sort] as const,
@@ -140,6 +140,10 @@ export function useTaskActions() {
   const remove = useAction((id: string) => ipc.taskDelete(id), refresh);
   const addUpdate = useAction((id: string, body: string) => ipc.workUpdateAdd(id, body), refresh);
   const removeUpdate = useAction((id: string) => ipc.workUpdateDelete(id), refresh);
+  const star = useAction((id: string, on: boolean) => ipc.taskStar(id, on), refresh);
+  const links = useAction((id: string, l: LinkInput[]) => ipc.taskSetLinks(id, l), refresh);
+  const plan = useAction((id: string, p: TaskPlan) => ipc.taskSetPlan(id, p), [...refresh, ["repeat-days"]]);
+  const tick = useAction((id: string, day: string, done: boolean) => ipc.taskTick(id, day, done), [...refresh, ["repeat-days"]]);
   return {
     update: (id: string, edit: TaskEdit) => update.mutateAsync([id, edit]),
     /** Saves the edit and says so (FR-41). */
@@ -168,8 +172,20 @@ export function useTaskActions() {
     },
     addUpdate: (id: string, body: string) => addUpdate.mutateAsync([id, body]),
     removeUpdate: (id: string) => removeUpdate.mutateAsync([id]),
+    /** FR-107. */
+    star: (id: string, on: boolean) => star.mutateAsync([id, on]),
+    /** FR-106: replace the task's links. */
+    setLinks: (id: string, l: LinkInput[]) => links.mutateAsync([id, l]),
+    /** FR-108/109: chosen days or a repeat rule. */
+    setPlan: (id: string, p: TaskPlan) => plan.mutateAsync([id, p]),
+    /** FR-109: tick (or untick) one day of a repeating task. */
+    tick: (id: string, day: string, done: boolean) => tick.mutateAsync([id, day, done]),
   };
 }
+
+/** The last repeat days of a repeating task, newest first (FR-109). */
+export const useRepeatDays = (id: string | null, repeats: boolean) =>
+  useQuery({ queryKey: ["repeat-days", id], queryFn: () => ipc.taskRepeatDays(id ?? ""), enabled: !!id && repeats });
 
 export function useReminderActions() {
   const keysToRefresh = [["reminders"]] as const;
@@ -177,7 +193,9 @@ export function useReminderActions() {
   const done = useAction((id: string, d: boolean) => ipc.reminderSetDone(id, d), keysToRefresh);
   const remove = useAction((id: string) => ipc.reminderDelete(id), keysToRefresh);
   const edit = useAction((id: string, title: string, remindAt: number) => ipc.reminderUpdate(id, { title, remind_at: remindAt }), keysToRefresh);
+  const star = useAction((id: string, on: boolean) => ipc.reminderStar(id, on), keysToRefresh);
   return {
+    star: (id: string, on: boolean) => star.mutateAsync([id, on]),
     create: (title: string, remindAt: number) => create.mutateAsync([title, remindAt]),
     update: (id: string, title: string, remindAt: number) => edit.mutateAsync([id, title, remindAt]),
     setDone: (id: string, d: boolean) => done.mutateAsync([id, d]),

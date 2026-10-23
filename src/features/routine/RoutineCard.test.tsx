@@ -12,6 +12,14 @@ vi.mock("@/lib/notify", () => ({ notify }));
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); notify.info.mockReset(); });
 
+/** Record what the pet is asked to say until `stop()`. */
+function petSaid() {
+  const list: unknown[] = [];
+  const listen = (e: Event) => list.push((e as CustomEvent).detail);
+  window.addEventListener("loaf-pet-say", listen);
+  return { list, stop: () => window.removeEventListener("loaf-pet-say", listen) };
+}
+
 /** Preferences kept in memory, like the real store. */
 function store(initial: unknown) {
   // Quiet hours off so the test doesn't depend on the time it runs.
@@ -67,18 +75,17 @@ describe("routine reminder (FR-85)", () => {
   it("says how many are pending once the time has passed, once a day", async () => {
     const s = store({ items, day: today, done: [], history: {}, remind: { on: true, at: "00:00" }, remindedOn: null });
     wrap(<Reminder />);
-    const said: unknown[] = [];
-    const listen = (e: Event) => said.push((e as CustomEvent).detail);
-    window.addEventListener("loaf-pet-say", listen);
-    await waitFor(() => expect(notify.info).toHaveBeenCalledWith("You have 3 daily routine tasks pending", expect.anything()));
-    // The same words go to the pet window, shown above the pet (FR-43).
-    await waitFor(() => expect(said).toContainEqual(expect.objectContaining({ text: "You have 3 daily routine tasks pending" })));
-    window.removeEventListener("loaf-pet-say", listen);
+    const said = petSaid();
+    // Above the pet only (FR-43; nothing in the dashboard, owner 2026-10-23), and only once.
+    await waitFor(() => expect(said.list).toContainEqual(expect.objectContaining({ text: "You have 3 daily routine tasks pending" })));
     await waitFor(() => expect(s.get().remindedOn).toBe(today));
-    expect(notify.info).toHaveBeenCalledTimes(1);
+    said.stop();
+    expect(said.list).toHaveLength(1);
+    expect(notify.info).not.toHaveBeenCalled();
   });
 
   it("stays quiet when everything is done or it already reminded today", async () => {
+    const said = petSaid();
     store({ items, day: today, done: ["a", "b", "c"], history: {}, remind: { on: true, at: "00:00" }, remindedOn: null });
     wrap(<Reminder />);
     await new Promise((r) => setTimeout(r, 50));
@@ -86,14 +93,17 @@ describe("routine reminder (FR-85)", () => {
     store({ items, day: today, done: [], history: {}, remind: { on: true, at: "00:00" }, remindedOn: today });
     wrap(<Reminder />);
     await new Promise((r) => setTimeout(r, 50));
-    expect(notify.info).not.toHaveBeenCalled();
+    said.stop();
+    expect(said.list).toEqual([]);
   });
 
   it("respects the notification budget: no reminder if another nudge was shown in the last hour (FR-96)", async () => {
     const s = store({ items, day: today, done: [], history: {}, remind: { on: true, at: "00:00" }, remindedOn: null });
     s.prefs.set("ui.nudges", { days: {}, last: Date.now() - 5 * 60_000, quiet: { on: false, from: "22:00", to: "08:00" } });
+    const said = petSaid();
     wrap(<Reminder />);
     await waitFor(() => expect(s.get().remindedOn).toBe(today));
-    expect(notify.info).not.toHaveBeenCalled();
+    said.stop();
+    expect(said.list).toEqual([]);
   });
 });

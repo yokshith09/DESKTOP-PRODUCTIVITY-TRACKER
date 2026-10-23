@@ -16,6 +16,9 @@ import { cn } from "@/lib/utils";
 import type { Priority, TaskFilters, TaskRow, TaskStatus, TaskView } from "@/ipc";
 import type { TaskFocus } from "@/features/overview/YesterdayLine";
 import { DeleteTaskButton } from "./DeleteTaskButton";
+import { LinkChips, PlanBadge, StarButton } from "./TaskBits";
+import { ymd } from "@/lib/dates";
+import { taskOccurs } from "@/lib/repeat";
 import { TaskDetail } from "./TaskDetail";
 
 const VIEWS: { key: TaskView; label: string; empty: string }[] = [
@@ -32,19 +35,34 @@ const when = (ms: number) => new Date(ms).toLocaleDateString([], { month: "short
 function Row({ row, onOpen }: { row: TaskRow; onOpen: (id: string) => void }) {
   const { task, overdue } = row;
   const actions = useTaskActions();
-  const done = task.status === "COMPLETED";
+  // A repeating task's box is today's tick (FR-109); finishing the whole task is in its detail.
+  const done = task.repeat ? row.done_today : task.status === "COMPLETED";
   const toggle = async () => {
+    if (task.repeat) {
+      const today = ymd(new Date());
+      const repeatsToday = row.done_today || taskOccurs(task, today);
+      if (!repeatsToday) return notify.info("It doesn't repeat today", { description: "Open it to change its days." });
+      await actions.tick(task.id, today, !row.done_today);
+      if (!row.done_today) notify.success(`Ticked for today: “${task.title}”`);
+      return;
+    }
     if (done) return void actions.setDone(task.id, false);
     await actions.setDone(task.id, true);
     notify.info(`Completed “${task.title}”`, { action: { label: "Undo", onClick: () => void actions.setDone(task.id, false) } });
   };
   return (
-    <li className="group flex h-11 items-center gap-3 rounded-md px-2 hover:bg-accent/50">
-      <Checkbox aria-label={done ? `Reopen ${task.title}` : `Complete ${task.title}`} checked={done} disabled={task.status === "CANCELLED"} onCheckedChange={() => void toggle()} />
+    <li className={cn("group flex h-11 items-center gap-3 rounded-md px-2 hover:bg-accent/50", task.starred && "bg-primary/[0.06]")}>
+      <Checkbox
+        aria-label={task.repeat ? (done ? `Untick ${task.title} for today` : `Tick ${task.title} for today`) : done ? `Reopen ${task.title}` : `Complete ${task.title}`}
+        checked={done} disabled={task.status === "CANCELLED" || (!!task.repeat && task.status === "COMPLETED")} onCheckedChange={() => void toggle()}
+      />
       <button type="button" onClick={() => onOpen(task.id)} aria-label={`Open ${task.title}`}
-        className={cn("min-w-0 flex-1 truncate rounded text-left text-[13px] outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring", (done || task.status === "CANCELLED") && "text-muted-foreground line-through")}>
+        className={cn("min-w-0 shrink truncate rounded text-left text-[13px] outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring", task.starred && "font-medium", ((done && !task.repeat) || task.status === "CANCELLED") && "text-muted-foreground line-through")}>
         {task.title}
       </button>
+      <LinkChips links={task.links} />
+      <span className="flex-1" />
+      <PlanBadge task={task} />
       {task.project && <Badge>{task.project}</Badge>}
       {task.status !== "PLANNED" && task.status !== "COMPLETED" && <Badge variant={task.status === "IN_PROGRESS" ? "primary" : "default"}>{STATUS_LABEL[task.status]}</Badge>}
       {overdue && <Badge variant="destructive">Overdue</Badge>}
@@ -57,6 +75,7 @@ function Row({ row, onOpen }: { row: TaskRow; onOpen: (id: string) => void }) {
           <span aria-hidden>{PRIORITY[task.priority].glyph}</span> {PRIORITY[task.priority].label}
         </span>
       )}
+      <StarButton starred={task.starred} title={task.title} onToggle={() => void actions.star(task.id, !task.starred)} />
       <DeleteTaskButton task={task} />
     </li>
   );

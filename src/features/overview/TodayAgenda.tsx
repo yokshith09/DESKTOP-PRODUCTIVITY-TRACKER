@@ -6,13 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { DeleteTaskButton } from "@/features/tasks/DeleteTaskButton";
+import { LinkChips, PlanBadge, StarButton } from "@/features/tasks/TaskBits";
 import { TaskEditor } from "./TaskEditor";
 import { AddReminder } from "@/features/reminders/AddReminder";
 import { EditReminder } from "@/features/reminders/EditReminder";
 import { useReminderActions, useReminders, useTaskActions, useTodayTasks } from "@/hooks/useLoaf";
+import { ymd } from "@/lib/dates";
 import { formatWhen } from "@/lib/time";
 import { cn } from "@/lib/utils";
-import type { Priority, Reminder } from "@/ipc";
+import type { Priority, Reminder, Task } from "@/ipc";
 
 export const PRIORITY: Record<Priority, { glyph: string; label: string; cls: string }> = {
   HIGH: { glyph: "▲", label: "High", cls: "text-primary" },
@@ -45,7 +47,7 @@ function SectionLabel({ icon, children, count }: { icon: React.ReactNode; childr
 }
 
 function ReminderRow({ r }: { r: Reminder }) {
-  const { setDone, remove } = useReminderActions();
+  const { setDone, remove, star } = useReminderActions();
   const now = Date.now();
   const missed = r.remind_at < now;
   return (
@@ -53,10 +55,11 @@ function ReminderRow({ r }: { r: Reminder }) {
       <Checkbox aria-label={`Mark “${r.title}” done`} checked={false} onCheckedChange={() => void setDone(r.id, true)} />
       <EditReminder reminder={r}>
         <button type="button" title="Change the text or time" aria-label={`Edit reminder “${r.title}”`}
-          className="min-w-0 flex-1 truncate rounded text-left text-[13px] outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring">
+          className={cn("min-w-0 flex-1 truncate rounded text-left text-[13px] outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring", r.starred && "font-medium")}>
           {r.title}
         </button>
       </EditReminder>
+      <StarButton starred={r.starred} title={r.title} onToggle={() => void star(r.id, !r.starred)} />
       <span className={cn("flex items-center gap-1 text-[11px] tabular-nums", missed ? "text-destructive" : "text-muted-foreground")}>
         {missed ? <BellRing className="size-3" /> : <Bell className="size-3" />}
         {missed ? "Missed · " : ""}{formatWhen(r.remind_at, now)}
@@ -73,10 +76,17 @@ function ReminderRow({ r }: { r: Reminder }) {
 
 export function TodayAgenda({ showUpcoming = false }: { showUpcoming?: boolean }) {
   const { tasks, reminders, upcoming } = useAgenda();
-  const { setDone } = useTaskActions();
-  const complete = async (id: string, title: string) => {
-    await setDone(id, true);
-    notify.info(`Completed “${title}”`, { action: { label: "Undo", onClick: () => void setDone(id, false) } });
+  const { setDone, star, tick } = useTaskActions();
+  const complete = async (task: Task) => {
+    // A repeating task is ticked for today only; it comes back on its next day (FR-109).
+    if (task.repeat) {
+      const today = ymd(new Date());
+      await tick(task.id, today, true);
+      notify.success(`Ticked for today: “${task.title}”`, { action: { label: "Undo", onClick: () => void tick(task.id, today, false) } });
+      return;
+    }
+    await setDone(task.id, true);
+    notify.info(`Completed “${task.title}”`, { action: { label: "Undo", onClick: () => void setDone(task.id, false) } });
   };
 
   if (tasks.length === 0 && reminders.length === 0 && !(showUpcoming && upcoming.length)) {
@@ -103,14 +113,17 @@ export function TodayAgenda({ showUpcoming = false }: { showUpcoming?: boolean }
           <SectionLabel icon={<CalendarCheck2 />} count={tasks.length}>Tasks</SectionLabel>
           <ul className="-mx-0.5">
             {tasks.map(({ task, overdue }) => (
-              <li key={task.id} className="group flex h-9 items-center gap-2.5 rounded-md px-1.5 hover:bg-accent/50">
-                <Checkbox aria-label={`Complete ${task.title}`} checked={false} onCheckedChange={() => void complete(task.id, task.title)} />
+              <li key={task.id} className={cn("group flex h-9 items-center gap-2.5 rounded-md px-1.5 hover:bg-accent/50", task.starred && "bg-primary/[0.06]")}>
+                <Checkbox aria-label={task.repeat ? `Tick ${task.title} for today` : `Complete ${task.title}`} checked={false} onCheckedChange={() => void complete(task)} />
                 <TaskEditor task={task}>
                   <button type="button" title="Edit priority, deadline and reminder" aria-label={`Edit ${task.title}`}
-                    className="min-w-0 flex-1 truncate rounded text-left text-[13px] outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring">
+                    className={cn("min-w-0 shrink truncate rounded text-left text-[13px] outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring", task.starred && "font-medium")}>
                     {task.title}
                   </button>
                 </TaskEditor>
+                <LinkChips links={task.links} max={2} />
+                <span className="flex-1" />
+                <PlanBadge task={task} />
                 {/* FR-52: a task made from a meeting's action item names the meeting. */}
                 {task.source_action_item_id && task.project && (
                   <span title={`From the meeting “${task.project}”`} className="flex max-w-36 items-center gap-1 truncate rounded-md bg-violet/12 px-1.5 py-0.5 text-[11px] text-violet">
@@ -127,6 +140,7 @@ export function TodayAgenda({ showUpcoming = false }: { showUpcoming?: boolean }
                     <span aria-hidden>{PRIORITY[task.priority].glyph}</span> {PRIORITY[task.priority].label}
                   </span>
                 )}
+                <StarButton starred={task.starred} title={task.title} onToggle={() => void star(task.id, !task.starred)} />
                 <DeleteTaskButton task={task} />
               </li>
             ))}

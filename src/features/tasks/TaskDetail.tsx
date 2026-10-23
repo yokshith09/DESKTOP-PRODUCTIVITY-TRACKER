@@ -15,6 +15,8 @@ import { cn } from "@/lib/utils";
 import { errorMessage, ipc, type Priority, type Task, type TaskEvent } from "@/ipc";
 import { notify } from "@/lib/notify";
 import { toEdit } from "./edit";
+import { StarButton } from "./TaskBits";
+import { LinksEditor, PlanEditor, RepeatHistory, planOf, planStateOf, samePlan } from "./TaskPlanEditor";
 
 const NONE = "none";
 const PRIORITIES = [{ value: NONE, label: "None" }, { value: "LOW", label: "Low" }, { value: "MEDIUM", label: "Medium" }, { value: "HIGH", label: "High" }];
@@ -65,6 +67,8 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
   const [planned, setPlanned] = useState(task.planned_date ?? "");
   const [due, setDue] = useState(task.due_date ?? "");
   const [noteId, setNoteId] = useState(task.note_id ?? "");
+  const [plan, setPlan] = useState(() => planStateOf(task));
+  const planChanged = !samePlan(planOf(plan), planOf(planStateOf(task)));
   const [update, setUpdate] = useState("");
   const [deferTo, setDeferTo] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -87,15 +91,19 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
 
   const finished = isFinished(task.status);
   const dirty = title.trim() !== task.title || description !== task.description || project.trim() !== (task.project ?? "")
-    || priority !== (task.priority ?? NONE) || planned !== (task.planned_date ?? "") || due !== (task.due_date ?? "") || noteId !== (task.note_id ?? "");
+    || priority !== (task.priority ?? NONE) || planned !== (task.planned_date ?? "") || due !== (task.due_date ?? "") || noteId !== (task.note_id ?? "") || planChanged;
   const tomorrow = ymd(new Date(new Date().setDate(new Date().getDate() + 1)));
 
   const save = async () => {
     if (!title.trim()) return;
-    await actions.save(task.id, {
+    if (plan.mode === "repeat" && plan.repeat.kind === "weekly" && plan.repeat.days.length === 0) return notify.warning("Pick at least one day of the week.");
+    if (plan.mode === "days" && plan.days.length === 0) return notify.warning("Pick at least one day.");
+    await actions.update(task.id, {
       ...toEdit(task), title: title.trim(), description, project: project.trim() || null,
       priority: priority === NONE ? null : (priority as Priority), planned_date: planned || null, due_date: due || null, note_id: noteId || null,
     });
+    if (planChanged) await actions.setPlan(task.id, planOf(plan));
+    notify.success("Task saved");
     // FR-41: after an edit, back to the screen the task was opened from (Today or Tasks).
     onClose();
   };
@@ -119,6 +127,7 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
             className="w-full bg-transparent text-lg font-semibold tracking-tight outline-none placeholder:text-muted-foreground"
           />
         </div>
+        <StarButton starred={task.starred} title={task.title} onToggle={() => void actions.star(task.id, !task.starred)} className="mt-6 opacity-100" />
       </div>
 
       <div className="max-h-[68vh] space-y-5 overflow-y-auto p-5">
@@ -133,13 +142,19 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
           className="w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-[13px] leading-relaxed outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
         />
 
+        <LinksEditor task={task} />
+
+        <Field icon={<CalendarPlus />} label="When">
+          <PlanEditor value={plan} onChange={setPlan} planned={planned} onPlanned={setPlanned} />
+        </Field>
+        <RepeatHistory task={task} />
+
         <div className="grid gap-4 sm:grid-cols-2">
           <Field icon={<Flag />} label="Priority" className="sm:col-span-2">
             <ToggleGroup type="single" value={priority} onValueChange={(v) => v && setPriority(v)} aria-label="Priority" className="w-full">
               {PRIORITIES.map((p) => <ToggleGroupItem key={p.value} value={p.value} className="flex-1 px-2">{p.label}</ToggleGroupItem>)}
             </ToggleGroup>
           </Field>
-          <Field icon={<CalendarPlus />} label="Planned for" htmlFor="td-planned"><Input id="td-planned" type="date" value={planned} onChange={(e) => setPlanned(e.target.value)} /></Field>
           <Field icon={<CalendarClock />} label="Deadline" htmlFor="td-due"><Input id="td-due" type="date" value={due} onChange={(e) => setDue(e.target.value)} /></Field>
           <Field icon={<FolderKanban />} label="Project" htmlFor="td-project"><Input id="td-project" value={project} maxLength={100} onChange={(e) => setProject(e.target.value)} placeholder="None" /></Field>
           <Field icon={<Link2 />} label="Linked note" htmlFor="td-note">
@@ -155,7 +170,7 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
           </Field>
         </div>
 
-        {!finished && (
+        {!finished && plan.mode === "one" && (
           <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/30 p-3">
             <span className="mr-1 text-xs font-medium text-muted-foreground">Defer</span>
             <Button size="sm" variant="outline" onClick={() => void actions.defer(task.id, tomorrow)}>Tomorrow</Button>

@@ -182,8 +182,8 @@ describe("desktop pet", () => {
 
   it("puts overdue, then in-progress, then high-priority tasks first", () => {
     const row = (id: string, over: Partial<TaskRow["task"]>, overdue = false): TaskRow => ({
-      overdue,
-      task: { id, title: id, description: "", status: "PLANNED", priority: null, project: null, planned_date: null, due_date: null, note_id: null, source_action_item_id: null, created_at: 0, updated_at: 0, started_at: null, completed_at: null, cancelled_at: null, ...over },
+      overdue, done_today: false,
+      task: { id, title: id, description: "", status: "PLANNED", priority: null, project: null, planned_date: null, due_date: null, note_id: null, source_action_item_id: null, created_at: 0, updated_at: 0, started_at: null, completed_at: null, cancelled_at: null, starred: false, repeat: null, repeat_until: null, days: [], links: [], ...over },
     });
     const rows = [row("low", { priority: "LOW" }), row("high", { priority: "HIGH" }), row("doing", { status: "IN_PROGRESS" }), row("late", {}, true)];
     expect(topTasks(rows).map((r) => r.task.id)).toEqual(["late", "doing"]);

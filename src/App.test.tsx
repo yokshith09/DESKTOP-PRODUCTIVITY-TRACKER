@@ -609,3 +609,102 @@ describe("settings (F1-25)", () => {
     await waitFor(async () => expect((await ipc.settingsGetAll())["pet.size"]).toBe("M"));
   });
 });
+
+describe("task upgrades (FR-106..FR-109)", () => {
+  const openTask = async (user: ReturnType<typeof userEvent.setup>, name: string) => {
+    await goTo(user, /^Tasks/);
+    await user.click(await screen.findByRole("radio", { name: "All" }));
+    await user.click(await screen.findByRole("button", { name: `Open ${name}` }));
+    return screen.findByRole("dialog");
+  };
+
+  it("links added to a task show next to it in the list and open the page (FR-106)", async () => {
+    const { ipc } = await import("@/ipc");
+    const open = vi.spyOn(ipc, "openUrl").mockResolvedValue(null);
+    const user = userEvent.setup();
+    render(<App />);
+    const dialog = await openTask(user, "Refactor the tray menu");
+    const paste = async (name: string, text: string) => { await user.click(within(dialog).getByRole("textbox", { name })); await user.paste(text); };
+    await paste("New link", "github.com/loaf/tray");
+    await paste("Link name", "Tray PR");
+    await user.click(within(dialog).getByRole("button", { name: "Add link" }));
+    await paste("New link", "https://docs.rs/tauri");
+    await user.click(within(dialog).getByRole("button", { name: "Add link" }));
+    expect(await within(dialog).findByRole("button", { name: "Remove link docs.rs/tauri" })).toBeTruthy();
+    // A bad address is refused, and says so above the pet.
+    await paste("New link", "javascript:alert(1)");
+    await user.click(within(dialog).getByRole("button", { name: "Add link" }));
+    await petSays(/web links/);
+    await user.keyboard("{Escape}");
+
+    const row = (await screen.findByRole("button", { name: "Open Refactor the tray menu" })).closest("li") as HTMLElement;
+    await user.click(within(row).getByRole("button", { name: "Open link Tray PR" }));
+    expect(open).toHaveBeenCalledWith("https://github.com/loaf/tray");
+    expect(within(row).getByRole("button", { name: "Open link docs.rs/tauri" })).toBeTruthy();
+  });
+
+  it("a starred task moves to the top of Today, and a reminder can be starred too (FR-107)", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const agenda = await screen.findByRole("region", { name: "Today’s agenda" });
+    const tasks = await within(agenda).findByRole("region", { name: "Tasks" });
+    const firstTitle = () => within(tasks).getAllByRole("button", { name: /^Edit / })[0]?.getAttribute("aria-label");
+    await waitFor(() => expect(firstTitle()).not.toBe("Edit Refactor the tray menu"));
+    await user.click(within(tasks).getByRole("button", { name: "Star “Refactor the tray menu”" }));
+    await waitFor(() => expect(firstTitle()).toBe("Edit Refactor the tray menu"));
+    expect(within(tasks).getByRole("button", { name: "Unstar “Refactor the tray menu”" }).getAttribute("aria-pressed")).toBe("true");
+
+    const reminders = within(agenda).getByRole("region", { name: "Reminders" });
+    await user.click(within(reminders).getByRole("button", { name: "Star “Review the sync PR”" }));
+    expect(await within(reminders).findByRole("button", { name: "Unstar “Review the sync PR”" })).toBeTruthy();
+  });
+
+  it("a task can be planned on chosen days (FR-108)", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const dialog = await openTask(user, "Prepare weekly planning");
+    await user.click(within(dialog).getByRole("radio", { name: "Chosen days" }));
+    const days = within(dialog).getByRole("group", { name: "Next 7 days" });
+    await user.click(within(days).getByRole("button", { name: "Today" }));
+    await user.click(within(days).getAllByRole("button")[2] as HTMLElement);
+    expect(within(within(dialog).getByRole("list", { name: "Chosen days" })).getAllByRole("listitem")).toHaveLength(2);
+    await user.click(within(dialog).getByRole("button", { name: "Save changes" }));
+    await petSays("Task saved");
+    // It's planned today now (its first day), with "2 days" next to it.
+    const row = (await screen.findByRole("button", { name: "Open Prepare weekly planning" })).closest("li") as HTMLElement;
+    expect(await within(row).findByText("2 days")).toBeTruthy();
+    await goTo(user, /^Today/);
+    const agenda = await screen.findByRole("region", { name: "Today’s agenda" });
+    expect(await within(agenda).findByRole("button", { name: "Edit Prepare weekly planning" })).toBeTruthy();
+  });
+
+  it("a repeating task is ticked for today, comes off Today, and keeps a kind record (FR-109)", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    let dialog = await openTask(user, "Clear design feedback");
+    await user.click(within(dialog).getByRole("radio", { name: "Repeats" }));
+    await user.click(within(dialog).getByRole("radio", { name: "Every day" }));
+    // Start it today (it was planned in 4 days).
+    const { ymd } = await import("@/lib/dates");
+    const start = within(dialog).getByLabelText("Starts");
+    await user.clear(start);
+    await user.type(start, ymd(new Date()));
+    await user.click(within(dialog).getByRole("button", { name: "Save changes" }));
+    await petSays("Task saved");
+
+    const row = (await screen.findByRole("button", { name: "Open Clear design feedback" })).closest("li") as HTMLElement;
+    expect(within(row).getByText("Every day")).toBeTruthy();
+    await goTo(user, /^Today/);
+    const agenda = await screen.findByRole("region", { name: "Today’s agenda" });
+    await user.click(await within(agenda).findByRole("checkbox", { name: "Tick Clear design feedback for today" }));
+    await petSays(/^Ticked for today/);
+    await waitFor(() => expect(within(agenda).queryByRole("button", { name: "Edit Clear design feedback" })).toBeNull());
+
+    // Still open as a task; its record shows today ticked.
+    dialog = await openTask(user, "Clear design feedback");
+    const record = await within(dialog).findByRole("region", { name: "Repeat days" });
+    expect(await within(record).findByText(/Done on/)).toBeTruthy();
+    expect(within(record).getByRole("button", { name: /: ticked\./ }).getAttribute("aria-pressed")).toBe("true");
+    expect(within(dialog).getByText("Planned")).toBeTruthy();
+  });
+});

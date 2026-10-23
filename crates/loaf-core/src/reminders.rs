@@ -43,6 +43,8 @@ pub struct Reminder {
     pub done_at: Option<i64>,
     #[cfg_attr(feature = "ts", ts(type = "number"))]
     pub created_at: i64,
+    /// Starred reminders come first (FR-107).
+    pub starred: bool,
 }
 
 #[cfg(test)]
@@ -56,6 +58,7 @@ impl Reminder {
             fired_at: None,
             done_at: None,
             created_at: 1,
+            starred: false,
         }
     }
 }
@@ -106,7 +109,7 @@ fn not_found() -> AppError {
     AppError::not_found("That reminder no longer exists.")
 }
 
-const COLUMNS: &str = "id, title, remind_at, note_id, fired_at, done_at, created_at";
+const COLUMNS: &str = "id, title, remind_at, note_id, fired_at, done_at, created_at, starred";
 
 fn from_row(r: &Row) -> rusqlite::Result<Reminder> {
     Ok(Reminder {
@@ -117,6 +120,7 @@ fn from_row(r: &Row) -> rusqlite::Result<Reminder> {
         fired_at: r.get(4)?,
         done_at: r.get(5)?,
         created_at: r.get(6)?,
+        starred: r.get(7)?,
     })
 }
 
@@ -219,6 +223,32 @@ pub async fn set_done(db: &Database, clock: &dyn Clock, id: &str, done: bool) ->
     .await
 }
 
+/// Star or unstar a reminder (FR-107).
+pub async fn set_starred(
+    db: &Database,
+    clock: &dyn Clock,
+    id: &str,
+    starred: bool,
+) -> Result<Reminder> {
+    let (id, now) = (id.to_owned(), clock.now_ms());
+    db.write(move |tx| {
+        let current = load(tx, &id)?;
+        if current.starred == starred {
+            return Ok((current, vec![]));
+        }
+        tx.execute(
+            "UPDATE reminders SET starred = ?1 WHERE id = ?2",
+            params![starred, id],
+        )?;
+        let reminder = load(tx, &id)?;
+        Ok((
+            reminder.clone(),
+            vec![Event::ReminderUpdated { at: now, reminder }],
+        ))
+    })
+    .await
+}
+
 pub async fn delete(db: &Database, clock: &dyn Clock, id: &str) -> Result<()> {
     let (id, now) = (id.to_owned(), clock.now_ms());
     db.write(move |tx| {
@@ -230,13 +260,13 @@ pub async fn delete(db: &Database, clock: &dyn Clock, id: &str) -> Result<()> {
     .await
 }
 
-/// Pending ones first by time, then (with `include_done`) the finished ones, also by time.
+/// Pending ones first (starred first, FR-107) by time, then (with `include_done`) the finished ones, also by time.
 pub async fn list(db: &Database, include_done: bool) -> Result<Vec<Reminder>> {
     db.read(move |conn| {
         let mut stmt = conn.prepare(&format!(
             "SELECT {COLUMNS} FROM reminders
               WHERE (?1 OR done_at IS NULL)
-              ORDER BY (done_at IS NOT NULL), remind_at ASC, id ASC"
+              ORDER BY (done_at IS NOT NULL), starred DESC, remind_at ASC, id ASC"
         ))?;
         let rows = stmt
             .query_map([include_done], from_row)?
@@ -555,6 +585,33 @@ mod tests {
         assert_eq!(
             ids(list(&f.db, true).await.unwrap()),
             [early.id, late.id, done.id]
+        );
+    }
+
+    #[tokio::test]
+    async fn a_starred_reminder_comes_first_among_the_pending_ones() {
+        let f = setup();
+        let early = create(&f.db, &f.clock, input("early", 100)).await.unwrap();
+        let late = create(&f.db, &f.clock, input("late", 300)).await.unwrap();
+        let starred = set_starred(&f.db, &f.clock, &late.id, true).await.unwrap();
+        assert!(starred.starred);
+        let ids = |v: Vec<Reminder>| v.into_iter().map(|r| r.id).collect::<Vec<_>>();
+        assert_eq!(
+            ids(list(&f.db, false).await.unwrap()),
+            [late.id.clone(), early.id.clone()]
+        );
+        assert!(
+            !set_starred(&f.db, &f.clock, &late.id, false)
+                .await
+                .unwrap()
+                .starred
+        );
+        assert_eq!(
+            set_starred(&f.db, &f.clock, "nope", true)
+                .await
+                .unwrap_err()
+                .code,
+            crate::error::ErrorCode::NotFound
         );
     }
 

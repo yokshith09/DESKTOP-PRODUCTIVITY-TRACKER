@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ipc, onWake, petSay } from "@/ipc";
 import { ymd } from "@/lib/dates";
-import { notify } from "@/lib/notify";
 import { tryNudge } from "@/features/companion/useCompanion";
 import { msUntil, parseRoutine, pendingMessage, shouldRemind, type RoutineState } from "./routine";
 
@@ -37,8 +36,7 @@ export function useRoutineReminder() {
       if (!message) return;
       // Through the notification budget (FR-96): never spammy, never in quiet hours.
       void tryNudge("routine", now, () => {
-        notify.info(message, { description: "No rush — open Today when you're ready." });
-        // And above the pet, where it's seen even when the dashboard is closed (FR-43).
+        // Above the pet only: nothing pops up in the dashboard (owner 2026-10-23).
         void petSay({ text: message, pose: "wait", ms: 10_000 });
       });
     };

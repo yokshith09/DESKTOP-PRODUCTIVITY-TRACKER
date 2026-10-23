@@ -16,6 +16,7 @@ use loaf_core::notes::{self, BinNote, Note, NoteInput, NotePatch, NoteSort, Note
 use loaf_core::reminders::{self, Reminder, ReminderInput, ReminderPatch};
 use loaf_core::settings::SettingsKey;
 use loaf_core::settings_service::SettingsService;
+use loaf_core::task_plans::{self, LinkInput, RepeatDay, TaskPlan};
 use loaf_core::tasks::{
     self, Task, TaskEdit, TaskEvent, TaskFilters, TaskRow, TaskStatus, TaskView, WorkUpdate,
 };
@@ -219,6 +220,12 @@ pub async fn reminder_set_done(id: String, done: bool, core: State<'_, Core>) ->
     reminders::set_done(&core.db, &*core.clock, &id, done).await
 }
 
+/// Star or unstar a reminder (FR-107).
+#[tauri::command]
+pub async fn reminder_star(id: String, starred: bool, core: State<'_, Core>) -> Result<Reminder> {
+    reminders::set_starred(&core.db, &*core.clock, &id, starred).await
+}
+
 #[tauri::command]
 pub async fn reminder_delete(id: String, core: State<'_, Core>) -> Result<()> {
     reminders::delete(&core.db, &*core.clock, &id).await
@@ -296,6 +303,46 @@ pub async fn task_defer(id: String, to: String, core: State<'_, Core>) -> Result
 #[tauri::command]
 pub async fn task_delete(id: String, core: State<'_, Core>) -> Result<()> {
     tasks::delete(&core.db, &*core.clock, &id).await
+}
+
+fn parse_day(field: &str, s: &str) -> Result<chrono::NaiveDate> {
+    chrono::NaiveDate::parse_from_str(s, "%Y-%m-%d")
+        .map_err(|_| AppError::validation(field, "Dates look like 2026-10-04."))
+}
+
+/// Replace the links shown next to a task (FR-106).
+#[tauri::command]
+pub async fn task_set_links(
+    id: String,
+    links: Vec<LinkInput>,
+    core: State<'_, Core>,
+) -> Result<Task> {
+    task_plans::set_links(&core.db, &*core.clock, &id, links).await
+}
+
+/// Star or unstar a task (FR-107).
+#[tauri::command]
+pub async fn task_star(id: String, starred: bool, core: State<'_, Core>) -> Result<Task> {
+    task_plans::star(&core.db, &*core.clock, &id, starred).await
+}
+
+/// Chosen days (FR-108) or a repeat rule (FR-109).
+#[tauri::command]
+pub async fn task_set_plan(id: String, plan: TaskPlan, core: State<'_, Core>) -> Result<Task> {
+    task_plans::set_plan(&core.db, &*core.clock, &id, plan).await
+}
+
+/// Tick or untick one day of a repeating task. `day` is `YYYY-MM-DD`.
+#[tauri::command]
+pub async fn task_tick(id: String, day: String, done: bool, core: State<'_, Core>) -> Result<Task> {
+    let day = parse_day("day", &day)?;
+    task_plans::tick(&core.db, &*core.clock, &id, day, done).await
+}
+
+/// The last repeat days of a task, newest first, each ticked or not.
+#[tauri::command]
+pub async fn task_repeat_days(id: String, core: State<'_, Core>) -> Result<Vec<RepeatDay>> {
+    task_plans::history(&core.db, &*core.clock, &id, 14).await
 }
 
 #[tauri::command]

@@ -1,5 +1,6 @@
 // In-memory stand-in for the Rust shell, used only by `vite dev` outside Tauri.
 import { daysAgo, ymd } from "../lib/dates";
+import { repeatDays, taskOccurs } from "../lib/repeat";
 import type {
   AppUsage, DomainUsage, TimeRange, UsageSummary,
   AppError, BinNote, DailyLog, LogEntry, Meeting, MeetingInput, MeetingSummary, Reminder, Label, LoafEvent, Note, NoteColor, NoteSummary, Task, TaskEvent, TaskRow, TaskStatus, WorkUpdate,
@@ -47,10 +48,10 @@ export function createMock() {
     { ...summary(n("b2", "Draft: release notes", "v0.1 — first public build", "blue", 80, L("l1"))), deleted_at: now() - 3 * 24 * HOUR },
   ];
   const reminders: Reminder[] = [
-    { id: "r0", title: "Review the sync PR", remind_at: now() - 40 * 60_000, note_id: null, fired_at: now() - 40 * 60_000, done_at: null, created_at: now() },
-    { id: "r1", title: "Stand-up", remind_at: now() + 1.5 * HOUR, note_id: null, fired_at: null, done_at: null, created_at: now() },
-    { id: "r2", title: "Call the dentist", remind_at: now() + 20 * HOUR, note_id: null, fired_at: null, done_at: null, created_at: now() },
-    { id: "r3", title: "Send invoice", remind_at: now() + 3 * 24 * HOUR, note_id: null, fired_at: null, done_at: null, created_at: now() },
+    { id: "r0", title: "Review the sync PR", remind_at: now() - 40 * 60_000, note_id: null, fired_at: now() - 40 * 60_000, done_at: null, created_at: now(), starred: false },
+    { id: "r1", title: "Stand-up", remind_at: now() + 1.5 * HOUR, note_id: null, fired_at: null, done_at: null, created_at: now(), starred: false },
+    { id: "r2", title: "Call the dentist", remind_at: now() + 20 * HOUR, note_id: null, fired_at: null, done_at: null, created_at: now(), starred: false },
+    { id: "r3", title: "Send invoice", remind_at: now() + 3 * 24 * HOUR, note_id: null, fired_at: null, done_at: null, created_at: now(), starred: false },
   ];
   const today = ymd(new Date());
   const inDays = (n: number) => ymd(daysAgo(-n));
@@ -110,10 +111,13 @@ export function createMock() {
     open_action_items: withStatus(m).action_items.filter((a) => a.task_status !== "COMPLETED" && a.task_status !== "CANCELLED").length,
   });
   function t(id: string, title: string, priority: Task["priority"], planned: string | null, due: string | null, status: TaskStatus): Task {
-    return { id, title, description: "", status, priority, project: null, planned_date: planned, due_date: due, note_id: null, source_action_item_id: null, created_at: now(), updated_at: now(), started_at: null, completed_at: status === "COMPLETED" ? now() : null, cancelled_at: null };
+    return { id, title, description: "", status, priority, project: null, planned_date: planned, due_date: due, note_id: null, source_action_item_id: null, created_at: now(), updated_at: now(), started_at: null, completed_at: status === "COMPLETED" ? now() : null, cancelled_at: null, starred: false, repeat: null, repeat_until: null, days: [], links: [] };
   }
 
   const taskEvents = new Map<string, TaskEvent[]>();
+  // Repeating-task ticks (FR-109): "taskId day".
+  const ticks = new Set<string>();
+  const findTask = (id: unknown) => tasks.find((y) => y.id === id) ?? fail("NOT_FOUND", "That task no longer exists.");
   const workUpdates: WorkUpdate[] = [
     { id: "w1", task_id: "t1", body: "Sketched the layout; waiting on the colour tokens.", created_at: now() - 3 * HOUR },
   ];
@@ -352,11 +356,11 @@ export function createMock() {
     bin_empty: () => { const c = bin.length; bin.length = 0; emit("NotePurged"); return c; },
 
     reminders_list: (a) =>
-      reminders.filter((r) => a.includeDone || !r.done_at).sort((p, q) => Number(!!p.done_at) - Number(!!q.done_at) || p.remind_at - q.remind_at),
+      reminders.filter((r) => a.includeDone || !r.done_at).sort((p, q) => Number(!!p.done_at) - Number(!!q.done_at) || Number(q.starred) - Number(p.starred) || p.remind_at - q.remind_at),
     reminder_create: (a) => {
       const i = a.input as { title: string; remind_at: number };
       if (!i.title.trim()) fail("VALIDATION", "A reminder needs a title.");
-      const r: Reminder = { id: `r${++seq}`, title: i.title.trim(), remind_at: i.remind_at, note_id: null, fired_at: null, done_at: null, created_at: now() };
+      const r: Reminder = { id: `r${++seq}`, title: i.title.trim(), remind_at: i.remind_at, note_id: null, fired_at: null, done_at: null, created_at: now(), starred: false };
       reminders.push(r); emit("ReminderCreated", { reminder: r }); return r;
     },
     reminder_update: (a) => {
@@ -371,6 +375,10 @@ export function createMock() {
     reminder_set_done: (a) => {
       const r = reminders.find((x) => x.id === a.id) ?? fail("NOT_FOUND", "That reminder no longer exists.");
       r.done_at = a.done ? now() : null; emit("ReminderUpdated"); return r;
+    },
+    reminder_star: (a) => {
+      const r = reminders.find((x) => x.id === a.id) ?? fail("NOT_FOUND", "That reminder no longer exists.");
+      r.starred = !!a.starred; emit("ReminderUpdated", { reminder: r }); return r;
     },
     reminder_delete: (a) => { const i = reminders.findIndex((x) => x.id === a.id); if (i >= 0) reminders.splice(i, 1); emit("ReminderDeleted"); return null; },
 
@@ -404,8 +412,13 @@ export function createMock() {
         case "upcoming": rows = tasks.filter((x) => open(x) && !!x.planned_date && x.planned_date > today && x.planned_date <= inDays(7)); break;
         case "pending": rows = tasks.filter((x) => x.status === "PENDING"); break;
         case "completed": rows = tasks.filter((x) => x.status === "COMPLETED").sort((p, q) => (q.completed_at ?? 0) - (p.completed_at ?? 0)); break;
-        default: rows = tasks.filter((x) => open(x) && (x.status === "IN_PROGRESS" || x.planned_date === today || (!!x.due_date && x.due_date < today)));
+        default: rows = tasks.filter((x) => open(x) && (x.repeat
+          ? taskOccurs(x, today) && !ticks.has(`${x.id} ${today}`)
+          : x.status === "IN_PROGRESS" || x.planned_date === today || x.days.includes(today) || (!!x.due_date && x.due_date < today)));
       }
+      if (a.view === "upcoming") rows = [...rows, ...tasks.filter((x) => open(x) && !rows.includes(x) && x.days.some((d) => d > today && d <= inDays(7)))];
+      // Starred first (FR-107), keeping the view's own order otherwise; finished ones stay last in All.
+      rows = rows.map((x, i) => [x, i] as const).sort(([p, i], [q, j]) => (a.view === "all" ? Number(!open(p)) - Number(!open(q)) : 0) || Number(q.starred) - Number(p.starred) || i - j).map(([x]) => x);
       if (f.priority) rows = rows.filter((x) => x.priority === f.priority);
       if (f.project) rows = rows.filter((x) => x.project === f.project);
       if (f.note_id) rows = rows.filter((x) => x.note_id === f.note_id);
@@ -413,7 +426,7 @@ export function createMock() {
       const day = (x: Task) => a.view === "completed" ? new Date(x.completed_at ?? 0).toISOString().slice(0, 10) : (x.planned_date ?? "");
       if (f.from) rows = rows.filter((x) => day(x) >= (f.from ?? ""));
       if (f.to) rows = rows.filter((x) => day(x) <= (f.to ?? ""));
-      return rows.map<TaskRow>((task) => ({ task, overdue: !!task.due_date && task.due_date < today && open(task) }));
+      return rows.map<TaskRow>((task) => ({ task, overdue: !task.repeat && !!task.due_date && task.due_date < today && open(task), done_today: !!task.repeat && ticks.has(`${task.id} ${today}`) }));
     },
     task_quick_add: (a) => { const x = t(`t${++seq}`, String(a.title), null, today, null, "PLANNED"); tasks.push(x); log(x.id, "CREATED"); emit("TaskCreated", { task: x }); return x; },
     task_get: (a) => tasks.find((y) => y.id === a.id) ?? fail("NOT_FOUND", "That task no longer exists."),
@@ -425,6 +438,47 @@ export function createMock() {
       if (to <= (x.planned_date ?? today)) fail("VALIDATION", "Pick a day after the current one.");
       log(x.id, "DEFERRED", { from_date: x.planned_date, to_date: to });
       x.planned_date = to; x.updated_at = now(); emit("TaskUpdated"); return x;
+    },
+    task_set_links: (a) => {
+      const x = findTask(a.id);
+      const links = (a.links as { url: string; title: string }[]).map((l) => {
+        const url = l.url.trim();
+        const full = /^[a-z][a-z0-9+.-]*:/i.test(url) && !/^[^:]*\./.test(url.split(":")[0] ?? "") ? url : `https://${url}`;
+        if (!/^(https?:\/\/[^\s/?#@]+|mailto:[^\s/])/i.test(full)) fail("VALIDATION", "Loaf can open web links (http or https) and email links (mailto) only.");
+        return { url: full, title: l.title.trim() };
+      }).filter((l, i, all) => all.findIndex((o) => o.url === l.url) === i);
+      if (links.length > 20) fail("VALIDATION", "A task can have up to 20 links.");
+      x.links = links.map((l) => ({ id: `k${++seq}`, ...l })); x.updated_at = now(); emit("TaskUpdated", { task: x }); return x;
+    },
+    task_star: (a) => { const x = findTask(a.id); x.starred = !!a.starred; emit("TaskUpdated", { task: x }); return x; },
+    task_set_plan: (a) => {
+      const x = findTask(a.id);
+      const p = a.plan as { days?: string[]; repeat?: Task["repeat"]; repeat_until?: string | null };
+      const days = [...new Set(p.days ?? [])].sort();
+      const repeat = p.repeat ?? null;
+      if (repeat && days.length) fail("VALIDATION", "A repeating task can't also have chosen days. Pick one or the other.");
+      if (repeat?.kind === "weekly" && repeat.days.length === 0) fail("VALIDATION", "Pick at least one day of the week.");
+      const start = x.planned_date ?? today;
+      if (p.repeat_until && p.repeat_until < start) fail("VALIDATION", "The last day can't be before the first.");
+      const planned = days[0] ?? (repeat ? start : x.planned_date);
+      if (planned !== x.planned_date) log(x.id, "EDITED", { from_date: x.planned_date, to_date: planned });
+      Object.assign(x, { days, repeat, repeat_until: repeat ? p.repeat_until ?? null : null, planned_date: planned, updated_at: now() });
+      emit("TaskUpdated", { task: x }); return x;
+    },
+    task_tick: (a) => {
+      const x = findTask(a.id);
+      const day = String(a.day);
+      if (!x.repeat) fail("VALIDATION", "Only a repeating task is ticked day by day.");
+      if (day > today) fail("VALIDATION", "A day that hasn't come yet can't be ticked.");
+      if (!taskOccurs(x, day)) fail("VALIDATION", "This task doesn't repeat on that day.");
+      if (a.done) ticks.add(`${x.id} ${day}`); else ticks.delete(`${x.id} ${day}`);
+      emit("TaskTicked", { id: x.id, day, done: !!a.done }); emit("TaskUpdated", { task: x }); return x;
+    },
+    task_repeat_days: (a) => {
+      const x = findTask(a.id);
+      if (!x.repeat || !x.planned_date) return [];
+      const from = [inDays(-60), x.planned_date].sort()[1] ?? x.planned_date;
+      return repeatDays(x.repeat, x.planned_date, x.repeat_until, from, today).reverse().slice(0, 14).map((day) => ({ day, ticked: ticks.has(`${x.id} ${day}`) }));
     },
     task_delete: (a) => {
       const i = tasks.findIndex((y) => y.id === a.id);

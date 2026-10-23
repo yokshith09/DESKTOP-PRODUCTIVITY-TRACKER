@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Plug } from "lucide-react";
 import { useRoutineReminder } from "@/features/routine/useRoutine";
 import { useDailyGreeting } from "@/features/companion/useCompanion";
+import { useRepeatReminder } from "@/features/tasks/useRepeatReminder";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useBin, useBusSync, useLabels, useNoteActions, useNotes } from "@/hooks/useLoaf";
 import { useAgenda } from "@/features/overview/TodayAgenda";
@@ -41,6 +42,8 @@ function Screen() {
   useRoutineReminder();
   // FR-93/94: hello once a day, and birthdays.
   useDailyGreeting();
+  // FR-109: in the evening, repeating tasks still open today.
+  useRepeatReminder();
   const actions = useNoteActions();
   const { data: allNotes = [] } = useNotes(false, null, "last_edited");
   const { data: labels = [] } = useLabels();

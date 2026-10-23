@@ -14,6 +14,7 @@ use crate::db::Database;
 use crate::error::{AppError, Result};
 use crate::events::Event;
 use crate::ids::new_id;
+pub use crate::task_plans::{Repeat, TaskLink};
 
 pub const TITLE_MAX: usize = 300;
 /// Not fixed by the PRD; bounded so one task cannot make the list or the daily log heavy.
@@ -142,6 +143,15 @@ pub struct Task {
     pub completed_at: Option<i64>,
     #[cfg_attr(feature = "ts", ts(type = "number | null"))]
     pub cancelled_at: Option<i64>,
+    /// Starred tasks come first (FR-107).
+    pub starred: bool,
+    /// How it repeats, counted from `planned_date` (FR-109). Each day is ticked on its own.
+    pub repeat: Option<Repeat>,
+    pub repeat_until: Option<NaiveDate>,
+    /// The specific days it is planned on, when there is more than one (FR-108). Sorted.
+    pub days: Vec<NaiveDate>,
+    /// Links shown next to the task (FR-106), in order.
+    pub links: Vec<TaskLink>,
 }
 
 impl Task {
@@ -169,6 +179,11 @@ impl Task {
             started_at: Some(2),
             completed_at: None,
             cancelled_at: None,
+            starred: false,
+            repeat: None,
+            repeat_until: None,
+            days: Vec::new(),
+            links: Vec::new(),
         }
     }
 }
@@ -310,7 +325,7 @@ fn clean_project(project: Option<&str>) -> Result<Option<String>> {
 // ---- storage -------------------------------------------------------------------------------
 
 const COLUMNS: &str = "id, title, description, status, priority, project, planned_date, due_date, note_id, source_action_item_id,
-                       created_at, updated_at, started_at, completed_at, cancelled_at";
+                       created_at, updated_at, started_at, completed_at, cancelled_at, starred, repeat_rule, repeat_until";
 
 /// One `tasks` row as stored, before the text columns are parsed into types.
 struct Raw {
@@ -329,6 +344,9 @@ struct Raw {
     started_at: Option<i64>,
     completed_at: Option<i64>,
     cancelled_at: Option<i64>,
+    starred: bool,
+    repeat: Option<String>,
+    repeat_until: Option<String>,
 }
 
 fn read_raw(r: &rusqlite::Row) -> rusqlite::Result<Raw> {
@@ -348,6 +366,9 @@ fn read_raw(r: &rusqlite::Row) -> rusqlite::Result<Raw> {
         started_at: r.get(12)?,
         completed_at: r.get(13)?,
         cancelled_at: r.get(14)?,
+        starred: r.get(15)?,
+        repeat: r.get(16)?,
+        repeat_until: r.get(17)?,
     })
 }
 
@@ -376,10 +397,22 @@ fn build(raw: Raw) -> Result<Task> {
         started_at: raw.started_at,
         completed_at: raw.completed_at,
         cancelled_at: raw.cancelled_at,
+        starred: raw.starred,
+        repeat: raw.repeat.as_deref().map(Repeat::from_db).transpose()?,
+        repeat_until: parse_date(raw.repeat_until)?,
+        days: Vec::new(),
+        links: Vec::new(),
     })
 }
 
-fn load(conn: &Connection, id: &str) -> Result<Task> {
+/// A stored row plus its days and links.
+fn build_full(conn: &Connection, raw: Raw) -> Result<Task> {
+    let mut task = build(raw)?;
+    crate::task_plans::fill(conn, &mut task)?;
+    Ok(task)
+}
+
+pub(crate) fn load(conn: &Connection, id: &str) -> Result<Task> {
     let raw = conn
         .query_row(
             &format!("SELECT {COLUMNS} FROM tasks WHERE id = ?1"),
@@ -387,14 +420,14 @@ fn load(conn: &Connection, id: &str) -> Result<Task> {
             read_raw,
         )
         .optional()?;
-    build(raw.ok_or_else(not_found)?)
+    build_full(conn, raw.ok_or_else(not_found)?)
 }
 
-fn not_found() -> AppError {
+pub(crate) fn not_found() -> AppError {
     AppError::not_found("That task no longer exists.")
 }
 
-fn date_text(d: Option<NaiveDate>) -> Option<String> {
+pub(crate) fn date_text(d: Option<NaiveDate>) -> Option<String> {
     d.map(|d| d.to_string())
 }
 
@@ -413,7 +446,7 @@ pub struct TaskEvent {
 
 /// One history row, written in the same transaction as the change. `local_date` is fixed at write
 /// time so a later timezone change cannot move the entry to another day.
-fn record(conn: &Connection, task_id: &str, e: &TaskEvent) -> Result<()> {
+pub(crate) fn record(conn: &Connection, task_id: &str, e: &TaskEvent) -> Result<()> {
     conn.execute(
         "INSERT INTO task_events (task_id, kind, from_status, to_status, from_date, to_date, at, local_date)
          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
@@ -422,7 +455,7 @@ fn record(conn: &Connection, task_id: &str, e: &TaskEvent) -> Result<()> {
     Ok(())
 }
 
-fn history_row(kind: &str, at: i64, local_date: &str) -> TaskEvent {
+pub(crate) fn history_row(kind: &str, at: i64, local_date: &str) -> TaskEvent {
     TaskEvent {
         kind: kind.into(),
         from_status: None,
@@ -816,11 +849,15 @@ pub struct TaskFilters {
 pub struct TaskRow {
     pub task: Task,
     pub overdue: bool,
+    /// A repeating task already ticked for today (FR-109).
+    pub done_today: bool,
 }
 
 const PRIORITY_RANK: &str =
     "CASE priority WHEN 'HIGH' THEN 0 WHEN 'MEDIUM' THEN 1 WHEN 'LOW' THEN 2 ELSE 3 END";
 const OPEN: &str = "status NOT IN ('COMPLETED', 'CANCELLED')";
+/// Planned on today through its chosen days (FR-108); the `?` is today.
+const ON_DAY: &str = "EXISTS (SELECT 1 FROM task_days d WHERE d.task_id = tasks.id AND d.day = ?)";
 
 pub async fn query(
     db: &Database,
@@ -850,15 +887,16 @@ pub async fn query(
 
         let order = match view {
             TaskView::Today => {
-                clauses.push(format!("{OPEN} AND (planned_date = ? OR (due_date IS NOT NULL AND due_date < ?) OR status = 'IN_PROGRESS')"));
-                args.extend([today_text.clone().into(), today_text.clone().into()]);
+                // Repeating tasks are all fetched and kept below only on their days (FR-109).
+                clauses.push(format!("{OPEN} AND (planned_date = ? OR (due_date IS NOT NULL AND due_date < ?) OR status = 'IN_PROGRESS' OR {ON_DAY} OR repeat_rule IS NOT NULL)"));
+                args.extend([today_text.clone().into(), today_text.clone().into(), today_text.clone().into()]);
                 order_args.push(today_text.clone().into());
-                format!("CASE WHEN status = 'IN_PROGRESS' THEN 0 WHEN due_date IS NOT NULL AND due_date < ? THEN 1 ELSE 2 END, {PRIORITY_RANK}, due_date IS NULL, due_date, created_at")
+                format!("starred DESC, CASE WHEN status = 'IN_PROGRESS' THEN 0 WHEN due_date IS NOT NULL AND due_date < ? THEN 1 ELSE 2 END, {PRIORITY_RANK}, due_date IS NULL, due_date, created_at")
             }
             TaskView::Upcoming => {
-                clauses.push(format!("{OPEN} AND planned_date > ? AND planned_date <= ?"));
-                args.extend([today_text.clone().into(), horizon.clone().into()]);
-                format!("planned_date, {PRIORITY_RANK}, created_at")
+                clauses.push(format!("{OPEN} AND ((planned_date > ? AND planned_date <= ?) OR EXISTS (SELECT 1 FROM task_days d WHERE d.task_id = tasks.id AND d.day > ? AND d.day <= ?))"));
+                args.extend([today_text.clone().into(), horizon.clone().into(), today_text.clone().into(), horizon.clone().into()]);
+                format!("starred DESC, planned_date, {PRIORITY_RANK}, created_at")
             }
             TaskView::Pending => {
                 clauses.push("status = 'PENDING'".into());
@@ -889,7 +927,7 @@ pub async fn query(
                     clauses.push("planned_date <= ?".into());
                     args.push(to.to_string().into());
                 }
-                format!("CASE WHEN status IN ('COMPLETED', 'CANCELLED') THEN 1 ELSE 0 END, {PRIORITY_RANK}, planned_date IS NULL, planned_date, created_at DESC")
+                format!("CASE WHEN status IN ('COMPLETED', 'CANCELLED') THEN 1 ELSE 0 END, starred DESC, {PRIORITY_RANK}, planned_date IS NULL, planned_date, created_at DESC")
             }
         };
         if let Some(priority) = filters.priority {
@@ -911,13 +949,18 @@ pub async fn query(
         let sql = format!("SELECT {COLUMNS} FROM tasks {where_sql} ORDER BY {order}");
         let mut stmt = conn.prepare(&sql)?;
         let raws = stmt.query_map(rusqlite::params_from_iter(args), read_raw)?.collect::<rusqlite::Result<Vec<_>>>()?;
-        raws.into_iter()
-            .map(|raw| {
-                let task = build(raw)?;
-                let overdue = task.is_overdue(today);
-                Ok(TaskRow { task, overdue })
-            })
-            .collect()
+        let mut rows = Vec::with_capacity(raws.len());
+        for raw in raws {
+            let task = build_full(conn, raw)?;
+            let done_today = task.repeat.is_some() && crate::task_plans::ticked(conn, &task.id, today)?;
+            // On Today a repeating task shows only on its days, until it is ticked.
+            if view == TaskView::Today && task.repeat.is_some() && (done_today || !crate::task_plans::occurs(&task, today)) {
+                continue;
+            }
+            let overdue = task.repeat.is_none() && task.is_overdue(today);
+            rows.push(TaskRow { task, overdue, done_today });
+        }
+        Ok(rows)
     })
     .await
 }

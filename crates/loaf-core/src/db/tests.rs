@@ -6,7 +6,7 @@ use super::migrate::{self, validate_chain, Migration, MIGRATIONS};
 use super::*;
 use crate::error::ErrorCode;
 
-const EXPECTED_TABLES: [&str; 17] = [
+const EXPECTED_TABLES: [&str; 20] = [
     "app_sessions",
     "daily_logs",
     "domain_sessions",
@@ -20,7 +20,10 @@ const EXPECTED_TABLES: [&str; 17] = [
     "notes",
     "reminders",
     "settings",
+    "task_days",
     "task_events",
+    "task_links",
+    "task_ticks",
     "task_work_updates",
     "tasks",
     "user_preferences",
@@ -48,7 +51,7 @@ fn migrated_memory() -> Connection {
 fn a_fresh_database_is_created_at_the_latest_version_with_exactly_the_schema_tables() {
     let dir = tempfile::tempdir().unwrap();
     let conn = open_and_migrate(&dir.path().join("loaf.db")).unwrap();
-    assert_eq!(migrate::user_version(&conn).unwrap(), 3);
+    assert_eq!(migrate::user_version(&conn).unwrap(), 4);
     assert_eq!(
         tables(&conn),
         EXPECTED_TABLES,
@@ -80,7 +83,7 @@ fn reopening_an_up_to_date_database_changes_nothing_and_writes_no_backup() {
     let path = dir.path().join("loaf.db");
     drop(open_and_migrate(&path).unwrap());
     let conn = open_and_migrate(&path).unwrap();
-    assert_eq!(migrate::user_version(&conn).unwrap(), 3);
+    assert_eq!(migrate::user_version(&conn).unwrap(), 4);
     assert!(migrate::latest_backup(&path).is_none());
 }
 
@@ -484,7 +487,7 @@ fn migration_2_adds_the_bin_column_and_keeps_existing_notes_live() {
         .unwrap();
     }
     let conn = open_and_migrate(&path).unwrap();
-    assert_eq!(migrate::user_version(&conn).unwrap(), 3);
+    assert_eq!(migrate::user_version(&conn).unwrap(), 4);
     let deleted: Option<i64> = conn
         .query_row("SELECT deleted_at FROM notes WHERE id = 'n1'", [], |r| {
             r.get(0)
@@ -516,7 +519,7 @@ fn migration_3_adds_usage_tables_that_enforce_their_checks() {
         migrate::migrate(&mut conn, &MIGRATIONS[..2]).unwrap();
     }
     let conn = open_and_migrate(&path).unwrap();
-    assert_eq!(migrate::user_version(&conn).unwrap(), 3);
+    assert_eq!(migrate::user_version(&conn).unwrap(), 4);
     assert!(migrate::latest_backup(&path).is_some(), "backed up first");
 
     exec(&conn, "INSERT INTO app_sessions (id, app, category, is_browser, started_at, ended_at) VALUES ('a', 'VS Code', 'Coding', 0, 1, 5)").unwrap();
@@ -562,5 +565,80 @@ fn usage_tables_have_no_column_that_could_hold_a_url_or_a_title() {
                 "{table}.{column} would store more than a domain"
             );
         }
+    }
+}
+
+#[test]
+fn migration_4_adds_task_links_days_ticks_and_stars_that_enforce_their_checks() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("loaf.db");
+    {
+        let mut conn = open_connection(&path).unwrap();
+        migrate::migrate(&mut conn, &MIGRATIONS[..3]).unwrap();
+        exec(&conn, "INSERT INTO tasks (id, title, created_at, updated_at) VALUES ('old', 'Before 004', 1, 1)").unwrap();
+    }
+    let conn = open_and_migrate(&path).unwrap();
+    assert_eq!(migrate::user_version(&conn).unwrap(), 4);
+    let (starred, rule): (i64, Option<String>) = conn
+        .query_row(
+            "SELECT starred, repeat_rule FROM tasks WHERE id = 'old'",
+            [],
+            |r| Ok((r.get(0)?, r.get(1)?)),
+        )
+        .unwrap();
+    assert_eq!(
+        (starred, rule),
+        (0, None),
+        "existing tasks are unstarred and don't repeat"
+    );
+
+    // Rules and flags are checked.
+    for ok in ["daily", "weekly:1,3,5", "every:2"] {
+        exec(
+            &conn,
+            &format!("UPDATE tasks SET repeat_rule = '{ok}' WHERE id = 'old'"),
+        )
+        .unwrap();
+    }
+    for bad in ["weekly", "every:0", "monthly", "weekly:9"] {
+        assert!(
+            exec(
+                &conn,
+                &format!("UPDATE tasks SET repeat_rule = '{bad}' WHERE id = 'old'")
+            )
+            .is_err(),
+            "{bad}"
+        );
+    }
+    assert!(exec(&conn, "UPDATE tasks SET starred = 2 WHERE id = 'old'").is_err());
+    assert!(
+        exec(&conn, "UPDATE reminders SET starred = 2").is_ok(),
+        "no rows, no error"
+    );
+    assert!(exec(
+        &conn,
+        "INSERT INTO task_days (task_id, day) VALUES ('old', 'Monday')"
+    )
+    .is_err());
+
+    // Links, days and ticks go with their task.
+    exec(&conn, "INSERT INTO task_links (id, task_id, url, position, created_at) VALUES ('l', 'old', 'https://a.com', 0, 1)").unwrap();
+    exec(
+        &conn,
+        "INSERT INTO task_days (task_id, day) VALUES ('old', '2026-10-27')",
+    )
+    .unwrap();
+    exec(
+        &conn,
+        "INSERT INTO task_ticks (task_id, day, done_at) VALUES ('old', '2026-10-27', 5)",
+    )
+    .unwrap();
+    assert!(exec(&conn, "INSERT INTO task_links (id, task_id, url, position, created_at) VALUES ('x', 'nobody', 'https://a.com', 0, 1)").is_err());
+    exec(&conn, "DELETE FROM tasks WHERE id = 'old'").unwrap();
+    for table in ["task_links", "task_days", "task_ticks"] {
+        let n: i64 = conn
+            .query_row(&format!("SELECT COUNT(*) FROM {table}"), [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(n, 0, "{table}");
     }
 }

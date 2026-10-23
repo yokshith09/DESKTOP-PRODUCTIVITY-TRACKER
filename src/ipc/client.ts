@@ -2,7 +2,7 @@
 import { call } from "./transport";
 import type {
   UsageSummary, TimeRange, TrackingStatus, OpenTab, PetPack, BinNote, DailyLog, Reminder, ReminderInput, ReminderPatch, Label, LabelCount, Note, NoteInput, NotePatch, NoteSort, NoteSummary, Task, TaskEdit, TaskEvent, TaskFilters, TaskRow,
-  TaskStatus, TaskView, WorkUpdate, Meeting, MeetingFilters, MeetingInput, MeetingSummary,
+  TaskStatus, TaskView, WorkUpdate, LinkInput, TaskPlan, RepeatDay, Meeting, MeetingFilters, MeetingInput, MeetingSummary,
 } from "./types";
 import type { Settings, SettingsKey } from "./settings";
 
@@ -32,6 +32,7 @@ export const ipc = {
   reminderCreate: (input: ReminderInput) => call<Reminder>("reminder_create", { input }),
   reminderUpdate: (id: string, patch: ReminderPatch) => call<Reminder>("reminder_update", { id, patch }),
   reminderSetDone: (id: string, done: boolean) => call<Reminder>("reminder_set_done", { id, done }),
+  reminderStar: (id: string, starred: boolean) => call<Reminder>("reminder_star", { id, starred }),
   reminderDelete: (id: string) => call<unknown>("reminder_delete", { id }),
   noteDiscardIfEmpty: (id: string) => call<boolean>("note_discard_if_empty", { id }),
 
@@ -62,6 +63,14 @@ export const ipc = {
   taskHistory: (id: string) => call<TaskEvent[]>("task_history", { id }),
   taskDefer: (id: string, to: string) => call<Task>("task_defer", { id, to }),
   taskDelete: (id: string) => call<unknown>("task_delete", { id }),
+  /** Replace the links shown next to a task (FR-106). */
+  taskSetLinks: (id: string, links: LinkInput[]) => call<Task>("task_set_links", { id, links }),
+  taskStar: (id: string, starred: boolean) => call<Task>("task_star", { id, starred }),
+  /** Chosen days (FR-108) or a repeat rule (FR-109). */
+  taskSetPlan: (id: string, plan: TaskPlan) => call<Task>("task_set_plan", { id, plan }),
+  /** Tick or untick one day (`YYYY-MM-DD`) of a repeating task. */
+  taskTick: (id: string, day: string, done: boolean) => call<Task>("task_tick", { id, day, done }),
+  taskRepeatDays: (id: string) => call<RepeatDay[]>("task_repeat_days", { id }),
   workUpdatesList: (taskId: string) => call<WorkUpdate[]>("work_updates_list", { taskId }),
   workUpdateAdd: (taskId: string, body: string) => call<WorkUpdate>("work_update_add", { taskId, body }),
   workUpdateDelete: (id: string) => call<unknown>("work_update_delete", { id }),

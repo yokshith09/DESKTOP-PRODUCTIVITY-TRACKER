@@ -114,6 +114,14 @@ pub enum Event {
         at: i64,
         id: String,
     },
+    /// One day of a repeating task was ticked or unticked (FR-109).
+    TaskTicked {
+        #[cfg_attr(feature = "ts", ts(type = "number"))]
+        at: i64,
+        id: String,
+        day: String,
+        done: bool,
+    },
     ReminderCreated {
         #[cfg_attr(feature = "ts", ts(type = "number"))]
         at: i64,
@@ -224,6 +232,7 @@ impl Event {
             | Self::TaskStatusChanged { at, .. }
             | Self::TaskDeferred { at, .. }
             | Self::TaskDeleted { at, .. }
+            | Self::TaskTicked { at, .. }
             | Self::ReminderCreated { at, .. }
             | Self::ReminderUpdated { at, .. }
             | Self::ReminderDeleted { at, .. }
@@ -263,6 +272,7 @@ impl Event {
             Self::TaskStatusChanged { .. } => "TaskStatusChanged",
             Self::TaskDeferred { .. } => "TaskDeferred",
             Self::TaskDeleted { .. } => "TaskDeleted",
+            Self::TaskTicked { .. } => "TaskTicked",
             Self::ReminderCreated { .. } => "ReminderCreated",
             Self::ReminderUpdated { .. } => "ReminderUpdated",
             Self::ReminderDeleted { .. } => "ReminderDeleted",

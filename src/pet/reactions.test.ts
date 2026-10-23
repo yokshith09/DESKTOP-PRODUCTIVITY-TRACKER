@@ -3,8 +3,8 @@ import type { LoafEvent, TaskRow } from "@/ipc";
 import { SLEEP_AFTER_MS, enqueue, isAsleep, reactionFor, reactionForSay, type Reaction } from "./reactions";
 
 const row = (id: string, title = id, overdue = false): TaskRow => ({
-  overdue,
-  task: { id, title, description: "", status: "PLANNED", priority: null, project: null, planned_date: null, due_date: null, note_id: null, source_action_item_id: null, created_at: 0, updated_at: 0, started_at: null, completed_at: null, cancelled_at: null },
+  overdue, done_today: false,
+  task: { id, title, description: "", status: "PLANNED", priority: null, project: null, planned_date: null, due_date: null, note_id: null, source_action_item_id: null, created_at: 0, updated_at: 0, started_at: null, completed_at: null, cancelled_at: null, starred: false, repeat: null, repeat_until: null, days: [], links: [] },
 });
 const ev = (type: string, fields: Record<string, unknown> = {}) => ({ type, at: 0, ...fields }) as LoafEvent;
 
