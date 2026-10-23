@@ -218,6 +218,7 @@ pub fn run() {
             pet::pet_hover,
             pet::pet_click,
             pet::pet_double_click,
+            pet::pet_command,
             pet::pet_menu,
             notify::notification_test,
             ipc::app_paths,

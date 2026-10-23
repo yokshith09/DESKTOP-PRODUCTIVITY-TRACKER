@@ -255,6 +255,15 @@ pub fn pet_click(app: AppHandle) {
     crate::tray::show_main(&app);
 }
 
+/// A button on the hover card: open the dashboard and do one thing there (FR-111). Only the
+/// commands the pet menu already sends are accepted.
+#[tauri::command]
+pub fn pet_command(what: String, app: AppHandle) {
+    if matches!(what.as_str(), "new-note" | "new-task") {
+        command(&app, &what);
+    }
+}
+
 /// Double click: put the dashboard away.
 #[tauri::command]
 pub fn pet_double_click(app: AppHandle) {

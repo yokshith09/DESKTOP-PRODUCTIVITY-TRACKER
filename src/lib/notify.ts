@@ -36,8 +36,29 @@ export function bubbleText(message: string, description?: string): string {
   return both.length <= MAX_TEXT ? both : message;
 }
 
+// ---- when the pet is hidden, messages show in the dashboard instead (owner 2026-10-23) ------
+
+export type Notice = { id: number; kind: Kind; text: string; action?: Action };
+let petShown = true;
+let notices: Notice[] = [];
+const watchers = new Set<(n: Notice[]) => void>();
+const publish = () => watchers.forEach((w) => w(notices));
+/** The dashboard tells this whether the pet is on screen (`pet.visible`). */
+export function setPetShown(shown: boolean) { petShown = shown; }
+export function watchNotices(w: (n: Notice[]) => void) { watchers.add(w); w(notices); return () => void watchers.delete(w); }
+export function dismissNotice(id: number) { notices = notices.filter((n) => n.id !== id); publish(); }
+/** At most 3 at a time, newest last. */
+export const MAX_NOTICES = 3;
+
 function show(kind: Kind, message: string, o?: Options) {
   const ms = kind === "error" ? ERROR_MS : TOAST_MS;
+  if (!petShown) {
+    const n: Notice = { id: ++seq, kind, text: bubbleText(message, o?.description), ...(o?.action ? { action: o.action } : {}) };
+    notices = [...notices, n].slice(-MAX_NOTICES);
+    publish();
+    setTimeout(() => dismissNotice(n.id), o?.action ? ms + 3000 : ms);
+    return;
+  }
   let actionId: string | undefined;
   if (o?.action) {
     listen();

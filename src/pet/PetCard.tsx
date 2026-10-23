@@ -1,4 +1,5 @@
-import { Bell, CheckCircle2, Circle } from "lucide-react";
+import { Bell, CheckCircle2, Circle, Moon, NotebookPen, Star, Sun, Timer } from "lucide-react";
+import { ipc } from "@/ipc";
 import { PRIORITY } from "@/features/overview/TodayAgenda";
 import { rangeBounds } from "@/features/time/range";
 import { useDailyLog, useReminders, useTodayTasks, useTrackingStatus, useUsage } from "@/hooks/useLoaf";
@@ -19,7 +20,7 @@ export function topTasks(rows: TaskRow[], n = 2): TaskRow[] {
 }
 
 /** What the pet shows on hover: today's time, top apps, the two tasks that matter, and two lines of context. */
-export function PetCard({ className, style }: { className?: string; style?: React.CSSProperties }) {
+export function PetCard({ className, style, napping = false, onNap }: { className?: string; style?: React.CSSProperties; napping?: boolean; onNap?: (nap: boolean) => void }) {
   const today = rangeBounds("today");
   const { data: status } = useTrackingStatus();
   const { data: usage } = useUsage(today.from, today.to);
@@ -69,8 +70,9 @@ export function PetCard({ className, style }: { className?: string; style?: Reac
         ) : (
           <ul className="space-y-1">
             {top.map(({ task, overdue }) => (
-              <li key={task.id} className="flex items-center gap-2 text-[12px]">
-                <Circle className="size-3 shrink-0 text-muted-foreground" />
+              // Tasks stand out on the card (owner 2026-10-23): a tinted row, starred ones marked.
+              <li key={task.id} className={cn("flex items-center gap-2 rounded-md px-2 py-1 text-[12.5px] font-medium", overdue ? "bg-destructive/10" : "bg-primary/10")}>
+                {task.starred ? <Star className="size-3 shrink-0 fill-current text-primary" /> : <Circle className="size-3 shrink-0 text-primary" />}
                 <span className="min-w-0 flex-1 truncate">{task.title}</span>
                 {overdue ? <span className="text-[11px] text-destructive">Overdue</span> : task.priority && (
                   <span className={cn("text-[11px]", PRIORITY[task.priority].cls)}>{PRIORITY[task.priority].label}</span>
@@ -84,6 +86,28 @@ export function PetCard({ className, style }: { className?: string; style?: Reac
         <p className="flex items-center gap-1.5 truncate"><Bell className="size-3" />{next ? `Next: ${next.title} · ${clockTime(next.remind_at)}` : "No reminders coming up"}</p>
         <p className="flex items-center gap-1.5"><CheckCircle2 className="size-3" />{done} done today · {tasks.length} still open</p>
       </div>
+      <div className="mt-auto grid grid-cols-3 gap-1.5 border-t pt-2.5" role="group" aria-label="Shortcuts">
+        {focus.session ? (
+          <CardButton icon={<Timer />} label="Stop focus" onClick={() => void focus.stop()} />
+        ) : (
+          <CardButton icon={<Timer />} label="Focus 25" onClick={() => void focus.start("FOCUS", 25)} />
+        )}
+        <CardButton icon={<NotebookPen />} label="Add note" onClick={() => void ipc.petCommand("new-note")} />
+        {napping ? (
+          <CardButton icon={<Sun />} label="Wake" onClick={() => onNap?.(false)} />
+        ) : (
+          <CardButton icon={<Moon />} label="Sleep" onClick={() => onNap?.(true)} />
+        )}
+      </div>
     </div>
+  );
+}
+
+function CardButton({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} onPointerUp={(e) => e.stopPropagation()}
+      className="flex h-8 items-center justify-center gap-1.5 rounded-md border bg-card text-[11.5px] font-medium outline-none hover:border-primary/50 hover:text-primary focus-visible:ring-2 focus-visible:ring-ring [&_svg]:size-3.5">
+      {icon}{label}
+    </button>
   );
 }

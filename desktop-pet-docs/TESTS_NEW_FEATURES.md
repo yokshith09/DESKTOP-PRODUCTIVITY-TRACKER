@@ -194,3 +194,12 @@ Last run 2026-10-23 (late night): front-end 226 passed / 5 skipped (35 files); R
 7. Drag the pet to the top edge while focusing → the timer moves below it.
 
 Last run 2026-10-23 (focus): front-end 237 passed / 5 skipped (37 files); Rust 425 passed; lint, typecheck, clippy, fmt, core-deps clean.
+
+---
+
+## FR-111 Hover-card shortcuts · messages in the dashboard when the pet is hidden
+
+**Automated:** `src/pet/PetApp.test.tsx` "the hover card has shortcuts…" · `src/components/Notices.test.tsx`.
+**Manual (Windows):** hover the pet → the card's bottom row: **Focus 25** starts the timer (button becomes Stop focus); **Add note** opens the dashboard with a new note; **Sleep** → the pet sleeps even while you hover; **Wake** or a click wakes it. Today's tasks on the card are tinted rows. Character → turn **Show on desktop** off → delete a note → "Moved to Bin" with Undo appears bottom-right in the dashboard.
+
+Last run 2026-10-23: front-end 239 passed / 5 skipped; Rust 425 passed; lint, typecheck, clippy, fmt clean.

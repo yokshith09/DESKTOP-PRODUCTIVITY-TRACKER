@@ -548,6 +548,7 @@ export function createMock() {
     },
     pet_hover: (a) => (a.expanded ? { pet: "right", card: "above" } : null),
     pet_click: () => null,
+    pet_command: () => null,
     pet_double_click: () => null,
     pet_menu: () => null,
     notification_test: () => null,

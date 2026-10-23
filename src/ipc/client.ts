@@ -89,6 +89,8 @@ export const ipc = {
   petHover: (expanded: boolean, cardWidth: number, cardHeight: number) =>
     call<{ pet: "left" | "right"; card: "above" | "below" } | null>("pet_hover", { expanded, cardWidth, cardHeight }),
   petClick: () => call<unknown>("pet_click"),
+  /** Hover-card buttons: open the dashboard and start a new note or task (FR-111). */
+  petCommand: (what: "new-note" | "new-task") => call<unknown>("pet_command", { what }),
   petDoubleClick: () => call<unknown>("pet_double_click"),
   petMenu: () => call<unknown>("pet_menu"),
   meetingsList: (filters: MeetingFilters = { participant: null, from: null, to: null }) => call<MeetingSummary[]>("meetings_list", { filters }),

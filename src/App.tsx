@@ -4,8 +4,10 @@ import { Plug } from "lucide-react";
 import { useRoutineReminder } from "@/features/routine/useRoutine";
 import { useDailyGreeting } from "@/features/companion/useCompanion";
 import { useRepeatReminder } from "@/features/tasks/useRepeatReminder";
+import { Notices } from "@/components/Notices";
+import { setPetShown } from "@/lib/notify";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useBin, useBusSync, useLabels, useNoteActions, useNotes } from "@/hooks/useLoaf";
+import { useBin, useBusSync, useLabels, useNoteActions, useNotes, useSettings } from "@/hooks/useLoaf";
 import { useAgenda } from "@/features/overview/TodayAgenda";
 import { useTheme } from "@/hooks/useTheme";
 import { ipc, onCommand, type NoteSort } from "@/ipc";
@@ -44,6 +46,10 @@ function Screen() {
   useDailyGreeting();
   // FR-109: in the evening, repeating tasks still open today.
   useRepeatReminder();
+  // Messages go above the pet; while the pet is hidden they show here instead.
+  const { data: settings } = useSettings();
+  const petShown = settings?.["pet.visible"] ?? true;
+  useEffect(() => setPetShown(petShown), [petShown]);
   const actions = useNoteActions();
   const { data: allNotes = [] } = useNotes(false, null, "last_edited");
   const { data: labels = [] } = useLabels();
@@ -156,6 +162,7 @@ function Screen() {
         </main>
       </div>
       <NoteEditor noteId={editing} onClose={() => setEditing(null)} />
+      <Notices />
     </div>
   );
 }

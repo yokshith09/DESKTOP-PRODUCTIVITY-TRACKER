@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { ipc, type TaskRow } from "@/ipc";
@@ -109,6 +109,24 @@ describe("desktop pet", () => {
     fireEvent.mouseEnter(bear().closest("div.flex") as HTMLElement);
     expect((await screen.findAllByText(/today · next:|Nothing planned/, {}, { timeout: 2000 })).length).toBeGreaterThan(0);
     expect(screen.queryByRole("status", { name: "Today at a glance" })).toBeNull();
+  });
+
+  it("the hover card has shortcuts: focus, add note, sleep and wake; tasks stand out (FR-111)", async () => {
+    const cmd = vi.spyOn(ipc, "petCommand").mockResolvedValue(null);
+    renderPet();
+    fireEvent.mouseEnter(bear().closest("div.flex") as HTMLElement);
+    const card = await screen.findByRole("status", { name: "Today at a glance" }, { timeout: 2000 });
+    const shortcuts = within(card).getByRole("group", { name: "Shortcuts" });
+    fireEvent.click(within(shortcuts).getByRole("button", { name: "Add note" }));
+    expect(cmd).toHaveBeenCalledWith("new-note");
+    fireEvent.click(within(shortcuts).getByRole("button", { name: "Sleep" }));
+    expect(await screen.findByRole("img", { name: "Loaf the bear (sleep)" })).toBeTruthy();
+    fireEvent.click(within(shortcuts).getByRole("button", { name: "Wake" }));
+    await waitFor(() => expect(screen.queryByRole("img", { name: "Loaf the bear (sleep)" })).toBeNull());
+    fireEvent.click(within(shortcuts).getByRole("button", { name: "Focus 25" }));
+    expect(await within(shortcuts).findByRole("button", { name: "Stop focus" }, { timeout: 2000 })).toBeTruthy();
+    fireEvent.click(within(shortcuts).getByRole("button", { name: "Stop focus" }));
+    await waitFor(async () => expect(await ipc.focusCurrent()).toBeNull());
   });
 
   it("shows the chosen pet pack instead of the bear (FR-63)", async () => {

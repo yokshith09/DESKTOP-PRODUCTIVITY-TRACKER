@@ -16,7 +16,7 @@ import { useTypingAlong } from "./typing";
 
 /** Card and bubble sizes in logical pixels; the shell grows the window by this much. */
 export const CARD_W = 300;
-export const CARD_H = 296; // measured: 291 px with 3 apps and 2 tasks
+export const CARD_H = 352; // measured: 291 px with 3 apps and 2 tasks, + task rows and the shortcuts row
 export const BUBBLE_W = 220;
 export const BUBBLE_H = 52;
 /** The focus timer above or below the pet (FR-110). */
@@ -68,6 +68,8 @@ export function PetApp() {
   // Anything happening (hover, click, an event from Loaf, tracked app time) keeps the bear awake.
   const lastActive = useRef(Date.now());
   const [asleep, setAsleep] = useState(false);
+  // "Sleep" on the card: a nap that lasts until Wake (or a click on the pet), not ended by hovering.
+  const [napping, setNapping] = useState(false);
   const wake = () => {
     lastActive.current = Date.now();
     setAsleep(false);
@@ -179,6 +181,7 @@ export function PetApp() {
   };
 
   const click = () => {
+    setNapping(false);
     // A bubble with an action (Undo…): a click runs it instead of opening the dashboard.
     const action = playingRef.current?.action;
     if (action) {
@@ -255,7 +258,7 @@ export function PetApp() {
 
   const working = openToday.some((r) => r.task.status === "IN_PROGRESS");
   // Typing along beats hover and the rest: you are busy, it keeps you company.
-  const pose: BearPose = playing?.pose ?? (typing !== "off" ? typing : hovering ? "wave" : asleep ? "sleep" : working ? "work" : "idle");
+  const pose: BearPose = playing?.pose ?? (napping ? "sleep" : typing !== "off" ? typing : hovering ? "wave" : asleep ? "sleep" : working ? "work" : "idle");
   const bear = (
     <button
       type="button" aria-label="Loaf. Click to open, double-click to hide, right-click for options"
@@ -276,7 +279,7 @@ export function PetApp() {
   );
 
   const extra = panel === "card"
-    ? <PetCard className="shrink-0" style={{ width: CARD_W, height: CARD_H }} />
+    ? <PetCard className="shrink-0" style={{ width: CARD_W, height: CARD_H }} napping={napping} onNap={setNapping} />
     : panel === "bubble" && playing
       ? <Bubble text={playing.action ? `${playing.bubble} · click: ${playing.action.label}` : playing.bubble} anchor={anchor} />
       : panel === "timer" && focus.session
