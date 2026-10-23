@@ -1,6 +1,7 @@
 import { CalendarDays } from "lucide-react";
 import { useTileHandle } from "@/features/shell/TileHandle";
 import { cn } from "@/lib/utils";
+import { FocusBar } from "@/features/focus/FocusBar";
 import { TodayAgenda, TodayComposer } from "./TodayAgenda";
 
 /** The main agenda: tasks and reminders for today, with a quick add. */
@@ -16,7 +17,7 @@ export function AgendaCard({ className }: { className?: string }) {
         {handle && <div className="ml-auto">{handle}</div>}
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto p-3"><TodayAgenda /></div>
-      <footer className="shrink-0 border-t p-3"><TodayComposer /></footer>
+      <footer className="shrink-0 space-y-2 border-t p-3"><FocusBar /><TodayComposer /></footer>
     </section>
   );
 }

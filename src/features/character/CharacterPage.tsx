@@ -78,6 +78,7 @@ export function CharacterPage() {
   const [opacity, setOpacity] = useSetting("pet.opacity");
   const [onTop, setOnTop] = useSetting("pet.always_on_top");
   const [typing, setTyping] = useSetting("pet.typing");
+  const [hoverCard, setHoverCard] = useSetting("pet.hover_card");
   const px = SIZES[size ?? "M"];
   const emote = useRef<EmoteRun | null>(null);
   useEffect(() => () => emote.current?.cancel(), []);
@@ -128,6 +129,9 @@ export function CharacterPage() {
           </Row>
           <Row label="Opacity" hint={`${opacity ?? 100}%`}>
             <Slider className="w-36" min={20} max={100} step={5} value={[opacity ?? 100]} onValueChange={([v]) => v !== undefined && void setOpacity(v)} aria-label="Opacity" />
+          </Row>
+          <Row label="Card when I hover the pet" hint="Today at a glance when you hover the pet. Off: the same facts (focus time left, the next task, the next reminder) come as a short bubble instead.">
+            <Switch checked={hoverCard ?? true} onCheckedChange={(v) => void setHoverCard(v)} aria-label="Card when I hover the pet" />
           </Row>
           <Row label="Always on top" hint="Keep the companion above other windows.">
             <Switch checked={onTop ?? true} onCheckedChange={(v) => void setOnTop(v)} aria-label="Always on top" />

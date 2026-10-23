@@ -72,6 +72,45 @@ describe("desktop pet", () => {
     expect(done).toHaveBeenCalledWith("r1", true);
   });
 
+  it("shows the focus timer by the pet while a session runs, with pause (FR-110)", async () => {
+    renderPet();
+    await screen.findByRole("button", { name: /^Loaf\./ });
+    await act(async () => { await ipc.focusStart({ kind: "FOCUS", minutes: 25, task_id: null }); });
+    try {
+      const timer = await screen.findByRole("timer", {}, { timeout: 2000 });
+      expect(timer.getAttribute("aria-label")).toMatch(/^Focus: 2[45]:\d\d left$/);
+      fireEvent.click(screen.getByRole("button", { name: "Pause focus" }));
+      expect(await screen.findByRole("timer", { name: /paused$/ }, { timeout: 2000 })).toBeTruthy();
+    } finally {
+      await act(async () => { await ipc.focusStop(); });
+    }
+    await waitFor(() => expect(screen.queryByRole("timer")).toBeNull());
+  });
+
+  it("cheers when focus is done, and a click starts the break (FR-110)", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    renderPet();
+    await screen.findByRole("button", { name: /^Loaf\./ });
+    await act(async () => { await ipc.focusStart({ kind: "FOCUS", minutes: 1, task_id: null }); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(62_000); });
+    expect((await screen.findAllByText("Nice: 1 min. Break 5 min? · click: Break", {}, { timeout: 3000 })).length).toBeGreaterThan(0);
+    tap(bear());
+    await waitFor(async () => expect((await ipc.focusCurrent())?.kind).toBe("BREAK"));
+    await act(async () => { await ipc.focusStop(); });
+  });
+
+  it("with the hover card off, hovering shows today as a bubble instead (FR-110)", async () => {
+    const all = await ipc.settingsGetAll();
+    const loaded = vi.spyOn(ipc, "settingsGetAll").mockResolvedValue({ ...all, "pet.hover_card": false });
+    renderPet();
+    await screen.findByRole("button", { name: /^Loaf\./ });
+    await waitFor(() => expect(loaded).toHaveBeenCalled());
+    await act(async () => { await new Promise((r) => setTimeout(r, 20)); });
+    fireEvent.mouseEnter(bear().closest("div.flex") as HTMLElement);
+    expect((await screen.findAllByText(/today · next:|Nothing planned/, {}, { timeout: 2000 })).length).toBeGreaterThan(0);
+    expect(screen.queryByRole("status", { name: "Today at a glance" })).toBeNull();
+  });
+
   it("shows the chosen pet pack instead of the bear (FR-63)", async () => {
     const all = await ipc.settingsGetAll();
     vi.spyOn(ipc, "settingsGetAll").mockResolvedValue({ ...all, "pet.pack": "boba" });

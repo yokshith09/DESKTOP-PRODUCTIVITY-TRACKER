@@ -39,7 +39,9 @@ export function useBusSync() {
         if (e.type.startsWith("Task")) {
           void qc.invalidateQueries({ queryKey: ["tasks"] });
           void qc.invalidateQueries({ queryKey: ["task"] });
+          void qc.invalidateQueries({ queryKey: ["repeat-days"] });
         }
+        if (e.type.startsWith("Focus")) void qc.invalidateQueries({ queryKey: ["focus"] });
         // Meetings show their action items' task status live (R1-34), so task changes count too.
         if (e.type.startsWith("Meeting") || e.type.startsWith("Task")) {
           void qc.invalidateQueries({ queryKey: ["meetings"] });

@@ -44,6 +44,21 @@ describe("pet reactions", () => {
   });
 });
 
+describe("focus sessions (FR-110)", () => {
+  const session = (over: Record<string, unknown>) => ({ id: "f", kind: "FOCUS", task_id: null, label: "Physics", planned_ms: 25 * 60_000, started_at: 0, paused_at: null, paused_ms: 0, ended_at: 1, outcome: "DONE", local_date: "2026-10-23", ...over });
+  it("cheers when focus is done and offers a 5-minute break on a click", () => {
+    expect(reactionFor(ev("FocusEnded", { session: session({}) }), { openToday: [] })).toEqual({
+      pose: "cheer", bubble: "Nice: 25 min on Physics. Break 5 min?", ms: 12_000, priority: 4, action: { id: "focus-break:5", label: "Break" },
+    });
+  });
+  it("says the break is over without offering another, and stays quiet when stopped", () => {
+    const br = reactionFor(ev("FocusEnded", { session: session({ kind: "BREAK" }) }), { openToday: [] });
+    expect(br?.bubble).toBe("Break's over. Ready when you are.");
+    expect(br?.action).toBeUndefined();
+    expect(reactionFor(ev("FocusEnded", { session: session({ outcome: "STOPPED" }) }), { openToday: [] })).toBeNull();
+  });
+});
+
 describe("messages from the dashboard (FR-43)", () => {
   const poses = ["idle", "wave", "wait"] as const;
   it("shows the text with the asked pose, or a wave", () => {

@@ -14,6 +14,7 @@ export interface Settings {
   "pet.opacity": number;
   "pet.always_on_top": boolean;
   "pet.typing": boolean;
+  "pet.hover_card": boolean;
   /** Installed pet pack shown instead of the bear (FR-63); null = the bear. */
   "pet.pack": string | null;
   "shortcuts.global_open": string | null;

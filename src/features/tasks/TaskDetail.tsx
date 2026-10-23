@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CalendarClock, CalendarPlus, ExternalLink, FilePlus2, Flag, FolderKanban, History, Link2, MessageSquarePlus, Trash2, X } from "lucide-react";
+import { CalendarClock, CalendarPlus, Timer, ExternalLink, FilePlus2, Flag, FolderKanban, History, Link2, MessageSquarePlus, Trash2, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { NoteEditor } from "@/features/notes/NoteEditor";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,9 @@ import { clockTime, formatWhen } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { errorMessage, ipc, type Priority, type Task, type TaskEvent } from "@/ipc";
 import { notify } from "@/lib/notify";
+import { clock as focusClock } from "@/lib/focus";
 import { toEdit } from "./edit";
+import { useFocus } from "@/hooks/useFocus";
 import { StarButton } from "./TaskBits";
 import { LinksEditor, PlanEditor, RepeatHistory, planOf, planStateOf, samePlan } from "./TaskPlanEditor";
 
@@ -57,6 +59,7 @@ export function TaskDetail({ taskId, onClose }: { taskId: string | null; onClose
 
 function Body({ task, onClose }: { task: Task; onClose: () => void }) {
   const actions = useTaskActions();
+  const focus = useFocus();
   const { data: notes = [] } = useNotes(false, null, "last_edited");
   const { data: history = [] } = useTaskHistory(task.id);
   const { data: updates = [] } = useWorkUpdates(task.id);
@@ -135,6 +138,10 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
           {transitionsFrom(task.status).map((t) => (
             <Button key={t.to} size="sm" variant={t.to === "COMPLETED" ? "default" : "outline"} onClick={() => void actions.transition(task.id, t.to)}>{t.label}</Button>
           ))}
+          {!finished && !focus.session && (
+            <Button size="sm" variant="outline" className="ml-auto" onClick={() => void focus.start("FOCUS", 25, task.id)}><Timer />Focus 25 min</Button>
+          )}
+          {focus.session?.task_id === task.id && <span className="ml-auto text-xs font-medium text-primary tabular-nums">Focusing · {focusClock(focus.remaining)} left</span>}
         </div>
 
         <textarea

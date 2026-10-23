@@ -1,9 +1,10 @@
 // In-memory stand-in for the Rust shell, used only by `vite dev` outside Tauri.
 import { daysAgo, ymd } from "../lib/dates";
 import { repeatDays, taskOccurs } from "../lib/repeat";
+import { remainingMs } from "../lib/focus";
 import type {
   AppUsage, DomainUsage, TimeRange, UsageSummary,
-  AppError, BinNote, DailyLog, LogEntry, Meeting, MeetingInput, MeetingSummary, Reminder, Label, LoafEvent, Note, NoteColor, NoteSummary, Task, TaskEvent, TaskRow, TaskStatus, WorkUpdate,
+  AppError, BinNote, DailyLog, LogEntry, Meeting, MeetingInput, MeetingSummary, Reminder, Label, LoafEvent, Note, NoteColor, NoteSummary, Task, TaskEvent, TaskRow, TaskStatus, WorkUpdate, FocusSession,
 } from "./types";
 
 type Args = Record<string, unknown> | undefined;
@@ -115,6 +116,14 @@ export function createMock() {
   }
 
   const taskEvents = new Map<string, TaskEvent[]>();
+  // Focus sessions (FR-05): like the core, one runs at a time.
+  const focus: FocusSession[] = [];
+  const running = () => focus.find((f) => f.ended_at === null) ?? null;
+  const endFocus = (f: FocusSession, at: number, outcome: "DONE" | "STOPPED") => {
+    if (f.paused_at !== null) { f.paused_ms += at - f.paused_at; f.paused_at = null; }
+    f.ended_at = at; f.outcome = outcome; emit("FocusEnded", { session: { ...f } }); return f;
+  };
+  const ranOut = (f: FocusSession) => f.paused_at === null && remainingMs(f, now()) === 0;
   // Repeating-task ticks (FR-109): "taskId day".
   const ticks = new Set<string>();
   const findTask = (id: unknown) => tasks.find((y) => y.id === id) ?? fail("NOT_FOUND", "That task no longer exists.");
@@ -136,7 +145,7 @@ export function createMock() {
 
   const defaultSettings = (): Record<string, unknown> => ({
     "general.autostart": false, "general.theme": "dark", "general.font_size": "M",
-    "pet.visible": true, "pet.size": "M", "pet.opacity": 100, "pet.always_on_top": true, "pet.typing": false, "pet.pack": null,
+    "pet.visible": true, "pet.size": "M", "pet.opacity": 100, "pet.always_on_top": true, "pet.typing": false, "pet.hover_card": true, "pet.pack": null,
     "shortcuts.global_open": null, "shortcuts.global_new_note": null, "shortcuts.global_new_task": null,
     "tracking.apps": true, "tracking.exclude_apps": [], "tracking.sites": false, "tracking.safari": false,
     "advanced.log_level": "info",
@@ -479,6 +488,38 @@ export function createMock() {
       if (!x.repeat || !x.planned_date) return [];
       const from = [inDays(-60), x.planned_date].sort()[1] ?? x.planned_date;
       return repeatDays(x.repeat, x.planned_date, x.repeat_until, from, today).reverse().slice(0, 14).map((day) => ({ day, ticked: ticks.has(`${x.id} ${day}`) }));
+    },
+    focus_start: (a) => {
+      const i = a.input as { kind: "FOCUS" | "BREAK"; minutes: number; task_id?: string | null };
+      if (!(i.minutes >= 1 && i.minutes <= 240)) fail("VALIDATION", "Pick 1 to 240 minutes.");
+      const r = running();
+      if (r) { if (ranOut(r)) endFocus(r, r.started_at + r.paused_ms + r.planned_ms, "DONE"); else fail("CONFLICT", "A focus session is already running. Stop it first."); }
+      const label = i.task_id ? findTask(i.task_id).title : "";
+      const f: FocusSession = { id: `f${++seq}`, kind: i.kind, task_id: i.task_id ?? null, label, planned_ms: i.minutes * 60_000, started_at: now(), paused_at: null, paused_ms: 0, ended_at: null, outcome: null, local_date: today };
+      focus.push(f); emit("FocusChanged", { session: { ...f } }); return { ...f };
+    },
+    focus_current: () => {
+      const r = running();
+      if (r && ranOut(r)) { endFocus(r, r.started_at + r.paused_ms + r.planned_ms, "DONE"); return null; }
+      return r ? { ...r } : null;
+    },
+    focus_pause: (a) => {
+      const r = running() ?? fail("INVALID_TRANSITION", "No focus session is running.");
+      if (a.paused && r.paused_at === null) r.paused_at = now();
+      else if (!a.paused && r.paused_at !== null) { r.paused_ms += now() - r.paused_at; r.paused_at = null; }
+      emit("FocusChanged", { session: { ...r } }); return { ...r };
+    },
+    focus_extend: (a) => {
+      const r = running() ?? fail("INVALID_TRANSITION", "No focus session is running.");
+      r.planned_ms = Math.min(r.planned_ms + Number(a.minutes) * 60_000, 240 * 60_000);
+      emit("FocusChanged", { session: { ...r } }); return { ...r };
+    },
+    focus_stop: () => ({ ...endFocus(running() ?? fail("INVALID_TRANSITION", "No focus session is running."), now(), "STOPPED") }),
+    focus_finish: (a) => {
+      const f = focus.find((x) => x.id === a.id) ?? fail("NOT_FOUND", "That focus session no longer exists.");
+      if (f.ended_at !== null) return { ...f };
+      if (f.paused_at !== null || remainingMs(f, now()) > 2000) fail("INVALID_TRANSITION", "This session still has time left.");
+      return { ...endFocus(f, Math.min(f.started_at + f.paused_ms + f.planned_ms, now()), "DONE") };
     },
     task_delete: (a) => {
       const i = tasks.findIndex((y) => y.id === a.id);

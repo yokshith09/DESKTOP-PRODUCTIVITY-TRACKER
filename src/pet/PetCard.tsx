@@ -6,6 +6,8 @@ import { ymd } from "@/lib/dates";
 import { clockTime, formatDuration } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import type { Priority, TaskRow } from "@/ipc";
+import { useFocus } from "@/hooks/useFocus";
+import { clock } from "@/lib/focus";
 
 const RANK: Record<Priority, number> = { HIGH: 0, MEDIUM: 1, LOW: 2 };
 
@@ -30,11 +32,18 @@ export function PetCard({ className, style }: { className?: string; style?: Reac
   const next = reminders.filter((r) => r.remind_at >= Date.now()).sort((a, b) => a.remind_at - b.remind_at)[0];
   const done = log?.snapshot.stats.completed_count ?? 0;
   const max = apps[0]?.total_seconds ?? 1;
+  const focus = useFocus();
 
   return (
     <div className={cn("flex flex-col gap-3 overflow-hidden rounded-xl border bg-popover p-3.5 text-popover-foreground shadow-lg", className)} style={style} role="status" aria-label="Today at a glance">
       <div className="flex items-baseline justify-between">
-        <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Today</span>
+        {focus.session ? (
+          <span className="truncate text-[11px] font-medium uppercase tracking-wide text-primary" aria-label="Focus time left">
+            {focus.session.kind === "BREAK" ? "Break" : "Focus"} · {clock(focus.remaining)} left{focus.session.label ? ` · ${focus.session.label}` : ""}
+          </span>
+        ) : (
+          <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Today</span>
+        )}
         <span className="text-[11px] text-muted-foreground">{new Date().toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })}</span>
       </div>
       <div className="flex items-end gap-3">

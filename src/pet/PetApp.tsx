@@ -3,11 +3,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { isTauri } from "@tauri-apps/api/core";
 import { BEAR_POSES, Bear, type BearPose } from "@/features/shell/Bear";
 import { ROW_FOR_POSE, SpritePet } from "@/features/character/SpritePet";
-import { useSettings, useTodayTasks } from "@/hooks/useLoaf";
+import { useReminders, useSettings, useTodayTasks } from "@/hooks/useLoaf";
+import { useFocus } from "@/hooks/useFocus";
+import { clock } from "@/lib/focus";
 import { useTheme } from "@/hooks/useTheme";
 import { ipc, onEvent, onPetSay, petAction, type TaskRow } from "@/ipc";
 import { cn } from "@/lib/utils";
 import { PetCard } from "./PetCard";
+import { glanceText } from "./glance";
 import { enqueue, isAsleep, reactionFor, reactionForSay, type Reaction } from "./reactions";
 import { useTypingAlong } from "./typing";
 
@@ -16,6 +19,9 @@ export const CARD_W = 300;
 export const CARD_H = 296; // measured: 291 px with 3 apps and 2 tasks
 export const BUBBLE_W = 220;
 export const BUBBLE_H = 52;
+/** The focus timer above or below the pet (FR-110). */
+export const TIMER_W = 184;
+export const TIMER_H = 34;
 const SIZES = { S: 96, M: 128, L: 160 } as const;
 const DOUBLE_CLICK_MS = 260;
 const DRAG_PX = 4;
@@ -23,7 +29,7 @@ const DRAG_PX = 4;
 const SLEEP_CHECK_MS = 30_000;
 
 type Anchor = { pet: "left" | "right"; card: "above" | "below" };
-type Panel = "card" | "bubble" | null;
+type Panel = "card" | "bubble" | "timer" | null;
 
 /**
  * The desktop pet. Click opens the dashboard, double-click hides it, right-click opens the
@@ -40,6 +46,13 @@ export function PetApp() {
   const packId = settings?.["pet.pack"] ?? null;
   const { data: sheet } = useQuery({ queryKey: ["pets", "sheet", packId], queryFn: () => ipc.petsSheet(packId ?? ""), enabled: !!packId, staleTime: Infinity, retry: false });
   const opacity = (settings?.["pet.opacity"] ?? 100) / 100;
+  const hoverCard = settings?.["pet.hover_card"] ?? true;
+  const hoverCardRef = useRef(hoverCard);
+  hoverCardRef.current = hoverCard;
+  const focus = useFocus();
+  const focusRef = useRef(focus.session);
+  focusRef.current = focus.session;
+  const { data: reminders = [] } = useReminders(false);
   const [anchor, setAnchor] = useState<Anchor | null>(null);
   const [panel, setPanel] = useState<Panel>(null);
   const [hovering, setHovering] = useState(false);
@@ -70,7 +83,7 @@ export function PetApp() {
   panelRef.current = panel;
 
   const expand = async (next: Exclude<Panel, null>) => {
-    const [w, h] = next === "card" ? [CARD_W, CARD_H] : [BUBBLE_W, BUBBLE_H];
+    const [w, h] = next === "card" ? [CARD_W, CARD_H] : next === "timer" ? [TIMER_W, TIMER_H] : [BUBBLE_W, BUBBLE_H];
     const a = await ipc.petHover(true, w, h);
     if (a) {
       setAnchor(a);
@@ -82,6 +95,8 @@ export function PetApp() {
     setPanel(null);
     await ipc.petHover(false, 0, 0);
   };
+  /** Back to resting: the focus timer while a session runs, else just the pet. */
+  const settle = () => (focusRef.current ? expand("timer") : collapse());
 
   // Play the next waiting reaction: pose for its duration, bubble unless the card is open.
   const playingRef = useRef<Reaction | null>(null);
@@ -91,10 +106,11 @@ export function PetApp() {
     playingRef.current = next ?? null;
     setPlaying(next ?? null);
     if (!next) {
-      if (panelRef.current === "bubble") void collapse();
+      if (panelRef.current === "bubble") void settle();
       return;
     }
-    if (!hoverRef.current) void expand("bubble");
+    // While hovering, the card has the space, unless the card is turned off (FR-110).
+    if (!hoverRef.current || !hoverCardRef.current) void expand("bubble");
     timers.current.play = window.setTimeout(playNext, next.ms);
   };
   const reactRef = useRef((r: Reaction | null) => {
@@ -132,14 +148,28 @@ export function PetApp() {
     if (panelRef.current !== "card") return;
     // A reaction still playing gets its bubble back.
     if (playingRef.current) await expand("bubble");
-    else await collapse();
+    else await settle();
+  };
+
+  // The timer comes and goes with the session, unless a bubble or the card is showing.
+  const running = !!focus.session;
+  useEffect(() => {
+    if (running && panelRef.current === null) void expand("timer");
+    if (!running && panelRef.current === "timer") void collapse();
+  }, [running]);
+
+  /** With the hover card off, the same facts come as one short bubble (FR-110). */
+  const glance = () => {
+    if (playingRef.current) return;
+    const next = reminders.filter((x) => x.remind_at >= Date.now()).sort((a, b) => a.remind_at - b.remind_at)[0];
+    reactRef.current({ pose: "wave", bubble: glanceText({ session: focusRef.current, remaining: focus.remaining, tasks: tasks.current, next, now: Date.now() }), ms: 6000, priority: 1 });
   };
 
   const onEnter = () => {
     wake();
     setHovering(true);
     clearTimeout(timers.current.leave);
-    timers.current.enter = window.setTimeout(() => void openCard(), 350);
+    timers.current.enter = window.setTimeout(() => (hoverCard ? void openCard() : glance()), 350);
   };
   const onLeave = () => {
     if (draggingRef.current) return; // the window is moving under the pointer; not a real leave
@@ -154,6 +184,7 @@ export function PetApp() {
     if (action) {
       // A reminder's "Done" is handled right here; other actions go back to the dashboard.
       if (action.id.startsWith("reminder-done:")) void ipc.reminderSetDone(action.id.slice("reminder-done:".length), true);
+      else if (action.id.startsWith("focus-break:")) void focus.start("BREAK", Number(action.id.slice("focus-break:".length)) || 5);
       else void petAction(action.id);
       const drop = (r: Reaction): Reaction => ({ pose: r.pose, bubble: r.bubble, ms: r.ms, priority: r.priority });
       if (playingRef.current) playingRef.current = drop(playingRef.current);
@@ -248,7 +279,9 @@ export function PetApp() {
     ? <PetCard className="shrink-0" style={{ width: CARD_W, height: CARD_H }} />
     : panel === "bubble" && playing
       ? <Bubble text={playing.action ? `${playing.bubble} · click: ${playing.action.label}` : playing.bubble} anchor={anchor} />
-      : null;
+      : panel === "timer" && focus.session
+        ? <FocusChip label={focus.session.kind === "BREAK" ? "Break" : focus.session.label || "Focus"} left={clock(focus.remaining)} paused={focus.session.paused_at !== null} onPause={(p) => void focus.pause(p)} />
+        : null;
 
   return (
     <div
@@ -281,6 +314,21 @@ function Bubble({ text, anchor }: { text: string; anchor: Anchor | null }) {
       style={{ width: BUBBLE_W, height: BUBBLE_H }}
     >
       <span className="line-clamp-2">{text}</span>
+    </div>
+  );
+}
+
+/** The focus timer by the pet (FR-110): time left, what it's for, pause/resume. */
+function FocusChip({ label, left, paused, onPause }: { label: string; left: string; paused: boolean; onPause: (paused: boolean) => void }) {
+  return (
+    <div className="flex shrink-0 items-center gap-2 rounded-full border bg-popover px-3 text-popover-foreground shadow-md" style={{ width: TIMER_W, height: TIMER_H }} role="timer" aria-label={`${label}: ${left} left${paused ? ", paused" : ""}`}>
+      <span className={cn("size-2 shrink-0 rounded-full", paused ? "bg-muted-foreground" : "bg-primary")} />
+      <span className="text-[13px] font-semibold tabular-nums">{left}</span>
+      <span className="min-w-0 flex-1 truncate text-[11.5px] text-muted-foreground">{label}</span>
+      <button type="button" aria-label={paused ? "Resume focus" : "Pause focus"} onClick={() => onPause(!paused)}
+        className="grid size-6 shrink-0 place-items-center rounded-full text-[11px] outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring">
+        {paused ? "▶" : "❚❚"}
+      </button>
     </div>
   );
 }

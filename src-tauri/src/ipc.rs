@@ -9,6 +9,7 @@ use loaf_core::daily_log::{self, DailyLog};
 use loaf_core::data;
 use loaf_core::error::{AppError, Result};
 use loaf_core::events::Event;
+use loaf_core::focus::{self, FocusSession, FocusStart};
 use loaf_core::labels::{self, Label, LabelCount};
 use loaf_core::links;
 use loaf_core::meetings::{self, Meeting, MeetingFilters, MeetingInput, MeetingSummary};
@@ -362,6 +363,40 @@ pub async fn work_update_add(
 #[tauri::command]
 pub async fn work_update_delete(id: String, core: State<'_, Core>) -> Result<()> {
     tasks::delete_work_update(&core.db, &*core.clock, &id).await
+}
+
+// ---- focus sessions (FR-05) ----------------------------------------------------------------
+
+#[tauri::command]
+pub async fn focus_start(input: FocusStart, core: State<'_, Core>) -> Result<FocusSession> {
+    focus::start(&core.db, &*core.clock, input).await
+}
+
+/// The running session, if any (one that ran out while Loaf was closed is finished here).
+#[tauri::command]
+pub async fn focus_current(core: State<'_, Core>) -> Result<Option<FocusSession>> {
+    focus::current(&core.db, &*core.clock).await
+}
+
+#[tauri::command]
+pub async fn focus_pause(paused: bool, core: State<'_, Core>) -> Result<FocusSession> {
+    focus::set_paused(&core.db, &*core.clock, paused).await
+}
+
+#[tauri::command]
+pub async fn focus_extend(minutes: u32, core: State<'_, Core>) -> Result<FocusSession> {
+    focus::extend(&core.db, &*core.clock, minutes).await
+}
+
+#[tauri::command]
+pub async fn focus_stop(core: State<'_, Core>) -> Result<FocusSession> {
+    focus::stop(&core.db, &*core.clock).await
+}
+
+/// The time is up; both windows may call this, the second call changes nothing.
+#[tauri::command]
+pub async fn focus_finish(id: String, core: State<'_, Core>) -> Result<FocusSession> {
+    focus::finish(&core.db, &*core.clock, &id).await
 }
 
 // ---- daily logs (the Time screen) -----------------------------------------------------------

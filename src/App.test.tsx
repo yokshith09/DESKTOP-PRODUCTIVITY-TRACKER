@@ -708,3 +708,29 @@ describe("task upgrades (FR-106..FR-109)", () => {
     expect(within(dialog).getByText("Planned")).toBeTruthy();
   });
 });
+
+describe("focus sessions (FR-05)", () => {
+  it("starts from Today, shows the time left with pause, +5 and stop, and from a task with its name", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const agenda = await screen.findByRole("region", { name: "Today’s agenda" });
+    await user.click(within(agenda).getByRole("button", { name: "Focus 25 minutes" }));
+    const bar = await within(agenda).findByRole("group", { name: "Focus session" }, { timeout: 3000 });
+    expect(within(bar).getByRole("timer", { name: "Time left" }).textContent).toMatch(/^2[45]:\d\d$/);
+    await user.click(within(bar).getByRole("button", { name: "Add 5 minutes" }));
+    await waitFor(() => expect(within(bar).getByRole("timer").textContent).toMatch(/^(29|30):\d\d$/));
+    await user.click(within(bar).getByRole("button", { name: "Pause" }));
+    expect(await within(bar).findByRole("button", { name: "Resume" })).toBeTruthy();
+    await user.click(within(bar).getByRole("button", { name: "Stop" }));
+    expect(await within(agenda).findByRole("group", { name: "Focus" })).toBeTruthy();
+
+    // From a task: the session carries its name.
+    await goTo(user, /^Tasks/);
+    await user.click(await screen.findByRole("button", { name: "Open Refactor the tray menu" }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: /Focus 25 min/ }));
+    expect(await within(dialog).findByText(/^Focusing · \d+:\d\d left$/)).toBeTruthy();
+    const { ipc } = await import("@/ipc");
+    expect((await ipc.focusCurrent())?.label).toBe("Refactor the tray menu");
+  });
+});

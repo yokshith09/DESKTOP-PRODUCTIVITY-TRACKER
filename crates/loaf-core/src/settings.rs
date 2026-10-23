@@ -36,6 +36,10 @@ pub enum SettingsKey {
     /// key-press counter (never which key) and, on macOS, the Input Monitoring permission.
     #[serde(rename = "pet.typing")]
     PetTyping,
+    /// Hovering the pet opens the card with today at a glance (FR-110). Off: the same facts
+    /// come as a short bubble instead.
+    #[serde(rename = "pet.hover_card")]
+    PetHoverCard,
     /// The installed pet pack shown instead of the built-in bear (FR-63); null = the bear.
     #[serde(rename = "pet.pack")]
     PetPack,
@@ -109,6 +113,7 @@ impl SettingsKey {
             Self::PetOpacity => "pet.opacity",
             Self::PetAlwaysOnTop => "pet.always_on_top",
             Self::PetTyping => "pet.typing",
+            Self::PetHoverCard => "pet.hover_card",
             Self::PetPack => "pet.pack",
             Self::ShortcutsGlobalOpen => "shortcuts.global_open",
             Self::ShortcutsGlobalNewNote => "shortcuts.global_new_note",
@@ -132,6 +137,7 @@ impl SettingsKey {
             "pet.opacity" => Some(Self::PetOpacity),
             "pet.always_on_top" => Some(Self::PetAlwaysOnTop),
             "pet.typing" => Some(Self::PetTyping),
+            "pet.hover_card" => Some(Self::PetHoverCard),
             "pet.pack" => Some(Self::PetPack),
             "shortcuts.global_open" => Some(Self::ShortcutsGlobalOpen),
             "shortcuts.global_new_note" => Some(Self::ShortcutsGlobalNewNote),
@@ -156,6 +162,7 @@ impl SettingsKey {
             Self::PetOpacity => json!(100),
             Self::PetAlwaysOnTop => json!(true),
             Self::PetTyping => json!(false),
+            Self::PetHoverCard => json!(true),
             Self::PetPack => json!(null),
             Self::ShortcutsGlobalOpen => json!(null),
             Self::ShortcutsGlobalNewNote => json!(null),
@@ -175,6 +182,7 @@ impl SettingsKey {
             | Self::PetVisible
             | Self::PetAlwaysOnTop
             | Self::PetTyping
+            | Self::PetHoverCard
             | Self::TrackingApps
             | Self::TrackingSites
             | Self::TrackingSafari => {
@@ -308,6 +316,7 @@ pub fn all_defaults() -> BTreeMap<String, Value> {
         SettingsKey::PetOpacity,
         SettingsKey::PetAlwaysOnTop,
         SettingsKey::PetTyping,
+        SettingsKey::PetHoverCard,
         SettingsKey::PetPack,
         SettingsKey::ShortcutsGlobalOpen,
         SettingsKey::ShortcutsGlobalNewNote,
@@ -364,7 +373,12 @@ mod tests {
     #[test]
     fn all_defaults_exist() {
         let defaults = all_defaults();
-        assert_eq!(defaults.len(), 17);
+        assert_eq!(defaults.len(), 18);
+        assert_eq!(
+            defaults["pet.hover_card"],
+            json!(true),
+            "the card on hover stays the default"
+        );
         assert_eq!(
             defaults["tracking.sites"],
             json!(false),

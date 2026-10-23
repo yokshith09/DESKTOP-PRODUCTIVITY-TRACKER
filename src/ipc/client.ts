@@ -2,7 +2,7 @@
 import { call } from "./transport";
 import type {
   UsageSummary, TimeRange, TrackingStatus, OpenTab, PetPack, BinNote, DailyLog, Reminder, ReminderInput, ReminderPatch, Label, LabelCount, Note, NoteInput, NotePatch, NoteSort, NoteSummary, Task, TaskEdit, TaskEvent, TaskFilters, TaskRow,
-  TaskStatus, TaskView, WorkUpdate, LinkInput, TaskPlan, RepeatDay, Meeting, MeetingFilters, MeetingInput, MeetingSummary,
+  TaskStatus, TaskView, WorkUpdate, LinkInput, TaskPlan, RepeatDay, FocusSession, FocusStart, Meeting, MeetingFilters, MeetingInput, MeetingSummary,
 } from "./types";
 import type { Settings, SettingsKey } from "./settings";
 
@@ -71,6 +71,13 @@ export const ipc = {
   /** Tick or untick one day (`YYYY-MM-DD`) of a repeating task. */
   taskTick: (id: string, day: string, done: boolean) => call<Task>("task_tick", { id, day, done }),
   taskRepeatDays: (id: string) => call<RepeatDay[]>("task_repeat_days", { id }),
+  /** Focus sessions (FR-05). One runs at a time. */
+  focusStart: (input: FocusStart) => call<FocusSession>("focus_start", { input }),
+  focusCurrent: () => call<FocusSession | null>("focus_current"),
+  focusPause: (paused: boolean) => call<FocusSession>("focus_pause", { paused }),
+  focusExtend: (minutes: number) => call<FocusSession>("focus_extend", { minutes }),
+  focusStop: () => call<FocusSession>("focus_stop"),
+  focusFinish: (id: string) => call<FocusSession>("focus_finish", { id }),
   workUpdatesList: (taskId: string) => call<WorkUpdate[]>("work_updates_list", { taskId }),
   workUpdateAdd: (taskId: string, body: string) => call<WorkUpdate>("work_update_add", { taskId, body }),
   workUpdateDelete: (id: string) => call<unknown>("work_update_delete", { id }),

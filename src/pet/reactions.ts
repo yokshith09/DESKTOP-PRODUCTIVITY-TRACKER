@@ -1,6 +1,7 @@
 import type { BearPose } from "@/features/shell/Bear";
 import type { LoafEvent, TaskRow } from "@/ipc";
 import type { Event } from "@/ipc/generated/Event";
+import { BREAK_MINUTES, endLine } from "@/lib/focus";
 
 /**
  * What the pet does when something happens. One row per moment: add a row to react to
@@ -36,6 +37,13 @@ export const RULES: Rules = {
   TaskDeleted: () => ({ pose: "toss", bubble: "Tossed it", ms: 2400, priority: 1 }),
   // Long enough to be seen when the system notification was swallowed (Do not disturb).
   ReminderDue: (e) => ({ pose: "ring", bubble: `Reminder: ${quote(e.reminder.title)}`, ms: 15_000, priority: 5, action: { id: `reminder-done:${e.reminder.id}`, label: "Done" } }),
+  // FR-110: a finished focus cheers and offers a break (click the pet to start it). You started
+  // the session, so this isn't a nudge and doesn't count toward the daily limit.
+  FocusEnded: (e) => {
+    const line = endLine(e.session);
+    if (!line) return null;
+    return { pose: line.pose as BearPose, bubble: line.text, ms: 12_000, priority: 4, ...(line.offerBreak ? { action: { id: `focus-break:${BREAK_MINUTES}`, label: "Break" } } : {}) };
+  },
 };
 
 /**

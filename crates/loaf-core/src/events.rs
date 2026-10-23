@@ -10,6 +10,7 @@ use std::collections::BTreeMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::focus::FocusSession;
 use crate::labels::Label;
 use crate::meetings::Meeting;
 use crate::notes::Note;
@@ -122,6 +123,18 @@ pub enum Event {
         day: String,
         done: bool,
     },
+    /// A focus session or break started, paused, resumed or got more time (FR-05).
+    FocusChanged {
+        #[cfg_attr(feature = "ts", ts(type = "number"))]
+        at: i64,
+        session: FocusSession,
+    },
+    /// It ran out (DONE) or was stopped (STOPPED).
+    FocusEnded {
+        #[cfg_attr(feature = "ts", ts(type = "number"))]
+        at: i64,
+        session: FocusSession,
+    },
     ReminderCreated {
         #[cfg_attr(feature = "ts", ts(type = "number"))]
         at: i64,
@@ -233,6 +246,8 @@ impl Event {
             | Self::TaskDeferred { at, .. }
             | Self::TaskDeleted { at, .. }
             | Self::TaskTicked { at, .. }
+            | Self::FocusChanged { at, .. }
+            | Self::FocusEnded { at, .. }
             | Self::ReminderCreated { at, .. }
             | Self::ReminderUpdated { at, .. }
             | Self::ReminderDeleted { at, .. }
@@ -273,6 +288,8 @@ impl Event {
             Self::TaskDeferred { .. } => "TaskDeferred",
             Self::TaskDeleted { .. } => "TaskDeleted",
             Self::TaskTicked { .. } => "TaskTicked",
+            Self::FocusChanged { .. } => "FocusChanged",
+            Self::FocusEnded { .. } => "FocusEnded",
             Self::ReminderCreated { .. } => "ReminderCreated",
             Self::ReminderUpdated { .. } => "ReminderUpdated",
             Self::ReminderDeleted { .. } => "ReminderDeleted",
