@@ -95,7 +95,7 @@ Legend: **Requested** = in the owner's list; **Technical requirement (TR)** = de
 | FR-49 | Character accessories | Companion | Planned | FM-CS | M | Built as OpenPets wardrobe outfits; Q4 moved to FR-49a |
 | FR-50 | Sprite-pack format and Character Studio | Companion | Planned; spec docs/character/CHARACTER_STUDIO_SPEC.md | FM-CS | XL | D-SIZE closed (192x208); packs built, Unverified |
 | FR-51 | Guide page, tour, quiz, "Built by QUORBIT TECHNOLOGIES" | Onboarding | Planned | FM-GUIDE | M | — |
-| FR-52 | Meeting action items on Today with source chip | Meetings | Planned | FM-V2 | S | Q6: yes |
+| FR-52 | Meeting action items on Today with source chip | Meetings | Built, Unverified | FM-V2 | S | Q6: yes |
 | FR-53 | Project Spaces, opt-in sidebar | Projects | Planned (FR-06) | FM-PS | L | — |
 | FR-54 | Local MCP server | Integrations | Planned | FM-INT | L | Open: D-MCP-SHAPE |
 | FR-55 | Plugins from the website | Platform | Planned; signing on HOLD | FM-PLUG | XL | Open: D-PLUGIN-MODEL |
@@ -126,12 +126,14 @@ Legend: **Requested** = in the owner's list; **Technical requirement (TR)** = de
 | FR-81 | Wayland support (part of FR-57) | Platform | Planned | FM-LIN | S | — |
 | FR-82 | Flashcards from notes, usage buddy | Students | Planned | FM-ST | M | — |
 | FR-83 | Role profiles: Student / Developer / Student who codes / General set feature defaults | Shell | Planned | FM-GUIDE | M | — |
-| FR-84 | Community pets website + upload server (moderated) | Platform | Planned | P7 | XL | Backend reopened for this; hosting budget |
+| FR-84 | Community pets website + upload server (moderated) | Platform | Planned | P7 | XL | Supabase (decided); hosting budget |
 | FR-85 | Daily routine tile + "N routine tasks pending" reminder | Productivity | Built, Unverified | FM-V2 | M | — |
 | FR-86 | Private diary (password, encrypted) with task pick-up | Journal | Planned | FM-ST | L | — |
 | FR-87 | Pet reacts to every feature; user picks reaction per event | Companion | Planned | M6 | M | — |
 | FR-88 | "Now strip" beside the pet: current task, timer, next deadline | Companion | Planned | P2 | S | Research 2026-10-23 |
 | FR-89 | Quiet modes: choose monitor, hide in full-screen and meetings | Companion | Planned | P2 | S | Research 2026-10-23 |
+| FR-90 | Forgiving streaks (no-guilt rule): a missed day pauses, weekly best run | Wellbeing | Planned | FM-ST | S | Social research |
+| FR-91 | Earned pet growth paced per user, in export/import | Companion | Planned | M13 | M | Social research |
 | FR-58 | Student pack | Students | Planned; quiz waits for AI | FM-ST | L | — |
 
 **Verified existing (Unverified on real OS, tests pass):** FR-19 tracking, ROADMAP M1–M3 features. **Partial:** FR-01, FR-20, FR-22, FR-27. Everything else: Planned or Blocked. Nothing is "Complete" on a real OS.

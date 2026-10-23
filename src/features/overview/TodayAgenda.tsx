@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, BellRing, CalendarCheck2, CalendarClock, Plus, Trash2 } from "lucide-react";
+import { Bell, BellRing, CalendarCheck2, CalendarClock, Plus, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -111,6 +111,12 @@ export function TodayAgenda({ showUpcoming = false }: { showUpcoming?: boolean }
                     {task.title}
                   </button>
                 </TaskEditor>
+                {/* FR-52: a task made from a meeting's action item names the meeting. */}
+                {task.source_action_item_id && task.project && (
+                  <span title={`From the meeting “${task.project}”`} className="flex max-w-36 items-center gap-1 truncate rounded-md bg-violet/12 px-1.5 py-0.5 text-[11px] text-violet">
+                    <Users className="size-3 shrink-0" /><span className="truncate">{task.project}</span>
+                  </span>
+                )}
                 {task.due_date && !overdue && (
                   <span className="flex items-center gap-1 text-[11px] tabular-nums text-muted-foreground" title="Deadline"><CalendarClock className="size-3" />{shortDate(task.due_date)}</span>
                 )}

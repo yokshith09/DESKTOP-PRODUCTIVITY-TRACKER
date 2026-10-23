@@ -487,7 +487,7 @@ export function createMock() {
       const m = meetings.find((x) => x.action_items.some((i) => i.id === a.actionItemId)) ?? fail("NOT_FOUND", "That action item no longer exists.");
       const item = m.action_items.find((i) => i.id === a.actionItemId) ?? fail("NOT_FOUND", "That action item no longer exists.");
       if (item.task_id && tasks.some((x) => x.id === item.task_id)) fail("CONFLICT", "This action item is already a task.");
-      const x = t(`t${++seq}`, item.body, null, null, m.follow_up_date, "PLANNED");
+      const x = t(`t${++seq}`, item.body, null, today, m.follow_up_date, "PLANNED");
       x.project = m.title; x.source_action_item_id = item.id;
       x.description = `${item.assignee ? `Assignee: ${item.assignee}\n` : ""}From the meeting “${m.title}”.`;
       tasks.push(x); item.task_id = x.id; log(x.id, "CREATED");

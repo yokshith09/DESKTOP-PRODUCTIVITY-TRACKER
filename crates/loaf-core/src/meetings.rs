@@ -561,7 +561,8 @@ pub async fn suggest_participants(db: &Database, prefix: &str) -> Result<Vec<Str
 }
 
 /// Turn an action item into a task (R1-34): title = the item, project = the meeting's title,
-/// due = the follow-up date, and a description naming the assignee and the meeting.
+/// due = the follow-up date, and a description naming the assignee and the meeting. It is
+/// planned for today so it shows on Today with the meeting named (FR-52, owner Q6).
 pub async fn convert_action_item(
     db: &Database,
     clock: &dyn Clock,
@@ -603,6 +604,7 @@ pub async fn convert_action_item(
         description,
         project: Some(title.chars().take(tasks::PROJECT_MAX).collect()),
         due_date: parse_date(follow),
+        planned_date: Some(clock.local_date(now)),
         ..Default::default()
     })?;
     db.write(move |tx| {
@@ -894,6 +896,8 @@ mod tests {
         assert_eq!(task.project.as_deref(), Some("Kickoff"));
         assert_eq!(task.due_date, NaiveDate::from_ymd_opt(2025, 10, 20));
         assert_eq!(task.source_action_item_id.as_deref(), Some("a"));
+        // FR-52: planned for today, so it appears on Today.
+        assert_eq!(task.planned_date, Some(f.clock.today()));
         assert!(task.description.contains("Assignee: Asha"));
         assert!(task.description.contains("Kickoff"));
         let again = convert_action_item(&f.db, &f.clock, "a").await.unwrap_err();

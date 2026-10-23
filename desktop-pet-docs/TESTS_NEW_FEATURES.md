@@ -104,3 +104,15 @@ Last run (2026-10-23, this machine): see the bottom of this file.
 6. Bell icon → reminder off; no card at the time.
 
 Last run 2026-10-23: front-end 175 passed / 5 skipped (27 files); Rust 386 passed; lint and typecheck clean.
+
+---
+
+## FR-43 / FR-85 Routine reminder above the pet
+
+**Automated:** `src/pet/reactions.test.ts` "messages from the dashboard (FR-43)" · `src/pet/PetApp.test.tsx` "shows a message from the dashboard above the pet" · `src/features/routine/RoutineCard.test.tsx` (the reminder also goes to the pet).
+**Manual (Windows):** with the pet visible and the dashboard closed to the tray, set the routine reminder 2 minutes ahead with an item unticked → the pet shows "You have N daily routine tasks pending" in a bubble for ~10 s, and the dashboard shows the card when opened.
+
+## FR-52 Meeting tasks on Today
+
+**Automated:** `crates/loaf-core/src/meetings.rs` converting test (planned for today) · `src/App.test.tsx` "a task made from a meeting shows on Today with the meeting named (FR-52)".
+**Manual (Windows):** Meetings → open a meeting → action item → **Convert to task** → Today shows the task with a purple chip naming the meeting; hover shows "From the meeting “…”".

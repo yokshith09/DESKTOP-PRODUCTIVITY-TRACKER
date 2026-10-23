@@ -5,6 +5,7 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Added (2026-10-23, Unverified): the routine reminder also appears **above the pet** (dashboard → pet message channel `pet://say`, FR-43/FR-85); tasks converted from a meeting's action item are **planned for today and show on Today with the meeting named** (FR-52). Decision: Supabase for the community backend (FR-84).
 - Added (2026-10-23, Unverified): **toast stack** (FR-41: bottom-right, max 3, 5 s / errors 8 s, close button; Task added / saved / done; saving a task returns to where it was opened) and **Daily routine tile** on Today (FR-85: habits reset daily, progress ring, streaks, reminder "You have N daily routine tasks pending" once a day at a chosen time). Docs: pet art spec + prompt, FR-84…FR-89 specs, market research, direction check, GTM sheet, monetization.
 - Tests (2026-10-22): desktop pet shows the chosen pack and falls back to the bear; `TESTS_NEW_FEATURES.md` lists every automated test and manual Windows step for FR-63, FR-47, FR-61, FR-42.
 - Added (2026-10-22, FR-42, Unverified): a task can **open its linked note** or **make a new note from itself**; a note lists its **Linked tasks**, each opening the task; the **Links card is in Notes** too (V2-08). Core: task filter by `note_id`.

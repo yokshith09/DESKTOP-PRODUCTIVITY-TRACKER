@@ -486,6 +486,21 @@ describe("meetings (F1-17…19)", () => {
     expect(task?.description).toContain("Assignee: Mara");
   });
 
+  it("a task made from a meeting shows on Today with the meeting named (FR-52)", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await openMeetings(user);
+    await user.click(await screen.findByRole("button", { name: "Open meeting “Sprint planning”" }));
+    const row = (await screen.findByRole("textbox", { name: "Action item 1" })).closest("li") as HTMLElement;
+    await user.click(within(row).getByRole("button", { name: "Convert to task" }));
+    expect(await within(row).findByText("Task · Planned")).toBeTruthy();
+    await user.keyboard("{Escape}");
+    await goTo(user, /^Today/);
+    const agenda = await screen.findByRole("region", { name: "Tasks" });
+    expect(await within(agenda).findByRole("button", { name: "Edit Write the meetings spec" })).toBeTruthy();
+    expect(within(agenda).getByTitle("From the meeting “Sprint planning”")).toBeTruthy();
+  });
+
   it("logs a new meeting with Ctrl+M: it saves itself once it has a title", async () => {
     const { ipc } = await import("@/ipc");
     const user = userEvent.setup();

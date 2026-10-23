@@ -33,7 +33,7 @@ desktop-pet-docs/
     │   └── FR-84-87-owner-requests.md community server, routine, diary, reactions
     ├── character/                ← character, emote, Studio specs
     ├── competitors/              ← OpenPets research
-    ├── business/                 ← market research, direction, GTM sheet, money
+    ├── business/                 ← market + social research, direction, GTM sheet, money
     ├── 00-product … 06-plan/     ← locked founding documents (product, principles, PRD, TRD, design, schema, plan)
     ├── learning/                 ← notes
     └── archive/                  ← superseded, kept for history

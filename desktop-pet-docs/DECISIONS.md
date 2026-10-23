@@ -268,3 +268,6 @@ Still open: none of Q1-Q7 except the Q4 spike result.
 - Research (`docs/business/MARKET_RESEARCH_2026-10-23.md`): direction confirmed (pet + student tools + local tracking is an unfilled gap); scope warning (~87 features for one founder → P2 student release is the only goal until 100 weekly users); added FR-88 now strip and FR-89 quiet modes, the two strongest-evidence missing items.
 - Business: stay MIT open core; money from a one-time supporter licence, paid art packs with artist revenue share, sponsors, later optional sync; never paywall study features, no ads, no data selling. GTM sheet `docs/business/GTM_PLAN.csv`.
 - Pet art: `docs/character/PET_ART_SPEC.md` (format, sizes, rows/emotions, style, standard prompt for the first character).
+
+- 2026-10-23: **Supabase** chosen for the community pets backend (FR-84). Routine reminder now also above the pet. Meeting tasks planned for today with the meeting named on Today (FR-52).
+- 2026-10-23: Firecrawl social research saved (`docs/business/SOCIAL_RESEARCH_2026-10-23.md`). Reddit/LinkedIn/Instagram remain unreadable even with Firecrawl (excerpts only); Product Hunt and openpets.dev read in full. Adopted: no-guilt rule (FR-90), earned growth (FR-91), study hours per subject as the student pack's headline.
