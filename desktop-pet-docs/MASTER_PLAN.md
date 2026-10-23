@@ -234,7 +234,7 @@ Study hours: **partly solved** (app/site time + categories built; study hours pe
 - Built (Unverified): Import ZIP for pets (owner's Kayadu pack imports), Settings → Pet notifications (budget and quiet hours adjustable).
 - Diagnosed, not fixed: pet-visibility bugs B1-B6 and similar S1-S4 — **next to fix after owner review**.
 - Planned: FR-98 festival outfits · FR-99 weekly recap · FR-100 study groups · FR-101 leaderboard visibility Off/Friends/Everyone · FR-102 monthly pet drops · FR-103 photo to pet (`docs/features/FR-98-103-growth-plan.md`).
-- Student pack preview (study hours per subject, timetable, friends) published for owner review before building FR-58.
+- Student pack preview (study hours per subject, timetable, friends) published for owner review before building FR-58; redesigned 2026-10-23 night, with a now-strip board (FR-88, spec draft `docs/features/FR-88-now-strip.md`, 4 open questions).
 - OS parity: `docs/OS_PARITY.md`.
 
 ## 2026-10-23 (evening)

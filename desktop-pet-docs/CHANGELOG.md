@@ -5,6 +5,8 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Docs (2026-10-23): student-pack preview redesigned (Study with plan-vs-done and local suggestions, Timetable with now line, free slots and clashes, Study group with privacy defaults) and a **now strip** preview (FR-88) added; spec draft `docs/features/FR-88-now-strip.md` with four open questions. No code changed.
+
 - Changed (2026-10-23, Unverified): **notifications only above the pet** (owner; supersedes the FR-41 toast stack). Every message the dashboard used to pop up is now a bubble above the pet with a matching pose (cheer, wave, wait, worried); errors stay 8 s. Actions ride in the bubble — "Moved to Bin · click: Undo", "Reminder: … · click: Done" — and clicking the pet runs them. Removed the toast stack and the `sonner` dependency. New pet-window channel `pet://action`. Fixed: the leftover in-dashboard reminder card.
 
 - Fixed (2026-10-23, Unverified): **pet not coming back** (B1-B6, S1): an OS close no longer turns "Show the pet" off; Show/Hide follows what is on screen; the pet re-applies after missed events, after the PC wakes (once-a-minute wake watcher) and when screens change or the display scale changes; tray **Bring the pet back**; saved spot must have the pet's centre on a screen; window errors are logged; routine reminder and greeting re-check on wake. Added (macOS, Unverified): website time and open tabs for **Arc** (AppleScript, private windows skipped), **Firefox** (its session file — private windows never in it; tabs read-only), **Safari** behind a new opt-in switch `tracking.safari` (Safari can't tell private windows apart); tab listing no longer starts a browser that isn't running.
