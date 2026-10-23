@@ -178,3 +178,19 @@ Last run 2026-10-23 (night, notifications above the pet): front-end 208 passed /
 6. Export data, delete all, import → links, stars, days and ticks are back.
 
 Last run 2026-10-23 (late night): front-end 226 passed / 5 skipped (35 files); Rust 414 passed; lint, typecheck, clippy, fmt, core-deps clean.
+
+---
+
+## FR-05 Focus sessions · FR-110 Timer by the pet
+
+**Automated:** core `crates/loaf-core/src/focus.rs` (time left without pauses, one running at a time, pause/resume/+5/finish on time and only once, stop keeps minutes, finished at the right time after a restart, label kept when the task is deleted) · `db/tests.rs` migration 5 · `settings.rs` `pet.hover_card` default on · `src/lib/focus.test.ts` · `src/pet/glance.test.ts` · `src/pet/reactions.test.ts` "focus sessions" · `src/pet/PetApp.test.tsx` (timer by the pet with pause; cheer + Break by click; hover card off → bubble) · `src/App.test.tsx` "focus sessions (FR-05)".
+**Manual (Windows):**
+1. Today → **Focus 25 min** → a timer appears above (or below, near the top of the screen) the pet and counts down; the Today bar shows the same with Pause, +, Stop.
+2. Click ❚❚ on the pet's timer → it stops counting; ▶ → it continues.
+3. Start a 1-minute... (use 15 min and wait, or +5 then Stop) → at zero the pet cheers "Nice: 15 min. Break 5 min?" → click the pet → a 5-minute break timer starts; at its end "Break's over."
+4. Open a task → **Focus 25 min** → the timer shows the task's name.
+5. Start focus, quit Loaf, start it again 30 minutes later → no timer; the session counted as done.
+6. Character → turn off **Card when I hover the pet** → hover → a short bubble with focus time / next task / next reminder instead of the card.
+7. Drag the pet to the top edge while focusing → the timer moves below it.
+
+Last run 2026-10-23 (focus): front-end 237 passed / 5 skipped (37 files); Rust 425 passed; lint, typecheck, clippy, fmt, core-deps clean.

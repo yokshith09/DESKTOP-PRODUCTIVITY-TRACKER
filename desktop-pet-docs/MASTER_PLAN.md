@@ -60,7 +60,7 @@ This is the one page that says **what we build, in what order, and when each thi
 | FR-52 | Meeting action items on Today (Q6 yes) | Converted tasks appear on Today with a "from: <meeting>" chip | Chip shown, click opens the meeting | S | **Built, Unverified** |
 
 | FR-106…FR-109 | Task links, stars, chosen days, repeating tasks (owner 2026-10-23) | See `docs/features/FR-106-110-task-upgrades.md` | Built and tested; manual Windows check pending | M | **Built, Unverified** |
-| FR-110 | Focus timer above/below the pet; hover card optional, bubble when off | Same file | Timer visible during focus; setting works | S | Planned (next) |
+| FR-05 + FR-110 | Saved focus sessions; timer above/below the pet; hover card optional, bubble when off; cheer + break offer at the end | Same file | Built and tested; manual Windows check pending | M | **Built, Unverified** |
 
 **Order inside FM-V2:** FR-47 → FR-61 → FR-42 → FR-41 → FR-43 → FR-52 → FR-45 → FR-44 → FR-46 → FR-48 → FR-62 spike.
 **Release:** v0.2.1 for owner testing.

@@ -19,3 +19,9 @@ Owner answers (same night): chosen days; repeat = tick each day, remind when not
 
 ## Data (migration 004)
 `tasks.starred`, `tasks.repeat_rule` ("daily", "weekly:1,3,5" with ISO weekdays, "every:N"), `tasks.repeat_until`; `reminders.starred`; tables `task_links`, `task_days`, `task_ticks` (all cascade on task delete). A repeating task starts on its planned date (today when none is set).
+
+## FR-05 / FR-110 as built
+- `focus_sessions` (migration 005): kind FOCUS/BREAK, task + its title at start, planned time, start, pause start, paused total, end, outcome DONE/STOPPED, local day. One running at a time (unique index). Time left is computed, never stored.
+- Pet: panel "timer" (184×34) grown above/below like the bubble; bubbles and the card take the space while showing and give it back to the timer.
+- Hover card off: hovering plays a short bubble "Focus 13:12 left · 3 today · next: … · Stand-up at 3:30 PM".
+- Not built yet: study-hours screens using these sessions (student pack), a pet-menu "Start focus" item.

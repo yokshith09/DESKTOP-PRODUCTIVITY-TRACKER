@@ -302,4 +302,5 @@ Still open: none of Q1-Q7 except the Q4 spike result.
 - Owner: build now; the owner decides when to release ("ill give you command when we should release").
 - Tasks: multiple **links** shown next to the task (FR-106); **star** for tasks and reminders (FR-107); **chosen days** (FR-108); **repeating** with a tick per day, an evening reminder for unticked ones and a record of days not ticked (FR-109). Spec: `docs/features/FR-106-110-task-upgrades.md`.
 - No-guilt applied to FR-109: days not ticked are shown neutrally ("not ticked"), counted as "done N of the last M", reminder once a day through the nudge budget.
+- Owner (same night): focus sessions are **saved** (count as study hours later); at the end the pet **cheers and offers a 5-minute break** (click the pet). Not a nudge: you started it, so it doesn't count toward the daily limit.
 - **FR-88 now strip replaced by FR-110:** only the focus timer sits above/below the pet; the rest goes on the hover card. New setting to turn the hover card off; then hovering shows the info as a bubble. The four FR-88 open questions are superseded.
