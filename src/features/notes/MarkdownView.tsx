@@ -1,6 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
 import { errorMessage, ipc } from "@/ipc";
 import { cn } from "@/lib/utils";
 
@@ -8,7 +8,7 @@ const open = async (href: string) => {
   try {
     await ipc.openUrl(href);
   } catch (e) {
-    toast.error(errorMessage(e));
+    notify.error(errorMessage(e));
   }
 };
 

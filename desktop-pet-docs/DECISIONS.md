@@ -290,3 +290,9 @@ Still open: none of Q1-Q7 except the Q4 spike result.
 - Owner approved the pet-visibility fixes → implemented.
 - macOS browsers: Arc and Firefox read with private windows excluded; **Safari opt-in** (`tracking.safari`, off by default) because Safari can't report private windows — the owner asked for Safari; the switch keeps the "private windows are skipped" promise true by default. Firefox tabs can't be closed from Loaf (no API without an extension).
 - A once-a-minute wake/screen watcher is an accepted exception to ADR-009 (no portable OS event for wake/monitor change).
+
+## 2026-10-23 (night) — Notifications only above the pet
+- Owner: "i dont want any notifications inside the dashboard; i want them only above the pet as a bubble." **Supersedes Q1 / FR-41's bottom-right toast stack.** Every `notify.*` message (Task saved, Moved to Bin, errors, Export saved…) is now a pet bubble; the toast library (`sonner`) is removed.
+- An action such as **Undo** (or a reminder's **Done**) is offered in the bubble ("· click: Undo"); clicking the pet while it shows runs the action instead of opening the dashboard. Reminder **Snooze** is no longer offered in the app (system notification stays).
+- Known consequence (accepted for now, raise again if it bites): when the pet is hidden or turned off, these messages are **not shown anywhere**. Errors are the risky ones. Option for later: show errors inline next to the control that failed.
+- Owner: stop building new features; fix the remaining FM-V2 items, then make the path clear and release a version (draft). Student-pack screens to be improved and a "now strip" (FR-88) preview built — previews only, no code.

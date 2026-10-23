@@ -5,7 +5,7 @@ import { BEAR_POSES, Bear, type BearPose } from "@/features/shell/Bear";
 import { ROW_FOR_POSE, SpritePet } from "@/features/character/SpritePet";
 import { useSettings, useTodayTasks } from "@/hooks/useLoaf";
 import { useTheme } from "@/hooks/useTheme";
-import { ipc, onEvent, onPetSay, type TaskRow } from "@/ipc";
+import { ipc, onEvent, onPetSay, petAction, type TaskRow } from "@/ipc";
 import { cn } from "@/lib/utils";
 import { PetCard } from "./PetCard";
 import { enqueue, isAsleep, reactionFor, reactionForSay, type Reaction } from "./reactions";
@@ -149,6 +149,17 @@ export function PetApp() {
   };
 
   const click = () => {
+    // A bubble with an action (Undo…): a click runs it instead of opening the dashboard.
+    const action = playingRef.current?.action;
+    if (action) {
+      // A reminder's "Done" is handled right here; other actions go back to the dashboard.
+      if (action.id.startsWith("reminder-done:")) void ipc.reminderSetDone(action.id.slice("reminder-done:".length), true);
+      else void petAction(action.id);
+      const drop = (r: Reaction): Reaction => ({ pose: r.pose, bubble: r.bubble, ms: r.ms, priority: r.priority });
+      if (playingRef.current) playingRef.current = drop(playingRef.current);
+      setPlaying((p) => (p ? drop(p) : p));
+      return;
+    }
     if (timers.current.click) {
       clearTimeout(timers.current.click);
       timers.current.click = undefined;
@@ -236,7 +247,7 @@ export function PetApp() {
   const extra = panel === "card"
     ? <PetCard className="shrink-0" style={{ width: CARD_W, height: CARD_H }} />
     : panel === "bubble" && playing
-      ? <Bubble text={playing.bubble} anchor={anchor} />
+      ? <Bubble text={playing.action ? `${playing.bubble} · click: ${playing.action.label}` : playing.bubble} anchor={anchor} />
       : null;
 
   return (

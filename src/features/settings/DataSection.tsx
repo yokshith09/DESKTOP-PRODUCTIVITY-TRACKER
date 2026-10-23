@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -22,35 +22,35 @@ export function DataSection() {
     try {
       await work();
     } catch (e) {
-      toast.error(errorMessage(e));
+      notify.error(errorMessage(e));
     } finally {
       setBusy(false);
     }
   };
   const doExport = () => run(async () => {
     const done = await ipc.dataExport();
-    if (done) toast("Export saved", { description: `${done.path} · ${kb(done.bytes)}` });
+    if (done) notify.info("Export saved", { description: `${done.path} · ${kb(done.bytes)}` });
   });
   const doImport = () => run(async () => {
     setImporting(false);
     const counts = await ipc.dataImport();
     if (counts) {
       const total = Object.entries(counts).filter(([t]) => !["settings", "user_preferences"].includes(t)).reduce((n, [, c]) => n + c, 0);
-      toast("Import finished", { description: `${total} items restored.` });
+      notify.info("Import finished", { description: `${total} items restored.` });
     }
   });
   const doDelete = () => run(async () => {
     await ipc.dataDeleteAll(word);
     setDeleting(false);
     setWord("");
-    toast("Everything was deleted", { description: "Loaf is back to how it was on the first day." });
+    notify.info("Everything was deleted", { description: "Loaf is back to how it was on the first day." });
   });
 
   return (
     <>
       <Section title="Your data">
         <Row label="Stored on this computer" hint={paths?.database ?? ""}>
-          <Button variant="outline" size="sm" onClick={() => void ipc.folderOpen("data").catch((e: unknown) => toast.error(errorMessage(e)))}>Open folder</Button>
+          <Button variant="outline" size="sm" onClick={() => void ipc.folderOpen("data").catch((e: unknown) => notify.error(errorMessage(e)))}>Open folder</Button>
         </Row>
         <Row label="Export everything" hint="Saves your notes, tasks, reminders, logs and settings to one file you keep.">
           <Button variant="outline" size="sm" disabled={busy} onClick={() => void doExport()}>Export…</Button>

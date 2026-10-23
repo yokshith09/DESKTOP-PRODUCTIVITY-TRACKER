@@ -39,6 +39,39 @@ describe("desktop pet", () => {
     expect((await screen.findAllByText("You have 3 daily routine tasks pending")).length).toBeGreaterThan(0);
   });
 
+  it("a bubble with an action (like Undo) runs it when the pet is clicked, instead of opening the dashboard", async () => {
+    const open = vi.spyOn(ipc, "petClick").mockResolvedValue(null);
+    const sent: string[] = [];
+    const onAction = (e: Event) => sent.push((e as CustomEvent<string>).detail);
+    window.addEventListener("loaf-pet-action", onAction);
+    renderPet();
+    await screen.findByRole("button", { name: /^Loaf\./ });
+    act(() => {
+      window.dispatchEvent(new CustomEvent("loaf-pet-say", { detail: { text: "Moved to Bin", actionId: "n1", actionLabel: "Undo" } }));
+    });
+    expect((await screen.findAllByText("Moved to Bin · click: Undo")).length).toBeGreaterThan(0);
+    tap(bear());
+    expect(sent).toEqual(["n1"]);
+    // The action is used up: the bubble loses its hint and a second click is an ordinary click.
+    await waitFor(() => expect(screen.queryByText(/click: Undo/)).toBeNull());
+    tap(bear());
+    await waitFor(() => expect(open).toHaveBeenCalledTimes(1));
+    expect(sent).toEqual(["n1"]);
+    window.removeEventListener("loaf-pet-action", onAction);
+  });
+
+  it("a reminder's Done is marked right from the pet", async () => {
+    const done = vi.spyOn(ipc, "reminderSetDone").mockResolvedValue(undefined as never);
+    renderPet();
+    await screen.findByRole("button", { name: /^Loaf\./ });
+    act(() => {
+      window.dispatchEvent(new CustomEvent("loaf-pet-say", { detail: { text: "Stand up", actionId: "reminder-done:r1", actionLabel: "Done" } }));
+    });
+    expect((await screen.findAllByText("Stand up · click: Done")).length).toBeGreaterThan(0);
+    tap(bear());
+    expect(done).toHaveBeenCalledWith("r1", true);
+  });
+
   it("shows the chosen pet pack instead of the bear (FR-63)", async () => {
     const all = await ipc.settingsGetAll();
     vi.spyOn(ipc, "settingsGetAll").mockResolvedValue({ ...all, "pet.pack": "boba" });

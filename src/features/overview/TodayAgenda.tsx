@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Bell, BellRing, CalendarCheck2, CalendarClock, Plus, Trash2, Users } from "lucide-react";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -76,7 +76,7 @@ export function TodayAgenda({ showUpcoming = false }: { showUpcoming?: boolean }
   const { setDone } = useTaskActions();
   const complete = async (id: string, title: string) => {
     await setDone(id, true);
-    toast(`Completed “${title}”`, { action: { label: "Undo", onClick: () => void setDone(id, false) } });
+    notify.info(`Completed “${title}”`, { action: { label: "Undo", onClick: () => void setDone(id, false) } });
   };
 
   if (tasks.length === 0 && reminders.length === 0 && !(showUpcoming && upcoming.length)) {

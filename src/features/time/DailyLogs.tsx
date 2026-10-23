@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ChevronRight, ClipboardCopy } from "lucide-react";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
 import { Tile } from "@/features/shell/PageHeader";
 import { useRecentLogs } from "@/hooks/useLoaf";
 import { dayLabel } from "@/lib/dates";
@@ -34,9 +34,9 @@ function List({ label, entries }: { label: string; entries: LogEntry[] }) {
 async function copy(log: DailyLog) {
   try {
     await navigator.clipboard.writeText(dailyLogMarkdown(log));
-    toast("Copied the day as Markdown");
+    notify.info("Copied the day as Markdown");
   } catch {
-    toast.error("Couldn’t copy. Your system blocked clipboard access.");
+    notify.error("Couldn’t copy. Your system blocked clipboard access.");
   }
 }
 

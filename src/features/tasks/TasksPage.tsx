@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { CalendarClock, ChevronDown, ListChecks, Plus, Search, X } from "lucide-react";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -36,7 +36,7 @@ function Row({ row, onOpen }: { row: TaskRow; onOpen: (id: string) => void }) {
   const toggle = async () => {
     if (done) return void actions.setDone(task.id, false);
     await actions.setDone(task.id, true);
-    toast(`Completed “${task.title}”`, { action: { label: "Undo", onClick: () => void actions.setDone(task.id, false) } });
+    notify.info(`Completed “${task.title}”`, { action: { label: "Undo", onClick: () => void actions.setDone(task.id, false) } });
   };
   return (
     <li className="group flex h-11 items-center gap-3 rounded-md px-2 hover:bg-accent/50">

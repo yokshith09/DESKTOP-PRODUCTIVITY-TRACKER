@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
 import { useTaskActions } from "@/hooks/useLoaf";
 import { cn } from "@/lib/utils";
 import type { Task } from "@/ipc";
@@ -17,7 +17,7 @@ export function DeleteTaskButton({ task, className }: { task: Task; className?: 
 
   return asking ? (
     <button
-      type="button" aria-label={`Confirm delete ${task.title}`} onClick={() => void removeAny(task).then(() => toast(`Deleted “${task.title}”`))}
+      type="button" aria-label={`Confirm delete ${task.title}`} onClick={() => void removeAny(task).then(() => notify.info(`Deleted “${task.title}”`))}
       className={cn("rounded px-1.5 py-0.5 text-[11px] font-medium text-destructive outline-none hover:bg-destructive/15 focus-visible:ring-2 focus-visible:ring-ring", className)}
     >
       Delete?

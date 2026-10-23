@@ -1,16 +1,13 @@
 import { useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Plug } from "lucide-react";
-import { Toaster } from "@/components/ui/sonner";
-import { toast } from "sonner";
 import { useRoutineReminder } from "@/features/routine/useRoutine";
 import { useDailyGreeting } from "@/features/companion/useCompanion";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useBin, useBusSync, useLabels, useNoteActions, useNotes } from "@/hooks/useLoaf";
 import { useAgenda } from "@/features/overview/TodayAgenda";
 import { useTheme } from "@/hooks/useTheme";
-import { ipc, onCommand, onEvent, type NoteSort } from "@/ipc";
-import type { Reminder } from "@/ipc";
+import { ipc, onCommand, type NoteSort } from "@/ipc";
 import { BinPage } from "@/features/bin/BinPage";
 import { CharacterPage } from "@/features/character/CharacterPage";
 import { NoteEditor } from "@/features/notes/NoteEditor";
@@ -82,17 +79,8 @@ function Screen() {
     return () => window.removeEventListener("keydown", onKey);
   });
 
-  // A due reminder also shows inside Loaf, with Done and Snooze, in case the system
-  // notification was hidden (Do not disturb, notifications off for Loaf).
-  useEffect(() => onEvent((e) => {
-    if (e.type !== "ReminderDue") return;
-    const r = e.reminder as Reminder;
-    toast(r.title, {
-      description: "Reminder", duration: 60_000,
-      action: { label: "Done", onClick: () => void ipc.reminderSetDone(r.id, true) },
-      cancel: { label: "Snooze 10 min", onClick: () => void ipc.reminderUpdate(r.id, { title: r.title, remind_at: Date.now() + 10 * 60_000 }) },
-    });
-  }), []);
+  // A due reminder shows above the pet (with Done) and as a system notification; nothing pops up
+  // inside the dashboard (owner 2026-10-23).
 
   // From the shell: global shortcuts and the pet's menu.
   useEffect(() => onCommand((command) => {
@@ -129,7 +117,6 @@ function Screen() {
     return (
       <>
         <Welcome onDone={(next) => void start(next)} />
-        <Toaster />
       </>
     );
   }
@@ -166,7 +153,6 @@ function Screen() {
         </main>
       </div>
       <NoteEditor noteId={editing} onClose={() => setEditing(null)} />
-      <Toaster />
     </div>
   );
 }

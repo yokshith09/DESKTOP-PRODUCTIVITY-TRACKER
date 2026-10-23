@@ -6,7 +6,7 @@ import { Row, Section } from "./parts";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useState } from "react";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { errorMessage, ipc } from "@/ipc";
@@ -19,7 +19,7 @@ const LICENSES: [string, string][] = [
   ["Tauri", "MIT or Apache-2.0"], ["Rust standard library", "MIT or Apache-2.0"], ["Tokio", "MIT"], ["rusqlite / SQLite", "MIT / public domain"],
   ["serde", "MIT or Apache-2.0"], ["chrono", "MIT or Apache-2.0"], ["tracing", "MIT"], ["React", "MIT"],
   ["TanStack Query", "MIT"], ["Radix UI", "MIT"], ["Tailwind CSS", "MIT"], ["lucide icons", "ISC"],
-  ["dnd kit", "MIT"], ["sonner", "MIT"], ["react-markdown / remark-gfm", "MIT"], ["class-variance-authority", "Apache-2.0"], ["clsx, tailwind-merge", "MIT"],
+  ["dnd kit", "MIT"], ["react-markdown / remark-gfm", "MIT"], ["class-variance-authority", "Apache-2.0"], ["clsx, tailwind-merge", "MIT"],
 ];
 
 export function SettingsPage() {
@@ -72,13 +72,13 @@ export function SettingsPage() {
             <Button
               size="sm" variant="secondary"
               onClick={() => void ipc.notificationTest().then(
-                () => toast("Test sent. If no notification appeared, open the notification settings."),
-                () => toast.error("Loaf couldn't show a notification."),
+                () => notify.info("Test sent. If no notification appeared, open the notification settings."),
+                () => notify.error("Loaf couldn't show a notification."),
               )}
             >
               Send a test notification
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => void ipc.notificationSettingsOpen().catch(() => toast.error("Open your system settings to manage notifications."))}>
+            <Button size="sm" variant="ghost" onClick={() => void ipc.notificationSettingsOpen().catch(() => notify.error("Open your system settings to manage notifications."))}>
               Open notification settings
             </Button>
           </div>
@@ -158,7 +158,7 @@ export function SettingsPage() {
           <DialogDescription className="text-[13px] text-muted-foreground">Your notes, tasks and reminders are not affected. This can’t be undone.</DialogDescription>
           <div className="flex justify-end gap-2 pt-1">
             <Button variant="ghost" size="sm" onClick={() => setConfirm(false)}>Cancel</Button>
-            <Button variant="destructive" size="sm" onClick={() => void ipc.usageDelete(null, null).then(() => { setConfirm(false); toast("Tracked time deleted"); })}>Delete</Button>
+            <Button variant="destructive" size="sm" onClick={() => void ipc.usageDelete(null, null).then(() => { setConfirm(false); notify.info("Tracked time deleted"); })}>Delete</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -169,7 +169,7 @@ export function SettingsPage() {
           {confirmReset ? (
             <div className="flex gap-2">
               <Button size="sm" variant="ghost" onClick={() => setConfirmReset(false)}>Keep</Button>
-              <Button size="sm" variant="destructive" onClick={() => void ipc.settingsReset().then(() => { setConfirmReset(false); toast("Settings are back to their defaults"); }, (e: unknown) => toast.error(errorMessage(e)))}>Reset</Button>
+              <Button size="sm" variant="destructive" onClick={() => void ipc.settingsReset().then(() => { setConfirmReset(false); notify.info("Settings are back to their defaults"); }, (e: unknown) => notify.error(errorMessage(e)))}>Reset</Button>
             </div>
           ) : (
             <Button size="sm" variant="secondary" onClick={() => setConfirmReset(true)}>Reset settings…</Button>

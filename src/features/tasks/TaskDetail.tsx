@@ -13,7 +13,7 @@ import { STATUS_LABEL, isFinished, transitionsFrom } from "@/lib/taskStatus";
 import { clockTime, formatWhen } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { errorMessage, ipc, type Priority, type Task, type TaskEvent } from "@/ipc";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
 import { toEdit } from "./edit";
 
 const NONE = "none";
@@ -79,7 +79,7 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
       await qc.invalidateQueries({ queryKey: ["notes"] });
       setOpenNote(note.id);
     } catch (e) {
-      toast.error(errorMessage(e));
+      notify.error(errorMessage(e));
     }
   };
   const [now, setNow] = useState(Date.now());

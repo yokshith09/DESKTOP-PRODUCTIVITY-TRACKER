@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
 import { errorMessage, ipc, type Shortcut } from "@/ipc";
 import { parseLinks } from "@/lib/links";
 
@@ -38,7 +38,7 @@ export function useShortcuts() {
       try {
         await ipc.openUrl(url);
       } catch (e) {
-        toast.error(errorMessage(e));
+        notify.error(errorMessage(e));
       }
     },
   };

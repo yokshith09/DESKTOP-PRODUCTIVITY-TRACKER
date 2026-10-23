@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
 import { Button } from "@/components/ui/button";
 import { useSetting } from "@/hooks/useTheme";
 import { comboFromEvent, showCombo } from "./shortcuts";
@@ -26,7 +26,7 @@ export function ShortcutRow({ settingKey, label, fallback, taken }: { settingKey
       const next = comboFromEvent(e);
       if (!next) return; // still holding modifiers, or not a usable key
       setRecording(false);
-      if (taken.includes(next)) return void toast.error(`${showCombo(next)} is already used by another Loaf shortcut.`);
+      if (taken.includes(next)) return void notify.error(`${showCombo(next)} is already used by another Loaf shortcut.`);
       void setValue(next === fallback ? null : next);
     };
     window.addEventListener("keydown", onKey, true);

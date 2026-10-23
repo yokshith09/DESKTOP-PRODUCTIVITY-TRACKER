@@ -6,7 +6,7 @@ Loaf ships **Windows and macOS** installers (release workflow matrix: `windows-l
 |---|---|---|---|
 | Notes, tasks, meetings, routine, diary (planned), links, Today, Settings | ✅ | ✅ | ⬜ no build |
 | Desktop pet window, reactions, bubbles, pet library, ZIP import | ✅ | ✅ (transparent window; drag uses OS move) | ⬜ |
-| Daily greeting, birthdays, nudge budget, toasts | ✅ (see bug S1) | ✅ (see bug S1) | ⬜ |
+| Daily greeting, birthdays, nudge budget, messages above the pet | ✅ (see bug S1) | ✅ (see bug S1) | ⬜ |
 | System reminder notifications | ✅ | ✅ (needs notification permission) | ⬜ |
 | Open at login (autostart) | ✅ registry Run key | ✅ login item | ⬜ |
 | Global shortcuts | ✅ | ✅ (may need Accessibility for some keys) | ⬜ |

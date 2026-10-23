@@ -83,14 +83,16 @@ Last run (2026-10-23, this machine): see the bottom of this file.
 
 ---
 
-## FR-41 Toast stack
+## FR-41 Messages — above the pet only (toast stack removed 2026-10-23)
 
-**Automated:** `src/lib/notify.test.ts` (5 s cards, errors longer, Undo action) · `src/App.test.tsx` "saving a task says so and goes back to where it was opened (FR-41)".
+**Automated:** `src/lib/notify.test.ts` (every message goes to the pet with a pose, 5 s / errors 8 s, long detail dropped, Undo runs once when the pet is clicked, forgotten after the bubble ends) · `src/App.test.tsx` "saving a task says so and goes back…" (bubble "Task saved", nothing in the dashboard), "deleting a note offers Undo…" (Undo by clicking the pet), Settings data and shortcut tests (messages as bubbles) · `src/pet/PetApp.test.tsx` "a bubble with an action…" and "a reminder's Done is marked right from the pet" · `src/pet/reactions.test.ts` (ReminderDue carries Done; actions need id + label).
 **Manual (Windows):**
-1. Add a task on Today → a card "Task added" bottom-right, gone after ~5 s; hover keeps it.
-2. Complete a task → "Task done".
-3. Open a task from Today, change the title, **Save changes** → the task window closes, you are on Today, "Task saved" shows.
-4. Trigger 5 messages quickly → at most 3 visible.
+1. Add a task on Today → the pet says "Task added"; **nothing appears in the dashboard**.
+2. Complete a task → the pet cheers "Task done".
+3. Open a task from Today, change the title, **Save changes** → the task window closes, you are on Today, the pet says "Task saved".
+4. Notes → delete a note → the pet says "Moved to Bin · click: Undo" → click the pet → the note is back (and the dashboard did not open).
+5. Set a reminder 1 minute ahead → the pet rings "Reminder: … · click: Done" → click → the reminder is done.
+6. Hide the pet, delete a note → no message anywhere (known; see DECISIONS 2026-10-23 night).
 
 ## FR-85 Daily routine
 
@@ -159,3 +161,5 @@ Last run 2026-10-23 (afternoon): front-end 201 passed / 5 skipped; Rust 389 pass
 **Manual (Mac):** turn on app + website tracking → use Arc for a minute → Time shows the Arc site; an Arc incognito window records nothing. Firefox → site appears within ~15 s; a private window records nothing. Safari → nothing until **Include Safari** is on. Open tabs: Arc and Safari tabs listed and closable; Firefox tabs listed without a close button. Browsers that aren't running are not launched.
 
 Last run 2026-10-23 (evening): front-end 202 passed / 5 skipped; Rust 396 passed; lint, typecheck, clippy, fmt, core-deps clean.
+
+Last run 2026-10-23 (night, notifications above the pet): front-end 208 passed / 5 skipped (32 files); lint, typecheck clean. Rust unchanged since the evening run (396 passed).

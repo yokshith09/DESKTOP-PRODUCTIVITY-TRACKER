@@ -13,6 +13,25 @@ beforeAll(() => {
 });
 afterEach(cleanup);
 
+// Notifications go above the pet, never inside the dashboard: record what the pet is asked to say.
+type Said = { text: string; actionId?: string; actionLabel?: string };
+let said: Said[] = [];
+const onSay = (e: Event) => said.push((e as CustomEvent<Said>).detail);
+beforeEach(() => {
+  said = [];
+  window.addEventListener("loaf-pet-say", onSay);
+});
+afterEach(() => window.removeEventListener("loaf-pet-say", onSay));
+/** Wait until the pet says a bubble matching `text`. */
+const petSays = (text: string | RegExp) =>
+  waitFor(() => {
+    const hit = said.find((s) => (typeof text === "string" ? s.text === text : text.test(s.text)));
+    expect(hit, `pet bubble ${String(text)}; got ${JSON.stringify(said.map((s) => s.text))}`).toBeTruthy();
+    return hit as Said;
+  });
+/** Click the pet while it offers `label` (like Undo) in its bubble. */
+const clickPetAction = (s: Said) => window.dispatchEvent(new CustomEvent("loaf-pet-action", { detail: s.actionId ?? "" }));
+
 // A fresh in-memory shell (and so fresh preferences) for every test.
 let App: typeof import("./App").App;
 beforeEach(async () => {
@@ -162,7 +181,8 @@ describe("Notes screen (against the in-memory shell)", () => {
     await user.type(title, "Refactor the tray");
     await user.click(within(dialog).getByRole("button", { name: "Save changes" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
-    expect(await screen.findByText("Task saved")).toBeTruthy();
+    await petSays("Task saved");
+    expect(screen.queryByText("Task saved")).toBeNull(); // nothing pops up inside the dashboard
     expect(await screen.findByRole("button", { name: "Open Refactor the tray" })).toBeTruthy();
   });
 
@@ -250,11 +270,11 @@ describe("Notes screen (against the in-memory shell)", () => {
     render(<App />);
     await goTo(user, /^Settings/);
     await user.click(await screen.findByRole("button", { name: "Export…" }));
-    expect(await screen.findByText("Export saved")).toBeTruthy();
+    await petSays(/^Export saved/);
 
     await user.click(screen.getByRole("button", { name: "Import…" }));
     await user.click(await screen.findByRole("button", { name: "Choose file…" }));
-    expect(await screen.findByText(/Import only works into an empty Loaf/)).toBeTruthy();
+    await petSays(/Import only works into an empty Loaf/);
 
     await user.click(screen.getByRole("button", { name: "Delete all…" }));
     const dialog = await screen.findByRole("dialog");
@@ -265,7 +285,7 @@ describe("Notes screen (against the in-memory shell)", () => {
     await user.clear(within(dialog).getByRole("textbox", { name: "Type DELETE to confirm" }));
     await user.type(within(dialog).getByRole("textbox", { name: "Type DELETE to confirm" }), "DELETE");
     await user.click(confirm);
-    expect(await screen.findByText("Everything was deleted")).toBeTruthy();
+    await petSays(/^Everything was deleted/);
     // An empty Loaf starts over at the welcome screen; past it, Notes is empty.
     await user.click(await screen.findByRole("button", { name: "Start" }, { timeout: 3000 }));
     await openNotes(user);
@@ -362,7 +382,10 @@ describe("Notes screen (against the in-memory shell)", () => {
     await openNotes(user);
     const card = await screen.findByRole("button", { name: "Groceries" });
     await user.click(within(card).getByRole("button", { name: "Delete" }));
-    await user.click(await screen.findByRole("button", { name: "Undo" }));
+    const bubble = await petSays(/^Moved to Bin/);
+    expect(bubble.actionLabel).toBe("Undo");
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Groceries" })).toBeNull());
+    clickPetAction(bubble);
     expect(await screen.findByRole("button", { name: "Groceries" })).toBeTruthy();
   });
 
@@ -565,7 +588,7 @@ describe("settings (F1-25)", () => {
     // The pet's combination is taken: nothing changes.
     await user.click(screen.getByRole("button", { name: "Change shortcut: New note, from any app" }));
     await user.keyboard("{Control>}{Shift>}p{/Shift}{/Control}");
-    expect(await screen.findByText(/already used by another Loaf shortcut/)).toBeTruthy();
+    await petSays(/already used by another Loaf shortcut/);
     expect((await ipc.settingsGetAll())["shortcuts.global_new_note"]).toBeNull();
     // Back to the default.
     await user.click(screen.getByRole("button", { name: "Reset shortcut: Open or hide Loaf, from any app" }));

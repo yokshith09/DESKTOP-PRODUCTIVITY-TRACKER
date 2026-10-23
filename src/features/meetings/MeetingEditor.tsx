@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { ArrowDown, ArrowLeft, ArrowUp, Check, Eye, ListChecks, Pencil, Plus, Trash2, X } from "lucide-react";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -168,7 +168,7 @@ export function MeetingEditor({ meetingId, onBack, onCreated }: { meetingId: str
   useEffect(() => () => { clearTimeout(timer.current); if (dirty.current) void saveRef.current().catch(() => {}); }, []);
 
   const back = async () => {
-    try { await save(); } catch { /* the error toast already showed */ }
+    try { await save(); } catch { /* the error bubble already showed */ }
     onBack();
   };
   const setDecision = (i: number, d: Partial<DecisionInput>) => change({ decisions: draft.decisions.map((x, j) => (j === i ? { ...x, ...d } : x)) });
@@ -179,9 +179,9 @@ export function MeetingEditor({ meetingId, onBack, onCreated }: { meetingId: str
     try {
       await save();
       const task = await actions.convert(itemId);
-      toast(`Task created: “${task.title}”`);
+      notify.info(`Task created: “${task.title}”`);
     } catch (e) {
-      toast.error(errorMessage(e));
+      notify.error(errorMessage(e));
     }
   };
   const remove = async () => {

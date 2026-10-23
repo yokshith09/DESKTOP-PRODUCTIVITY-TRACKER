@@ -1,32 +1,65 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { toast } from "sonner";
-import { ERROR_MS, TOAST_MS, notify } from "./notify";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { PetSay } from "@/ipc";
+import { ERROR_MS, TOAST_MS, bubbleText, notify } from "./notify";
 
-vi.mock("sonner", () => {
-  const t = Object.assign(vi.fn(), { success: vi.fn(), warning: vi.fn(), error: vi.fn() });
-  return { toast: t };
+// Every notification goes above the pet as a bubble; nothing shows inside the dashboard.
+let said: PetSay[] = [];
+const onSay = (e: Event) => said.push((e as CustomEvent<PetSay>).detail);
+beforeEach(() => {
+  said = [];
+  window.addEventListener("loaf-pet-say", onSay);
 });
-afterEach(() => vi.clearAllMocks());
+afterEach(() => {
+  window.removeEventListener("loaf-pet-say", onSay);
+  vi.useRealTimers();
+});
 
-describe("notify (FR-41)", () => {
-  it("shows success and info cards for 5 seconds", () => {
+describe("notify: bubbles above the pet only", () => {
+  it("sends success and info to the pet for 5 seconds, with a fitting pose", () => {
     notify.success("Task added", { description: "Read chapter 3" });
-    expect(toast.success).toHaveBeenCalledWith("Task added", { duration: TOAST_MS, description: "Read chapter 3" });
     notify.info("Moved to Bin");
-    expect(toast).toHaveBeenCalledWith("Moved to Bin", { duration: TOAST_MS });
+    expect(said).toEqual([
+      { text: "Task added — Read chapter 3", pose: "cheer", ms: TOAST_MS },
+      { text: "Moved to Bin", pose: "wave", ms: TOAST_MS },
+    ]);
     expect(TOAST_MS).toBe(5000);
   });
 
-  it("keeps errors longer", () => {
+  it("keeps errors longer and looks worried", () => {
     notify.error("Could not save");
-    expect(toast.error).toHaveBeenCalledWith("Could not save", { duration: ERROR_MS });
+    expect(said[0]).toEqual({ text: "Could not save", pose: "worried", ms: ERROR_MS });
     expect(ERROR_MS).toBeGreaterThan(TOAST_MS);
   });
 
-  it("puts an action such as Undo on the card", () => {
+  it("drops a long detail so the bubble stays short", () => {
+    expect(bubbleText("Saved", "x".repeat(100))).toBe("Saved");
+    expect(bubbleText("Saved", "fine")).toBe("Saved — fine");
+  });
+
+  it("offers an action such as Undo; clicking the pet runs it once", () => {
     const undo = vi.fn();
     notify.info("Moved to Bin", { action: { label: "Undo", onClick: undo } });
-    const call = vi.mocked(toast).mock.calls[0];
-    expect(call?.[1]).toMatchObject({ action: { label: "Undo" } });
+    const say = said[0] as PetSay;
+    expect(say.actionLabel).toBe("Undo");
+    expect(say.actionId).toBeTruthy();
+    expect(say.ms).toBeGreaterThan(TOAST_MS);
+
+    window.dispatchEvent(new CustomEvent("loaf-pet-action", { detail: say.actionId ?? "" }));
+    expect(undo).toHaveBeenCalledTimes(1);
+    window.dispatchEvent(new CustomEvent("loaf-pet-action", { detail: say.actionId ?? "" }));
+    expect(undo).toHaveBeenCalledTimes(1);
+  });
+
+  it("forgets the action once the bubble is gone", () => {
+    vi.useFakeTimers();
+    const undo = vi.fn();
+    notify.info("Moved to Bin", { action: { label: "Undo", onClick: undo } });
+    vi.advanceTimersByTime(TOAST_MS + 5000);
+    window.dispatchEvent(new CustomEvent("loaf-pet-action", { detail: said[0]?.actionId ?? "" }));
+    expect(undo).not.toHaveBeenCalled();
+  });
+
+  it("ignores an unknown action id", () => {
+    expect(() => window.dispatchEvent(new CustomEvent("loaf-pet-action", { detail: "nope" }))).not.toThrow();
   });
 });

@@ -21,7 +21,7 @@ describe("pet reactions", () => {
     expect(reactionFor(ev("TaskCreated", { task: row("n", "Call the bank").task }), ctx)).toMatchObject({ pose: "catch", bubble: "Got it: “Call the bank”" });
     expect(reactionFor(ev("TaskStatusChanged", { id: "a", from: "PLANNED", to: "IN_PROGRESS" }), ctx)).toMatchObject({ pose: "work", bubble: "On it: “Write the report”" });
     expect(reactionFor(ev("TaskDeleted", { id: "a" }), ctx)).toMatchObject({ pose: "toss" });
-    expect(reactionFor(ev("ReminderDue", { reminder: { title: "Stand up" } }), ctx)).toMatchObject({ pose: "ring", priority: 5 });
+    expect(reactionFor(ev("ReminderDue", { reminder: { id: "r1", title: "Stand up" } }), ctx)).toMatchObject({ pose: "ring", priority: 5, action: { id: "reminder-done:r1", label: "Done" } });
   });
 
   it("stays calm for everything else, and shortens long titles", () => {
@@ -56,5 +56,9 @@ describe("messages from the dashboard (FR-43)", () => {
     expect(reactionForSay({ text: "x".repeat(200) }, poses)?.bubble).toHaveLength(80);
     expect(reactionForSay({ text: "a", ms: 1 }, poses)?.ms).toBe(2000);
     expect(reactionForSay({ text: "a", ms: 999_999 }, poses)?.ms).toBe(20_000);
+  });
+  it("carries an action (like Undo) only when it has both an id and a label", () => {
+    expect(reactionForSay({ text: "Moved to Bin", actionId: "n1", actionLabel: "Undo" }, poses)?.action).toEqual({ id: "n1", label: "Undo" });
+    expect(reactionForSay({ text: "Moved to Bin", actionId: "n1" }, poses)?.action).toBeUndefined();
   });
 });

@@ -6,7 +6,7 @@ import type { Event } from "@/ipc/generated/Event";
  * What the pet does when something happens. One row per moment: add a row to react to
  * something new. `priority` decides who wins when two arrive together (higher plays first).
  */
-export interface Reaction { pose: BearPose; bubble: string; ms: number; priority: number }
+export interface Reaction { pose: BearPose; bubble: string; ms: number; priority: number; action?: { id: string; label: string } }
 
 /** What a reaction may look at: today's open tasks as they were just before the event. */
 export interface ReactionContext { openToday: TaskRow[] }
@@ -35,18 +35,20 @@ export const RULES: Rules = {
   },
   TaskDeleted: () => ({ pose: "toss", bubble: "Tossed it", ms: 2400, priority: 1 }),
   // Long enough to be seen when the system notification was swallowed (Do not disturb).
-  ReminderDue: (e) => ({ pose: "ring", bubble: `Reminder: ${quote(e.reminder.title)}`, ms: 15_000, priority: 5 }),
+  ReminderDue: (e) => ({ pose: "ring", bubble: `Reminder: ${quote(e.reminder.title)}`, ms: 15_000, priority: 5, action: { id: `reminder-done:${e.reminder.id}`, label: "Done" } }),
 };
 
 /**
  * A message from the dashboard (FR-43), e.g. "You have 3 daily routine tasks pending". Unknown
  * poses fall back to a wave; it stays up long enough to be read.
  */
-export function reactionForSay(say: { text: string; pose?: string; ms?: number }, poses: readonly string[]): Reaction | null {
+export function reactionForSay(say: { text: string; pose?: string; ms?: number; actionId?: string; actionLabel?: string }, poses: readonly string[]): Reaction | null {
   const text = say.text.trim();
   if (!text) return null;
   const pose = (say.pose && poses.includes(say.pose) ? say.pose : "wave") as BearPose;
-  return { pose, bubble: text.length > 80 ? `${text.slice(0, 79)}…` : text, ms: Math.min(Math.max(say.ms ?? 8000, 2000), 20_000), priority: 4 };
+  const r: Reaction = { pose, bubble: text.length > 80 ? `${text.slice(0, 79)}…` : text, ms: Math.min(Math.max(say.ms ?? 8000, 2000), 20_000), priority: 4 };
+  if (say.actionId && say.actionLabel) r.action = { id: say.actionId, label: say.actionLabel.slice(0, 20) };
+  return r;
 }
 
 /** The reaction for an event, or null when the pet stays calm. */

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileArchive, FolderOpen, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/features/shell/PageHeader";
 import { useSetting } from "@/hooks/useTheme";
@@ -52,11 +52,11 @@ export function PetLibrary() {
     try {
       const pack = await (from === "zip" ? ipc.petsImportZip() : ipc.petsImport());
       if (pack) {
-        toast.success(`${pack.display_name} added`);
+        notify.success(`${pack.display_name} added`);
         await refresh();
       }
     } catch (e) {
-      toast.error(errorMessage(e));
+      notify.error(errorMessage(e));
     } finally {
       setBusy(false);
     }

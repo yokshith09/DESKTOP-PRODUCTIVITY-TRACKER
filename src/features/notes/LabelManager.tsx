@@ -20,7 +20,7 @@ function Row({ item, onDeleted }: { item: LabelCount; onDeleted: (id: string) =>
       await actions.renameLabel(label.id, next);
       setEditing(false);
     } catch {
-      /* the error toast says why (for example the name is taken); stay in edit mode */
+      /* the error bubble above the pet says why (for example the name is taken); stay in edit mode */
     }
   };
 

@@ -82,7 +82,7 @@ export function onTextBox(cb: (focused: boolean) => void): () => void {
 }
 
 /** Something the dashboard asks the pet to say above its head (FR-43), e.g. the routine reminder. */
-export interface PetSay { text: string; pose?: string; ms?: number }
+export interface PetSay { text: string; pose?: string; ms?: number; actionId?: string; actionLabel?: string }
 
 /**
  * Dashboard → pet window message (FR-85/FR-43). In the app it is a Tauri event to every window;
@@ -115,4 +115,21 @@ export function onWake(cb: () => void): () => void {
   }
   window.addEventListener("loaf-wake", cb);
   return () => window.removeEventListener("loaf-wake", cb);
+}
+
+/** Pet → dashboard: the bubble's action (e.g. Undo) was clicked. Outside the app a
+ *  `loaf-pet-action` window event stands in for it. */
+export async function petAction(id: string): Promise<void> {
+  if (isTauri()) return emit("pet://action", id);
+  window.dispatchEvent(new CustomEvent<string>("loaf-pet-action", { detail: id }));
+}
+
+export function onPetAction(cb: (id: string) => void): () => void {
+  if (isTauri()) {
+    const pending = listen<string>("pet://action", (e) => cb(e.payload));
+    return () => void pending.then((off) => off());
+  }
+  const handler = (e: Event) => cb((e as CustomEvent<string>).detail);
+  window.addEventListener("loaf-pet-action", handler);
+  return () => window.removeEventListener("loaf-pet-action", handler);
 }
