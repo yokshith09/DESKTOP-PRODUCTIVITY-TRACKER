@@ -5,6 +5,8 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Added (2026-10-23, Unverified): **auto-delete** (FR-46) in Settings: app/website time and completed tasks, each Never (default) / 30 / 90 days / 6 months / 1 year; a stricter rule first shows what it would do and asks; runs at start, every 6 h and after wake. Completed tasks go to a new **task Bin** (migration 006) with Restore / Delete for good, emptied after 30 days; time history is deleted. Notes, meetings, reminders and open tasks are never touched.
+
 - Fixed (2026-10-23, Unverified): FR-43 — when the card or bubble fits neither above nor below the pet (short screen), it opens on the side with more room instead of always below and off-screen; same for left/right.
 
 - Added (2026-10-23, Unverified): while the pet is **hidden**, messages show in the dashboard instead (bottom-right, max 3, with Undo); **hover-card shortcuts** — Focus 25 / Stop focus, Add note, Sleep / Wake (a nap that lasts until Wake or a click) — and **tasks highlighted** on the card (tinted rows, starred marked) (FR-111). New shell command `pet_command` (new-note / new-task only).

@@ -734,3 +734,34 @@ describe("focus sessions (FR-05)", () => {
     expect((await ipc.focusCurrent())?.label).toBe("Refactor the tray menu");
   });
 });
+
+describe("auto-delete (FR-46)", () => {
+  it("shows what a stricter rule would do before turning it on, and binned tasks can be restored", async () => {
+    const { ipc } = await import("@/ipc");
+    vi.spyOn(ipc, "retentionPreview").mockResolvedValue({ time_sessions: 0, tasks_binned: 2, tasks_purged: 0 });
+    const apply = vi.spyOn(ipc, "retentionApply").mockResolvedValue({ time_sessions: 0, tasks_binned: 2, tasks_purged: 0 });
+    const user = userEvent.setup();
+    render(<App />);
+    await goTo(user, /^Settings/);
+    await user.selectOptions(await screen.findByRole("combobox", { name: "Move completed tasks to the Bin after" }), "90");
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText("2 completed tasks will move to the Bin.")).toBeTruthy();
+    // Keeping everything changes nothing.
+    await user.click(within(dialog).getByRole("button", { name: "Keep everything" }));
+    expect(await ipc.prefsGet("ui.autoDelete")).toBeNull();
+    await user.selectOptions(screen.getByRole("combobox", { name: "Move completed tasks to the Bin after" }), "90");
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Turn on" }));
+    await petSays(/^Auto-delete is on/);
+    expect(await ipc.prefsGet("ui.autoDelete")).toEqual({ time_days: 0, tasks_days: 90 });
+    expect(apply).toHaveBeenCalledWith({ time_days: 0, tasks_days: 90 });
+
+    // The Bin lists binned tasks with Restore.
+    const done = (await ipc.tasksQuery("completed"))[0]?.task;
+    vi.spyOn(ipc, "tasksBinned").mockResolvedValue(done ? [done] : []);
+    const restore = vi.spyOn(ipc, "taskRestore").mockResolvedValue(done as never);
+    await goTo(user, /^Bin/);
+    const section = await screen.findByRole("region", { name: "Tasks in the Bin" });
+    await user.click(within(section).getByRole("button", { name: /^Restore task/ }));
+    expect(restore).toHaveBeenCalledWith(done?.id);
+  });
+});

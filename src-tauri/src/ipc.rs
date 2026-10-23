@@ -15,6 +15,7 @@ use loaf_core::links;
 use loaf_core::meetings::{self, Meeting, MeetingFilters, MeetingInput, MeetingSummary};
 use loaf_core::notes::{self, BinNote, Note, NoteInput, NotePatch, NoteSort, NoteSummary};
 use loaf_core::reminders::{self, Reminder, ReminderInput, ReminderPatch};
+use loaf_core::retention::{self, RetentionCounts, RetentionRules};
 use loaf_core::settings::SettingsKey;
 use loaf_core::settings_service::SettingsService;
 use loaf_core::task_plans::{self, LinkInput, RepeatDay, TaskPlan};
@@ -397,6 +398,34 @@ pub async fn focus_stop(core: State<'_, Core>) -> Result<FocusSession> {
 #[tauri::command]
 pub async fn focus_finish(id: String, core: State<'_, Core>) -> Result<FocusSession> {
     focus::finish(&core.db, &*core.clock, &id).await
+}
+
+// ---- auto-delete and the task Bin (FR-46) ---------------------------------------------------
+
+#[tauri::command]
+pub async fn retention_preview(
+    rules: RetentionRules,
+    core: State<'_, Core>,
+) -> Result<RetentionCounts> {
+    retention::preview(&core.db, &*core.clock, rules).await
+}
+
+#[tauri::command]
+pub async fn retention_apply(
+    rules: RetentionRules,
+    core: State<'_, Core>,
+) -> Result<RetentionCounts> {
+    retention::apply(&core.db, &*core.clock, rules).await
+}
+
+#[tauri::command]
+pub async fn tasks_binned(core: State<'_, Core>) -> Result<Vec<Task>> {
+    retention::binned_tasks(&core.db).await
+}
+
+#[tauri::command]
+pub async fn task_restore(id: String, core: State<'_, Core>) -> Result<Task> {
+    retention::restore_task(&core.db, &*core.clock, &id).await
 }
 
 // ---- daily logs (the Time screen) -----------------------------------------------------------

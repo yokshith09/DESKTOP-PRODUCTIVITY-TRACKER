@@ -2,7 +2,7 @@
 import { call } from "./transport";
 import type {
   UsageSummary, TimeRange, TrackingStatus, OpenTab, PetPack, BinNote, DailyLog, Reminder, ReminderInput, ReminderPatch, Label, LabelCount, Note, NoteInput, NotePatch, NoteSort, NoteSummary, Task, TaskEdit, TaskEvent, TaskFilters, TaskRow,
-  TaskStatus, TaskView, WorkUpdate, LinkInput, TaskPlan, RepeatDay, FocusSession, FocusStart, Meeting, MeetingFilters, MeetingInput, MeetingSummary,
+  TaskStatus, TaskView, WorkUpdate, LinkInput, TaskPlan, RepeatDay, FocusSession, FocusStart, RetentionRules, RetentionCounts, Meeting, MeetingFilters, MeetingInput, MeetingSummary,
 } from "./types";
 import type { Settings, SettingsKey } from "./settings";
 
@@ -78,6 +78,11 @@ export const ipc = {
   focusExtend: (minutes: number) => call<FocusSession>("focus_extend", { minutes }),
   focusStop: () => call<FocusSession>("focus_stop"),
   focusFinish: (id: string) => call<FocusSession>("focus_finish", { id }),
+  /** Auto-delete (FR-46): what would go, and doing it. */
+  retentionPreview: (rules: RetentionRules) => call<RetentionCounts>("retention_preview", { rules }),
+  retentionApply: (rules: RetentionRules) => call<RetentionCounts>("retention_apply", { rules }),
+  tasksBinned: () => call<Task[]>("tasks_binned"),
+  taskRestore: (id: string) => call<Task>("task_restore", { id }),
   workUpdatesList: (taskId: string) => call<WorkUpdate[]>("work_updates_list", { taskId }),
   workUpdateAdd: (taskId: string, body: string) => call<WorkUpdate>("work_update_add", { taskId, body }),
   workUpdateDelete: (id: string) => call<unknown>("work_update_delete", { id }),

@@ -23,7 +23,7 @@ export function useBusSync() {
     () =>
       onEvent((e) => {
         // Importing or erasing replaces everything: refetch it all (and the settings with it).
-        if (e.type === "ResyncRequired" || e.type === "DataImported" || e.type === "AllDataDeleted") return void qc.invalidateQueries();
+        if (e.type === "ResyncRequired" || e.type === "DataImported" || e.type === "AllDataDeleted" || e.type === "RetentionApplied") return void qc.invalidateQueries();
         if (e.type.startsWith("Reminder")) void qc.invalidateQueries({ queryKey: keys.reminders });
         if (e.type === "UsageUpdated") void qc.invalidateQueries({ queryKey: ["usage"] });
         if (e.type === "SettingChanged") void qc.invalidateQueries({ queryKey: ["tracking"] });

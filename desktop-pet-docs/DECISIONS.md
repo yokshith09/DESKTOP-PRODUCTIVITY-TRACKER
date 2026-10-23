@@ -304,4 +304,5 @@ Still open: none of Q1-Q7 except the Q4 spike result.
 - No-guilt applied to FR-109: days not ticked are shown neutrally ("not ticked"), counted as "done N of the last M", reminder once a day through the nudge budget.
 - Owner (same night): focus sessions are **saved** (count as study hours later); at the end the pet **cheers and offers a 5-minute break** (click the pet). Not a nudge: you started it, so it doesn't count toward the daily limit.
 - Owner: when the pet is hidden, messages appear in the dashboard (refines "notifications only above the pet"). Hover card gets shortcuts Focus, Add note, Sleep, Wake, and tasks are highlighted (FR-111).
+- Owner approved the FR-46 rules (time history + completed tasks only; never by default; preview first; completed tasks to a restorable Bin for 30 days; time history deleted). A task Bin was added for this (migration 006).
 - **FR-88 now strip replaced by FR-110:** only the focus timer sits above/below the pet; the rest goes on the hover card. New setting to turn the hover card off; then hovering shows the info as a bubble. The four FR-88 open questions are superseded.

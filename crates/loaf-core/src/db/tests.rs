@@ -52,7 +52,7 @@ fn migrated_memory() -> Connection {
 fn a_fresh_database_is_created_at_the_latest_version_with_exactly_the_schema_tables() {
     let dir = tempfile::tempdir().unwrap();
     let conn = open_and_migrate(&dir.path().join("loaf.db")).unwrap();
-    assert_eq!(migrate::user_version(&conn).unwrap(), 5);
+    assert_eq!(migrate::user_version(&conn).unwrap(), 6);
     assert_eq!(
         tables(&conn),
         EXPECTED_TABLES,
@@ -84,7 +84,7 @@ fn reopening_an_up_to_date_database_changes_nothing_and_writes_no_backup() {
     let path = dir.path().join("loaf.db");
     drop(open_and_migrate(&path).unwrap());
     let conn = open_and_migrate(&path).unwrap();
-    assert_eq!(migrate::user_version(&conn).unwrap(), 5);
+    assert_eq!(migrate::user_version(&conn).unwrap(), 6);
     assert!(migrate::latest_backup(&path).is_none());
 }
 
@@ -488,7 +488,7 @@ fn migration_2_adds_the_bin_column_and_keeps_existing_notes_live() {
         .unwrap();
     }
     let conn = open_and_migrate(&path).unwrap();
-    assert_eq!(migrate::user_version(&conn).unwrap(), 5);
+    assert_eq!(migrate::user_version(&conn).unwrap(), 6);
     let deleted: Option<i64> = conn
         .query_row("SELECT deleted_at FROM notes WHERE id = 'n1'", [], |r| {
             r.get(0)
@@ -520,7 +520,7 @@ fn migration_3_adds_usage_tables_that_enforce_their_checks() {
         migrate::migrate(&mut conn, &MIGRATIONS[..2]).unwrap();
     }
     let conn = open_and_migrate(&path).unwrap();
-    assert_eq!(migrate::user_version(&conn).unwrap(), 5);
+    assert_eq!(migrate::user_version(&conn).unwrap(), 6);
     assert!(migrate::latest_backup(&path).is_some(), "backed up first");
 
     exec(&conn, "INSERT INTO app_sessions (id, app, category, is_browser, started_at, ended_at) VALUES ('a', 'VS Code', 'Coding', 0, 1, 5)").unwrap();
@@ -579,7 +579,7 @@ fn migration_4_adds_task_links_days_ticks_and_stars_that_enforce_their_checks() 
         exec(&conn, "INSERT INTO tasks (id, title, created_at, updated_at) VALUES ('old', 'Before 004', 1, 1)").unwrap();
     }
     let conn = open_and_migrate(&path).unwrap();
-    assert_eq!(migrate::user_version(&conn).unwrap(), 5);
+    assert_eq!(migrate::user_version(&conn).unwrap(), 6);
     let (starred, rule): (i64, Option<String>) = conn
         .query_row(
             "SELECT starred, repeat_rule FROM tasks WHERE id = 'old'",

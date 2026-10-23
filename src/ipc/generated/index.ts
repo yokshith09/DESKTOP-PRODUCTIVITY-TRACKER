@@ -38,6 +38,8 @@ export type { ReminderInput } from "./ReminderInput";
 export type { ReminderPatch } from "./ReminderPatch";
 export type { Repeat } from "./Repeat";
 export type { RepeatDay } from "./RepeatDay";
+export type { RetentionCounts } from "./RetentionCounts";
+export type { RetentionRules } from "./RetentionRules";
 export type { JsonValue } from "./serde_json/JsonValue";
 export type { Snapshot } from "./Snapshot";
 export type { Stats } from "./Stats";

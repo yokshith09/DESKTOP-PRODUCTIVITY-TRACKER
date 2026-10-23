@@ -20,6 +20,7 @@ pub mod meetings;
 pub mod notes;
 pub mod pets;
 pub mod reminders;
+pub mod retention;
 pub mod scheduler;
 pub mod settings;
 pub mod settings_service;

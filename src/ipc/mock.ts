@@ -124,6 +124,15 @@ export function createMock() {
     f.ended_at = at; f.outcome = outcome; emit("FocusEnded", { session: { ...f } }); return f;
   };
   const ranOut = (f: FocusSession) => f.paused_at === null && remainingMs(f, now()) === 0;
+  // Auto-delete (FR-46): binned task ids; the mock's time history has no stored sessions to age.
+  const binned = new Set<string>();
+  const retention = (r: { time_days: number; tasks_days: number }, apply: boolean) => {
+    if (![r.time_days, r.tasks_days].every((d) => [0, 30, 90, 180, 365].includes(d))) fail("VALIDATION", "Pick Never, 30 days, 90 days, 6 months or 1 year.");
+    const old = r.tasks_days ? tasks.filter((x) => x.status === "COMPLETED" && !binned.has(x.id) && (x.completed_at ?? 0) < now() - r.tasks_days * 86_400_000) : [];
+    const counts = { time_sessions: 0, tasks_binned: old.length, tasks_purged: 0 };
+    if (apply && old.length) { old.forEach((x) => binned.add(x.id)); emit("RetentionApplied", { counts }); }
+    return counts;
+  };
   // Repeating-task ticks (FR-109): "taskId day".
   const ticks = new Set<string>();
   const findTask = (id: unknown) => tasks.find((y) => y.id === id) ?? fail("NOT_FOUND", "That task no longer exists.");
@@ -428,6 +437,7 @@ export function createMock() {
       if (a.view === "upcoming") rows = [...rows, ...tasks.filter((x) => open(x) && !rows.includes(x) && x.days.some((d) => d > today && d <= inDays(7)))];
       // Starred first (FR-107), keeping the view's own order otherwise; finished ones stay last in All.
       rows = rows.map((x, i) => [x, i] as const).sort(([p, i], [q, j]) => (a.view === "all" ? Number(!open(p)) - Number(!open(q)) : 0) || Number(q.starred) - Number(p.starred) || i - j).map(([x]) => x);
+      rows = rows.filter((x) => !binned.has(x.id));
       if (f.priority) rows = rows.filter((x) => x.priority === f.priority);
       if (f.project) rows = rows.filter((x) => x.project === f.project);
       if (f.note_id) rows = rows.filter((x) => x.note_id === f.note_id);
@@ -521,6 +531,10 @@ export function createMock() {
       if (f.paused_at !== null || remainingMs(f, now()) > 2000) fail("INVALID_TRANSITION", "This session still has time left.");
       return { ...endFocus(f, Math.min(f.started_at + f.paused_ms + f.planned_ms, now()), "DONE") };
     },
+    retention_preview: (a) => retention(a.rules as { time_days: number; tasks_days: number }, false),
+    retention_apply: (a) => retention(a.rules as { time_days: number; tasks_days: number }, true),
+    tasks_binned: () => tasks.filter((x) => binned.has(x.id)),
+    task_restore: (a) => { if (!binned.delete(String(a.id))) fail("NOT_FOUND", "That task isn't in the Bin."); const x = findTask(a.id); emit("TaskUpdated", { task: x }); return x; },
     task_delete: (a) => {
       const i = tasks.findIndex((y) => y.id === a.id);
       if (i < 0) fail("NOT_FOUND", "That task no longer exists.");

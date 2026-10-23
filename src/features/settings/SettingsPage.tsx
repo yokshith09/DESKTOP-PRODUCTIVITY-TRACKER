@@ -1,6 +1,7 @@
 import { PageHeader } from "@/features/shell/PageHeader";
 import { isMac, mod } from "@/lib/platform";
 import { DataSection } from "./DataSection";
+import { AutoDeleteSettings } from "./AutoDeleteSettings";
 import { NudgeSettings } from "./NudgeSettings";
 import { Row, Section } from "./parts";
 import { Switch } from "@/components/ui/switch";
@@ -162,6 +163,7 @@ export function SettingsPage() {
           </div>
         </DialogContent>
       </Dialog>
+      <AutoDeleteSettings />
       <DataSection />
       <Section title="Advanced">
         {/* Log rows removed (FR-47, owner V2-07): logging stays on for bug reports, it is just not shown. */}

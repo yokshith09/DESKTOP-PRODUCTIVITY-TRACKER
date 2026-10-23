@@ -15,6 +15,7 @@ use crate::labels::Label;
 use crate::meetings::Meeting;
 use crate::notes::Note;
 use crate::reminders::Reminder;
+use crate::retention::RetentionCounts;
 use crate::tasks::{Task, TaskStatus};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -135,6 +136,12 @@ pub enum Event {
         at: i64,
         session: FocusSession,
     },
+    /// Auto-delete ran and changed something (FR-46).
+    RetentionApplied {
+        #[cfg_attr(feature = "ts", ts(type = "number"))]
+        at: i64,
+        counts: RetentionCounts,
+    },
     ReminderCreated {
         #[cfg_attr(feature = "ts", ts(type = "number"))]
         at: i64,
@@ -248,6 +255,7 @@ impl Event {
             | Self::TaskTicked { at, .. }
             | Self::FocusChanged { at, .. }
             | Self::FocusEnded { at, .. }
+            | Self::RetentionApplied { at, .. }
             | Self::ReminderCreated { at, .. }
             | Self::ReminderUpdated { at, .. }
             | Self::ReminderDeleted { at, .. }
@@ -290,6 +298,7 @@ impl Event {
             Self::TaskTicked { .. } => "TaskTicked",
             Self::FocusChanged { .. } => "FocusChanged",
             Self::FocusEnded { .. } => "FocusEnded",
+            Self::RetentionApplied { .. } => "RetentionApplied",
             Self::ReminderCreated { .. } => "ReminderCreated",
             Self::ReminderUpdated { .. } => "ReminderUpdated",
             Self::ReminderDeleted { .. } => "ReminderDeleted",

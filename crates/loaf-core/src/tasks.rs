@@ -944,7 +944,9 @@ pub async fn query(
         }
         args.extend(order_args);
 
-        let where_sql = if clauses.is_empty() { String::new() } else { format!("WHERE {}", clauses.join(" AND ")) };
+        // Tasks in the Bin (FR-46) are in no view.
+        clauses.push("binned_at IS NULL".into());
+        let where_sql = format!("WHERE {}", clauses.join(" AND "));
         // Every fragment above is a constant or a `?` placeholder; user values only ever travel in `args`.
         let sql = format!("SELECT {COLUMNS} FROM tasks {where_sql} ORDER BY {order}");
         let mut stmt = conn.prepare(&sql)?;

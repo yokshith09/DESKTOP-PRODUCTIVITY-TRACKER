@@ -5,6 +5,7 @@ import { useRoutineReminder } from "@/features/routine/useRoutine";
 import { useDailyGreeting } from "@/features/companion/useCompanion";
 import { useRepeatReminder } from "@/features/tasks/useRepeatReminder";
 import { Notices } from "@/components/Notices";
+import { useAutoDelete } from "@/features/settings/autoDelete";
 import { setPetShown } from "@/lib/notify";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useBin, useBusSync, useLabels, useNoteActions, useNotes, useSettings } from "@/hooks/useLoaf";
@@ -46,6 +47,8 @@ function Screen() {
   useDailyGreeting();
   // FR-109: in the evening, repeating tasks still open today.
   useRepeatReminder();
+  // FR-46: auto-delete by the user's rules (never by default).
+  useAutoDelete();
   // Messages go above the pet; while the pet is hidden they show here instead.
   const { data: settings } = useSettings();
   const petShown = settings?.["pet.visible"] ?? true;
