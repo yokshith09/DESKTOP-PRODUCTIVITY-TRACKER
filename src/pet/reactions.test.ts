@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { LoafEvent, TaskRow } from "@/ipc";
-import { SLEEP_AFTER_MS, enqueue, isAsleep, reactionFor, type Reaction } from "./reactions";
+import { SLEEP_AFTER_MS, enqueue, isAsleep, reactionFor, reactionForSay, type Reaction } from "./reactions";
 
 const row = (id: string, title = id, overdue = false): TaskRow => ({
   overdue,
@@ -41,5 +41,20 @@ describe("pet reactions", () => {
     let q: Reaction[] = [];
     for (const p of [1, 5, 2, 4]) q = enqueue(q, r(p));
     expect(q.map((x) => x.priority)).toEqual([5, 4, 2]);
+  });
+});
+
+describe("messages from the dashboard (FR-43)", () => {
+  const poses = ["idle", "wave", "wait"] as const;
+  it("shows the text with the asked pose, or a wave", () => {
+    expect(reactionForSay({ text: "You have 3 daily routine tasks pending", pose: "wait", ms: 10_000 }, poses))
+      .toEqual({ pose: "wait", bubble: "You have 3 daily routine tasks pending", ms: 10_000, priority: 4 });
+    expect(reactionForSay({ text: "Hi", pose: "nope" }, poses)?.pose).toBe("wave");
+  });
+  it("ignores empty text, shortens long text and bounds the time", () => {
+    expect(reactionForSay({ text: "   " }, poses)).toBeNull();
+    expect(reactionForSay({ text: "x".repeat(200) }, poses)?.bubble).toHaveLength(80);
+    expect(reactionForSay({ text: "a", ms: 1 }, poses)?.ms).toBe(2000);
+    expect(reactionForSay({ text: "a", ms: 999_999 }, poses)?.ms).toBe(20_000);
   });
 });

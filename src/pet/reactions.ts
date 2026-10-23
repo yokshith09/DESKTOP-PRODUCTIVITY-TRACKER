@@ -38,6 +38,17 @@ export const RULES: Rules = {
   ReminderDue: (e) => ({ pose: "ring", bubble: `Reminder: ${quote(e.reminder.title)}`, ms: 15_000, priority: 5 }),
 };
 
+/**
+ * A message from the dashboard (FR-43), e.g. "You have 3 daily routine tasks pending". Unknown
+ * poses fall back to a wave; it stays up long enough to be read.
+ */
+export function reactionForSay(say: { text: string; pose?: string; ms?: number }, poses: readonly string[]): Reaction | null {
+  const text = say.text.trim();
+  if (!text) return null;
+  const pose = (say.pose && poses.includes(say.pose) ? say.pose : "wave") as BearPose;
+  return { pose, bubble: text.length > 80 ? `${text.slice(0, 79)}…` : text, ms: Math.min(Math.max(say.ms ?? 8000, 2000), 20_000), priority: 4 };
+}
+
 /** The reaction for an event, or null when the pet stays calm. */
 export function reactionFor(e: LoafEvent, ctx: ReactionContext): Reaction | null {
   // Events come from the core as generated `Event`s; the transport types them loosely.

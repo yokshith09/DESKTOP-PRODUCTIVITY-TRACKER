@@ -66,7 +66,13 @@ describe("routine reminder (FR-85)", () => {
   it("says how many are pending once the time has passed, once a day", async () => {
     const s = store({ items, day: today, done: [], history: {}, remind: { on: true, at: "00:00" }, remindedOn: null });
     wrap(<Reminder />);
+    const said: unknown[] = [];
+    const listen = (e: Event) => said.push((e as CustomEvent).detail);
+    window.addEventListener("loaf-pet-say", listen);
     await waitFor(() => expect(notify.info).toHaveBeenCalledWith("You have 3 daily routine tasks pending", expect.anything()));
+    // The same words go to the pet window, shown above the pet (FR-43).
+    await waitFor(() => expect(said).toContainEqual(expect.objectContaining({ text: "You have 3 daily routine tasks pending" })));
+    window.removeEventListener("loaf-pet-say", listen);
     await waitFor(() => expect(s.get().remindedOn).toBe(today));
     expect(notify.info).toHaveBeenCalledTimes(1);
   });

@@ -30,6 +30,15 @@ const tap = (el: HTMLElement) => {
 };
 
 describe("desktop pet", () => {
+  it("shows a message from the dashboard above the pet, e.g. the routine reminder (FR-43, FR-85)", async () => {
+    renderPet();
+    await screen.findByRole("button", { name: /^Loaf\./ });
+    act(() => {
+      window.dispatchEvent(new CustomEvent("loaf-pet-say", { detail: { text: "You have 3 daily routine tasks pending", pose: "wait" } }));
+    });
+    expect((await screen.findAllByText("You have 3 daily routine tasks pending")).length).toBeGreaterThan(0);
+  });
+
   it("shows the chosen pet pack instead of the bear (FR-63)", async () => {
     const all = await ipc.settingsGetAll();
     vi.spyOn(ipc, "settingsGetAll").mockResolvedValue({ ...all, "pet.pack": "boba" });

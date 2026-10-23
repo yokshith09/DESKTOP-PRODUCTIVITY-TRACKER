@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { isTauri } from "@tauri-apps/api/core";
-import { Bear, type BearPose } from "@/features/shell/Bear";
+import { BEAR_POSES, Bear, type BearPose } from "@/features/shell/Bear";
 import { ROW_FOR_POSE, SpritePet } from "@/features/character/SpritePet";
 import { useSettings, useTodayTasks } from "@/hooks/useLoaf";
 import { useTheme } from "@/hooks/useTheme";
-import { ipc, onEvent, type TaskRow } from "@/ipc";
+import { ipc, onEvent, onPetSay, type TaskRow } from "@/ipc";
 import { cn } from "@/lib/utils";
 import { PetCard } from "./PetCard";
-import { enqueue, isAsleep, reactionFor, type Reaction } from "./reactions";
+import { enqueue, isAsleep, reactionFor, reactionForSay, type Reaction } from "./reactions";
 import { useTypingAlong } from "./typing";
 
 /** Card and bubble sizes in logical pixels; the shell grows the window by this much. */
@@ -104,6 +104,11 @@ export function PetApp() {
   });
 
   // Keep the card fresh, and react to what happens in Loaf.
+  // Messages from the dashboard, e.g. the daily routine reminder (FR-85), shown above the pet.
+  useEffect(() => onPetSay((say) => {
+    const r = reactionForSay(say, BEAR_POSES);
+    if (r) reactRef.current(r);
+  }), []);
   useEffect(() => onEvent((e) => {
     wake();
     reactRef.current(reactionFor(e, { openToday: tasks.current }));

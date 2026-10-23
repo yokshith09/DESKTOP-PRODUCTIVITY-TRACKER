@@ -1,5 +1,5 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
+import { emit, listen } from "@tauri-apps/api/event";
 import type { AppError, LoafEvent } from "./types";
 
 type Handler = (cmd: string, args: Record<string, unknown> | undefined) => Promise<unknown>;
@@ -79,4 +79,26 @@ export function onTextBox(cb: (focused: boolean) => void): () => void {
   const handler = (e: Event) => cb(Boolean((e as CustomEvent<boolean>).detail));
   window.addEventListener("loaf-textbox", handler);
   return () => window.removeEventListener("loaf-textbox", handler);
+}
+
+/** Something the dashboard asks the pet to say above its head (FR-43), e.g. the routine reminder. */
+export interface PetSay { text: string; pose?: string; ms?: number }
+
+/**
+ * Dashboard → pet window message (FR-85/FR-43). In the app it is a Tauri event to every window;
+ * outside it (browser preview, tests) a `loaf-pet-say` window event stands in for it.
+ */
+export async function petSay(say: PetSay): Promise<void> {
+  if (isTauri()) return emit("pet://say", say);
+  window.dispatchEvent(new CustomEvent<PetSay>("loaf-pet-say", { detail: say }));
+}
+
+export function onPetSay(cb: (say: PetSay) => void): () => void {
+  if (isTauri()) {
+    const pending = listen<PetSay>("pet://say", (e) => cb(e.payload));
+    return () => void pending.then((off) => off());
+  }
+  const handler = (e: Event) => cb((e as CustomEvent<PetSay>).detail);
+  window.addEventListener("loaf-pet-say", handler);
+  return () => window.removeEventListener("loaf-pet-say", handler);
 }

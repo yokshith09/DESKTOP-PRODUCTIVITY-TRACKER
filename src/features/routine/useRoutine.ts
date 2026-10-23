@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ipc } from "@/ipc";
+import { ipc, petSay } from "@/ipc";
 import { ymd } from "@/lib/dates";
 import { notify } from "@/lib/notify";
 import { msUntil, parseRoutine, pendingMessage, shouldRemind, type RoutineState } from "./routine";
@@ -32,7 +32,11 @@ export function useRoutineReminder() {
       const today = ymd(now);
       if (!shouldRemind(state, now, today)) return;
       const message = pendingMessage(state);
-      if (message) notify.info(message, { description: "Open Today to tick them off." });
+      if (message) {
+        notify.info(message, { description: "Open Today to tick them off." });
+        // And above the pet, where it's seen even when the dashboard is closed (FR-43).
+        void petSay({ text: message, pose: "wait", ms: 10_000 });
+      }
       void save({ ...state, remindedOn: today });
     };
     check();
