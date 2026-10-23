@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { CATEGORIES, categoryStyle } from "./categories";
 import { DailyLogs } from "./DailyLogs";
 import { OpenTabsPanel } from "./OpenTabsPanel";
+import { HEIGHT_CLASS, TileLayoutPicker, WIDTH_CLASS, useTileLayout } from "./tileLayout";
 import { PrivacyRadar } from "./PrivacyRadar";
 import { RANGES, rangeBounds, type RangeKey } from "./range";
 import { TimeCard } from "./TimeCard";
@@ -31,6 +32,7 @@ export function TimePage() {
   const [range, setRange] = useState<RangeKey>("today");
   const [category, setCategory] = useState<string>("all");
   const [view, setView] = useState<"apps" | "sites">("apps");
+  const [layout, setLayout] = useTileLayout();
   const { from, to, days } = rangeBounds(range);
   const { data: status } = useTrackingStatus();
   const { data: settings } = useSettings();
@@ -94,9 +96,10 @@ export function TimePage() {
         <Stat label="Tasks done" value={done} sub={planned ? `of ${planned} planned` : "in this period"} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-12 lg:[&>*]:h-[30rem]">
-        <TimeCard from={from} to={to} category={cat} view={view} className="lg:col-span-8" title={view === "sites" ? "Sites" : "Apps"} />
-        <Tile className="lg:col-span-4" title="By category" bodyClassName="p-4">
+      <TileLayoutPicker value={layout} onChange={setLayout} />
+      <div className={cn("grid gap-4 lg:grid-cols-12", HEIGHT_CLASS[layout.height])}>
+        <TimeCard from={from} to={to} category={cat} view={view} className={WIDTH_CLASS[layout.width][0]} title={view === "sites" ? "Sites" : "Apps"} />
+        <Tile className={WIDTH_CLASS[layout.width][1]} title="By category" bodyClassName="p-4">
           {categories.length === 0 ? (
             <p className="py-10 text-center text-[13px] text-muted-foreground">{tracking ? "Nothing recorded yet." : "Turn on app tracking to see this."}</p>
           ) : (
@@ -127,7 +130,8 @@ export function TimePage() {
         <Bars bars={bars} className="flex-1" ariaLabel={`Tasks completed per day: ${bars.map((b) => b.value).join(", ")}`} />
       </Tile>
       {view === "sites" && <PrivacyRadar from={from} to={to} enabled={sitesOn} />}
-      {view === "sites" && <OpenTabsPanel enabled={sitesOn} className="max-h-[26rem]" />}
+      {/* FR-62: always here, not only under "Sites", so it can be found. */}
+      <OpenTabsPanel enabled={sitesOn} className="max-h-[26rem]" />
       <DailyLogs className="max-h-[26rem]" />
       <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Info className="size-3.5" />Time is recorded on this computer only. Window titles and full web addresses are never stored.</p>
     </div>

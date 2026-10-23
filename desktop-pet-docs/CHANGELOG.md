@@ -5,6 +5,8 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Added (2026-10-23, Unverified): **Time tile layout** (FR-44): Wide list / Even / Stacked and Short / Medium / Tall, remembered; every choice fills the row (snapped presets, not free dragging). **Open tabs always on the Time page** (FR-62), with a one-click "Turn on app and website time" when tracking is off.
+
 - Added (2026-10-23, Unverified): **date presets** (FR-45) under date fields — Today, Tomorrow, This weekend, Next week, In 3 days — and time presets for reminders — In 1 hour, This evening, Tomorrow 9:00, Monday 9:00 (task deadline and planned day, quick edit on Today, reminders, meeting follow-up). **Pet shortcut is editable and off by default** (FR-48, setting `shortcuts.global_pet`); the pet menu shows it only when set. Note: people who used Ctrl/⌘+Shift+P before need to set it again in Settings.
 
 - Added (2026-10-23, Unverified): **auto-delete** (FR-46) in Settings: app/website time and completed tasks, each Never (default) / 30 / 90 days / 6 months / 1 year; a stricter rule first shows what it would do and asks; runs at start, every 6 h and after wake. Completed tasks go to a new **task Bin** (migration 006) with Restore / Delete for good, emptied after 30 days; time history is deleted. Notes, meetings, reminders and open tasks are never touched.

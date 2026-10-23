@@ -17,7 +17,7 @@ describe("OpenTabsPanel", () => {
   it("asks for permission first when website tracking is off, and never calls the shell", async () => {
     const spy = vi.spyOn(ipc, "petOpenTabs");
     renderPanel(false);
-    expect(await screen.findByText(/Turn on website tracking/)).toBeTruthy();
+    expect(await screen.findByRole("button", { name: "Turn on app and website time" })).toBeTruthy();
     expect(spy).not.toHaveBeenCalled();
   });
 

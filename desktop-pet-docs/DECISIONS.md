@@ -305,4 +305,5 @@ Still open: none of Q1-Q7 except the Q4 spike result.
 - Owner (same night): focus sessions are **saved** (count as study hours later); at the end the pet **cheers and offers a 5-minute break** (click the pet). Not a nudge: you started it, so it doesn't count toward the daily limit.
 - Owner: when the pet is hidden, messages appear in the dashboard (refines "notifications only above the pet"). Hover card gets shortcuts Focus, Add note, Sleep, Wake, and tasks are highlighted (FR-111).
 - Owner approved the FR-46 rules (time history + completed tasks only; never by default; preview first; completed tasks to a restorable Bin for 30 days; time history deleted). A task Bin was added for this (migration 006).
+- FR-44 built as snapped layout presets (width + height) instead of free drag-resize: same outcome, far less to break in a webview. Owner may still ask for drag later.
 - **FR-88 now strip replaced by FR-110:** only the focus timer sits above/below the pet; the rest goes on the hover card. New setting to turn the hover card off; then hovering shows the info as a bubble. The four FR-88 open questions are superseded.

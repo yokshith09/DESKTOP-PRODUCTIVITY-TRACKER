@@ -800,3 +800,18 @@ describe("date presets (FR-45)", () => {
     expect((document.getElementById("rem-when") as HTMLInputElement).value).toBe(timePresets().find((p) => p.label === "Tomorrow 9:00")?.value);
   });
 });
+
+describe("open tabs are easy to find (FR-62)", () => {
+  it("shows on the Time page without switching to Sites, and offers to turn tracking on", async () => {
+    const { ipc } = await import("@/ipc");
+    await ipc.settingSet("tracking.sites", false);
+    const user = userEvent.setup();
+    render(<App />);
+    await goTo(user, /^Time/);
+    await user.click(await screen.findByRole("button", { name: "Turn on app and website time" }));
+    await waitFor(async () => {
+      const s = await ipc.settingsGetAll();
+      expect([s["tracking.apps"], s["tracking.sites"]]).toEqual([true, true]);
+    });
+  });
+});

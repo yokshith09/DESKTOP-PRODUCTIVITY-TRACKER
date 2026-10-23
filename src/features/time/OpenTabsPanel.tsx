@@ -28,12 +28,22 @@ export function OpenTabsPanel({ enabled, className }: { enabled: boolean; classN
     }
   };
 
+  // One explicit click turns on both switches it needs (they're also in Settings).
+  const turnOn = async () => {
+    await ipc.settingSet("tracking.apps", true);
+    await ipc.settingSet("tracking.sites", true);
+    void qc.invalidateQueries();
+  };
+
   if (!enabled) {
     return (
       <Tile className={className} title="Open tabs" bodyClassName="p-4">
-        <p className="py-10 text-center text-[13px] text-muted-foreground">
-          Turn on website tracking to see your open tabs here. Loaf reads them live, with the same permission — nothing is stored.
-        </p>
+        <div className="py-8 text-center">
+          <p className="text-[13px] text-muted-foreground">
+            See every open browser tab here, switch to it or close it. Loaf reads them live with the same permission as website time — nothing is stored, private windows are skipped.
+          </p>
+          <Button size="sm" variant="outline" className="mt-3" onClick={() => void turnOn()}>Turn on app and website time</Button>
+        </div>
       </Tile>
     );
   }

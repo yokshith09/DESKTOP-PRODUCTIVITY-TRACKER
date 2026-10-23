@@ -217,3 +217,12 @@ Last run 2026-10-23: front-end 239 passed / 5 skipped; Rust 425 passed; lint, ty
 
 **Automated:** `src/lib/datePresets.test.ts` · `src/App.test.tsx` "date presets (FR-45)", "pet shortcut (FR-48)", settings shortcut test · `src-tauri/src/shortcuts.rs` (pet off until chosen) · settings count 19.
 **Manual (Windows):** open a task → under Deadline click **Tomorrow** → the date fills. Add reminder → **Tomorrow 9:00** fills the time. Settings → Keyboard shortcuts → "Show or hide the pet" says **Off**; Ctrl+Shift+P does nothing → Change → press Ctrl+Shift+P → it toggles the pet; right-click the pet → "Hide pet" shows the keys; **Turn off** → off again.
+
+---
+
+## FR-44 Time tile layout · FR-62 Open tabs findable
+
+**Automated:** `src/features/time/tileLayout.test.ts` · `OpenTabsPanel.test.tsx` · `src/App.test.tsx` "open tabs are easy to find (FR-62)".
+**Manual (Windows):** Time → Layout → Even / Stacked / Tall → tiles resize with no gap; restart → kept. Time page shows **Open tabs** without picking Sites; with tracking off, the button turns both switches on and the list appears.
+
+Last run 2026-10-23 (all fixes): front-end 249 passed / 5 skipped; Rust 432 passed; lint, typecheck, clippy, fmt clean.
