@@ -22,6 +22,8 @@ export interface Settings {
   "tracking.apps": boolean;
   "tracking.exclude_apps": string[];
   "tracking.sites": boolean;
+  /** macOS: also read Safari (can't tell private windows apart). */
+  "tracking.safari": boolean;
   "advanced.log_level": "trace" | "debug" | "info" | "warn" | "error";
 }
 

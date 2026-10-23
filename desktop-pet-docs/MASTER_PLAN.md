@@ -236,3 +236,8 @@ Study hours: **partly solved** (app/site time + categories built; study hours pe
 - Planned: FR-98 festival outfits · FR-99 weekly recap · FR-100 study groups · FR-101 leaderboard visibility Off/Friends/Everyone · FR-102 monthly pet drops · FR-103 photo to pet (`docs/features/FR-98-103-growth-plan.md`).
 - Student pack preview (study hours per subject, timetable, friends) published for owner review before building FR-58.
 - OS parity: `docs/OS_PARITY.md`.
+
+## 2026-10-23 (evening)
+- Fixed (Unverified): pet-visibility bugs B1-B6 + S1.
+- Built (Unverified): macOS Arc / Firefox / Safari (opt-in) for website time and open tabs (FR-104).
+- Planned: FR-105 real pack animations (`docs/character/ANIMATION_PLAN.md`), FR-106 UI redesign pass (audit with screenshots first).

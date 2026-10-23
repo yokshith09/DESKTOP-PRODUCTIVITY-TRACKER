@@ -134,7 +134,7 @@ export function createMock() {
     "general.autostart": false, "general.theme": "dark", "general.font_size": "M",
     "pet.visible": true, "pet.size": "M", "pet.opacity": 100, "pet.always_on_top": true, "pet.typing": false, "pet.pack": null,
     "shortcuts.global_open": null, "shortcuts.global_new_note": null, "shortcuts.global_new_task": null,
-    "tracking.apps": true, "tracking.exclude_apps": [], "tracking.sites": false,
+    "tracking.apps": true, "tracking.exclude_apps": [], "tracking.sites": false, "tracking.safari": false,
     "advanced.log_level": "info",
   });
   const settings = defaultSettings();

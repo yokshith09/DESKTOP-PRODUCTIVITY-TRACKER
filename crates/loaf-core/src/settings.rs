@@ -57,6 +57,10 @@ pub enum SettingsKey {
     /// counts while `tracking.apps` is on too.
     #[serde(rename = "tracking.sites")]
     TrackingSites,
+    /// macOS: also read Safari. Off by default because Safari can't say whether a window is
+    /// private, so a private window's site would be counted too (owner asked for Safari).
+    #[serde(rename = "tracking.safari")]
+    TrackingSafari,
 
     // advanced
     #[serde(rename = "advanced.log_level")]
@@ -112,6 +116,7 @@ impl SettingsKey {
             Self::TrackingApps => "tracking.apps",
             Self::TrackingExcludeApps => "tracking.exclude_apps",
             Self::TrackingSites => "tracking.sites",
+            Self::TrackingSafari => "tracking.safari",
             Self::AdvancedLogLevel => "advanced.log_level",
         }
     }
@@ -134,6 +139,7 @@ impl SettingsKey {
             "tracking.apps" => Some(Self::TrackingApps),
             "tracking.exclude_apps" => Some(Self::TrackingExcludeApps),
             "tracking.sites" => Some(Self::TrackingSites),
+            "tracking.safari" => Some(Self::TrackingSafari),
             "advanced.log_level" => Some(Self::AdvancedLogLevel),
             _ => None,
         }
@@ -157,6 +163,7 @@ impl SettingsKey {
             Self::TrackingApps => json!(false),
             Self::TrackingExcludeApps => json!([]),
             Self::TrackingSites => json!(false),
+            Self::TrackingSafari => json!(false),
             Self::AdvancedLogLevel => json!("info"),
         }
     }
@@ -169,7 +176,8 @@ impl SettingsKey {
             | Self::PetAlwaysOnTop
             | Self::PetTyping
             | Self::TrackingApps
-            | Self::TrackingSites => {
+            | Self::TrackingSites
+            | Self::TrackingSafari => {
                 if !value.is_boolean() {
                     return Err(AppError::validation(self.as_str(), "must be a boolean"));
                 }
@@ -307,6 +315,7 @@ pub fn all_defaults() -> BTreeMap<String, Value> {
         SettingsKey::TrackingApps,
         SettingsKey::TrackingExcludeApps,
         SettingsKey::TrackingSites,
+        SettingsKey::TrackingSafari,
         SettingsKey::AdvancedLogLevel,
     ]
     .iter()
@@ -355,7 +364,7 @@ mod tests {
     #[test]
     fn all_defaults_exist() {
         let defaults = all_defaults();
-        assert_eq!(defaults.len(), 16);
+        assert_eq!(defaults.len(), 17);
         assert_eq!(
             defaults["tracking.sites"],
             json!(false),

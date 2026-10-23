@@ -1,5 +1,5 @@
 import { PageHeader } from "@/features/shell/PageHeader";
-import { mod } from "@/lib/platform";
+import { isMac, mod } from "@/lib/platform";
 import { DataSection } from "./DataSection";
 import { NudgeSettings } from "./NudgeSettings";
 import { Row, Section } from "./parts";
@@ -29,6 +29,7 @@ export function SettingsPage() {
   const [tracking, setTracking] = useSetting("tracking.apps");
   const [excluded, setExcluded] = useSetting("tracking.exclude_apps");
   const [sites, setSites] = useSetting("tracking.sites");
+  const [safari, setSafari] = useSetting("tracking.safari");
   const [petVisible, setPetVisible] = useSetting("pet.visible");
   const [petSize, setPetSize] = useSetting("pet.size");
   const [petOpacity, setPetOpacity] = useSetting("pet.opacity");
@@ -125,10 +126,18 @@ export function SettingsPage() {
         </Row>
         <Row
           label="Track websites (domain only)"
-          hint="Reads the address bar of the browser in front and keeps only the site's name, like github.com. Private and incognito windows are skipped. Needs app tracking on. On a Mac: Chrome, Edge, Brave and Vivaldi (macOS asks once per browser); Safari and Firefox aren't counted."
+          hint="Reads the address bar of the browser in front and keeps only the site's name, like github.com. Private and incognito windows are skipped. Needs app tracking on. On a Mac: Chrome, Edge, Brave, Vivaldi and Arc (macOS asks once per browser) and Firefox (from its own session file, about 15 s behind); Safari only with the switch below."
         >
           <Switch checked={sites ?? false} disabled={!tracking} onCheckedChange={(v) => void setSites(v)} aria-label="Track websites" />
         </Row>
+        {isMac && (
+          <Row
+            label="Include Safari"
+            hint="Safari can't tell Loaf whether a window is private, so a private window's site would be counted too. Off unless you turn it on."
+          >
+            <Switch checked={safari ?? false} disabled={!tracking || !sites} onCheckedChange={(v) => void setSafari(v)} aria-label="Include Safari" />
+          </Row>
+        )}
         <div className="py-3.5">
           <label htmlFor="excluded" className="text-[13px] font-medium">Never track these apps</label>
           <p className="mb-2 text-xs text-muted-foreground">One per line, for example “1Password.exe”.</p>

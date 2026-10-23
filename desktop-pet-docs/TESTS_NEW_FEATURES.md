@@ -139,3 +139,23 @@ Last run 2026-10-23 (end of phase): front-end 198 passed / 5 skipped (31 files);
 **Manual (Windows):** Character → Pet library → **Import ZIP** → pick `Kayadu_LOAF_Character_Pack.zip` → "Kayadu added" → **Use** → the desktop pet becomes Kayadu. Settings → Pet notifications → set 1 nudge a day → after the greeting, no routine reminder appears that day.
 
 Last run 2026-10-23 (afternoon): front-end 201 passed / 5 skipped; Rust 389 passed; lint, typecheck, clippy, fmt, core-deps clean.
+
+---
+
+## Pet visibility fixes (B1-B6, S1)
+
+**Automated:** `src-tauri/src/pet.rs` — a_saved_spot_needs_the_pets_centre_on_a_screen, show_or_hide_follows_what_is_on_screen, a_long_gap_between_ticks_means_the_computer_slept · `src-tauri/src/tray.rs` menu tests (Bring the pet back) · `CompanionPanel.test.tsx` "catches up when the computer wakes".
+**Manual (Windows):**
+1. Click the pet, press **Alt+F4** → pet hides. Quit and start Loaf → **the pet is back** (before: stayed hidden).
+2. Pet visible → sleep the PC 5+ minutes → wake → within a minute the pet is on screen.
+3. Unplug / turn off the second monitor the pet sits on → within a minute it moves to the main screen.
+4. Tray → **Show or hide pet** once → it toggles in **one** click every time.
+5. Tray → **Bring the pet back** → pet appears bottom-right of the main screen.
+6. Change display scale (Settings → Display → 125%) → pet stays the right size and on screen.
+
+## FR-104 macOS Arc / Firefox / Safari
+
+**Automated:** `crates/loaf-core/src/firefox.rs` (mozlz4 decode, front window's site, tab list with active marked, newest profile) · settings tests (`tracking.safari` default off). The AppleScript parts only compile on macOS (checked by CI on macos-latest) and can't be unit-tested.
+**Manual (Mac):** turn on app + website tracking → use Arc for a minute → Time shows the Arc site; an Arc incognito window records nothing. Firefox → site appears within ~15 s; a private window records nothing. Safari → nothing until **Include Safari** is on. Open tabs: Arc and Safari tabs listed and closable; Firefox tabs listed without a close button. Browsers that aren't running are not launched.
+
+Last run 2026-10-23 (evening): front-end 202 passed / 5 skipped; Rust 396 passed; lint, typecheck, clippy, fmt, core-deps clean.

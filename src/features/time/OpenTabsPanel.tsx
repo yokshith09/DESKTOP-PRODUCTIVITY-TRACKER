@@ -60,14 +60,15 @@ export function OpenTabsPanel({ enabled, className }: { enabled: boolean; classN
                   {t.title ?? t.domain ?? "Untitled tab"}
                 </span>
                 {t.domain && <span className="shrink-0 truncate text-[11px] text-muted-foreground">{t.domain}</span>}
-                <Button
+                {/* Firefox tabs come from its session file (macOS) and can't be closed from Loaf. */}
+                {t.browser !== "Firefox" && <Button
                   type="button" variant="ghost" size="icon" className="size-6 shrink-0 opacity-0 group-hover:opacity-100"
                   aria-label={`Close ${t.title ?? t.domain ?? "tab"}`}
                   disabled={closing === key}
                   onClick={() => void close(t.browser, t.window_index, t.tab_index)}
                 >
                   <X className="size-3.5" />
-                </Button>
+                </Button>}
               </li>
             );
           })}

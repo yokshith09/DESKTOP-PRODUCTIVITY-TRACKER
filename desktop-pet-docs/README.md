@@ -35,7 +35,7 @@ desktop-pet-docs/
     │   ├── FR-84-87-owner-requests.md community server, routine, diary, reactions
     │   ├── FR-92-97-companion-principles.md  no-guilt, attention ladder, budget, birthdays, backup
     │   └── FR-98-103-growth-plan.md   festival outfits, recap, groups, leaderboard, drops, photo-to-pet
-    ├── character/                ← character, emote, Studio specs
+    ├── character/                ← character, emote, Studio, art spec, animation plan
     ├── competitors/              ← OpenPets research
     ├── business/                 ← market + social research, direction, GTM sheet, money
     ├── 00-product … 06-plan/     ← locked founding documents (product, principles, PRD, TRD, design, schema, plan)

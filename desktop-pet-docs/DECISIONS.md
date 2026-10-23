@@ -285,3 +285,8 @@ Still open: none of Q1-Q7 except the Q4 spike result.
 - Pet packs can be imported from a ZIP. Owner's Kayadu pack: structurally valid, imports; its README says the frames are placeholder transforms of one image (no real poses yet). If the character is based on a real person, that is the on-hold personal-character feature and needs that person's consent before sharing.
 - Testing before release: owner cannot test before a release → releases go out as **drafts/pre-releases for owner testing**; nothing is called Complete until tested.
 - Docs: active work is FM-V2 + companion, not M1 (README, ROADMAP, PROJECT_STATUS, CLAUDE.md updated).
+
+## 2026-10-23 (evening)
+- Owner approved the pet-visibility fixes → implemented.
+- macOS browsers: Arc and Firefox read with private windows excluded; **Safari opt-in** (`tracking.safari`, off by default) because Safari can't report private windows — the owner asked for Safari; the switch keeps the "private windows are skipped" promise true by default. Firefox tabs can't be closed from Loaf (no API without an extension).
+- A once-a-minute wake/screen watcher is an accepted exception to ADR-009 (no portable OS event for wake/monitor change).

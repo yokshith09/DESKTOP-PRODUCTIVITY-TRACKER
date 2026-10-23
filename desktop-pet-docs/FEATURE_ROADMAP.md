@@ -146,7 +146,10 @@ Legend: **Requested** = in the owner's list; **Technical requirement (TR)** = de
 | FR-101 | Leaderboards: visibility Off (default) / Friends / Everyone, weekly reset | Social | Planned | P7 | M | Owner 2026-10-23 |
 | FR-102 | Monthly community pet drops | Companion | Planned | P7 | S | FR-84 |
 | FR-103 | Photo to pet | Companion | Planned (later) | P6 | XL | AI provider |
-| BUG-PV | Pet doesn't come back / needs Show twice (B1-B6, S1-S4) | Companion | Diagnosed, not fixed | — | M | `docs/BUG_REPORT_2026-10-23_pet_visibility.md` |
+| BUG-PV | Pet doesn't come back / needs Show twice (B1-B6, S1-S4) | Companion | Fixed B1-B6 + S1, Unverified | — | M | `docs/BUG_REPORT_2026-10-23_pet_visibility.md` |
+| FR-104 | macOS website time + tabs for Arc, Firefox, Safari (opt-in) | Time | Built, Unverified | — | M | Owner 2026-10-23 |
+| FR-105 | Real animations for packs (see `docs/character/ANIMATION_PLAN.md`) | Companion | Planned | FM-CS | M-L | — |
+| FR-106 | UI redesign pass (layout, hierarchy, polish) | UI | Planned, audit first | FM-V2 | L | Owner 2026-10-23 |
 | FR-58 | Student pack | Students | Planned; quiz waits for AI | FM-ST | L | — |
 
 **Verified existing (Unverified on real OS, tests pass):** FR-19 tracking, ROADMAP M1–M3 features. **Partial:** FR-01, FR-20, FR-22, FR-27. Everything else: Planned or Blocked. Nothing is "Complete" on a real OS.

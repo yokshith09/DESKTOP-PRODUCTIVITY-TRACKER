@@ -10,6 +10,7 @@ pub mod data;
 pub mod db;
 pub mod error;
 pub mod events;
+pub mod firefox;
 pub mod ids;
 pub mod labels;
 pub mod links;

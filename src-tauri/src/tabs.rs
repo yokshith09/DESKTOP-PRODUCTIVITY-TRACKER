@@ -283,9 +283,107 @@ end tell"#
         )
     }
 
+    /// Arc: like Chrome, but private windows are marked `incognito` and the active tab is found
+    /// by id. Safari: no way to tell private windows, so only with `tracking.safari` on.
+    fn other_script(app: &str) -> Option<String> {
+        match app {
+            "Arc" => Some(r#"tell application "Arc"
+  set out to ""
+  set wIndex to 0
+  repeat with w in windows
+    set wIndex to wIndex + 1
+    if (incognito of w) is false then
+      set activeId to id of active tab of w
+      set tIndex to 0
+      repeat with t in tabs of w
+        set tIndex to tIndex + 1
+        set isActive to ((id of t) = activeId) as string
+        set out to out & wIndex & "\t" & tIndex & "\t" & isActive & "\t" & (URL of t) & "\t" & (title of t) & "\n"
+      end repeat
+    end if
+  end repeat
+  return out
+end tell"#.to_owned()),
+            "Safari" if crate::sites::safari_on() => Some(r#"tell application "Safari"
+  set out to ""
+  set wIndex to 0
+  repeat with w in windows
+    set wIndex to wIndex + 1
+    try
+      set activeTab to current tab of w
+      set tIndex to 0
+      repeat with t in tabs of w
+        set tIndex to tIndex + 1
+        set isActive to (t = activeTab) as string
+        set out to out & wIndex & "\t" & tIndex & "\t" & isActive & "\t" & (URL of t) & "\t" & (name of t) & "\n"
+      end repeat
+    end try
+  end repeat
+  return out
+end tell"#.to_owned()),
+            _ => None,
+        }
+    }
+
+    fn parse_lines(app: &str, out: &str, tabs: &mut Vec<OpenTab>) {
+        for line in out.lines() {
+            let mut f = line.splitn(5, '\t');
+            let (Some(w), Some(t), Some(active), Some(url), title) =
+                (f.next(), f.next(), f.next(), f.next(), f.next())
+            else {
+                continue;
+            };
+            let (Ok(window_index), Ok(tab_index)) = (w.parse::<u32>(), t.parse::<u32>()) else {
+                continue;
+            };
+            tabs.push(OpenTab {
+                browser: display_name(app),
+                window_index: window_index.saturating_sub(1),
+                tab_index: tab_index.saturating_sub(1),
+                title: title.map(str::to_owned).filter(|s| !s.is_empty()),
+                domain: domain_from_address(url),
+                active: active == "true",
+            });
+        }
+    }
+
+    /// Firefox: from its own session file (private windows are never in it). Read-only:
+    /// Firefox can't be asked to close a tab.
+    fn firefox_tabs(tabs: &mut Vec<OpenTab>) {
+        let Some(home) = std::env::var_os("HOME") else {
+            return;
+        };
+        let profiles =
+            std::path::Path::new(&home).join("Library/Application Support/Firefox/Profiles");
+        if let Some(found) = loaf_core::firefox::newest_session_file(&profiles)
+            .and_then(|f| loaf_core::firefox::read_session(&f).ok())
+            .and_then(|json| loaf_core::firefox::open_tabs(&json, "Firefox").ok())
+        {
+            tabs.extend(found);
+        }
+    }
+
+    /// `tell application` starts a browser that isn't running; ask first so listing tabs never
+    /// opens one (the app name comes from a fixed list, so it is safe in the script).
+    fn is_running(app: &str) -> bool {
+        run(&format!("application \"{app}\" is running")).is_some_and(|o| o.trim() == "true")
+    }
+
     pub fn list() -> Vec<OpenTab> {
         let mut tabs = vec![];
+        for app in ["Arc", "Safari"] {
+            if !is_running(app) {
+                continue;
+            }
+            if let Some(out) = other_script(app).and_then(|s| run(&s)) {
+                parse_lines(app, &out, &mut tabs);
+            }
+        }
+        firefox_tabs(&mut tabs);
         for app in ASKABLE {
+            if !is_running(app) {
+                continue;
+            }
             let Some(out) = run(&list_script(app)) else {
                 continue;
             };
@@ -313,8 +411,9 @@ end tell"#
     }
 
     pub fn close(browser: &str, window_index: u32, tab_index: u32) -> bool {
-        let Some(app) = ASKABLE.iter().find(|a| display_name(a) == browser) else {
-            return false;
+        let closable = ASKABLE.iter().chain(["Arc", "Safari"].iter());
+        let Some(app) = closable.into_iter().find(|a| display_name(a) == browser) else {
+            return false; // Firefox: read-only
         };
         let script = format!(
             r#"tell application "{app}" to close tab {t} of window {w}"#,

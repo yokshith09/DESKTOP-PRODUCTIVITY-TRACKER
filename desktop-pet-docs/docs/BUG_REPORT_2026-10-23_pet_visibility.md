@@ -1,6 +1,6 @@
 # Bug report — "the pet doesn't come back; I have to click Show on desktop again and again" (2026-10-23)
 
-**Status: diagnosed from code, not fixed** (owner asked to report first). Nobody has reproduced these on Windows yet; tags: [Likely] strong evidence in code · [Guessing] possible, needs a test on a real PC.
+**Status: fixed in code 2026-10-23 (commit after owner OK), Unverified on Windows.** Fixes 1-6 below were implemented; S3/S4 remain to be checked on a real PC. Nobody has reproduced these on Windows yet; tags: [Likely] strong evidence in code · [Guessing] possible, needs a test on a real PC.
 
 ## Owner's report
 Sometimes the pet does not start again by itself; turning "Show on desktop" on (sometimes repeatedly) brings it back.

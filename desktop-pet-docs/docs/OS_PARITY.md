@@ -11,13 +11,13 @@ Loaf ships **Windows and macOS** installers (release workflow matrix: `windows-l
 | Open at login (autostart) | ✅ registry Run key | ✅ login item | ⬜ |
 | Global shortcuts | ✅ | ✅ (may need Accessibility for some keys) | ⬜ |
 | **App time tracking** (`tracking.rs`) | ✅ event hook, no polling | ✅ checks once a second (exception to ADR-009) | ⬜ "unavailable" |
-| **Website time** (`sites.rs`) | ✅ Chrome, Edge, Brave, Firefox… via UI Automation; private windows skipped (English UI only) | ⚠️ Chrome, Edge, Brave, Vivaldi only (AppleScript, asks per browser); **Safari, Firefox, Arc: nothing** | ⬜ |
-| **Open tabs list / close tab** (`tabs.rs`) | ⚠️ the browser window **in front only**; domain only for the visible tab | ✅ all Chrome-family tabs across windows; Safari/Firefox skipped | ⬜ |
+| **Website time** (`sites.rs`) | ✅ Chrome, Edge, Brave, Firefox… via UI Automation; private windows skipped (English UI only) | ✅ Chrome, Edge, Brave, Vivaldi, **Arc** (AppleScript), **Firefox** (session file, ~15 s behind); **Safari** only with the opt-in switch (private windows can't be told apart) | ⬜ |
+| **Open tabs list / close tab** (`tabs.rs`) | ⚠️ the browser window **in front only**; domain only for the visible tab | ✅ Chrome-family + **Arc** + **Safari** (opt-in) list and close; **Firefox** listed, can't be closed | ⬜ |
 | **Typing along** (`typing.rs`) | ✅ keyboard hook counter | ✅ system key counter; needs Input Monitoring (+ Accessibility for the text-box part) | ⬜ |
 | Code signing | ❌ unsigned (SmartScreen warning) → SignPath once the repo is public | ❌ unsigned (Gatekeeper; needs Apple Developer $99/yr) | — |
 
 **Gaps to close for parity:**
 1. Linux build (FR-57): AppImage + .deb; tracking via X11 (`_NET_ACTIVE_WINDOW`) and a Wayland fallback ("unavailable"); typing via evdev needs permissions — likely "unavailable" on Wayland.
-2. macOS website time for Safari/Firefox: no reliable way without an extension (locked decision) → stays unsupported; say so in the UI.
+2. ~~macOS Safari/Firefox/Arc~~ done 2026-10-23 (Unverified); Safari stays opt-in.
 3. Windows tabs: all windows, not just the front one (UI Automation can walk every browser window).
 4. Signing on both platforms.

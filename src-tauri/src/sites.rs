@@ -11,9 +11,12 @@
 //!   "Private Browsing" by their title, Chrome and Brave by their "Incognito"/"Private" toolbar
 //!   button (English names only for now). A window that can't be classified is skipped too.
 //! * **macOS**: AppleScript, asked of the browser in front: Chrome, Edge, Brave and Vivaldi
-//!   report the active tab's address and whether the window is incognito. macOS asks once per
-//!   browser ("Loaf wants to control Google Chrome"); if you say no, nothing is recorded for it.
-//!   Safari (private windows can't be told apart), Firefox and Arc (no way to ask) record nothing.
+//!   report the active tab's address and whether the window is incognito; **Arc** reports its
+//!   window's `incognito` flag the same way. macOS asks once per browser ("Loaf wants to control
+//!   Google Chrome"); if you say no, nothing is recorded for it. **Safari** can't say whether a
+//!   window is private, so it is read only with the extra `tracking.safari` switch (off by
+//!   default). **Firefox** has no AppleScript: its own session file is read instead
+//!   (`loaf_core::firefox`; private windows are never in it), so its site can lag ~15 s.
 //! * Elsewhere: nothing is recorded.
 //!
 //! Polling is the exception to ADR-009 here: no OS event fires when the address bar changes.
@@ -34,6 +37,23 @@ use tokio::sync::mpsc;
 
 /// Whether the looking thread should look at all (both switches on).
 static ACTIVE: AtomicBool = AtomicBool::new(false);
+/// macOS: whether Safari may be read too (`tracking.safari`, off by default).
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+static SAFARI: AtomicBool = AtomicBool::new(false);
+
+/// macOS: whether Safari may be read (also used by the open-tabs list).
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+pub fn safari_on() -> bool {
+    SAFARI.load(Ordering::Relaxed)
+}
+
+fn note_safari(all: &std::collections::BTreeMap<String, serde_json::Value>) {
+    let on = all
+        .get("tracking.safari")
+        .and_then(serde_json::Value::as_bool)
+        == Some(true);
+    SAFARI.store(on, Ordering::Relaxed);
+}
 
 #[cfg_attr(not(any(windows, target_os = "macos")), allow(dead_code))]
 /// One look from the OS thread: what it saw and how long since the last input.
@@ -58,10 +78,9 @@ pub fn start(
             let on = |k: &str| all.get(k).and_then(serde_json::Value::as_bool) == Some(true);
             on("tracking.apps") && on("tracking.sites")
         };
-        ACTIVE.store(
-            wanted(settings.get_all().await.unwrap_or_default()),
-            Ordering::Relaxed,
-        );
+        let all = settings.get_all().await.unwrap_or_default();
+        note_safari(&all);
+        ACTIVE.store(wanted(all), Ordering::Relaxed);
         let mut tracker = SiteTracker::default();
         let save = |session: Option<loaf_core::usage::DomainSession>| {
             let usage = usage.clone();
@@ -85,7 +104,9 @@ pub fn start(
                 }
                 event = events.recv() => match event {
                     Recv::Event(Event::SettingChanged { key, .. }) if key.starts_with("tracking.") => {
-                        let on = wanted(settings.get_all().await.unwrap_or_default());
+                        let all = settings.get_all().await.unwrap_or_default();
+                        note_safari(&all);
+                        let on = wanted(all);
                         ACTIVE.store(on, Ordering::Relaxed);
                         if !on {
                             save(tracker.stop(clock.now_ms())).await;
@@ -278,7 +299,7 @@ mod os {
     use loaf_core::usage::{display_name, is_browser};
     use tokio::sync::mpsc::UnboundedSender;
 
-    use super::{Look, ACTIVE};
+    use super::{Look, ACTIVE, SAFARI};
 
     /// Browsers that can say both the active tab's address and whether the window is incognito.
     const ASKABLE: &[&str] = &[
@@ -312,13 +333,27 @@ mod os {
         if !is_browser(&app) {
             return Seen::NoBrowser;
         }
-        if !ASKABLE.contains(&app.as_str()) {
-            return Seen::Nothing;
+        let script = match app.as_str() {
+            a if ASKABLE.contains(&a) => None,
+            // Arc: `incognito` is true or false; anything else (an older Arc) records nothing.
+            "Arc" => Some("tell application \"Arc\" to if (count of windows) > 0 then return (incognito of front window as string) & linefeed & (URL of active tab of front window)".to_owned()),
+            "Safari" if SAFARI.load(Ordering::Relaxed) => Some("tell application \"Safari\" to if (count of windows) > 0 then return \"normal\" & linefeed & (URL of current tab of front window)".to_owned()),
+            "Firefox" => return firefox_site(&app),
+            _ => return Seen::Nothing,
+        };
+        if let Some(script) = script {
+            return ask(&app, &script, if app == "Arc" { "false" } else { "normal" });
         }
         // The app name comes from the fixed list above, so it is safe to put in the script.
         let script = format!(
             "tell application \"{app}\" to if (count of windows) > 0 then return (mode of front window) & linefeed & (URL of active tab of front window)"
         );
+        ask(&app, &script, "normal")
+    }
+
+    /// Run `script`; its first line must be `allowed` (a normal, non-private window), its
+    /// second the address.
+    fn ask(app: &str, script: &str, allowed: &str) -> Seen {
         let Ok(out) = Command::new("/usr/bin/osascript")
             .args(["-e", &script])
             .output()
@@ -330,12 +365,31 @@ mod os {
         }
         let text = String::from_utf8_lossy(&out.stdout);
         let mut lines = text.lines();
-        if lines.next().map(str::trim) != Some("normal") {
+        if lines.next().map(str::trim) != Some(allowed) {
             return Seen::Nothing; // incognito, or an answer we don't understand
         }
         match lines.next().and_then(domain_from_address) {
             Some(domain) => Seen::Site {
-                browser: display_name(&app),
+                browser: display_name(app),
+                domain,
+            },
+            None => Seen::Nothing,
+        }
+    }
+
+    /// Firefox: the site showing in its front window, from its session file.
+    fn firefox_site(app: &str) -> Seen {
+        let Some(home) = std::env::var_os("HOME") else {
+            return Seen::Nothing;
+        };
+        let profiles =
+            std::path::Path::new(&home).join("Library/Application Support/Firefox/Profiles");
+        let domain = loaf_core::firefox::newest_session_file(&profiles)
+            .and_then(|f| loaf_core::firefox::read_session(&f).ok())
+            .and_then(|json| loaf_core::firefox::active_domain(&json).ok().flatten());
+        match domain {
+            Some(domain) => Seen::Site {
+                browser: display_name(app),
                 domain,
             },
             None => Seen::Nothing,
