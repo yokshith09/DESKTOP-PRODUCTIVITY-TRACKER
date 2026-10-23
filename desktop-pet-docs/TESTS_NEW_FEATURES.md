@@ -7,7 +7,7 @@ Run everything:
 pnpm typecheck && pnpm lint && pnpm test
 cargo fmt --all && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace
 ```
-Last run (2026-10-22, this machine): front-end 159 passed / 5 skipped; Rust 386 passed; lint, typecheck, clippy clean.
+Last run (2026-10-23, this machine): see the bottom of this file.
 
 ---
 
@@ -80,3 +80,27 @@ Last run (2026-10-22, this machine): front-end 159 passed / 5 skipped; Rust 386 
 - Character turned views and back-turn shake (`CharacterViews.test.tsx`, `Characters.test.tsx`).
 - New sprite poses jump / sad / review (`spritePack.test.tsx` "sprite-only poses").
 - Sprite packs (`spritePack.test.tsx` layout tests; `our_own_packs_pass_the_check`).
+
+---
+
+## FR-41 Toast stack
+
+**Automated:** `src/lib/notify.test.ts` (5 s cards, errors longer, Undo action) · `src/App.test.tsx` "saving a task says so and goes back to where it was opened (FR-41)".
+**Manual (Windows):**
+1. Add a task on Today → a card "Task added" bottom-right, gone after ~5 s; hover keeps it.
+2. Complete a task → "Task done".
+3. Open a task from Today, change the title, **Save changes** → the task window closes, you are on Today, "Task saved" shows.
+4. Trigger 5 messages quickly → at most 3 visible.
+
+## FR-85 Daily routine
+
+**Automated:** `src/features/routine/routine.test.ts` (add/rename/tick/remove, cap 30, new day reset + history, streaks, message wording, reminds once/after time/only when pending, broken data) · `src/features/routine/RoutineCard.test.tsx` (add & tick with progress, fresh on a new day, bell on/off, reminder fires once with "You have 3 daily routine tasks pending", silent when all done or already reminded).
+**Manual (Windows):**
+1. Today → **Daily routine** tile → add "Drink water", "Revise 30 min", "Walk" → "0 of 3 done".
+2. Tick one → ring fills, "1 of 3 done". Double-click a name to rename. Hover → ✕ removes.
+3. Set "Remind at" to 2 minutes from now, leave one unticked → a card "You have 2 daily routine tasks pending" appears once; it does not repeat.
+4. Tick all, set the time again → nothing appears.
+5. Next morning → all unticked again; an item done two days running shows 🔥2.
+6. Bell icon → reminder off; no card at the time.
+
+Last run 2026-10-23: front-end 175 passed / 5 skipped (27 files); Rust 386 passed; lint and typecheck clean.

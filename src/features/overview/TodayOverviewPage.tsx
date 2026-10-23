@@ -1,5 +1,6 @@
 import { Bell, CheckCircle2, FilePen, FilePlus2 } from "lucide-react";
 import { LinksCard } from "@/features/links/Shortcuts";
+import { RoutineCard } from "@/features/routine/RoutineCard";
 import { TimeHero } from "@/features/time/TimeHero";
 import { rangeBounds } from "@/features/time/range";
 import { PageHeader, Tile } from "@/features/shell/PageHeader";
@@ -38,6 +39,7 @@ export function TodayOverviewPage({ onShowTasks = () => {} }: { onShowTasks?: (f
   const tiles: Record<TileId, { span: string; node: React.ReactNode; title: string }> = {
     agenda: { span: "lg:col-span-5 lg:row-span-2", title: "Today", node: <AgendaCard className="h-full" /> },
     time: { span: "lg:col-span-7 lg:row-span-2", title: "Total time today", node: <TimeHero className="h-full" /> },
+    routine: { span: "lg:col-span-4 lg:row-span-2", title: "Daily routine", node: <RoutineCard className="h-full" /> },
     links: { span: "lg:col-span-4", title: "Links", node: <LinksCard className="h-full" /> },
     activity: {
       span: "lg:col-span-5", title: "Activity",

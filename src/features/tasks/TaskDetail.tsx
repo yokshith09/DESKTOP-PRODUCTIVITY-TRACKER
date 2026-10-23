@@ -92,10 +92,12 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
 
   const save = async () => {
     if (!title.trim()) return;
-    await actions.update(task.id, {
+    await actions.save(task.id, {
       ...toEdit(task), title: title.trim(), description, project: project.trim() || null,
       priority: priority === NONE ? null : (priority as Priority), planned_date: planned || null, due_date: due || null, note_id: noteId || null,
     });
+    // FR-41: after an edit, back to the screen the task was opened from (Today or Tasks).
+    onClose();
   };
   const addUpdate = async () => {
     if (!update.trim()) return;

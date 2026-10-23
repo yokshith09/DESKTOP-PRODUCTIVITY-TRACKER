@@ -260,3 +260,11 @@ Still open: none of Q1-Q7 except the Q4 spike result.
 - **Community uploads (owner wants):** planned as the gallery's next step: users submit packs (art only), Loaf validates them (FR-63 checker), a human approves, and each upload must carry a declared licence (CC BY / CC0) and an "I made this or have the right to share it" confirmation, plus a takedown process. Needs a place to accept uploads → backend or a GitHub-based flow (pull requests to a `pets` repo, no server). Backend stays closed, so the GitHub flow is the proposal.
 - **OpenPets AI Studio:** not free for drawing — the site says "credits are only spent when Studio draws"; the price and any free allowance were not visible from here.
 - Tests for everything built this round are listed in `TESTS_NEW_FEATURES.md` (automated + manual Windows steps).
+
+## 2026-10-23 — Owner: community server, routine, diary, reactions; research findings
+
+- **Backend reopened for the community pets website + upload server (FR-84)**, instead of pull requests. Everything else stays local. Privacy statement before launch.
+- New features: FR-85 daily routine (built now), FR-86 private encrypted diary with task pick-up (local rules, no AI), FR-87 per-event reactions with a feature-by-feature event audit.
+- Research (`docs/business/MARKET_RESEARCH_2026-10-23.md`): direction confirmed (pet + student tools + local tracking is an unfilled gap); scope warning (~87 features for one founder → P2 student release is the only goal until 100 weekly users); added FR-88 now strip and FR-89 quiet modes, the two strongest-evidence missing items.
+- Business: stay MIT open core; money from a one-time supporter licence, paid art packs with artist revenue share, sponsors, later optional sync; never paywall study features, no ads, no data selling. GTM sheet `docs/business/GTM_PLAN.csv`.
+- Pet art: `docs/character/PET_ART_SPEC.md` (format, sizes, rows/emotions, style, standard prompt for the first character).

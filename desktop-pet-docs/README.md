@@ -29,9 +29,11 @@ desktop-pet-docs/
     │   ├── FR-requested-features.md   FR-01…FR-38
     │   ├── FR-v2-features.md          FR-41…FR-58
     │   ├── FR-openpets-parity.md      FR-59…FR-82
-    │   └── FR-83-role-profiles.md     role-based defaults
+    │   ├── FR-83-role-profiles.md     role-based defaults
+    │   └── FR-84-87-owner-requests.md community server, routine, diary, reactions
     ├── character/                ← character, emote, Studio specs
     ├── competitors/              ← OpenPets research
+    ├── business/                 ← market research, direction, GTM sheet, money
     ├── 00-product … 06-plan/     ← locked founding documents (product, principles, PRD, TRD, design, schema, plan)
     ├── learning/                 ← notes
     └── archive/                  ← superseded, kept for history

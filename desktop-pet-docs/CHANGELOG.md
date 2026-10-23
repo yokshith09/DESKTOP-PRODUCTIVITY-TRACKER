@@ -5,6 +5,7 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Added (2026-10-23, Unverified): **toast stack** (FR-41: bottom-right, max 3, 5 s / errors 8 s, close button; Task added / saved / done; saving a task returns to where it was opened) and **Daily routine tile** on Today (FR-85: habits reset daily, progress ring, streaks, reminder "You have N daily routine tasks pending" once a day at a chosen time). Docs: pet art spec + prompt, FR-84…FR-89 specs, market research, direction check, GTM sheet, monetization.
 - Tests (2026-10-22): desktop pet shows the chosen pack and falls back to the bear; `TESTS_NEW_FEATURES.md` lists every automated test and manual Windows step for FR-63, FR-47, FR-61, FR-42.
 - Added (2026-10-22, FR-42, Unverified): a task can **open its linked note** or **make a new note from itself**; a note lists its **Linked tasks**, each opening the task; the **Links card is in Notes** too (V2-08). Core: task filter by `note_id`.
 - Removed (2026-10-22, FR-47): the Log detail and Log files rows in Settings (logging itself stays on). Added (FR-61): rename a link and change its address in place from the Links card (pencil button; invalid address refused; Esc cancels). Unverified on Windows.

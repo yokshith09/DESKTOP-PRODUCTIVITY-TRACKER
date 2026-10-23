@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { daysAgo, ymd } from "@/lib/dates";
+import { notify } from "@/lib/notify";
 import { errorMessage, ipc, onEvent, type NoteInput, type NotePatch, type NoteSort, type TaskEdit, type TaskFilters, type TaskStatus, type TaskView, type MeetingFilters, type MeetingInput } from "@/ipc";
 
 export const keys = {
@@ -92,7 +92,7 @@ function useAction<A extends unknown[], R>(fn: (...a: A) => Promise<R>, invalida
   return useMutation({
     mutationFn: (a: A) => fn(...a),
     onSuccess: () => invalidate.forEach((k) => void qc.invalidateQueries({ queryKey: k })),
-    onError: (e) => toast.error(errorMessage(e)),
+    onError: (e) => notify.error(errorMessage(e)),
   });
 }
 
@@ -119,7 +119,7 @@ export function useNoteActions() {
     /** Deletes, then offers Undo (restores the exact snapshot). */
     remove: async (id: string) => {
       const gone = await remove.mutateAsync([id]);
-      toast("Moved to Bin", { action: { label: "Undo", onClick: () => void restore.mutateAsync([gone.id]) } });
+      notify.info("Moved to Bin", { action: { label: "Undo", onClick: () => void restore.mutateAsync([gone.id]) } });
     },
     restore: (id: string) => restore.mutateAsync([id]),
     purge: (id: string) => purge.mutateAsync([id]),
@@ -142,8 +142,22 @@ export function useTaskActions() {
   const removeUpdate = useAction((id: string) => ipc.workUpdateDelete(id), refresh);
   return {
     update: (id: string, edit: TaskEdit) => update.mutateAsync([id, edit]),
-    quickAdd: (title: string) => quickAdd.mutateAsync([title]),
-    transition: (id: string, to: TaskStatus) => move.mutateAsync([id, to]),
+    /** Saves the edit and says so (FR-41). */
+    save: async (id: string, edit: TaskEdit) => {
+      const t = await update.mutateAsync([id, edit]);
+      notify.success("Task saved");
+      return t;
+    },
+    quickAdd: async (title: string) => {
+      const t = await quickAdd.mutateAsync([title]);
+      notify.success("Task added", { description: t.title });
+      return t;
+    },
+    transition: async (id: string, to: TaskStatus) => {
+      const t = await move.mutateAsync([id, to]);
+      if (to === "COMPLETED") notify.success("Task done", { description: t.title });
+      return t;
+    },
     setDone: (id: string, done: boolean) => move.mutateAsync([id, done ? "COMPLETED" : "PLANNED"]),
     defer: (id: string, to: string) => defer.mutateAsync([id, to]),
     remove: (id: string) => remove.mutateAsync([id]),

@@ -11,8 +11,8 @@ import { TileHandleContext } from "@/features/shell/TileHandle";
 import { ipc } from "@/ipc";
 import { cn } from "@/lib/utils";
 
-export type TileId = "agenda" | "time" | "links" | "activity" | "done";
-export const DEFAULT_ORDER: TileId[] = ["agenda", "time", "links", "activity", "done"];
+export type TileId = "agenda" | "time" | "routine" | "links" | "activity" | "done";
+export const DEFAULT_ORDER: TileId[] = ["agenda", "time", "routine", "links", "activity", "done"];
 const KEY = ["prefs", "ui.overview_order"] as const;
 
 /** Stored order, with anything unknown dropped and anything missing put back at the end. */

@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Plug } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
+import { useRoutineReminder } from "@/features/routine/useRoutine";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useBin, useBusSync, useLabels, useNoteActions, useNotes } from "@/hooks/useLoaf";
 import { useAgenda } from "@/features/overview/TodayAgenda";
@@ -38,6 +39,8 @@ function Screen() {
   useBusSync();
   const theme = useTheme();
   const firstRun = useFirstRun();
+  // FR-85: "You have N daily routine tasks pending", once a day at the chosen time.
+  useRoutineReminder();
   const actions = useNoteActions();
   const { data: allNotes = [] } = useNotes(false, null, "last_edited");
   const { data: labels = [] } = useLabels();

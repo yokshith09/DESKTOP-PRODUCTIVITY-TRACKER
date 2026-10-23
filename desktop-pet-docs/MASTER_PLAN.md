@@ -44,7 +44,7 @@ This is the one page that says **what we build, in what order, and when each thi
 
 | ID | Feature | Defined as | Done when | Size | Status |
 |---|---|---|---|---|---|
-| FR-41 | Toast stack (Q1) | Small cards bottom-right: "Task saved · Undo", auto-dismiss 5 s, max 3 stacked; after add/edit the user returns to Today | Every add/edit/delete shows one toast; tests for stack, dismiss, undo | M | Planned |
+| FR-41 | Toast stack (Q1) | Small cards bottom-right: "Task saved · Undo", auto-dismiss 5 s, max 3 stacked; after add/edit the user returns to Today | Every add/edit/delete shows one toast; tests for stack, dismiss, undo | M | **Built, Unverified** |
 | FR-42 | Actionable task↔note links (Q5 confirmed) | "Open note" button on a task; "Linked tasks" list in the note; "Create note from task"; Links section inside Notes (V2-08) | Clicking a link opens the target; both sides show the link | M | **Built, Unverified** |
 | FR-43 | Pop-ups above the pet, fixed (Q2) | Notifications and emote bubbles stay above the pet; positioned so they never go off-screen, one at a time, readable | Bubble visible at every screen edge; tests for placement | S | Planned |
 | FR-44 | Time tiles resizable, no empty space | Drag-to-resize with grid snap; tiles grow to fill the row | No gaps at any window size | M | Planned |
@@ -54,6 +54,7 @@ This is the one page that says **what we build, in what order, and when each thi
 | FR-48 | Editable pet-window shortcuts, default off | Record new keys, conflict check | Shortcut changes saved and work | S | Planned |
 | FR-62 | Browser tabs on the dashboard (Q4) — **already built** (Time tab "Open tabs", `tabs.rs`), hidden unless app + website tracking are both on; remaining work: make it findable | List open tabs of Chrome/Edge/Firefox, click to switch, ✕ to close. **No extension**: Windows UI Automation. Off by default, titles never stored | A 1-day spike works on Windows; else reported back | L | Planned, **spike first** |
 | FR-61 | **Rename links (V2-16, new)** | Edit a link's name (and URL) in place from the Links card and Notes | Rename saved and shown everywhere | S | **Built in the Links card, Unverified** (Notes Links section comes with FR-42) |
+| FR-85 | **Daily routine tile + reminder** (owner 2026-10-23) | Checklist that resets daily, progress ring, streaks, "You have N daily routine tasks pending" once a day at a chosen time | Ticks reset; reminder fires once when pending | M | **Built, Unverified** |
 | FR-52 | Meeting action items on Today (Q6 yes) | Converted tasks appear on Today with a "from: <meeting>" chip | Chip shown, click opens the meeting | S | Planned |
 
 **Order inside FM-V2:** FR-47 → FR-61 → FR-42 → FR-41 → FR-43 → FR-52 → FR-45 → FR-44 → FR-46 → FR-48 → FR-62 spike.
@@ -63,7 +64,9 @@ This is the one page that says **what we build, in what order, and when each thi
 
 ## P2 — Student release
 
-### FM-ST Student pack (FR-58)
+### FM-ST Student pack (FR-58) + Diary (FR-86) + Now strip (FR-88) + Quiet modes (FR-89)
+Specs: `docs/features/FR-84-87-owner-requests.md`; research: `docs/business/MARKET_RESEARCH_2026-10-23.md`.
+
 | Feature | Defined as | Done when |
 |---|---|---|
 | Course label | Tag notes/tasks with a course; filter by course | Course filter on Notes and Tasks |
@@ -204,3 +207,8 @@ Closed 2026-10-22: open source (MIT) · plugins = art packs only · MCP shape ap
 | Spotify Buddy, Higgsfield Watch | — | Not copied (low value) |
 
 **What Loaf has that OpenPets does not:** notes, tasks, meetings, daily progress, app/website time tracking, privacy radar, student pack, Project Spaces, typing-along pet, hand-drawn built-in characters (5 vs their 1), Tauri (lighter than Electron).
+
+---
+
+## Owner requests 2026-10-23
+FR-84 community website + upload server (P7, backend reopened for it) · FR-85 daily routine (built) · FR-86 private diary with task pick-up (FM-ST) · FR-87 per-event pet reactions with a feature audit (M6) · FR-88 now strip and FR-89 quiet modes (added from research, P2). Pet art spec + standard prompt: `docs/character/PET_ART_SPEC.md`. GTM: `docs/business/GTM_PLAN.csv`.

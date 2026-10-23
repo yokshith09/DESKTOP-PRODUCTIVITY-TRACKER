@@ -151,6 +151,21 @@ describe("Notes screen (against the in-memory shell)", () => {
     expect(await screen.findByRole("button", { name: "Add link" })).toBeTruthy();
   });
 
+  it("saving a task says so and goes back to where it was opened (FR-41)", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await goTo(user, /^Tasks/);
+    await user.click(await screen.findByRole("button", { name: "Open Refactor the tray menu" }));
+    const dialog = await screen.findByRole("dialog");
+    const title = within(dialog).getByRole("textbox", { name: "Title" });
+    await user.clear(title);
+    await user.type(title, "Refactor the tray");
+    await user.click(within(dialog).getByRole("button", { name: "Save changes" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(await screen.findByText("Task saved")).toBeTruthy();
+    expect(await screen.findByRole("button", { name: "Open Refactor the tray" })).toBeTruthy();
+  });
+
   it("a note previews as Markdown, never as raw HTML", async () => {
     const user = userEvent.setup();
     render(<App />);
