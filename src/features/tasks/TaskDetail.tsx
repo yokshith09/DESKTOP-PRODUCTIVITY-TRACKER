@@ -182,7 +182,7 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
         {!finished && plan.mode === "one" && (
           <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/30 p-3">
             <span className="mr-1 text-xs font-medium text-muted-foreground">Defer</span>
-            <Button size="sm" variant="outline" onClick={() => void actions.defer(task.id, tomorrow)}>Tomorrow</Button>
+            <Button size="sm" variant="outline" aria-label="Defer to tomorrow" onClick={() => void actions.defer(task.id, tomorrow)}>Tomorrow</Button>
             <Input type="date" value={deferTo} min={tomorrow} onChange={(e) => setDeferTo(e.target.value)} aria-label="Defer to" className="w-40" />
             <Button size="sm" variant="outline" disabled={!deferTo} onClick={() => void actions.defer(task.id, deferTo).then(() => setDeferTo(""))}>Move</Button>
           </div>

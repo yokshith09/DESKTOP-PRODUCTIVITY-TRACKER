@@ -135,7 +135,7 @@ describe("Notes screen (against the in-memory shell)", () => {
     expect(await within(dialog).findByRole("button", { name: "Pause" })).toBeTruthy();
     await user.type(within(dialog).getByRole("textbox", { name: "New work update" }), "wired the menu{Enter}");
     expect(await within(dialog).findByText("wired the menu")).toBeTruthy();
-    await user.click(within(dialog).getByRole("button", { name: "Tomorrow" }));
+    await user.click(within(dialog).getByRole("button", { name: "Defer to tomorrow" }));
     await user.click(await within(dialog).findByRole("button", { name: "Complete" }));
     expect(await within(dialog).findByRole("button", { name: "Reopen" })).toBeTruthy();
     // A finished task can be deleted, after a confirmation.
