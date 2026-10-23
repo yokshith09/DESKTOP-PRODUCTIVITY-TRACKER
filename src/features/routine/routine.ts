@@ -15,7 +15,7 @@ export interface RoutineState {
   /** The day `done` belongs to (local YYYY-MM-DD). */
   day: string;
   done: string[];
-  /** Past days: day → ids done that day (kept for streaks). */
+  /** Past days: day → ids done that day (kept for the weekly count, FR-90). */
   history: Record<string, string[]>;
   remind: { on: boolean; at: string };
   /** The day the pending reminder was last shown, so it fires at most once a day. */
@@ -69,16 +69,18 @@ export const toggle = (s: RoutineState, id: string): RoutineState =>
 /** Items not ticked today. */
 export const pending = (s: RoutineState): RoutineItem[] => s.items.filter((i) => !s.done.includes(i.id));
 
-/** Days in a row (up to yesterday, plus today if already ticked) this item was done. */
-export function streak(s: RoutineState, id: string, today: string): number {
+/**
+ * On how many of the last 7 days (today included) this item was done (FR-90, no-guilt rule):
+ * a missed day never wipes the count the way a streak would.
+ */
+export function weekCount(s: RoutineState, id: string, today: string): number {
   let n = s.done.includes(id) ? 1 : 0;
   const d = new Date(`${today}T12:00:00`);
-  for (;;) {
+  for (let i = 1; i < 7; i++) {
     d.setDate(d.getDate() - 1);
-    const key = ymd(d);
-    if (!s.history[key]?.includes(id)) return n;
-    n += 1;
+    if (s.history[ymd(d)]?.includes(id)) n += 1;
   }
+  return n;
 }
 
 /** The reminder text, or null when there is nothing to say. */

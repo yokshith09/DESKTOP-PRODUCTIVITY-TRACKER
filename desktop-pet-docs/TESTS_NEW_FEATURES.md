@@ -116,3 +116,17 @@ Last run 2026-10-23: front-end 175 passed / 5 skipped (27 files); Rust 386 passe
 
 **Automated:** `crates/loaf-core/src/meetings.rs` converting test (planned for today) · `src/App.test.tsx` "a task made from a meeting shows on Today with the meeting named (FR-52)".
 **Manual (Windows):** Meetings → open a meeting → action item → **Convert to task** → Today shows the task with a purple chip naming the meeting; hover shows "From the meeting “…”".
+
+---
+
+## FR-96 Notification budget · FR-90 forgiving routine · FR-92 no-guilt
+
+**Automated:** `src/lib/nudges.test.ts` (once per kind per day, 1 h gap, 4/day cap, quiet hours, broken data) · `src/features/routine/routine.test.ts` "counts days done in the last week, and a missed day never wipes it" · `RoutineCard.test.tsx` "respects the notification budget" · `src/lib/noGuilt.test.ts` (scans all UI strings for shaming copy; self-check).
+**Manual (Windows):** tick an item two days in a row → "2/7" appears; skip a day → it stays (not reset). Get the greeting and then set the routine reminder for 10 minutes later → the reminder waits (1-hour gap). After 22:00 nothing pops up.
+
+## FR-93 / FR-94 Pet age, birthdays, hello once a day
+
+**Automated:** `src/features/companion/companion.test.ts` (age counting, birthdays incl. not on day 0, greeting wording by time, one greeting a day with birthdays first, broken data) · `CompanionPanel.test.tsx` (pet birthday fixed on first use, name + birthday saved without year, hello toggle, greets once by name and not again, birthday wish, silent when off or in quiet hours).
+**Manual (Windows):** Character → About you and your pet → type your name, pick a birthday → "Loaf is born today" on day 1. Quit and restart Loaf (or lock/unlock the PC) on a new day after 08:00 → the pet says "Good morning, <name>!" once; restarting again the same day shows nothing. Set your birthday to today (and clear the day's greeting by waiting until tomorrow) → "Happy birthday, <name>! 🎂".
+
+Last run 2026-10-23 (end of phase): front-end 198 passed / 5 skipped (31 files); Rust 386 passed; lint, typecheck, fmt clean.

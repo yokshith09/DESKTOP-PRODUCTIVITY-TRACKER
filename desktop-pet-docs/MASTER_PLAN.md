@@ -217,3 +217,11 @@ FR-84 community website + upload server (P7, backend reopened for it, **Supabase
 - **No-guilt rule:** the pet never punishes or sulks at a missed day; streaks are forgiving (FR-90, planned: a missed day pauses, doesn't reset; weekly "best run" view).
 - **Earned growth:** pet growth from finished focus sessions and routine ticks, paced per user, first milestone within a day; included in export/import (FR-91, planned, M13).
 - **Study hours per subject** moves into the student pack (FR-58) as its headline feature.
+
+---
+
+## Companion principles (owner 2026-10-23) — `docs/features/FR-92-97-companion-principles.md`
+Rules for every feature: **no-guilt rule** (FR-92, enforced by a test), **attention ladder** (ambient → glance → card → system notification only for user-set reminders), **notification budget** (FR-96: once per kind per day, ≤4/day, ≥1 h apart, quiet hours).
+Built this phase (Unverified): FR-90 forgiving routine "N/7", FR-92 copy check, FR-93 pet age + birthdays, FR-94 hello once a day, FR-96 budget.
+Planned: FR-91 earned growth + unlocks (M13), FR-95 full backup incl. pets (M0), FR-97 friends-only study groups and recap card (P7, Supabase).
+Study hours: **partly solved** (app/site time + categories built; study hours per subject, timetable and sharing planned in FR-58/FR-97).

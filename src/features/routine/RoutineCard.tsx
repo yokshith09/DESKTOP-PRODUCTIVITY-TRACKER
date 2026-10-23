@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Bell, BellOff, Check, Flame, Plus, Repeat, X } from "lucide-react";
+import { Bell, BellOff, Check, Plus, Repeat, X } from "lucide-react";
 import { Tile } from "@/features/shell/PageHeader";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { addItem, pending, removeItem, renameItem, streak, toggle, MAX_ITEMS, TITLE_MAX } from "./routine";
+import { addItem, pending, removeItem, renameItem, toggle, weekCount, MAX_ITEMS, TITLE_MAX } from "./routine";
 import { useRoutine } from "./useRoutine";
 
 /** Small progress ring: how much of today's routine is done. */
@@ -80,7 +80,7 @@ export function RoutineCard({ className }: { className?: string }) {
         <ul className="min-h-0 flex-1 space-y-0.5 overflow-y-auto" aria-label="Routine items">
           {state.items.map((item) => {
             const done = state.done.includes(item.id);
-            const days = streak(state, item.id, today);
+            const days = weekCount(state, item.id, today);
             return (
               <li key={item.id} className="group flex items-center gap-2 rounded-md px-1 py-1 hover:bg-accent/50">
                 <button
@@ -107,9 +107,10 @@ export function RoutineCard({ className }: { className?: string }) {
                     {item.title}
                   </button>
                 )}
+                {/* FR-90: "5/7" this week, never a streak that resets (no-guilt rule). */}
                 {days >= 2 && (
-                  <span className="flex items-center gap-0.5 text-[11px] tabular-nums text-muted-foreground" title={`${days} days in a row`}>
-                    <Flame className="size-3 text-primary" />{days}
+                  <span className="text-[11px] tabular-nums text-muted-foreground" title={`Done on ${days} of the last 7 days`}>
+                    {days}/7
                   </span>
                 )}
                 <button

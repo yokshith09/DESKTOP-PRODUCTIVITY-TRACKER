@@ -14,10 +14,11 @@ afterEach(() => { cleanup(); vi.restoreAllMocks(); notify.info.mockReset(); });
 
 /** Preferences kept in memory, like the real store. */
 function store(initial: unknown) {
-  let saved = initial;
-  vi.spyOn(ipc, "prefsGet").mockImplementation(async () => saved as never);
-  const set = vi.spyOn(ipc, "prefsSet").mockImplementation(async (_k, v) => { saved = v; return null; });
-  return { set, get: () => saved as { done: string[]; items: { title: string }[]; remindedOn: string | null } };
+  // Quiet hours off so the test doesn't depend on the time it runs.
+  const prefs = new Map<string, unknown>([["ui.routine", initial], ["ui.nudges", { days: {}, last: null, quiet: { on: false, from: "22:00", to: "08:00" } }]]);
+  vi.spyOn(ipc, "prefsGet").mockImplementation(async (k: string) => (prefs.get(k) ?? null) as never);
+  const set = vi.spyOn(ipc, "prefsSet").mockImplementation(async (k, v) => { prefs.set(k, v); return null; });
+  return { set, get: () => prefs.get("ui.routine") as { done: string[]; items: { title: string }[]; remindedOn: string | null }, prefs };
 }
 
 const wrap = (node: React.ReactNode) => render(
@@ -85,6 +86,14 @@ describe("routine reminder (FR-85)", () => {
     store({ items, day: today, done: [], history: {}, remind: { on: true, at: "00:00" }, remindedOn: today });
     wrap(<Reminder />);
     await new Promise((r) => setTimeout(r, 50));
+    expect(notify.info).not.toHaveBeenCalled();
+  });
+
+  it("respects the notification budget: no reminder if another nudge was shown in the last hour (FR-96)", async () => {
+    const s = store({ items, day: today, done: [], history: {}, remind: { on: true, at: "00:00" }, remindedOn: null });
+    s.prefs.set("ui.nudges", { days: {}, last: Date.now() - 5 * 60_000, quiet: { on: false, from: "22:00", to: "08:00" } });
+    wrap(<Reminder />);
+    await waitFor(() => expect(s.get().remindedOn).toBe(today));
     expect(notify.info).not.toHaveBeenCalled();
   });
 });

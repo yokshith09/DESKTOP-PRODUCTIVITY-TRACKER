@@ -4,6 +4,7 @@ import { Plug } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { useRoutineReminder } from "@/features/routine/useRoutine";
+import { useDailyGreeting } from "@/features/companion/useCompanion";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useBin, useBusSync, useLabels, useNoteActions, useNotes } from "@/hooks/useLoaf";
 import { useAgenda } from "@/features/overview/TodayAgenda";
@@ -41,6 +42,8 @@ function Screen() {
   const firstRun = useFirstRun();
   // FR-85: "You have N daily routine tasks pending", once a day at the chosen time.
   useRoutineReminder();
+  // FR-93/94: hello once a day, and birthdays.
+  useDailyGreeting();
   const actions = useNoteActions();
   const { data: allNotes = [] } = useNotes(false, null, "last_edited");
   const { data: labels = [] } = useLabels();

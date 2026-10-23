@@ -132,8 +132,14 @@ Legend: **Requested** = in the owner's list; **Technical requirement (TR)** = de
 | FR-87 | Pet reacts to every feature; user picks reaction per event | Companion | Planned | M6 | M | — |
 | FR-88 | "Now strip" beside the pet: current task, timer, next deadline | Companion | Planned | P2 | S | Research 2026-10-23 |
 | FR-89 | Quiet modes: choose monitor, hide in full-screen and meetings | Companion | Planned | P2 | S | Research 2026-10-23 |
-| FR-90 | Forgiving streaks (no-guilt rule): a missed day pauses, weekly best run | Wellbeing | Planned | FM-ST | S | Social research |
+| FR-90 | Forgiving routine progress: "N of last 7 days", nothing resets | Wellbeing | Built, Unverified | FM-V2 | S | Social research |
 | FR-91 | Earned pet growth paced per user, in export/import | Companion | Planned | M13 | M | Social research |
+| FR-92 | No-guilt rule + automated copy check | All | Built (test) | — | S | Owner 2026-10-23 |
+| FR-93 | Pet age and birthdays (pet = day you met; user day+month) | Companion | Built, Unverified | M6 | S | Owner 2026-10-23 |
+| FR-94 | Greeting once a day, birthdays first | Companion | Built, Unverified | M6 | S | Owner 2026-10-23 |
+| FR-95 | Full backup (.loafbackup incl. pet packs), weekly auto-backup to a chosen folder | Data | Planned | M0 | M | Owner 2026-10-23 |
+| FR-96 | Notification budget + quiet hours | Shell | Built, Unverified | FM-V2 | S | Owner 2026-10-23 |
+| FR-97 | Friends/study groups, friends-only opt-in leaderboard, weekly recap card | Social | Planned | P7 | L | Backend (Supabase) |
 | FR-58 | Student pack | Students | Planned; quiz waits for AI | FM-ST | L | — |
 
 **Verified existing (Unverified on real OS, tests pass):** FR-19 tracking, ROADMAP M1–M3 features. **Partial:** FR-01, FR-20, FR-22, FR-27. Everything else: Planned or Blocked. Nothing is "Complete" on a real OS.

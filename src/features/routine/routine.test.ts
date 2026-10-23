@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  MAX_ITEMS, addItem, emptyRoutine, msUntil, parseRoutine, pending, pendingMessage, removeItem, renameItem, rollOver, shouldRemind, streak, toggle,
+  MAX_ITEMS, addItem, emptyRoutine, msUntil, parseRoutine, pending, pendingMessage, removeItem, renameItem, rollOver, shouldRemind, toggle, weekCount,
 } from "./routine";
 
 const DAY = "2026-10-23";
@@ -41,13 +41,16 @@ describe("daily routine model (FR-85)", () => {
     expect(rollOver(s, "2026-10-24")).toBe(s);
   });
 
-  it("counts streaks across days", () => {
-    let s = toggle(base(), "w");
-    s = toggle(rollOver(s, "2026-10-24"), "w");
-    s = rollOver(s, "2026-10-25");
-    expect(streak(s, "w", "2026-10-25")).toBe(2);
-    expect(streak(toggle(s, "w"), "w", "2026-10-25")).toBe(3);
-    expect(streak(s, "g", "2026-10-25")).toBe(0);
+  it("counts days done in the last week, and a missed day never wipes it (FR-90)", () => {
+    let s = toggle(base(), "w"); // 23rd done
+    s = toggle(rollOver(s, "2026-10-24"), "w"); // 24th done
+    s = rollOver(s, "2026-10-25"); // 25th missed
+    s = rollOver(s, "2026-10-26"); // 26th
+    expect(weekCount(s, "w", "2026-10-26")).toBe(2);
+    expect(weekCount(toggle(s, "w"), "w", "2026-10-26")).toBe(3);
+    expect(weekCount(s, "g", "2026-10-26")).toBe(0);
+    // A week later the old days fall out of the window, gently.
+    expect(weekCount(rollOver(s, "2026-11-05"), "w", "2026-11-05")).toBe(0);
   });
 
   it("says how many are pending in plain words", () => {

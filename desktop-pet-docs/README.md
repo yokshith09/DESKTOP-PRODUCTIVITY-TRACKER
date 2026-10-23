@@ -30,7 +30,8 @@ desktop-pet-docs/
     │   ├── FR-v2-features.md          FR-41…FR-58
     │   ├── FR-openpets-parity.md      FR-59…FR-82
     │   ├── FR-83-role-profiles.md     role-based defaults
-    │   └── FR-84-87-owner-requests.md community server, routine, diary, reactions
+    │   ├── FR-84-87-owner-requests.md community server, routine, diary, reactions
+    │   └── FR-92-97-companion-principles.md  no-guilt, attention ladder, budget, birthdays, backup
     ├── character/                ← character, emote, Studio specs
     ├── competitors/              ← OpenPets research
     ├── business/                 ← market + social research, direction, GTM sheet, money

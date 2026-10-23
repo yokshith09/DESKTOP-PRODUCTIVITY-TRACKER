@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ipc, petSay } from "@/ipc";
 import { ymd } from "@/lib/dates";
 import { notify } from "@/lib/notify";
+import { tryNudge } from "@/features/companion/useCompanion";
 import { msUntil, parseRoutine, pendingMessage, shouldRemind, type RoutineState } from "./routine";
 
 export const ROUTINE_KEY = ["prefs", "ui.routine"] as const;
@@ -32,12 +33,14 @@ export function useRoutineReminder() {
       const today = ymd(now);
       if (!shouldRemind(state, now, today)) return;
       const message = pendingMessage(state);
-      if (message) {
-        notify.info(message, { description: "Open Today to tick them off." });
+      void save({ ...state, remindedOn: today });
+      if (!message) return;
+      // Through the notification budget (FR-96): never spammy, never in quiet hours.
+      void tryNudge("routine", now, () => {
+        notify.info(message, { description: "No rush — open Today when you're ready." });
         // And above the pet, where it's seen even when the dashboard is closed (FR-43).
         void petSay({ text: message, pose: "wait", ms: 10_000 });
-      }
-      void save({ ...state, remindedOn: today });
+      });
     };
     check();
     const wait = msUntil(state.remind.at, new Date());

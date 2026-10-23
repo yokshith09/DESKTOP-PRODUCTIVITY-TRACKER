@@ -271,3 +271,10 @@ Still open: none of Q1-Q7 except the Q4 spike result.
 
 - 2026-10-23: **Supabase** chosen for the community pets backend (FR-84). Routine reminder now also above the pet. Meeting tasks planned for today with the meeting named on Today (FR-52).
 - 2026-10-23: Firecrawl social research saved (`docs/business/SOCIAL_RESEARCH_2026-10-23.md`). Reddit/LinkedIn/Instagram remain unreadable even with Firecrawl (excerpts only); Product Hunt and openpets.dev read in full. Adopted: no-guilt rule (FR-90), earned growth (FR-91), study hours per subject as the student pack's headline.
+
+## 2026-10-23 — Companion principles (owner)
+- Never make the user feel guilty (no-guilt rule, FR-92, test-enforced). Pets signal, never demand (attention ladder). No notification spam (FR-96 budget + quiet hours).
+- Pet ages from the day you met, remembers the user's and its own birthday, greets once a day (FR-93/94). Year of birth never asked.
+- Leaderboards only among friends, opt-in, weekly reset (FR-97) — no public global leaderboard (it recreates guilt/comparison).
+- Backup: data export already includes preferences (routine, companion, chosen pet); FR-95 adds pet pack files and an automatic weekly backup to a folder the user picks (works with OneDrive/Drive folders, no server).
+- Release: the owner wants to release after this phase. The source version is locked at 0.2.0 (D-VERSION, "leave it") and v0.2.0 already exists, so a new release needs a new version number — **owner to choose** (proposed 0.3.0).

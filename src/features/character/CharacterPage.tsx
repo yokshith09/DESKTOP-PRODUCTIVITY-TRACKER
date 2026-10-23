@@ -6,6 +6,7 @@ import { BACK_TURN_SHAKE, playEmote, type EmoteRun } from "@/pet/emotes";
 import { CHARACTERS, CHARACTER_POSES, type CharacterPose } from "./Characters";
 import { TURNED_VIEWS } from "./CharacterViews";
 import { PetLibrary } from "./PetLibrary";
+import { CompanionPanel } from "@/features/companion/CompanionPanel";
 import type { TurnedPose } from "@/features/shell/BearViews";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
@@ -151,6 +152,7 @@ export function CharacterPage() {
         </Panel>
       </div>
       <PetLibrary />
+      <CompanionPanel />
       <section aria-label="More characters" className="mt-6">
         <h2 className="text-[15px] font-semibold">More characters <span className="ml-1 rounded-md bg-primary/15 px-1.5 py-0.5 text-[11px] font-medium text-primary">Preview</span></h2>
         <p className="mt-0.5 text-xs text-muted-foreground">Coming in a later version. Each one types along with you, cheers when you finish, and naps when you rest.</p>
