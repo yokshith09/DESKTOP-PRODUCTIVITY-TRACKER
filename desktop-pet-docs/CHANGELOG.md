@@ -5,6 +5,10 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-10-23 (draft for owner testing; Unverified)
+
+Everything below "Unreleased" up to v2.0.0: notifications above the pet, task links / stars / chosen days / repeating tasks, focus sessions with the timer by the pet, hover-card shortcuts, auto-delete with a task Bin, date presets, editable pet shortcut, Time tile layout, open tabs on the Time page, pet-visibility fixes, macOS Arc/Firefox/Safari, pet library with ZIP import, companion features. Database updates 004–006 (backed up automatically before migrating).
+
 - Added (2026-10-23, Unverified): **Time tile layout** (FR-44): Wide list / Even / Stacked and Short / Medium / Tall, remembered; every choice fills the row (snapped presets, not free dragging). **Open tabs always on the Time page** (FR-62), with a one-click "Turn on app and website time" when tracking is off.
 
 - Added (2026-10-23, Unverified): **date presets** (FR-45) under date fields — Today, Tomorrow, This weekend, Next week, In 3 days — and time presets for reminders — In 1 hour, This evening, Tomorrow 9:00, Monday 9:00 (task deadline and planned day, quick edit on Today, reminders, meeting follow-up). **Pet shortcut is editable and off by default** (FR-48, setting `shortcuts.global_pet`); the pet menu shows it only when set. Note: people who used Ctrl/⌘+Shift+P before need to set it again in Settings.
