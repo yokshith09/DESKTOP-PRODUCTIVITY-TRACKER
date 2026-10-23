@@ -50,6 +50,7 @@ export const ipc = {
   petOpenTabs: () => call<OpenTab[]>("pet_open_tabs"),
   petsList: () => call<PetPack[]>("pets_list"),
   petsImport: () => call<PetPack | null>("pets_import"),
+  petsImportZip: () => call<PetPack | null>("pets_import_zip"),
   petsRemove: (id: string) => call<unknown>("pets_remove", { id }),
   petsSheet: (id: string) => call<string>("pets_sheet", { id }),
   petCloseTab: (browser: string, windowIndex: number, tabIndex: number) =>

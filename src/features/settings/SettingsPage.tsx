@@ -1,6 +1,7 @@
 import { PageHeader } from "@/features/shell/PageHeader";
 import { mod } from "@/lib/platform";
 import { DataSection } from "./DataSection";
+import { NudgeSettings } from "./NudgeSettings";
 import { Row, Section } from "./parts";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -82,6 +83,7 @@ export function SettingsPage() {
           </div>
         </Row>
       </Section>
+      <NudgeSettings />
       <Section title="Desktop pet">
         <Row label="Show the pet" hint={`Loaf the bear sits on your desktop. Click to open Loaf, double-click to hide it, right-click for options, drag to move. ${mod}+Shift+P shows or hides it.`}>
           <Switch checked={petVisible ?? true} onCheckedChange={(v) => void setPetVisible(v)} aria-label="Show the pet" />

@@ -56,7 +56,17 @@ describe("pet library", () => {
     vi.spyOn(ipc, "petsImport").mockResolvedValue(mine);
     renderLibrary();
     expect(await screen.findByText(/No pets yet/)).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: /Import pet folder/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Import folder/ }));
+    await waitFor(() => expect(list).toHaveBeenCalledTimes(2));
+  });
+
+  it("imports a downloaded pet ZIP and refreshes the list", async () => {
+    const list = vi.spyOn(ipc, "petsList").mockResolvedValue([]);
+    const zip = vi.spyOn(ipc, "petsImportZip").mockResolvedValue({ ...mine, id: "kayadu-lohar", display_name: "Kayadu" });
+    renderLibrary();
+    expect(await screen.findByText(/No pets yet/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /Import ZIP/ }));
+    await waitFor(() => expect(zip).toHaveBeenCalled());
     await waitFor(() => expect(list).toHaveBeenCalledTimes(2));
   });
 

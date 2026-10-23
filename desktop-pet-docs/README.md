@@ -4,7 +4,7 @@ A lightweight, local-first desktop companion for Windows and macOS: notes, tasks
 
 **Where things stand:** [`PROJECT_STATUS.md`](PROJECT_STATUS.md) (evidence, defects, next actions) · [`ROADMAP.md`](ROADMAP.md) (milestones) · [`DECISIONS.md`](DECISIONS.md) · [`CHANGELOG.md`](CHANGELOG.md). Start with the status file.
 
-**Status:** 🔒 **D0–D7 locked** (2026-10-03). The app is built and running in CI on Windows and macOS: core logic, notes, tasks, reminders, time tracking and the dashboard exist. **Active milestone: M1 — Notes + daily work (first release).** See [`PROJECT_STATUS.md`](PROJECT_STATUS.md) for what works, what is unverified and what is missing.
+**Status:** 🔒 **D0–D7 locked** (2026-10-03). The app is built and running in CI on Windows and macOS: core logic, notes, tasks, reminders, time tracking and the dashboard exist. **Active work (2026-10-23): FM-V2 fix pack + companion features, per [`MASTER_PLAN.md`](MASTER_PLAN.md).** M1-M3 are code-complete; the owner reports they work in v2.0.0 (written test results still pending). See [`PROJECT_STATUS.md`](PROJECT_STATUS.md) for what works, what is unverified and what is missing.
 
 ## Non-negotiables
 Event-driven (no polling) · Idle CPU <1% · RAM <100 MB · Local-first SQLite · Pet present from v1 · Windows + macOS parity
@@ -23,6 +23,8 @@ desktop-pet-docs/
 ├── TESTS_NEW_FEATURES.md     ← tests for everything built after v2.0.0 (automated + manual)
 └── docs/
     ├── BLOCKERS_AND_OPTIONS.md   ← every blocker, options, recommendation
+    ├── BUG_REPORT_2026-10-23_pet_visibility.md ← pet not coming back: causes + fixes
+    ├── OS_PARITY.md              ← what works on Windows / macOS / Linux
     ├── V2_ISSUES.md              ← owner's V2 bug list → features
     ├── features/                 ← full specs (13 sections each)
     │   ├── F0-*                  foundation (built)
@@ -31,7 +33,8 @@ desktop-pet-docs/
     │   ├── FR-openpets-parity.md      FR-59…FR-82
     │   ├── FR-83-role-profiles.md     role-based defaults
     │   ├── FR-84-87-owner-requests.md community server, routine, diary, reactions
-    │   └── FR-92-97-companion-principles.md  no-guilt, attention ladder, budget, birthdays, backup
+    │   ├── FR-92-97-companion-principles.md  no-guilt, attention ladder, budget, birthdays, backup
+    │   └── FR-98-103-growth-plan.md   festival outfits, recap, groups, leaderboard, drops, photo-to-pet
     ├── character/                ← character, emote, Studio specs
     ├── competitors/              ← OpenPets research
     ├── business/                 ← market + social research, direction, GTM sheet, money

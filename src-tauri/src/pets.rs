@@ -71,6 +71,37 @@ pub async fn pets_import(app: AppHandle, paths: State<'_, AppPaths>) -> Result<O
         .map_err(|_| AppError::internal("Importing the pet stopped unexpectedly."))?
 }
 
+/// Pick a pet ZIP (as downloaded from a gallery) and install it. None if the person cancels.
+#[tauri::command]
+pub async fn pets_import_zip(
+    app: AppHandle,
+    paths: State<'_, AppPaths>,
+) -> Result<Option<PetPack>> {
+    let picker = app.clone();
+    let chosen = tauri::async_runtime::spawn_blocking(move || {
+        picker
+            .dialog()
+            .file()
+            .add_filter("Pet pack", &["zip"])
+            .blocking_pick_file()
+    })
+    .await
+    .map_err(|_| AppError::internal("The file picker stopped unexpectedly."))?;
+    let Some(chosen) = chosen else {
+        return Ok(None);
+    };
+    let zip = chosen
+        .into_path()
+        .map_err(|_| AppError::io("Loaf can't open that file."))?;
+    let dest = loaf_dir(paths.inner());
+    tauri::async_runtime::spawn_blocking(move || {
+        std::fs::create_dir_all(&dest).map_err(|e| AppError::io(e.to_string()))?;
+        pets::install_zip(&zip, &dest).map(Some)
+    })
+    .await
+    .map_err(|_| AppError::internal("Importing the pet stopped unexpectedly."))?
+}
+
 /// Remove a pack Loaf copied in. Codex's own packs are never deleted from here.
 #[tauri::command]
 pub async fn pets_remove(id: String, paths: State<'_, AppPaths>) -> Result<()> {

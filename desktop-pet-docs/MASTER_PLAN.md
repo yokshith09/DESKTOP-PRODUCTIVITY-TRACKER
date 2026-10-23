@@ -1,5 +1,7 @@
 # Loaf — Master plan (phases, milestones, features)
 
+> **Active work (2026-10-23): FM-V2 fix pack + companion features + fixing the pet-visibility bugs (report: `docs/BUG_REPORT_2026-10-23_pet_visibility.md`).** M1-M3 are code-complete (owner: works in v2.0.0).
+
 > **Planning is closed (owner, 2026-10-22).** From here we only build, top to bottom. New ideas go to DECISIONS.md as one line and wait for the next planning round. Blockers and the ways to unblock them: [`docs/BLOCKERS_AND_OPTIONS.md`](docs/BLOCKERS_AND_OPTIONS.md).
 
 **Date:** 2026-10-22 · **Source version:** 0.2.0 (owner label v2.0.0) · **Positioning:** student-first, local-first desktop pet + productivity.
@@ -225,3 +227,12 @@ Rules for every feature: **no-guilt rule** (FR-92, enforced by a test), **attent
 Built this phase (Unverified): FR-90 forgiving routine "N/7", FR-92 copy check, FR-93 pet age + birthdays, FR-94 hello once a day, FR-96 budget.
 Planned: FR-91 earned growth + unlocks (M13), FR-95 full backup incl. pets (M0), FR-97 friends-only study groups and recap card (P7, Supabase).
 Study hours: **partly solved** (app/site time + categories built; study hours per subject, timetable and sharing planned in FR-58/FR-97).
+
+---
+
+## 2026-10-23 (afternoon)
+- Built (Unverified): Import ZIP for pets (owner's Kayadu pack imports), Settings → Pet notifications (budget and quiet hours adjustable).
+- Diagnosed, not fixed: pet-visibility bugs B1-B6 and similar S1-S4 — **next to fix after owner review**.
+- Planned: FR-98 festival outfits · FR-99 weekly recap · FR-100 study groups · FR-101 leaderboard visibility Off/Friends/Everyone · FR-102 monthly pet drops · FR-103 photo to pet (`docs/features/FR-98-103-growth-plan.md`).
+- Student pack preview (study hours per subject, timetable, friends) published for owner review before building FR-58.
+- OS parity: `docs/OS_PARITY.md`.

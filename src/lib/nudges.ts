@@ -13,9 +13,14 @@ export interface NudgeState {
   days: Record<string, string[]>;
   last: number | null;
   quiet: { on: boolean; from: string; to: string };
+  /** User-adjustable (Settings → Pet notifications): nudges a day and minutes between them. */
+  maxPerDay: number;
+  gapMin: number;
 }
 
-export const emptyNudges = (): NudgeState => ({ days: {}, last: null, quiet: { on: true, from: "22:00", to: "08:00" } });
+export const emptyNudges = (): NudgeState => ({ days: {}, last: null, quiet: { on: true, from: "22:00", to: "08:00" }, maxPerDay: DAILY_MAX, gapMin: GAP_MS / 60_000 });
+export const MAX_PER_DAY_RANGE = [1, 10] as const;
+export const GAP_CHOICES = [15, 30, 60, 120, 240] as const;
 
 export function parseNudges(raw: unknown): NudgeState {
   if (!raw || typeof raw !== "object") return emptyNudges();
@@ -25,6 +30,8 @@ export function parseNudges(raw: unknown): NudgeState {
     days: r.days && typeof r.days === "object" ? r.days : {},
     last: typeof r.last === "number" ? r.last : null,
     quiet: { on: r.quiet?.on !== false, from: hhmm(r.quiet?.from, "22:00"), to: hhmm(r.quiet?.to, "08:00") },
+    maxPerDay: typeof r.maxPerDay === "number" && r.maxPerDay >= MAX_PER_DAY_RANGE[0] && r.maxPerDay <= MAX_PER_DAY_RANGE[1] ? Math.round(r.maxPerDay) : DAILY_MAX,
+    gapMin: typeof r.gapMin === "number" && (GAP_CHOICES as readonly number[]).includes(r.gapMin) ? r.gapMin : GAP_MS / 60_000,
   };
 }
 
@@ -44,8 +51,8 @@ export function inQuietHours(s: NudgeState, now: Date): boolean {
 /** May Loaf show a nudge of this kind now? */
 export function canNudge(s: NudgeState, kind: string, now: Date): boolean {
   const today = s.days[ymd(now)] ?? [];
-  if (today.includes(kind) || today.length >= DAILY_MAX) return false;
-  if (s.last !== null && now.getTime() - s.last < GAP_MS) return false;
+  if (today.includes(kind) || today.length >= (s.maxPerDay ?? DAILY_MAX)) return false;
+  if (s.last !== null && now.getTime() - s.last < (s.gapMin ?? GAP_MS / 60_000) * 60_000) return false;
   return !inQuietHours(s, now);
 }
 

@@ -2,11 +2,13 @@
 //! `spritesheet.webp` (or `.svg`), 8 columns of 192x208 cells, 9 rows (V1) or 11 (V2).
 //!
 //! Packs are art only: nothing in them is ever run. This module checks a folder, copies a good
-//! one into Loaf's own pets folder, and lists what is installed. ZIP files are not handled yet.
+//! one into Loaf's own pets folder, and lists what is installed. A pack can also come as a ZIP
+//! (`install_zip`): only `pet.json` and the spritesheet are taken out of it, safely.
 
 use crate::error::{AppError, Result};
 use serde::{Deserialize, Serialize};
 use std::fs;
+use std::io::Read;
 use std::path::{Path, PathBuf};
 
 pub const CELL_W: u32 = 192;
@@ -185,6 +187,76 @@ pub fn install(src: &Path, pets_dir: &Path) -> Result<PetPack> {
     Ok(pack)
 }
 
+/// Largest ZIP we open, and the most we unpack from it.
+pub const ZIP_MAX_BYTES: u64 = 25 * 1024 * 1024;
+const UNPACK_MAX_BYTES: u64 = 30 * 1024 * 1024;
+
+/// Install a pack from a ZIP file. The pack may sit at the top of the ZIP or inside one folder.
+/// Only `pet.json` and `spritesheet.webp|svg` are unpacked (to a temporary folder, then checked
+/// and copied by [`install`]); paths that escape the folder, links and oversized files are
+/// refused, and nothing in the ZIP is ever run.
+pub fn install_zip(zip_path: &Path, pets_dir: &Path) -> Result<PetPack> {
+    let io = |e: std::io::Error| AppError::io(e.to_string());
+    let bad_zip = |e: zip::result::ZipError| bad(format!("the ZIP could not be read: {e}"));
+    if fs::metadata(zip_path).map_err(io)?.len() > ZIP_MAX_BYTES {
+        return Err(bad("the ZIP is larger than 25 MB"));
+    }
+    let mut archive =
+        zip::ZipArchive::new(fs::File::open(zip_path).map_err(io)?).map_err(bad_zip)?;
+    // Where pet.json is decides the pack's folder inside the ZIP ("" or "name/").
+    let mut root: Option<String> = None;
+    for i in 0..archive.len() {
+        let f = archive.by_index(i).map_err(bad_zip)?;
+        let Some(path) = f.enclosed_name() else {
+            return Err(bad("the ZIP has an unsafe path"));
+        };
+        let p = path.to_string_lossy().replace('\\', "/");
+        let depth = p.matches('/').count();
+        if p.ends_with("pet.json") && depth <= 1 && (p == "pet.json" || p.ends_with("/pet.json")) {
+            let prefix = p.trim_end_matches("pet.json").to_owned();
+            if root.as_ref().is_some_and(|r| *r != prefix) {
+                return Err(bad("the ZIP holds more than one pet"));
+            }
+            root = Some(prefix);
+        }
+    }
+    let root = root.ok_or_else(|| bad("pet.json is missing from the ZIP"))?;
+    let tmp = pets_dir.join(".unzip.part");
+    let _ = fs::remove_dir_all(&tmp);
+    fs::create_dir_all(&tmp).map_err(io)?;
+    let mut unpacked = 0u64;
+    for i in 0..archive.len() {
+        let mut f = archive.by_index(i).map_err(bad_zip)?;
+        let name = f
+            .enclosed_name()
+            .map(|p| p.to_string_lossy().replace('\\', "/"))
+            .unwrap_or_default();
+        let Some(file) = name.strip_prefix(&root) else {
+            continue;
+        };
+        if !matches!(file, "pet.json" | "spritesheet.webp" | "spritesheet.svg") {
+            continue;
+        }
+        if f.is_symlink() || !f.is_file() {
+            return Err(bad(format!("{file} in the ZIP is not a plain file")));
+        }
+        let size = f.size();
+        unpacked += size;
+        if size > SHEET_MAX_BYTES || unpacked > UNPACK_MAX_BYTES {
+            return Err(bad(format!("{file} in the ZIP is too large")));
+        }
+        let mut out = fs::File::create(tmp.join(file)).map_err(io)?;
+        // Read at most the declared size + 1 so a lying header can't unpack forever.
+        let copied = std::io::copy(&mut (&mut f).take(size + 1), &mut out).map_err(io)?;
+        if copied > size {
+            return Err(bad(format!("{file} in the ZIP is larger than it says")));
+        }
+    }
+    let result = install(&tmp, pets_dir);
+    let _ = fs::remove_dir_all(&tmp);
+    result
+}
+
 /// Every good pack directly under `root` (bad ones are skipped). Sorted by name.
 pub fn scan(root: &Path, source: PetSource) -> Vec<(PetPack, PathBuf)> {
     let Ok(entries) = fs::read_dir(root) else {
@@ -324,5 +396,109 @@ mod tests {
         ids.sort_unstable();
         assert_eq!(ids, ["bear", "bolt", "ghosty", "mochi", "pip"]);
         assert!(found.iter().all(|(p, _)| p.rows == 9 && p.format == "webp"));
+    }
+
+    /// A ZIP holding `files` (name → bytes), written to `path`.
+    fn zip_of(path: &Path, files: &[(&str, &[u8])]) {
+        let mut w = zip::ZipWriter::new(fs::File::create(path).unwrap());
+        for (name, bytes) in files {
+            w.start_file(*name, zip::write::SimpleFileOptions::default())
+                .unwrap();
+            std::io::Write::write_all(&mut w, bytes).unwrap();
+        }
+        w.finish().unwrap();
+    }
+
+    fn pet_json(id: &str) -> Vec<u8> {
+        format!(r#"{{"id":"{id}","displayName":"Kayadu","description":"d","spritesheetPath":"spritesheet.webp"}}"#).into_bytes()
+    }
+
+    #[test]
+    fn installs_a_pack_from_a_zip_with_a_top_folder_and_extra_files() {
+        let t = tempfile::tempdir().unwrap();
+        let z = t.path().join("pack.zip");
+        let sheet = webp(1536, 1872);
+        zip_of(
+            &z,
+            &[
+                ("kayadu-loaf-pet/README.md", b"hi"),
+                ("kayadu-loaf-pet/pet.json", &pet_json("kayadu-lohar")),
+                ("kayadu-loaf-pet/spritesheet.webp", &sheet),
+                ("kayadu-loaf-pet/frame-map.json", b"{}"),
+            ],
+        );
+        let pets = t.path().join("pets");
+        let got = install_zip(&z, &pets).unwrap();
+        assert_eq!(
+            (got.id.as_str(), got.display_name.as_str()),
+            ("kayadu-lohar", "Kayadu")
+        );
+        // Only the pack files are kept; extras and the temporary folder are gone.
+        let mut kept: Vec<_> = fs::read_dir(pets.join("kayadu-lohar"))
+            .unwrap()
+            .map(|e| e.unwrap().file_name().into_string().unwrap())
+            .collect();
+        kept.sort();
+        assert_eq!(kept, ["pet.json", "spritesheet.webp"]);
+        assert!(!pets.join(".unzip.part").exists());
+    }
+
+    #[test]
+    fn installs_a_pack_from_a_zip_without_a_folder() {
+        let t = tempfile::tempdir().unwrap();
+        let z = t.path().join("flat.zip");
+        zip_of(
+            &z,
+            &[
+                ("pet.json", &pet_json("flat")),
+                ("spritesheet.webp", &webp(1536, 2288)),
+            ],
+        );
+        assert_eq!(install_zip(&z, &t.path().join("pets")).unwrap().rows, 11);
+    }
+
+    #[test]
+    fn refuses_bad_zips() {
+        let t = tempfile::tempdir().unwrap();
+        let pets = t.path().join("pets");
+        let none = t.path().join("none.zip");
+        zip_of(&none, &[("readme.txt", b"no pet here")]);
+        assert!(install_zip(&none, &pets)
+            .unwrap_err()
+            .message
+            .contains("pet.json"));
+        let two = t.path().join("two.zip");
+        zip_of(
+            &two,
+            &[
+                ("a/pet.json", &pet_json("a")),
+                ("b/pet.json", &pet_json("b")),
+            ],
+        );
+        assert!(install_zip(&two, &pets)
+            .unwrap_err()
+            .message
+            .contains("more than one"));
+        let small = t.path().join("small.zip");
+        zip_of(
+            &small,
+            &[
+                ("pet.json", &pet_json("small")),
+                ("spritesheet.webp", &webp(800, 600)),
+            ],
+        );
+        assert!(install_zip(&small, &pets)
+            .unwrap_err()
+            .message
+            .contains("800x600"));
+        let junk = t.path().join("junk.zip");
+        fs::write(&junk, b"not a zip").unwrap();
+        assert!(install_zip(&junk, &pets)
+            .unwrap_err()
+            .message
+            .contains("could not be read"));
+        let escape = t.path().join("escape.zip");
+        zip_of(&escape, &[("../pet.json", &pet_json("x"))]);
+        assert!(install_zip(&escape, &pets).is_err());
     }
 }

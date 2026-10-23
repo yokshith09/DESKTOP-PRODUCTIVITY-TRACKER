@@ -285,6 +285,7 @@ export function createMock() {
     tracking_status: () => ({ supported: true, running: settings["tracking.apps"] === true, enabled: settings["tracking.apps"] === true }),
     pets_list: () => [],
     pets_import: () => null,
+    pets_import_zip: () => null,
     pets_remove: () => null,
     pets_sheet: () => fail("NOT_FOUND", "No pets in the browser preview."),
     pet_open_tabs: () => (settings["tracking.apps"] === true && settings["tracking.sites"] === true ? openTabs : []),

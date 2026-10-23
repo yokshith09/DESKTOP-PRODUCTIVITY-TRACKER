@@ -45,7 +45,7 @@ The first release is **M1: Notes and daily work management (P0)**. Everything el
 | Milestone | Name | Contents | Status |
 |-----------|------|----------|--------|
 | **M0** | Foundation closure | Real-Windows run, autostart, export/import/delete, perf harness | 🟡 Partial |
-| **M1** | **Notes + daily work (P0, first release, v0.1.0)** | Notes, tasks, search, labels, dates, completion history, daily progress, release gate | 🟡 **Active — code complete, in verification (G1)** |
+| **M1** | **Notes + daily work (P0, first release, v0.1.0)** | Notes, tasks, search, labels, dates, completion history, daily progress, release gate | 🟡 Code complete; owner reports it works in v2.0.0 (written results pending). **Active work is now FM-V2 + companion (see Delivery order / MASTER_PLAN)** |
 | M2 | Phase 1 completion → v1.0.0 | Meetings, pet window, global shortcuts, settings screens, first run | 🟡 code complete; signing blocked on the owner |
 | M3 | Capture, browser tracking & privacy (Phase 2) | App/site time, extensions, macOS collector, open tabs, privacy-radar capture | 🟡 Feature-complete for the option-d scope; shipped as 0.2.0 for owner testing, **Unverified** on Windows and Mac |
 | M4 | Universal Quick Actions | Keyboard-accessible command centre: notes, tasks, search, AI actions | ⬜ |

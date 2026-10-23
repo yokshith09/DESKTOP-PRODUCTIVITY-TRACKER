@@ -105,7 +105,7 @@ Legend: **Requested** = in the owner's list; **Technical requirement (TR)** = de
 | FR-60 | Drag-and-throw and wander for the pet | Companion | Planned | M6 | M | — |
 | FR-61 | Rename links (V2-16) | Links | Built, Unverified | FM-V2 | S | — |
 | FR-62 | Browser tabs on the dashboard: switch and close, no extension (UI Automation) | Time | Built (tabs.rs), Unverified; hidden behind app+site tracking — make findable | FM-V2 | S | — |
-| FR-63 | Import any OpenPets/Codex pet pack | Companion | Partial, Unverified (folder + Codex scan + use as pet) | FM-CS | L | ZIP import to do |
+| FR-63 | Import any OpenPets/Codex pet pack | Companion | Partial, Unverified (folder, ZIP, Codex/Petdex scan, use as pet) | FM-CS | L | drag-and-drop to do |
 | FR-64 | Wardrobe: outfits and schedules (replaces FR-49) | Companion | Planned | FM-CS | L | — |
 | FR-65 | Activities (emotes as one-shot animations) | Companion | Planned | M6 | M | — |
 | FR-66 | Pet gallery / catalog | Companion | Planned | FM-CS | L | GitHub Pages (decided) |
@@ -138,8 +138,15 @@ Legend: **Requested** = in the owner's list; **Technical requirement (TR)** = de
 | FR-93 | Pet age and birthdays (pet = day you met; user day+month) | Companion | Built, Unverified | M6 | S | Owner 2026-10-23 |
 | FR-94 | Greeting once a day, birthdays first | Companion | Built, Unverified | M6 | S | Owner 2026-10-23 |
 | FR-95 | Full backup (.loafbackup incl. pet packs), weekly auto-backup to a chosen folder | Data | Planned | M0 | M | Owner 2026-10-23 |
-| FR-96 | Notification budget + quiet hours | Shell | Built, Unverified | FM-V2 | S | Owner 2026-10-23 |
+| FR-96 | Notification budget + quiet hours, user-adjustable in Settings | Shell | Built, Unverified | FM-V2 | S | Owner 2026-10-23 |
 | FR-97 | Friends/study groups, friends-only opt-in leaderboard, weekly recap card | Social | Planned | P7 | L | Backend (Supabase) |
+| FR-98 | Festival and seasonal outfits | Companion | Planned | P3 | M | FR-64 |
+| FR-99 | Weekly recap card (save as image) | Students | Planned | P2 | S | — |
+| FR-100 | Study groups with friends | Social | Planned | P7 | L | Supabase |
+| FR-101 | Leaderboards: visibility Off (default) / Friends / Everyone, weekly reset | Social | Planned | P7 | M | Owner 2026-10-23 |
+| FR-102 | Monthly community pet drops | Companion | Planned | P7 | S | FR-84 |
+| FR-103 | Photo to pet | Companion | Planned (later) | P6 | XL | AI provider |
+| BUG-PV | Pet doesn't come back / needs Show twice (B1-B6, S1-S4) | Companion | Diagnosed, not fixed | — | M | `docs/BUG_REPORT_2026-10-23_pet_visibility.md` |
 | FR-58 | Student pack | Students | Planned; quiz waits for AI | FM-ST | L | — |
 
 **Verified existing (Unverified on real OS, tests pass):** FR-19 tracking, ROADMAP M1–M3 features. **Partial:** FR-01, FR-20, FR-22, FR-27. Everything else: Planned or Blocked. Nothing is "Complete" on a real OS.

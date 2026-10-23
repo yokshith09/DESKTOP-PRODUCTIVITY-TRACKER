@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { FolderOpen, Trash2 } from "lucide-react";
+import { FileArchive, FolderOpen, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/features/shell/PageHeader";
@@ -47,10 +47,10 @@ export function PetLibrary() {
   const [busy, setBusy] = useState(false);
   const refresh = () => qc.invalidateQueries({ queryKey: LIBRARY });
 
-  const importPack = async () => {
+  const importPack = async (from: "zip" | "folder") => {
     setBusy(true);
     try {
-      const pack = await ipc.petsImport();
+      const pack = await (from === "zip" ? ipc.petsImportZip() : ipc.petsImport());
       if (pack) {
         toast.success(`${pack.display_name} added`);
         await refresh();
@@ -73,12 +73,17 @@ export function PetLibrary() {
         <div>
           <h2 className="text-[15px] font-semibold">Pet library</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Any Codex or OpenPets pet works here: pets installed by Codex or Petdex (<code>.codex/pets</code>, <code>.petdex/pets</code>) show up by themselves, or import a pet folder.
+            Any Codex or OpenPets pet works here: pets installed by Codex or Petdex (<code>.codex/pets</code>, <code>.petdex/pets</code>) show up by themselves, or import a downloaded pet (ZIP) or an unzipped pet folder.
           </p>
         </div>
-        <Button size="sm" variant="secondary" disabled={busy} onClick={() => void importPack()}>
-          <FolderOpen className="size-4" /> Import pet folder
-        </Button>
+        <div className="flex shrink-0 gap-1.5">
+          <Button size="sm" disabled={busy} onClick={() => void importPack("zip")}>
+            <FileArchive className="size-4" /> Import ZIP
+          </Button>
+          <Button size="sm" variant="secondary" disabled={busy} onClick={() => void importPack("folder")}>
+            <FolderOpen className="size-4" /> Import folder
+          </Button>
+        </div>
       </div>
       <div className="mt-3 grid gap-2 lg:grid-cols-2">
         <Panel className="flex items-center gap-3 p-3">
@@ -95,7 +100,7 @@ export function PetLibrary() {
         ))}
       </div>
       {packs.length === 0 && (
-        <p className="mt-2 text-xs text-muted-foreground">No pets yet. Install one with Petdex (for example <code>npx petdex install boba</code>) and it appears here, or unzip a downloaded pet and import the folder.</p>
+        <p className="mt-2 text-xs text-muted-foreground">No pets yet. Install one with Petdex (for example <code>npx petdex install boba</code>) and it appears here, or use <strong>Import ZIP</strong> for a downloaded pet.</p>
       )}
     </section>
   );

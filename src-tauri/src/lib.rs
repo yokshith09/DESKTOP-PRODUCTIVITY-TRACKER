@@ -188,6 +188,7 @@ pub fn run() {
             tabs::pet_open_tabs,
             pets::pets_list,
             pets::pets_import,
+            pets::pets_import_zip,
             pets::pets_remove,
             pets::pets_sheet,
             tabs::pet_close_tab,

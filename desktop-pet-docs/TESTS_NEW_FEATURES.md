@@ -130,3 +130,12 @@ Last run 2026-10-23: front-end 175 passed / 5 skipped (27 files); Rust 386 passe
 **Manual (Windows):** Character → About you and your pet → type your name, pick a birthday → "Loaf is born today" on day 1. Quit and restart Loaf (or lock/unlock the PC) on a new day after 08:00 → the pet says "Good morning, <name>!" once; restarting again the same day shows nothing. Set your birthday to today (and clear the day's greeting by waiting until tomorrow) → "Happy birthday, <name>! 🎂".
 
 Last run 2026-10-23 (end of phase): front-end 198 passed / 5 skipped (31 files); Rust 386 passed; lint, typecheck, fmt clean.
+
+---
+
+## FR-63 Import ZIP · FR-96 adjustable notifications
+
+**Automated:** `crates/loaf-core/src/pets.rs` — installs_a_pack_from_a_zip_with_a_top_folder_and_extra_files, installs_a_pack_from_a_zip_without_a_folder, refuses_bad_zips (no pet.json, two pets, wrong size, not a ZIP, `../` path) · `PetLibrary.test.tsx` "imports a downloaded pet ZIP" · `src/lib/nudges.test.ts` "uses the user's own limits" · `src/features/settings/NudgeSettings.test.tsx`. The owner's `Kayadu_LOAF_Character_Pack.zip` was imported by the same checker in a one-off run (2026-10-23): id `kayadu-lohar`, 9 rows, WebP.
+**Manual (Windows):** Character → Pet library → **Import ZIP** → pick `Kayadu_LOAF_Character_Pack.zip` → "Kayadu added" → **Use** → the desktop pet becomes Kayadu. Settings → Pet notifications → set 1 nudge a day → after the greeting, no routine reminder appears that day.
+
+Last run 2026-10-23 (afternoon): front-end 201 passed / 5 skipped; Rust 389 passed; lint, typecheck, clippy, fmt, core-deps clean.

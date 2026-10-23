@@ -38,4 +38,14 @@ describe("notification budget (FR-96)", () => {
     const s = markNudged(markNudged(emptyNudges(), "x", at(9, 0, "2026-10-01")), "y", at(9));
     expect(Object.keys(s.days)).toEqual(["2026-10-23"]);
   });
+
+  it("uses the user's own limits (FR-96)", () => {
+    let s = { ...emptyNudges(), maxPerDay: 1, gapMin: 15 };
+    s = markNudged(s, "a", at(9));
+    expect(canNudge(s, "b", at(12))).toBe(false); // one a day
+    const t = markNudged({ ...emptyNudges(), gapMin: 15 }, "a", at(9));
+    expect(canNudge(t, "b", at(9, 16))).toBe(true); // 15 minutes apart is enough
+    expect(parseNudges({ maxPerDay: 99, gapMin: 7 })).toMatchObject({ maxPerDay: 4, gapMin: 60 });
+    expect(parseNudges({ maxPerDay: 2, gapMin: 30 })).toMatchObject({ maxPerDay: 2, gapMin: 30 });
+  });
 });

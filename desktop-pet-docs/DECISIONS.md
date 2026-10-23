@@ -278,3 +278,10 @@ Still open: none of Q1-Q7 except the Q4 spike result.
 - Leaderboards only among friends, opt-in, weekly reset (FR-97) — no public global leaderboard (it recreates guilt/comparison).
 - Backup: data export already includes preferences (routine, companion, chosen pet); FR-95 adds pet pack files and an automatic weekly backup to a folder the user picks (works with OneDrive/Drive folders, no server).
 - Release: the owner wants to release after this phase. The source version is locked at 0.2.0 (D-VERSION, "leave it") and v0.2.0 already exists, so a new release needs a new version number — **owner to choose** (proposed 0.3.0).
+
+## 2026-10-23 (afternoon)
+- Notification limits are **user-adjustable** (Settings → Pet notifications); defaults stay 4/day, 1 h apart, quiet 22:00-08:00.
+- Leaderboards: user chooses **Off (default) / Friends only / Everyone** (owner; supersedes friends-only), weekly reset, ranked by study hours not streaks.
+- Pet packs can be imported from a ZIP. Owner's Kayadu pack: structurally valid, imports; its README says the frames are placeholder transforms of one image (no real poses yet). If the character is based on a real person, that is the on-hold personal-character feature and needs that person's consent before sharing.
+- Testing before release: owner cannot test before a release → releases go out as **drafts/pre-releases for owner testing**; nothing is called Complete until tested.
+- Docs: active work is FM-V2 + companion, not M1 (README, ROADMAP, PROJECT_STATUS, CLAUDE.md updated).

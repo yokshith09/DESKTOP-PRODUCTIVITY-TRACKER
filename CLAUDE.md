@@ -4,10 +4,10 @@ Loaf is a local-first desktop app (Tauri v2, Rust core `crates/loaf-core`, React
 
 **Before doing anything:** follow the session protocol in [`desktop-pet-docs/PROJECT_STATUS.md`](desktop-pet-docs/PROJECT_STATUS.md) §9.
 
-1. Read `desktop-pet-docs/PROJECT_STATUS.md`, then `ROADMAP.md` (active milestone M1) and the open decisions in `DECISIONS.md`.
+1. Read `desktop-pet-docs/PROJECT_STATUS.md`, then `MASTER_PLAN.md` (what is active and in what order) and the open decisions in `DECISIONS.md`.
 2. Check Git: status, recent log, the open PR and CI on the head commit.
 3. Re-run the tests before trusting any number in the docs.
-4. Work only on the active milestone. Ask the owner before design choices and before starting anything outside M1.
+4. Work only on the active work in `MASTER_PLAN.md` (FM-V2 + companion as of 2026-10-23). Ask the owner before design choices and before starting anything outside it.
 5. Add tests with every change. Never call something Complete if it needs a real OS and nobody ran it — mark it Unverified.
 6. Update `PROJECT_STATUS.md`, `ROADMAP.md`, `DECISIONS.md` and `CHANGELOG.md` in the same change.
 

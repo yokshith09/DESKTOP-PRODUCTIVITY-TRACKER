@@ -237,7 +237,7 @@ Run `pnpm tauri dev` or install the CI build. Write pass or fail next to each li
 
 ## 9. Session protocol (for every future Claude session)
 
-1. **Read** this file, then `ROADMAP.md` (active milestone) and the open decisions in `DECISIONS.md`.
+1. **Read** this file, then `MASTER_PLAN.md` (active work and order) and the open decisions in `DECISIONS.md`.
 2. **Inspect Git:** `git status`, `git log --oneline -15`, `git branch -vv`. Check the open PR and the CI result on the head commit.
 3. **Re-verify before trusting:** `cargo test --workspace`, `pnpm typecheck`, `pnpm lint`, `pnpm test`. If a number here differs, trust the run and fix this file.
 4. **Continue the active milestone only.** Ask before design choices (the owner dislikes decisions made without asking) and before starting a later milestone.
