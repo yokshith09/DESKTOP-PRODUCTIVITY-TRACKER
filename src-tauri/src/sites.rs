@@ -355,7 +355,7 @@ mod os {
     /// second the address.
     fn ask(app: &str, script: &str, allowed: &str) -> Seen {
         let Ok(out) = Command::new("/usr/bin/osascript")
-            .args(["-e", &script])
+            .args(["-e", script])
             .output()
         else {
             return Seen::Nothing;
