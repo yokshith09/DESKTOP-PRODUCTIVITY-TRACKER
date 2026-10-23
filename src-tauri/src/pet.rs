@@ -62,8 +62,19 @@ pub struct Anchor {
 pub fn expanded(pet: Rect, card_w: u32, card_h: u32, work: Rect) -> (Rect, Anchor) {
     let w = pet.w.max(card_w);
     let h = pet.h + GAP + card_h;
-    let above = pet.y - (card_h + GAP) as i32 >= work.y;
-    let leftwards = pet.x + pet.w as i32 - w as i32 >= work.x;
+    // Above when it fits there; else below when it fits; else whichever side has more room, so
+    // on a short screen the card is cut as little as possible (FR-43). Same for left/right.
+    let (room_above, room_below) = (
+        pet.y - work.y,
+        work.y + work.h as i32 - (pet.y + pet.h as i32),
+    );
+    let need_v = (card_h + GAP) as i32;
+    let above = room_above >= need_v || (room_below < need_v && room_above >= room_below);
+    let (room_left, room_right) = (
+        pet.x + pet.w as i32 - work.x,
+        work.x + work.w as i32 - pet.x,
+    );
+    let leftwards = room_left >= w as i32 || (room_right < w as i32 && room_left >= room_right);
     let x = if leftwards {
         pet.x + pet.w as i32 - w as i32
     } else {
@@ -707,6 +718,47 @@ mod tests {
             (r.x, r.y),
             (10, 10),
             "the pet stays put at the top-left of the window"
+        );
+    }
+
+    #[test]
+    fn when_the_card_fits_neither_way_it_takes_the_side_with_more_room() {
+        let short = Rect {
+            x: 0,
+            y: 0,
+            w: 1280,
+            h: 500,
+        };
+        // Pet a little below the middle of a short screen: 300 px above, 72 below, card 352.
+        let pet = Rect {
+            x: 600,
+            y: 300,
+            w: 128,
+            h: 128,
+        };
+        let (r, a) = expanded(pet, 300, 352, short);
+        assert_eq!(a.card, "above");
+        assert_eq!(r.y + r.h as i32 - 128, pet.y, "the pet stays put");
+        // Near the top instead: more room below.
+        let pet = Rect { y: 60, ..pet };
+        assert_eq!(expanded(pet, 300, 352, short).1.card, "below");
+        // Narrow screen, pet in the middle: the wider side wins.
+        let narrow = Rect {
+            x: 0,
+            y: 0,
+            w: 400,
+            h: 1040,
+        };
+        let pet = Rect {
+            x: 230,
+            y: 800,
+            w: 128,
+            h: 128,
+        };
+        assert_eq!(
+            expanded(pet, 380, 100, narrow).1.pet,
+            "right",
+            "358 px to the left beats 170 to the right"
         );
     }
 

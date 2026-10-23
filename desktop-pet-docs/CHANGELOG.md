@@ -5,6 +5,8 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Fixed (2026-10-23, Unverified): FR-43 — when the card or bubble fits neither above nor below the pet (short screen), it opens on the side with more room instead of always below and off-screen; same for left/right.
+
 - Added (2026-10-23, Unverified): while the pet is **hidden**, messages show in the dashboard instead (bottom-right, max 3, with Undo); **hover-card shortcuts** — Focus 25 / Stop focus, Add note, Sleep / Wake (a nap that lasts until Wake or a click) — and **tasks highlighted** on the card (tinted rows, starred marked) (FR-111). New shell command `pet_command` (new-note / new-task only).
 
 - Added (2026-10-23, Unverified): **focus sessions** (FR-05): start 15/25/50 min from Today or 25 min from a task; pause, +5 min, stop; saved (migration 005, `loaf_core::focus`), one at a time, a session that ran out while Loaf was closed is finished at the right time, stopped sessions keep their minutes. **Focus timer by the pet** (FR-110): a small timer above or below the pet while a session runs, with pause; the hover card's header shows it too; when focus ends the pet cheers "Nice: 25 min on … Break 5 min?" and a click starts the break. New setting **Card when I hover the pet** (`pet.hover_card`, on): off shows the same facts as a short bubble. Fixed: with the card off, hovering showed no bubble.
