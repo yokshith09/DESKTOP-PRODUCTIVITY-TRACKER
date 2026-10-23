@@ -163,3 +163,18 @@ Last run 2026-10-23 (afternoon): front-end 201 passed / 5 skipped; Rust 389 pass
 Last run 2026-10-23 (evening): front-end 202 passed / 5 skipped; Rust 396 passed; lint, typecheck, clippy, fmt, core-deps clean.
 
 Last run 2026-10-23 (night, notifications above the pet): front-end 208 passed / 5 skipped (32 files); lint, typecheck clean. Rust unchanged since the evening run (396 passed).
+
+---
+
+## FR-106…FR-109 Task links, stars, chosen days, repeating tasks
+
+**Automated:** core `crates/loaf-core/src/task_plans.rs` (rule text round-trip, weekdays checked, repeats only between start and end, links get https / lose duplicates / refuse unsafe, days-or-rule, links saved in order, starred first, chosen days on Today, tick per day with history, ticks refused off-rule / future / ordinary tasks, clearing the plan) · `reminders.rs` "a starred reminder comes first" · `db/tests.rs` migration 4 (checks, cascade) · `src/lib/repeat.test.ts` (same answers as the core, clock change) · `src/features/tasks/TaskBits.test.tsx` · `repeatReminder.test.ts` · `src/App.test.tsx` "task upgrades" (links next to the task and opening, starring on Today and reminders, chosen days, repeat tick and record).
+**Manual (Windows):**
+1. Tasks → All → open a task → paste `github.com/…` in **Links**, name it, Add; add a second link → close → both chips are next to the task; click one → the browser opens it.
+2. Hover a task on Today → ☆ → it moves to the top with a filled star. Star a reminder the same way.
+3. Open a task → **When → Chosen days** → pick Today and two more days → Save → "3 days" next to it; it is on Today today, and on each chosen day.
+4. **When → Repeats → On days of the week** → pick today's weekday → Save → on Today tick it → "Ticked for today" above the pet and it leaves Today; it comes back next week. Skip a day → open the task → that day is listed as "not ticked"; click it to tick late.
+5. Settings → Pet notifications → **Repeating tasks still open** → set 2 minutes ahead with one unticked → the pet says "Still open today: …" once.
+6. Export data, delete all, import → links, stars, days and ticks are back.
+
+Last run 2026-10-23 (late night): front-end 226 passed / 5 skipped (35 files); Rust 414 passed; lint, typecheck, clippy, fmt, core-deps clean.

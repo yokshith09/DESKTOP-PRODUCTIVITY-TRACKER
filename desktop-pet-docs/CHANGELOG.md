@@ -5,6 +5,8 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Added (2026-10-23, Unverified): **links on a task** shown as chips next to its title, any number per task, opened only after the safe-link check (FR-106); **stars** on tasks and reminders, starred first on Today and Tasks (FR-107); **chosen days** — a task planned on several specific days shows on Today on each (FR-108); **repeating tasks** (every day, days of the week, every N days, optional end) ticked one day at a time, with the last repeat days shown ticked / not ticked and late ticks allowed, and an evening bubble "Still open today: …" through the nudge budget (Settings → Pet notifications) (FR-109). Core: migration 004 (`task_links`, `task_days`, `task_ticks`, `starred`, `repeat_rule`, `repeat_until`), `loaf_core::task_plans`, event `TaskTicked`. Fixed: the routine reminder appeared twice above the pet.
+
 - Docs (2026-10-23): student-pack preview redesigned (Study with plan-vs-done and local suggestions, Timetable with now line, free slots and clashes, Study group with privacy defaults) and a **now strip** preview (FR-88) added; spec draft `docs/features/FR-88-now-strip.md` with four open questions. No code changed.
 
 - Changed (2026-10-23, Unverified): **notifications only above the pet** (owner; supersedes the FR-41 toast stack). Every message the dashboard used to pop up is now a bubble above the pet with a matching pose (cheer, wave, wait, worried); errors stay 8 s. Actions ride in the bubble — "Moved to Bin · click: Undo", "Reminder: … · click: Done" — and clicking the pet runs them. Removed the toast stack and the `sonner` dependency. New pet-window channel `pet://action`. Fixed: the leftover in-dashboard reminder card.
