@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Presets } from "@/components/Presets";
+import { timePresets } from "@/lib/datePresets";
 import { BellPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +47,7 @@ export function AddReminder() {
           <div className="space-y-1.5">
             <label htmlFor="rem-when" className="text-xs font-medium text-muted-foreground">When</label>
             <Input id="rem-when" type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />
+            <Presets label="When presets" options={timePresets()} value={when} onPick={setWhen} />
             <div className="flex flex-wrap gap-1.5 pt-0.5">
               {presets.map((p) => (
                 <button key={p.label} type="button" onClick={() => setWhen(toLocalInput(p.at()))}

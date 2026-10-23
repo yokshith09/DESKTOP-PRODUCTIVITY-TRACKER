@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { Presets } from "@/components/Presets";
+import { dayPresets } from "@/lib/datePresets";
 import { CalendarClock, CalendarPlus, Timer, ExternalLink, FilePlus2, Flag, FolderKanban, History, Link2, MessageSquarePlus, Trash2, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { NoteEditor } from "@/features/notes/NoteEditor";
@@ -162,7 +164,7 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
               {PRIORITIES.map((p) => <ToggleGroupItem key={p.value} value={p.value} className="flex-1 px-2">{p.label}</ToggleGroupItem>)}
             </ToggleGroup>
           </Field>
-          <Field icon={<CalendarClock />} label="Deadline" htmlFor="td-due"><Input id="td-due" type="date" value={due} onChange={(e) => setDue(e.target.value)} /></Field>
+          <Field icon={<CalendarClock />} label="Deadline" htmlFor="td-due"><Input id="td-due" type="date" value={due} onChange={(e) => setDue(e.target.value)} /><Presets label="Deadline presets" options={dayPresets()} value={due} onPick={setDue} /></Field>
           <Field icon={<FolderKanban />} label="Project" htmlFor="td-project"><Input id="td-project" value={project} maxLength={100} onChange={(e) => setProject(e.target.value)} placeholder="None" /></Field>
           <Field icon={<Link2 />} label="Linked note" htmlFor="td-note">
             <select id="td-note" value={noteId} onChange={(e) => setNoteId(e.target.value)} className="h-8 w-full rounded-md border border-input bg-card px-2 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-ring">

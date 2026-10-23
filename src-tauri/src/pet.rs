@@ -7,7 +7,7 @@
 //!   against the connected displays at startup: a pet on a display that is gone comes back to
 //!   the bottom-right of the main display (R1-61).
 //! * `pet.visible` and `pet.size` are settings; changing them from Settings, the tray, the menu
-//!   or `Mod+Shift+P` applies at once.
+//!   or the pet shortcut (if one is set) applies at once.
 //!
 //! Event-driven: one task parked on the bus, plus a one-shot delayed save after a drag.
 
@@ -290,18 +290,22 @@ pub fn hide_main<R: Runtime>(app: &AppHandle<R>) {
 /// Right click: the pet's menu, at the cursor.
 #[tauri::command]
 pub async fn pet_menu(app: AppHandle, settings: State<'_, Arc<SettingsService>>) -> Result<()> {
-    let tracking = settings
-        .get_all()
-        .await?
+    let all = settings.get_all().await?;
+    let tracking = all
         .get("tracking.apps")
         .and_then(Value::as_bool)
         .unwrap_or(false);
+    // The pet's own shortcut, if one was chosen (FR-48; off by default).
+    let pet_keys = all
+        .get("shortcuts.global_pet")
+        .and_then(Value::as_str)
+        .map(str::to_owned);
     let main_visible = app
         .get_webview_window("main")
         .and_then(|m| m.is_visible().ok())
         .unwrap_or(false);
     let Some(w) = window(&app) else { return Ok(()) };
-    let menu = build_menu(&app, main_visible, tracking).map_err(internal)?;
+    let menu = build_menu(&app, main_visible, tracking, pet_keys.as_deref()).map_err(internal)?;
     w.popup_menu(&menu).map_err(internal)
 }
 
@@ -309,6 +313,7 @@ fn build_menu<R: Runtime>(
     app: &AppHandle<R>,
     main_visible: bool,
     tracking: bool,
+    pet_keys: Option<&str>,
 ) -> tauri::Result<Menu<R>> {
     let (open_id, open_label) = if main_visible {
         ("pet:hide-main", "Hide Loaf")
@@ -365,7 +370,7 @@ fn build_menu<R: Runtime>(
         "pet:hide-pet",
         "Hide pet",
         true,
-        Some(format!("{mod_key}+Shift+P")),
+        pet_keys,
     )?)?;
     menu.append(&MenuItem::with_id(
         app,

@@ -27,7 +27,8 @@ pub enum Action {
 
 /// Each action, its setting (if it can be changed) and its default.
 pub const ACTIONS: [(Action, Option<&str>, &str); 3] = [
-    (Action::TogglePet, None, "CmdOrCtrl+Shift+P"),
+    // Off unless chosen in Settings (FR-48): an empty default means "not registered".
+    (Action::TogglePet, Some("shortcuts.global_pet"), ""),
     (
         Action::ToggleDashboard,
         Some("shortcuts.global_open"),
@@ -52,6 +53,7 @@ pub fn combos(settings: &std::collections::BTreeMap<String, Value>) -> Vec<(Acti
                 .unwrap_or(default);
             (*action, chosen.to_owned())
         })
+        .filter(|(_, combo)| !combo.is_empty())
         .collect()
 }
 
@@ -130,7 +132,7 @@ mod tests {
         let mut keys: Vec<_> = all.iter().map(|(_, c)| c.clone()).collect();
         keys.sort();
         keys.dedup();
-        assert_eq!(keys.len(), ACTIONS.len());
+        assert_eq!(keys.len(), ACTIONS.len() - 1, "the pet's is off by default");
         for (_, c) in &all {
             assert!(loaf_core::settings::shortcut_is_valid(c), "{c}");
             assert!(Shortcut::from_str(c).is_ok(), "{c}");
@@ -149,6 +151,16 @@ mod tests {
         let all = combos(&settings);
         assert!(all.contains(&(Action::ToggleDashboard, "Alt+F9".to_owned())));
         assert!(all.contains(&(Action::NewNote, "CmdOrCtrl+Shift+N".to_owned())));
-        assert!(all.contains(&(Action::TogglePet, "CmdOrCtrl+Shift+P".to_owned())));
+        assert!(
+            !all.iter().any(|(a, _)| *a == Action::TogglePet),
+            "off until chosen"
+        );
+        let pet: std::collections::BTreeMap<_, _> = [(
+            "shortcuts.global_pet".to_owned(),
+            json!("CmdOrCtrl+Shift+P"),
+        )]
+        .into_iter()
+        .collect();
+        assert!(combos(&pet).contains(&(Action::TogglePet, "CmdOrCtrl+Shift+P".to_owned())));
     }
 }

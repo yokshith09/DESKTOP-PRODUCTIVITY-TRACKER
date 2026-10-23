@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Presets } from "@/components/Presets";
+import { dayPresets } from "@/lib/datePresets";
 import { CalendarDays, Check, ExternalLink, Link2, Plus, Repeat2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +59,9 @@ export function PlanEditor({ value, onChange, planned, onPlanned }: {
           <Input type="date" value={planned} onChange={(e) => onPlanned(e.target.value)} aria-label="Planned for" className="w-44" />
           <span className="text-xs text-muted-foreground">Leave empty for “some day”.</span>
         </div>
+      )}
+      {value.mode === "one" && (
+        <Presets label="Planned day presets" options={dayPresets()} value={planned} onPick={onPlanned} />
       )}
 
       {value.mode === "days" && (

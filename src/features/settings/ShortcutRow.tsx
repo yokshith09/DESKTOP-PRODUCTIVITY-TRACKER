@@ -5,9 +5,10 @@ import { useSetting } from "@/hooks/useTheme";
 import { comboFromEvent, showCombo } from "./shortcuts";
 import { Row } from "./parts";
 
-type Key = "shortcuts.global_open" | "shortcuts.global_new_note";
+type Key = "shortcuts.global_open" | "shortcuts.global_new_note" | "shortcuts.global_pet";
 
 function Keys({ combo }: { combo: string }) {
+  if (!combo) return <span className="text-[12px] text-muted-foreground">Off</span>;
   return <span className="rounded-md border bg-muted px-2 py-0.5 font-mono text-[12px]">{showCombo(combo)}</span>;
 }
 
@@ -34,7 +35,7 @@ export function ShortcutRow({ settingKey, label, fallback, taken }: { settingKey
   }, [recording, taken, fallback, setValue]);
 
   return (
-    <Row label={label} {...(value ? { hint: `Default: ${showCombo(fallback)}` } : {})}>
+    <Row label={label} {...(value ? { hint: fallback ? `Default: ${showCombo(fallback)}` : "Off by default" } : {})}>
       <div className="flex items-center gap-2">
         {recording ? (
           <span className="rounded-md border border-primary px-2 py-0.5 text-[12px] text-primary" role="status">Press the new keys… (Esc to cancel)</span>
@@ -42,7 +43,7 @@ export function ShortcutRow({ settingKey, label, fallback, taken }: { settingKey
           <Keys combo={combo} />
         )}
         <Button size="sm" variant="ghost" onClick={() => setRecording((r) => !r)} aria-label={`Change shortcut: ${label}`}>{recording ? "Cancel" : "Change"}</Button>
-        {value && !recording && <Button size="sm" variant="ghost" onClick={() => void setValue(null)} aria-label={`Reset shortcut: ${label}`}>Reset</Button>}
+        {value && !recording && <Button size="sm" variant="ghost" onClick={() => void setValue(null)} aria-label={`Reset shortcut: ${label}`}>{fallback ? "Reset" : "Turn off"}</Button>}
       </div>
     </Row>
   );

@@ -51,6 +51,9 @@ pub enum SettingsKey {
     ShortcutsGlobalNewNote,
     #[serde(rename = "shortcuts.global_new_task")]
     ShortcutsGlobalNewTask,
+    /// Show or hide the pet from any app (FR-48). Null = off, the default.
+    #[serde(rename = "shortcuts.global_pet")]
+    ShortcutsGlobalPet,
 
     // tracking (opt-in; Phase 2 pulled forward)
     #[serde(rename = "tracking.apps")]
@@ -118,6 +121,7 @@ impl SettingsKey {
             Self::ShortcutsGlobalOpen => "shortcuts.global_open",
             Self::ShortcutsGlobalNewNote => "shortcuts.global_new_note",
             Self::ShortcutsGlobalNewTask => "shortcuts.global_new_task",
+            Self::ShortcutsGlobalPet => "shortcuts.global_pet",
             Self::TrackingApps => "tracking.apps",
             Self::TrackingExcludeApps => "tracking.exclude_apps",
             Self::TrackingSites => "tracking.sites",
@@ -142,6 +146,7 @@ impl SettingsKey {
             "shortcuts.global_open" => Some(Self::ShortcutsGlobalOpen),
             "shortcuts.global_new_note" => Some(Self::ShortcutsGlobalNewNote),
             "shortcuts.global_new_task" => Some(Self::ShortcutsGlobalNewTask),
+            "shortcuts.global_pet" => Some(Self::ShortcutsGlobalPet),
             "tracking.apps" => Some(Self::TrackingApps),
             "tracking.exclude_apps" => Some(Self::TrackingExcludeApps),
             "tracking.sites" => Some(Self::TrackingSites),
@@ -167,6 +172,7 @@ impl SettingsKey {
             Self::ShortcutsGlobalOpen => json!(null),
             Self::ShortcutsGlobalNewNote => json!(null),
             Self::ShortcutsGlobalNewTask => json!(null),
+            Self::ShortcutsGlobalPet => json!(null),
             Self::TrackingApps => json!(false),
             Self::TrackingExcludeApps => json!([]),
             Self::TrackingSites => json!(false),
@@ -242,7 +248,8 @@ impl SettingsKey {
             }
             Self::ShortcutsGlobalOpen
             | Self::ShortcutsGlobalNewNote
-            | Self::ShortcutsGlobalNewTask => {
+            | Self::ShortcutsGlobalNewTask
+            | Self::ShortcutsGlobalPet => {
                 if value.is_null() {
                     return Ok(());
                 }
@@ -321,6 +328,7 @@ pub fn all_defaults() -> BTreeMap<String, Value> {
         SettingsKey::ShortcutsGlobalOpen,
         SettingsKey::ShortcutsGlobalNewNote,
         SettingsKey::ShortcutsGlobalNewTask,
+        SettingsKey::ShortcutsGlobalPet,
         SettingsKey::TrackingApps,
         SettingsKey::TrackingExcludeApps,
         SettingsKey::TrackingSites,
@@ -373,7 +381,7 @@ mod tests {
     #[test]
     fn all_defaults_exist() {
         let defaults = all_defaults();
-        assert_eq!(defaults.len(), 18);
+        assert_eq!(defaults.len(), 19);
         assert_eq!(
             defaults["pet.hover_card"],
             json!(true),

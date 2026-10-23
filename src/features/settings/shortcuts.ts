@@ -4,9 +4,9 @@ import { isMac } from "@/lib/platform";
 export const GLOBAL_SHORTCUTS = [
   { key: "shortcuts.global_open", label: "Open or hide Loaf, from any app", fallback: "CmdOrCtrl+Shift+L" },
   { key: "shortcuts.global_new_note", label: "New note, from any app", fallback: "CmdOrCtrl+Shift+N" },
+  // Off by default (FR-48): an empty fallback means "none".
+  { key: "shortcuts.global_pet", label: "Show or hide the pet, from any app", fallback: "" },
 ] as const;
-/** Fixed: shown, not changeable. */
-export const PET_SHORTCUT = "CmdOrCtrl+Shift+P";
 
 /** `CmdOrCtrl+Shift+L` as the person sees it: `Ctrl+Shift+L` or `⌘⇧L`. */
 export function showCombo(combo: string): string {

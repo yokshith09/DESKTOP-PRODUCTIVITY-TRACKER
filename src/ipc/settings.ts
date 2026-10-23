@@ -19,6 +19,7 @@ export interface Settings {
   "pet.pack": string | null;
   "shortcuts.global_open": string | null;
   "shortcuts.global_new_note": string | null;
+  "shortcuts.global_pet": string | null;
   "shortcuts.global_new_task": string | null;
   "tracking.apps": boolean;
   "tracking.exclude_apps": string[];

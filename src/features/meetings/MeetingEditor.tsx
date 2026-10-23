@@ -1,4 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
+import { Presets } from "@/components/Presets";
+import { dayPresets } from "@/lib/datePresets";
 import { ArrowDown, ArrowLeft, ArrowUp, Check, Eye, ListChecks, Pencil, Plus, Trash2, X } from "lucide-react";
 import { notify } from "@/lib/notify";
 import { Badge } from "@/components/ui/badge";
@@ -222,6 +224,7 @@ export function MeetingEditor({ meetingId, onBack, onCreated }: { meetingId: str
           </Field>
           <Field label="Follow-up date" htmlFor="meeting-follow-up">
             <Input id="meeting-follow-up" type="date" value={draft.follow_up_date ?? ""} onChange={(e) => change({ follow_up_date: e.target.value || null })} />
+            <Presets label="Follow-up presets" options={dayPresets()} value={draft.follow_up_date ?? ""} onPick={(v) => change({ follow_up_date: v })} />
           </Field>
         </div>
         <Field label="Participants" htmlFor="meeting-participants">

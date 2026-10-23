@@ -585,9 +585,9 @@ describe("settings (F1-25)", () => {
     expect(screen.getByText(/Press the new keys/)).toBeTruthy();
     await user.keyboard("{Alt>}{F9}{/Alt}");
     await waitFor(async () => expect((await ipc.settingsGetAll())["shortcuts.global_open"]).toBe("Alt+F9"));
-    // The pet's combination is taken: nothing changes.
+    // Alt+F9 is now taken by "Open or hide": nothing changes.
     await user.click(screen.getByRole("button", { name: "Change shortcut: New note, from any app" }));
-    await user.keyboard("{Control>}{Shift>}p{/Shift}{/Control}");
+    await user.keyboard("{Alt>}{F9}{/Alt}");
     await petSays(/already used by another Loaf shortcut/);
     expect((await ipc.settingsGetAll())["shortcuts.global_new_note"]).toBeNull();
     // Back to the default.
@@ -763,5 +763,40 @@ describe("auto-delete (FR-46)", () => {
     const section = await screen.findByRole("region", { name: "Tasks in the Bin" });
     await user.click(within(section).getByRole("button", { name: /^Restore task/ }));
     expect(restore).toHaveBeenCalledWith(done?.id);
+  });
+});
+
+describe("pet shortcut (FR-48)", () => {
+  it("is off by default and can be set and turned off again", async () => {
+    const { ipc } = await import("@/ipc");
+    const user = userEvent.setup();
+    render(<App />);
+    await goTo(user, /^Settings/);
+    expect((await ipc.settingsGetAll())["shortcuts.global_pet"]).toBeNull();
+    await user.click(await screen.findByRole("button", { name: "Change shortcut: Show or hide the pet, from any app" }));
+    await user.keyboard("{Control>}{Shift>}p{/Shift}{/Control}");
+    await waitFor(async () => expect((await ipc.settingsGetAll())["shortcuts.global_pet"]).toBe("CmdOrCtrl+Shift+P"));
+    await user.click(screen.getByRole("button", { name: "Reset shortcut: Show or hide the pet, from any app" }));
+    await waitFor(async () => expect((await ipc.settingsGetAll())["shortcuts.global_pet"]).toBeNull());
+  });
+});
+
+describe("date presets (FR-45)", () => {
+  it("one click sets a task's deadline, and a reminder's time", async () => {
+    const { dayPresets, timePresets } = await import("@/lib/datePresets");
+    const user = userEvent.setup();
+    render(<App />);
+    await goTo(user, /^Tasks/);
+    await user.click(await screen.findByRole("button", { name: "Open Refactor the tray menu" }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(within(dialog).getByRole("group", { name: "Deadline presets" })).getByRole("button", { name: "Tomorrow" }));
+    expect((within(dialog).getByLabelText("Deadline") as HTMLInputElement).value).toBe(dayPresets().find((p) => p.label === "Tomorrow")?.value);
+    await user.keyboard("{Escape}");
+
+    await goTo(user, /^Today/);
+    await user.click(await screen.findByRole("button", { name: /Add (a )?reminder/i }));
+    const presets = await screen.findByRole("group", { name: "When presets" });
+    await user.click(within(presets).getByRole("button", { name: "Tomorrow 9:00" }));
+    expect((document.getElementById("rem-when") as HTMLInputElement).value).toBe(timePresets().find((p) => p.label === "Tomorrow 9:00")?.value);
   });
 });

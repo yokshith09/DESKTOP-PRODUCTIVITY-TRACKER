@@ -1,4 +1,6 @@
 import { useState, type ReactNode } from "react";
+import { Presets } from "@/components/Presets";
+import { timePresets } from "@/lib/datePresets";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -50,6 +52,7 @@ export function EditReminder({ reminder, children }: { reminder: Reminder; child
           <div className="space-y-1.5">
             <label htmlFor={`rem-edit-when-${reminder.id}`} className="text-xs font-medium text-muted-foreground">When</label>
             <Input id={`rem-edit-when-${reminder.id}`} type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />
+            <Presets label="When presets" options={timePresets()} value={when} onPick={setWhen} />
             <div className="flex flex-wrap gap-1.5 pt-0.5" role="group" aria-label="Snooze">
               {presets.map((p) => (
                 <button

@@ -210,3 +210,10 @@ Last run 2026-10-23: front-end 239 passed / 5 skipped; Rust 425 passed; lint, ty
 
 **Automated:** `crates/loaf-core/src/retention.rs` (never touches anything by default; only old time + old completed tasks go and the preview matches; restore / purge after 30 days; only offered ages) · `src/features/settings/autoDelete.test.ts` · `src/App.test.tsx` "auto-delete (FR-46)".
 **Manual (Windows):** Settings → Auto-delete → Completed tasks → 30 days → a dialog says how many tasks would move → **Keep everything** changes nothing; again → **Turn on** → those tasks leave Completed and appear in **Bin → Completed tasks**; Restore brings one back. Notes, meetings, reminders and open tasks are unchanged. Export → import still includes everything.
+
+---
+
+## FR-45 Date presets · FR-48 Pet shortcut
+
+**Automated:** `src/lib/datePresets.test.ts` · `src/App.test.tsx` "date presets (FR-45)", "pet shortcut (FR-48)", settings shortcut test · `src-tauri/src/shortcuts.rs` (pet off until chosen) · settings count 19.
+**Manual (Windows):** open a task → under Deadline click **Tomorrow** → the date fills. Add reminder → **Tomorrow 9:00** fills the time. Settings → Keyboard shortcuts → "Show or hide the pet" says **Off**; Ctrl+Shift+P does nothing → Change → press Ctrl+Shift+P → it toggles the pet; right-click the pet → "Hide pet" shows the keys; **Turn off** → off again.

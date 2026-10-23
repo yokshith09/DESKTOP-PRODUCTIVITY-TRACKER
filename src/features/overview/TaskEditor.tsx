@@ -1,4 +1,7 @@
 import { useState, type ReactNode } from "react";
+import { Presets } from "@/components/Presets";
+import { dayPresets } from "@/lib/datePresets";
+import { timePresets } from "@/lib/datePresets";
 import { Bell, CalendarClock, Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,11 +83,13 @@ export function TaskEditor({ task, children }: { task: Task; children: ReactNode
           <Field icon={<CalendarClock />} label="Deadline" htmlFor="task-due">
             <div className="flex gap-2">
               <Input id="task-due" type="date" value={due} onChange={(e) => setDue(e.target.value)} />
+              <Presets label="Deadline presets" options={dayPresets()} value={due} onPick={setDue} />
               {due && <Button type="button" variant="ghost" size="sm" onClick={() => setDue("")}>Clear</Button>}
             </div>
           </Field>
           <Field icon={<Bell />} label="Remind me" htmlFor="task-remind">
             <Input id="task-remind" type="datetime-local" value={remind} onChange={(e) => setRemind(e.target.value)} />
+            <Presets label="Reminder presets" options={timePresets()} value={remind} onPick={setRemind} />
             <div className="flex flex-wrap gap-1.5 pt-0.5">
               {presets.map((p) => (
                 <button key={p.label} type="button" onClick={() => setRemind(toLocalInput(p.at()))}

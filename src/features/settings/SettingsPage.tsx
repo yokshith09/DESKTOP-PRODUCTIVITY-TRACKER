@@ -11,8 +11,8 @@ import { notify } from "@/lib/notify";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { errorMessage, ipc } from "@/ipc";
-import { GLOBAL_SHORTCUTS, PET_SHORTCUT } from "./shortcuts";
-import { Keys, ShortcutRow } from "./ShortcutRow";
+import { GLOBAL_SHORTCUTS } from "./shortcuts";
+import { ShortcutRow } from "./ShortcutRow";
 import { useSetting } from "@/hooks/useTheme";
 
 /** The main projects Loaf ships with and their licenses (About › Open-source software). */
@@ -38,7 +38,8 @@ export function SettingsPage() {
   const [confirm, setConfirm] = useState(false);
   const [openGlobal] = useSetting("shortcuts.global_open");
   const [noteGlobal] = useSetting("shortcuts.global_new_note");
-  const globals: Record<string, string | null | undefined> = { "shortcuts.global_open": openGlobal, "shortcuts.global_new_note": noteGlobal };
+  const [petGlobal] = useSetting("shortcuts.global_pet");
+  const globals: Record<string, string | null | undefined> = { "shortcuts.global_open": openGlobal, "shortcuts.global_new_note": noteGlobal, "shortcuts.global_pet": petGlobal };
   const [confirmReset, setConfirmReset] = useState(false);
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -87,7 +88,7 @@ export function SettingsPage() {
       </Section>
       <NudgeSettings />
       <Section title="Desktop pet">
-        <Row label="Show the pet" hint={`Loaf the bear sits on your desktop. Click to open Loaf, double-click to hide it, right-click for options, drag to move. ${mod}+Shift+P shows or hides it.`}>
+        <Row label="Show the pet" hint={`Loaf the bear sits on your desktop. Click to open Loaf, double-click to hide it, right-click for options, drag to move. You can give it a shortcut below.`}>
           <Switch checked={petVisible ?? true} onCheckedChange={(v) => void setPetVisible(v)} aria-label="Show the pet" />
         </Row>
         <Row label="Size">
@@ -108,10 +109,9 @@ export function SettingsPage() {
         {GLOBAL_SHORTCUTS.map((g) => (
           <ShortcutRow
             key={g.key} settingKey={g.key} label={g.label} fallback={g.fallback}
-            taken={[PET_SHORTCUT, ...GLOBAL_SHORTCUTS.filter((o) => o.key !== g.key).map((o) => globals[o.key] ?? o.fallback)]}
+            taken={GLOBAL_SHORTCUTS.filter((o) => o.key !== g.key).map((o) => globals[o.key] ?? o.fallback).filter(Boolean)}
           />
         ))}
-        <Row label="Show or hide the pet, from any app"><Keys combo={PET_SHORTCUT} /></Row>
         {[
           [`${mod}+1 … 5`, "Today overview, Tasks, Notes, Time, Meetings"],
           [`${mod}+T / ${mod}+M`, "New task / new meeting"],
