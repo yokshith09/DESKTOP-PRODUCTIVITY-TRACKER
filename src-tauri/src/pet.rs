@@ -102,6 +102,27 @@ pub fn default_spot(size: u32, work: Rect) -> (i32, i32) {
 }
 
 /// Pet edge length in logical pixels for `pet.size`.
+/// A saved spot is used only if the pet's **centre** lands inside a connected screen's work
+/// area; checking one corner let a pet end up mostly off-screen after a layout change (B6).
+pub fn spot_fits(spot: (i32, i32), size: u32, monitors: &[Rect]) -> bool {
+    let half = (size / 2) as i32;
+    monitors
+        .iter()
+        .any(|m| m.contains(spot.0 + half, spot.1 + half))
+}
+
+/// "Show or hide pet" (tray, shortcut): decided by what is **on screen**, not the stored
+/// setting, so one press always does the visible thing even when they disagree (B4).
+pub fn toggle_target(window_visible: bool) -> bool {
+    !window_visible
+}
+
+/// The wake watcher's tick and the gap that means the computer slept in between (B2/S1).
+pub const WAKE_TICK: Duration = Duration::from_secs(60);
+pub fn slept(expected: Duration, elapsed_wall: Duration) -> bool {
+    elapsed_wall > expected + Duration::from_secs(60)
+}
+
 pub fn logical_size(setting: &str) -> f64 {
     match setting {
         "S" => 96.0,
@@ -345,7 +366,9 @@ pub fn on_menu(app: &AppHandle, id: &str) {
         "pet:new-task" => command(app, "new-task"),
         "pet:settings" => command(app, "settings"),
         "pet:tracking" => flip_setting(app, "tracking.apps", false),
-        "pet:hide-pet" | crate::tray::ID_PET => flip_setting(app, "pet.visible", true),
+        "pet:hide-pet" => set_visible(app, false),
+        crate::tray::ID_PET => toggle_pet(app),
+        crate::tray::ID_PET_BACK => bring_back(app),
         "pet:quit" => crate::quit(app),
         _ => {}
     }
@@ -355,6 +378,62 @@ pub fn on_menu(app: &AppHandle, id: &str) {
 pub fn command<R: Runtime>(app: &AppHandle<R>, what: &str) {
     crate::tray::show_main(app);
     let _ = app.emit_to("main", "loaf://command", what);
+}
+
+/// Set `pet.visible` and apply it now, even if the stored value was already that (the window
+/// may have disappeared while the setting still said "on": B2/B4).
+pub fn set_visible<R: Runtime>(app: &AppHandle<R>, visible: bool) {
+    let Some(settings) = app
+        .try_state::<Arc<SettingsService>>()
+        .map(|s| Arc::clone(&s))
+    else {
+        return;
+    };
+    let app = app.clone();
+    tauri::async_runtime::spawn(async move {
+        if let Err(error) = settings.set("pet.visible", json!(visible)).await {
+            tracing::warn!(code = ?error.code, "couldn't change pet.visible");
+        }
+        apply(&app, &settings, false).await;
+    });
+}
+
+/// Re-place the pet with the current settings (display changes).
+pub fn reapply<R: Runtime>(app: &AppHandle<R>) {
+    let Some(settings) = app
+        .try_state::<Arc<SettingsService>>()
+        .map(|s| Arc::clone(&s))
+    else {
+        return;
+    };
+    let app = app.clone();
+    tauri::async_runtime::spawn(async move { apply(&app, &settings, false).await });
+}
+
+/// "Show or hide pet": the opposite of what is on screen right now (B4).
+pub fn toggle_pet<R: Runtime>(app: &AppHandle<R>) {
+    let on_screen = window(app)
+        .and_then(|w| w.is_visible().ok())
+        .unwrap_or(false);
+    set_visible(app, toggle_target(on_screen));
+}
+
+/// "Bring the pet back": forget the saved spot, show it at the default place (B6).
+pub fn bring_back<R: Runtime>(app: &AppHandle<R>) {
+    let Some(settings) = app
+        .try_state::<Arc<SettingsService>>()
+        .map(|s| Arc::clone(&s))
+    else {
+        return;
+    };
+    let app = app.clone();
+    tauri::async_runtime::spawn(async move {
+        let _ = settings.set_pref(POSITION_PREF, Value::Null).await;
+        if let Err(error) = settings.set("pet.visible", json!(true)).await {
+            tracing::warn!(code = ?error.code, "couldn't show the pet");
+        }
+        apply(&app, &settings, true).await;
+    });
 }
 
 /// Flip a boolean setting; the bus listener applies it.
@@ -429,13 +508,13 @@ async fn apply<R: Runtime>(app: &AppHandle<R>, settings: &SettingsService, reset
         .to_owned();
     let scale = w.scale_factor().unwrap_or(1.0);
     let size = (logical_size(&size_name) * scale).round() as u32;
-    let _ = w.set_size(PhysicalSize::new(size, size));
+    warn_on("set_size", w.set_size(PhysicalSize::new(size, size)));
     // Character › "Always on top" (on by default).
     let on_top = all
         .get("pet.always_on_top")
         .and_then(Value::as_bool)
         .unwrap_or(true);
-    let _ = w.set_always_on_top(on_top);
+    warn_on("set_always_on_top", w.set_always_on_top(on_top));
 
     let saved = if reset_position {
         None
@@ -458,7 +537,7 @@ async fn apply<R: Runtime>(app: &AppHandle<R>, settings: &SettingsService, reset
         .collect();
     let spot = saved
         .and_then(|v| Some((v.get("x")?.as_i64()? as i32, v.get("y")?.as_i64()? as i32)))
-        .filter(|(x, y)| monitors.iter().any(|m| m.contains(x + 8, y + 8)));
+        .filter(|&(x, y)| spot_fits((x, y), size, &monitors));
     let spot = spot.or_else(|| {
         let primary = w.primary_monitor().ok().flatten()?;
         let a = primary.work_area();
@@ -473,13 +552,69 @@ async fn apply<R: Runtime>(app: &AppHandle<R>, settings: &SettingsService, reset
         ))
     });
     if let Some((x, y)) = spot {
-        let _ = w.set_position(PhysicalPosition::new(x, y));
+        warn_on("set_position", w.set_position(PhysicalPosition::new(x, y)));
     }
-    let _ = if visible { w.show() } else { w.hide() };
+    warn_on(
+        if visible { "show" } else { "hide" },
+        if visible { w.show() } else { w.hide() },
+    );
 }
 
-/// Place and show the pet now, and follow the pet settings from here on.
+/// Window calls used to fail silently, which made "the pet is gone" impossible to diagnose (B5).
+fn warn_on(what: &str, result: tauri::Result<()>) {
+    if let Err(error) = result {
+        tracing::warn!(%error, what, "pet window call failed");
+    }
+}
+
+/// The screens' work areas, to notice a monitor being added, removed or rearranged.
+fn monitor_layout<R: Runtime>(app: &AppHandle<R>) -> Vec<Rect> {
+    window(app)
+        .and_then(|w| w.available_monitors().ok())
+        .unwrap_or_default()
+        .iter()
+        .map(|m| {
+            let a = m.work_area();
+            Rect {
+                x: a.position.x,
+                y: a.position.y,
+                w: a.size.width,
+                h: a.size.height,
+            }
+        })
+        .collect()
+}
+
+/// Place and show the pet now, and follow the pet settings from here on. Also watches for the
+/// computer waking up and for screens changing (B2/S1): the OS gives no portable event for
+/// either, so one look a minute (an exception to ADR-009, like `sites.rs`) re-applies the pet
+/// and tells every window `loaf://wake` so reminders and the greeting can catch up.
 pub fn start<R: Runtime>(app: AppHandle<R>, settings: Arc<SettingsService>, bus: &EventBus) {
+    {
+        let (app, settings) = (app.clone(), Arc::clone(&settings));
+        tauri::async_runtime::spawn(async move {
+            let mut layout = monitor_layout(&app);
+            loop {
+                let before = std::time::SystemTime::now();
+                tokio::time::sleep(WAKE_TICK).await;
+                let wall = before.elapsed().unwrap_or_default();
+                let now_layout = monitor_layout(&app);
+                let woke = slept(WAKE_TICK, wall);
+                if woke || now_layout != layout {
+                    tracing::info!(
+                        woke,
+                        screens_changed = now_layout != layout,
+                        "re-applying the pet"
+                    );
+                    layout = now_layout;
+                    apply(&app, &settings, false).await;
+                    if woke {
+                        let _ = app.emit("loaf://wake", ());
+                    }
+                }
+            }
+        });
+    }
     let mut events = bus.subscribe();
     tauri::async_runtime::spawn(async move {
         apply(&app, &settings, false).await;
@@ -491,7 +626,9 @@ pub fn start<R: Runtime>(app: AppHandle<R>, settings: Arc<SettingsService>, bus:
                     apply(&app, &settings, false).await;
                 }
                 Recv::Event(Event::AllDataDeleted { .. }) => apply(&app, &settings, true).await,
-                Recv::Event(_) | Recv::Resync { .. } => {}
+                // Fell behind on events: one may have been a pet setting (B3).
+                Recv::Resync { .. } => apply(&app, &settings, false).await,
+                Recv::Event(_) => {}
                 Recv::Closed => break,
             }
         }
@@ -630,5 +767,32 @@ mod tests {
         assert!(WORK.contains(0, 0));
         assert!(!WORK.contains(1920, 0));
         assert!(!WORK.contains(-1, 5));
+    }
+
+    #[test]
+    fn a_saved_spot_needs_the_pets_centre_on_a_screen() {
+        let screen = [Rect {
+            x: 0,
+            y: 0,
+            w: 1920,
+            h: 1040,
+        }];
+        assert!(spot_fits((1700, 900), 128, &screen));
+        // Top-left corner on screen but most of the pet hanging off the right edge.
+        assert!(!spot_fits((1900, 500), 128, &screen));
+        assert!(!spot_fits((-500, 0), 128, &[]));
+    }
+
+    #[test]
+    fn show_or_hide_follows_what_is_on_screen() {
+        assert!(toggle_target(false)); // invisible (even if the setting says on) -> show
+        assert!(!toggle_target(true));
+    }
+
+    #[test]
+    fn a_long_gap_between_ticks_means_the_computer_slept() {
+        assert!(!slept(WAKE_TICK, Duration::from_secs(61)));
+        assert!(!slept(WAKE_TICK, Duration::from_secs(119)));
+        assert!(slept(WAKE_TICK, Duration::from_secs(600)));
     }
 }

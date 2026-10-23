@@ -57,7 +57,7 @@ pub fn combos(settings: &std::collections::BTreeMap<String, Value>) -> Vec<(Acti
 
 fn run<R: Runtime>(app: &AppHandle<R>, action: Action) {
     match action {
-        Action::TogglePet => crate::pet::flip_setting(app, "pet.visible", true),
+        Action::TogglePet => crate::pet::toggle_pet(app),
         Action::ToggleDashboard => {
             let visible = app
                 .get_webview_window("main")

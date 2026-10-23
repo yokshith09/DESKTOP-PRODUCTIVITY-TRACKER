@@ -218,10 +218,14 @@ pub fn run() {
             if window.label() == pet::LABEL {
                 match event {
                     WindowEvent::Moved(p) => pet::on_moved(window.app_handle(), p.x, p.y),
+                    // B1: an OS close (Alt+F4, sign-out) only hides the pet for now; it never
+                    // turns "Show the pet" off, so it comes back on the next start.
                     WindowEvent::CloseRequested { api, .. } => {
                         api.prevent_close();
-                        pet::flip_setting(window.app_handle(), "pet.visible", true);
+                        let _ = window.hide();
                     }
+                    // A display scale change can leave the pet the wrong size or off-screen.
+                    WindowEvent::ScaleFactorChanged { .. } => pet::reapply(window.app_handle()),
                     _ => {}
                 }
                 return;

@@ -91,4 +91,20 @@ describe("hello once a day (FR-94)", () => {
     await new Promise((r) => setTimeout(r, 50));
     expect(out).toEqual([]);
   });
+
+  it("catches up when the computer wakes, even with the dashboard hidden (bug S1)", async () => {
+    const out = said();
+    const m = prefs({
+      "ui.companion": { born: "2026-01-01", userName: "Asha", userBirthday: null, greet: true, greetedOn: null },
+      // A nudge a few minutes ago: the 1-hour gap holds the greeting back for now.
+      "ui.nudges": { ...quietOff, last: Date.now() - 5 * 60_000 },
+    });
+    wrap(<Greeter />);
+    await new Promise((r) => setTimeout(r, 50));
+    expect(out).toEqual([]);
+    // Later the PC wakes up and the gap has passed.
+    m.set("ui.nudges", { ...quietOff, last: Date.now() - 2 * 60 * 60_000 });
+    window.dispatchEvent(new Event("loaf-wake"));
+    await waitFor(() => expect(out).toContainEqual(expect.objectContaining({ text: expect.stringContaining("Asha") })));
+  });
 });

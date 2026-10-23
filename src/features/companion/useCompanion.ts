@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ipc, petSay } from "@/ipc";
+import { ipc, onWake, petSay } from "@/ipc";
 import { ymd } from "@/lib/dates";
 import { canNudge, inQuietHours, markNudged, parseNudges, type NudgeState } from "@/lib/nudges";
 import { parseCompanion, todaysGreeting, type Companion } from "./companion";
@@ -63,6 +63,8 @@ export function useDailyGreeting() {
     const onShow = () => document.visibilityState === "visible" && void check();
     document.addEventListener("visibilitychange", onShow);
     window.addEventListener("focus", onShow);
+    // The dashboard may be hidden in the tray when the PC wakes; the shell says so (S1).
+    const offWake = onWake(() => void check());
     // If it's quiet hours now, try again once they end.
     let t: number | undefined;
     void ipc.prefsGet("ui.nudges").then((raw) => {
@@ -77,6 +79,7 @@ export function useDailyGreeting() {
     return () => {
       document.removeEventListener("visibilitychange", onShow);
       window.removeEventListener("focus", onShow);
+      offWake();
       window.clearTimeout(t);
     };
   }, [companion, save]);

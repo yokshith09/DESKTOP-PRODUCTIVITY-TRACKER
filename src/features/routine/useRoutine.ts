@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ipc, petSay } from "@/ipc";
+import { ipc, onWake, petSay } from "@/ipc";
 import { ymd } from "@/lib/dates";
 import { notify } from "@/lib/notify";
 import { tryNudge } from "@/features/companion/useCompanion";
@@ -45,7 +45,9 @@ export function useRoutineReminder() {
     check();
     const wait = msUntil(state.remind.at, new Date());
     const t = wait > 0 ? window.setTimeout(check, wait + 500) : undefined;
-    return () => window.clearTimeout(t);
+    // Timers in a hidden window can be paused while the PC sleeps; re-check on wake (S1).
+    const offWake = onWake(check);
+    return () => { window.clearTimeout(t); offWake(); };
     // Re-armed only when something the reminder depends on changes.
   }, [state.remind.on, state.remind.at, state.remindedOn, state.done.length, state.items.length, state.day]);
 }

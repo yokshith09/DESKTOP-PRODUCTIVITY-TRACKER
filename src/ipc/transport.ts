@@ -102,3 +102,17 @@ export function onPetSay(cb: (say: PetSay) => void): () => void {
   window.addEventListener("loaf-pet-say", handler);
   return () => window.removeEventListener("loaf-pet-say", handler);
 }
+
+/**
+ * The computer woke up (the shell noticed a long gap between its once-a-minute looks).
+ * Reminders and the daily greeting re-check then (bug S1). Outside the app a `loaf-wake`
+ * window event stands in for it.
+ */
+export function onWake(cb: () => void): () => void {
+  if (isTauri()) {
+    const pending = listen("loaf://wake", () => cb());
+    return () => void pending.then((off) => off());
+  }
+  window.addEventListener("loaf-wake", cb);
+  return () => window.removeEventListener("loaf-wake", cb);
+}

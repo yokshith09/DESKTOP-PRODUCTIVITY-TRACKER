@@ -11,6 +11,8 @@ pub const ID_OPEN: &str = "open";
 pub const ID_QUIT: &str = "quit";
 /// Handled by the pet module (`pet::on_menu`), like the pet's own menu.
 pub const ID_PET: &str = "pet:toggle";
+/// Puts the pet back at the bottom-right of the main screen and shows it (bug B6).
+pub const ID_PET_BACK: &str = "pet:back";
 
 /// Where an entry sits. Groups are separated by a single separator. `Create`, `Pet` and
 /// `Settings` are claimed by F1-01, F1-22 and F1-25 when those land.
@@ -58,6 +60,12 @@ impl MenuRegistry {
             label: "Show or hide pet".into(),
             group: Group::Pet,
             order: 0,
+        });
+        r.register(Entry {
+            id: ID_PET_BACK,
+            label: "Bring the pet back".into(),
+            group: Group::Pet,
+            order: 1,
         });
         r.register(Entry {
             id: ID_QUIT,
@@ -177,7 +185,7 @@ mod tests {
     fn base_menu_is_open_pet_quit_with_separators() {
         assert_eq!(
             ids(&MenuRegistry::base().slots()),
-            ["open", "-", ID_PET, "-", "quit"]
+            ["open", "-", ID_PET, ID_PET_BACK, "-", "quit"]
         );
     }
 
@@ -191,7 +199,17 @@ mod tests {
         assert_eq!(
             ids(&r.slots()),
             [
-                "open", "-", "new_note", "new_task", "-", ID_PET, "pet", "-", "settings", "-",
+                "open",
+                "-",
+                "new_note",
+                "new_task",
+                "-",
+                ID_PET,
+                "pet",
+                ID_PET_BACK,
+                "-",
+                "settings",
+                "-",
                 "quit"
             ]
         );
@@ -213,7 +231,7 @@ mod tests {
             ..entry("quit", Group::Quit, 0)
         });
         let slots = r.slots();
-        assert_eq!(slots.len(), 5);
-        assert!(matches!(&slots[4], Slot::Item(e) if e.label == "Quit now"));
+        assert_eq!(slots.len(), 6);
+        assert!(matches!(&slots[5], Slot::Item(e) if e.label == "Quit now"));
     }
 }
