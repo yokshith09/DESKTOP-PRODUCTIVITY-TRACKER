@@ -194,6 +194,14 @@ fn base_name(path: &str) -> &str {
     path.rsplit(['\\', '/']).next().unwrap_or(path).trim()
 }
 
+/// Windows draws the desktop, the taskbar, the tray and the task switcher with the same program
+/// as File Explorer (`explorer.exe`). Only its folder windows are File Explorer; the rest is the
+/// shell and is never "where time went" (owner 2026-10-25: File Explorer counted while unused).
+/// `class` is the foreground window's class name.
+pub fn is_shell_surface(exe: &str, class: &str) -> bool {
+    stem_key(exe) == "explorer" && !matches!(class, "CabinetWClass" | "ExploreWClass")
+}
+
 /// `C:\Apps\Chrome.EXE` -> `chrome`: the key used to look an app up.
 fn stem_key(path: &str) -> String {
     let base = base_name(path).to_lowercase();

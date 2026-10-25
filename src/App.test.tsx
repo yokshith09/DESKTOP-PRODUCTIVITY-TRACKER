@@ -186,6 +186,16 @@ describe("Notes screen (against the in-memory shell)", () => {
     expect(await screen.findByRole("button", { name: "Open Refactor the tray" })).toBeTruthy();
   });
 
+  it("Save with nothing changed still closes the task (owner 2026-10-25)", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await goTo(user, /^Tasks/);
+    await user.click(await screen.findByRole("button", { name: "Open Refactor the tray menu" }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: "Save changes" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  });
+
   it("a note previews as Markdown, never as raw HTML", async () => {
     const user = userEvent.setup();
     render(<App />);

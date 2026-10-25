@@ -36,28 +36,36 @@ export async function tryNudge(kind: string, now: Date, show: () => void | Promi
   return true;
 }
 
+/** The one greeting check running anywhere in this window, so two checks can never both greet. */
+let checking: Promise<void> | null = null;
+
 /**
  * Says hello once a day (FR-94) the first time Loaf is open on a new day, or the user's or the
  * pet's birthday (FR-93). Checked when the dashboard starts and when it comes back into view
  * (the PC woke up), plus one timer to the end of quiet hours; no polling.
  */
 export function useDailyGreeting() {
-  const { companion, save } = useCompanion();
+  const qc = useQueryClient();
+  const { companion } = useCompanion();
+  const ready = !!companion;
   useEffect(() => {
-    if (!companion) return;
-    let busy = false;
-    const check = async () => {
-      if (busy) return;
-      busy = true;
-      try {
-        const now = new Date();
-        const g = todaysGreeting(companion, now);
-        if (!g) return;
-        const shown = await tryNudge(g.kind, now, () => petSay({ text: g.text, pose: g.pose, ms: 8000 }));
-        if (shown) await save({ ...companion, greetedOn: ymd(now) });
-      } finally {
-        busy = false;
-      }
+    if (!ready) return;
+    // Reads what is saved, not what this render saw: the page re-renders often, and a check
+    // started from an older render must not greet again (owner 2026-10-25: hello too often).
+    const greet = async () => {
+      const now = new Date();
+      const saved = parseCompanion(await ipc.prefsGet("ui.companion"), ymd(now));
+      const g = todaysGreeting(saved, now);
+      if (!g) return;
+      const shown = await tryNudge(g.kind, now, () => petSay({ text: g.text, pose: g.pose, ms: 8000 }));
+      if (!shown) return;
+      const next = { ...saved, greetedOn: ymd(now) };
+      await ipc.prefsSet("ui.companion", next);
+      qc.setQueryData(COMPANION_KEY, next);
+    };
+    const check = () => {
+      checking ??= greet().finally(() => { checking = null; });
+      return checking;
     };
     void check();
     const onShow = () => document.visibilityState === "visible" && void check();
@@ -82,5 +90,5 @@ export function useDailyGreeting() {
       offWake();
       window.clearTimeout(t);
     };
-  }, [companion, save]);
+  }, [ready, qc]);
 }

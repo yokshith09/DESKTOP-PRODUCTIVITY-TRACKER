@@ -312,3 +312,18 @@ Still open: none of Q1-Q7 except the Q4 spike result.
 ## 2026-10-23 (late) — page-mascot audit
 - Audited koboyo.com/page-mascot (`docs/competitors/PAGE_MASCOT_AUDIT_2026-10-23.md`): MIT, head-only cursor-watching characters for websites. We may reuse the art with the MIT notice and credit, **except `kamran` (a real person's likeness)**. They don't fit the Codex full-body format; proposed FR-112 "head pet that watches your cursor" — **awaiting owner decision, not built**.
 - Release test checklist: `RELEASE_0.3.0_CHECKLIST.md`.
+
+## 2026-10-25 — UI reset requests (preview first)
+- Owner: the task editor, Today, Notes, Character and Settings are confusing; "before changing the UI show me UI preview". A preview canvas was published; **no screen is changed until the owner approves it.**
+- Fixed without waiting (bugs, not design): Save in the task editor was disabled when nothing changed, so clicking it did nothing; now it always closes. The daily hello could show twice when several checks started together; one check at a time now. File Explorer was counted for the desktop, taskbar, tray and Alt+Tab (all `explorer.exe`); only folder windows count now (Windows, Unverified; macOS Finder not changed).
+- Claude's proposals inside the preview (owner to confirm or change):
+  - The **next 7 days** go on the Tasks page as a **Week** view (large), not on Today: Today stays about today and links to it. Removed from the Notes tab (with Today strip and Links).
+  - **Today** keeps four tiles: Today (overdue shows "N days overdue"), Focus (its own tile, the hover card's Focus opens it), Time today, Routine + Links. Activity and Done this week removed.
+  - **Task editor**: one row per property; "When" is one menu (Today, Tomorrow, Next week, Pick a date, Several days, Repeats, Someday) instead of three toggles plus five presets; reminder "N min before" with −/+ and a sound; **focus length per task**; Activity collapsed. Save always enabled.
+  - **Settings**: six groups (General, Notifications, Shortcuts, Privacy and tracking, Data, About); every pet setting lives only on Character; each setting in exactly one place. Archive becomes a Notes filter; the MCP "coming soon" item leaves the sidebar until it exists.
+  - **Projects** (FR-53, pulled forward from P4): a project has its own tasks and notes, numbered, in the sidebar.
+  - **Character**: the current pet first (name, age in days, animation preview); Outfits and Reactions shown as "Later" (FR-49/64, FR-68); default reactions listed so they can become editable.
+  - **Music controls** under the pet use the OS media session (Windows SMTC; no browser extension, per the standing rule). macOS has no public API for this; media keys only.
+  - **Daily quote**: a bundled list of public-domain quotes, on by default with a switch; no network.
+  - **Analytics**: allowed as long as it is computed on this PC from data already stored and nothing is sent anywhere (local-first rule). Sending usage data out would break the rule.
+- Open (owner): approve or change the preview; character-creation skill — when, and which image source (Codex image tool or the owner's OpenAI key; we never pay for AI); what exactly the "hello" looks like when it repeats (greeting text, or the wave when the pointer is over the pet).

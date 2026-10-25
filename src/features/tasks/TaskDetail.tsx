@@ -100,7 +100,9 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
   const tomorrow = ymd(new Date(new Date().setDate(new Date().getDate() + 1)));
 
   const save = async () => {
-    if (!title.trim()) return;
+    if (!title.trim()) return notify.warning("Give the task a title.");
+    // Nothing changed: Save still closes, like the owner expects (never a dead button).
+    if (!dirty) return onClose();
     if (plan.mode === "repeat" && plan.repeat.kind === "weekly" && plan.repeat.days.length === 0) return notify.warning("Pick at least one day of the week.");
     if (plan.mode === "days" && plan.days.length === 0) return notify.warning("Pick at least one day.");
     await actions.update(task.id, {
@@ -238,7 +240,7 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
         )}
         <div className="ml-auto flex gap-2">
           <Button size="sm" variant="ghost" onClick={onClose}>Close</Button>
-          <Button size="sm" disabled={!dirty || !title.trim()} onClick={() => void save()}>Save changes</Button>
+          <Button size="sm" onClick={() => void save()}>Save changes</Button>
         </div>
       </div>
       <NoteEditor noteId={openNote} onClose={() => setOpenNote(null)} />

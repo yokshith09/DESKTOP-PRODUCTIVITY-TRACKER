@@ -50,6 +50,28 @@ fn well_known_executables_get_friendly_names() {
 }
 
 #[test]
+fn only_explorer_folder_windows_count_as_file_explorer() {
+    // Folder windows are File Explorer.
+    assert!(!is_shell_surface("explorer.exe", "CabinetWClass"));
+    assert!(!is_shell_surface("EXPLORER.EXE", "ExploreWClass"));
+    // The desktop, the taskbar, the tray and Alt+Tab are the shell, not an app.
+    for class in [
+        "Progman",
+        "WorkerW",
+        "Shell_TrayWnd",
+        "Shell_SecondaryTrayWnd",
+        "NotifyIconOverflowWindow",
+        "MultitaskingViewFrame",
+        "XamlExplorerHostIslandWindow",
+        "",
+    ] {
+        assert!(is_shell_surface("explorer.exe", class), "{class}");
+    }
+    // Other apps are never affected by their window class.
+    assert!(!is_shell_surface("Code.exe", "Progman"));
+}
+
+#[test]
 fn macos_app_names_are_recognised() {
     for (app, name, category) in [
         ("Code", "VS Code", "Coding"),

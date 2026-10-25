@@ -103,9 +103,10 @@ pub(crate) mod win {
     use windows_sys::Win32::UI::Accessibility::{SetWinEventHook, UnhookWinEvent, HWINEVENTHOOK};
     use windows_sys::Win32::UI::Input::KeyboardAndMouse::{GetLastInputInfo, LASTINPUTINFO};
     use windows_sys::Win32::UI::WindowsAndMessaging::{
-        DispatchMessageW, GetForegroundWindow, GetMessageW, GetWindowThreadProcessId, PeekMessageW,
-        PostThreadMessageW, TranslateMessage, EVENT_SYSTEM_FOREGROUND, MSG, OBJID_WINDOW,
-        PM_NOREMOVE, WINEVENT_OUTOFCONTEXT, WM_QUIT, WM_USER,
+        DispatchMessageW, GetClassNameW, GetForegroundWindow, GetMessageW,
+        GetWindowThreadProcessId, PeekMessageW, PostThreadMessageW, TranslateMessage,
+        EVENT_SYSTEM_FOREGROUND, MSG, OBJID_WINDOW, PM_NOREMOVE, WINEVENT_OUTOFCONTEXT, WM_QUIT,
+        WM_USER,
     };
 
     /// Where the hook callback (a plain function with no captures) sends what it sees.
@@ -246,10 +247,23 @@ pub(crate) mod win {
     }
 
     fn report(hwnd: HWND) {
-        let app = executable_name(hwnd);
+        // The desktop, taskbar and Alt+Tab belong to explorer.exe too: they record nothing.
+        let app = executable_name(hwnd)
+            .filter(|exe| !loaf_core::usage::is_shell_surface(exe, &class_name(hwnd)));
         if let Some(sink) = lock(&SINK).as_ref() {
             let _ = sink.send(app);
         }
+    }
+
+    /// The window's class name (e.g. `CabinetWClass` for a File Explorer folder window); empty if
+    /// it can't be read.
+    fn class_name(hwnd: HWND) -> String {
+        let mut buf = [0u16; 256];
+        // SAFETY: `buf` holds 256 UTF-16 units and the call writes at most that many; it returns
+        // the number written (0 on failure).
+        let len = unsafe { GetClassNameW(hwnd, buf.as_mut_ptr(), buf.len() as i32) };
+        let len = usize::try_from(len).unwrap_or(0).min(buf.len());
+        String::from_utf16_lossy(&buf[..len])
     }
 
     /// The file name (not the path) of the program that owns `hwnd`; `None` if there is no

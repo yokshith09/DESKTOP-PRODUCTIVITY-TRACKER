@@ -72,6 +72,19 @@ describe("hello once a day (FR-94)", () => {
     expect(out.length).toBe(before);
   });
 
+  it("says hello once even when several checks start together (owner 2026-10-25)", async () => {
+    const out = said();
+    const m = prefs({ "ui.companion": { born: "2026-01-01", userName: "Asha", userBirthday: null, greet: true, greetedOn: null }, "ui.nudges": quietOff });
+    // Two mounts and a burst of wake/focus events: the old code let each one greet.
+    wrap(<><Greeter /><Greeter /></>);
+    window.dispatchEvent(new Event("focus"));
+    window.dispatchEvent(new Event("loaf-wake"));
+    await waitFor(() => expect((m.get("ui.companion") as { greetedOn: string }).greetedOn).toBe(ymd(new Date())));
+    window.dispatchEvent(new Event("focus"));
+    await new Promise((r) => setTimeout(r, 50));
+    expect(out.filter((s) => (s as { text: string }).text.includes("Asha"))).toHaveLength(1);
+  });
+
   it("wishes the user a happy birthday on their birthday", async () => {
     const out = said();
     const md = ymd(new Date()).slice(5);

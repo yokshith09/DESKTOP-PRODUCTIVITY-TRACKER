@@ -5,6 +5,11 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Fixed (2026-10-25, Unverified on Windows): **File Explorer counted while unused** — Windows draws the desktop, taskbar, tray and Alt+Tab with `explorer.exe`, so they were recorded as File Explorer. Now only real folder windows (`CabinetWClass`) count; the rest records nothing (`loaf_core::usage::is_shell_surface`). macOS has the same effect with Finder when you click the desktop; not changed yet.
+- Fixed (2026-10-25): task editor **Save** is never a dead button — with nothing changed it just closes the task (before, it was greyed out and a click did nothing). An empty title says so instead.
+- Fixed (2026-10-25): the **daily hello** could show more than once when several checks started together (page re-renders, focus and wake at the same moment). One check runs at a time and reads the saved state.
+- Docs (2026-10-25): **UI preview** for the owner's UI reset — Today, Tasks week view, task editor, Notes, note editor with pop-out, Projects, Character, Settings, Time per app, pet states (timer below the pet, hover card, music controls). Preview only; no screen changed.
+
 ## [0.3.0] — 2026-10-23 (draft for owner testing; Unverified)
 
 Everything below "Unreleased" up to v2.0.0: notifications above the pet, task links / stars / chosen days / repeating tasks, focus sessions with the timer by the pet, hover-card shortcuts, auto-delete with a task Bin, date presets, editable pet shortcut, Time tile layout, open tabs on the Time page, pet-visibility fixes, macOS Arc/Firefox/Safari, pet library with ZIP import, companion features. Database updates 004–006 (backed up automatically before migrating).
