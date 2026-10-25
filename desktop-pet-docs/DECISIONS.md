@@ -342,3 +342,4 @@ Still open: none of Q1-Q7 except the Q4 spike result.
   - Built-in characters: Bolt, Ghosty, Mochi, Pip ship as packs (the bear pack is left out; the drawn bear stays the default). ~3.9 MB added to the installer.
   - Small windows (< 1024 px): icon-only sidebar.
 - Built-in quotes: 21 short lines by authors long dead (Aristotle … Theodore Roosevelt); misattributed favourites were left out on purpose.
+- Owner: "build a draft release so I can test" → version 0.3.0 → 0.4.0; the release workflow builds a **draft**; the owner tests before publishing.

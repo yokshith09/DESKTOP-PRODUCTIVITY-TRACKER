@@ -5,6 +5,10 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-10-25 (draft for owner testing; Unverified)
+
+The UI reset batch 1 below, the File Explorer, Save and hello fixes, and reminder sounds. Database update 007 (backed up automatically before migrating).
+
 - Changed (2026-10-25, owner's UI reset batch 1; OS parts Unverified):
   - **Today**: four clean tiles, Today, **Focus** (its own tile with − / + length, 15/25/50 and a task to focus on), Daily routine, Time today and Links. **Activity** and **Done this week** removed; roomier spacing in every tile. The Today list is grouped Overdue / Tasks / Reminders and an overdue task says "**N days overdue**". **Quote of the day**, large, beside the greeting; add, edit and delete your own quotes; built-in public-domain quotes can be turned off.
   - **Task editor** rebuilt: title and actions on top; details, links, work updates and history on the left; on the right one card per setting, each with one line saying what it is for (When, Deadline, Reminder, Priority, Project, Note). Nothing hidden. Clicking a task on Today opens the same editor (the small pop-up editor is gone). Duplicate date buttons removed (on a Saturday "Today" and "This weekend" were both lit).
