@@ -21,7 +21,7 @@ function PackCard({ pack, active, onUse, onRemove }: { pack: PetPack; active: bo
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold">{pack.display_name}</p>
         <p className="truncate text-xs text-muted-foreground">
-          {pack.source === "codex" ? "From Codex / Petdex" : "Imported"} · {pack.rows === 11 ? "V2" : "V1"}
+          {pack.source === "builtin" ? "Built in" : pack.source === "codex" ? "From Codex / Petdex" : "Imported"}
         </p>
       </div>
       <Button size="sm" variant={active ? "default" : "outline"} aria-pressed={active} onClick={onUse}>
@@ -68,13 +68,11 @@ export function PetLibrary() {
   };
 
   return (
-    <section aria-label="Pet library" className="mt-6">
-      <div className="flex items-end justify-between gap-3">
+    <section aria-label="Characters" className="mt-6">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-[15px] font-semibold">Pet library</h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Any Codex or OpenPets pet works here: pets installed by Codex or Petdex (<code>.codex/pets</code>, <code>.petdex/pets</code>) show up by themselves, or import a downloaded pet (ZIP) or an unzipped pet folder.
-          </p>
+          <h2 className="text-[15px] font-semibold">Characters</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">Pick who sits on your desktop. Codex and OpenPets pets work too.</p>
         </div>
         <div className="flex shrink-0 gap-1.5">
           <Button size="sm" disabled={busy} onClick={() => void importPack("zip")}>

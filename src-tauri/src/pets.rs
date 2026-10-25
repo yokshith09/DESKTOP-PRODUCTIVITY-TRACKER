@@ -28,9 +28,22 @@ fn shared_dirs(app: &AppHandle) -> Vec<PathBuf> {
     ]
 }
 
-/// Every installed pack: Loaf's own first, then Codex's and Petdex's (a Loaf copy wins on the same id).
+/// The characters shipped with Loaf (`bundle.resources` in tauri.conf.json), read in place.
+fn builtin_dir(app: &AppHandle) -> Option<PathBuf> {
+    app.path().resource_dir().ok().map(|d| d.join("packs"))
+}
+
+/// Every pack: Loaf's own first, then the built-in ones, then Codex's and Petdex's (the first
+/// one found wins on the same id).
 fn all(app: &AppHandle, paths: &AppPaths) -> Vec<(PetPack, PathBuf)> {
     let mut found = pets::scan(&loaf_dir(paths), PetSource::Loaf);
+    if let Some(dir) = builtin_dir(app) {
+        for (pack, sheet) in pets::scan(&dir, PetSource::Builtin) {
+            if !found.iter().any(|(p, _)| p.id == pack.id) {
+                found.push((pack, sheet));
+            }
+        }
+    }
     for dir in shared_dirs(app) {
         for (pack, sheet) in pets::scan(&dir, PetSource::Codex) {
             if !found.iter().any(|(p, _)| p.id == pack.id) {

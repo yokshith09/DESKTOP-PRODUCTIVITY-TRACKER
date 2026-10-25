@@ -6,7 +6,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Kbd } from "@/components/ui/kbd";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { WeekCalendar } from "@/features/calendar/WeekCalendar";
 import { PageHeader } from "@/features/shell/PageHeader";
 import { LinksCard } from "@/features/links/Shortcuts";
 import type { Page } from "@/features/shell/Sidebar";
@@ -77,10 +76,9 @@ export function NotesPage({ archived, labelId, labelName, labels, onLabel, sort,
     <div className="space-y-6">
       {mode === "notes" && (
         <div className="grid gap-4 lg:grid-cols-12 lg:[&>*]:h-72">
-          <TodayStrip className="lg:col-span-4" onViewAll={() => onNavigate("today")} />
-          <WeekCalendar className="lg:col-span-5" />
-          {/* Links in Notes too, not only on Today (FR-42, owner V2-08). */}
-          <LinksCard className="lg:col-span-3" />
+          <TodayStrip className="lg:col-span-7" onViewAll={() => onNavigate("today")} />
+          {/* Links in Notes too, not only on Today (FR-42, owner V2-08). The week moved to Tasks (owner 2026-10-25). */}
+          <LinksCard className="lg:col-span-5" />
         </div>
       )}
       <div>

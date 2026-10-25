@@ -16,6 +16,8 @@ export const ipc = {
   notesList: (archived: boolean, labelId: string | null, sort: NoteSort = "last_edited") =>
     call<NoteSummary[]>("notes_list", { archived, labelId, sort }),
   noteGet: (id: string) => call<Note>("note_get", { id }),
+  /** Open a note in a window of its own (owner 2026-10-25). */
+  noteWindowOpen: (id: string) => call<null>("note_window_open", { id }),
   noteCreate: (input: NoteInput = {}) => call<Note>("note_create", { input }),
   noteUpdate: (id: string, patch: NotePatch) => call<Note>("note_update", { id, patch }),
   noteSetPinned: (id: string, pinned: boolean) => call<Note>("note_set_pinned", { id, pinned }),

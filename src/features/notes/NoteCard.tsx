@@ -74,7 +74,7 @@ export function NoteCard({ note, ...h }: { note: NoteSummary } & NoteHandlers) {
       data-note-color={note.color}
       {...open}
       className={cn(
-        "group relative mb-3 block cursor-pointer break-inside-avoid rounded-xl border p-3.5 text-left outline-none transition-colors hover:border-foreground/25 focus-visible:ring-2 focus-visible:ring-ring",
+        "group relative mb-3 block cursor-pointer break-inside-avoid rounded-xl border p-4 text-left outline-none transition-colors hover:border-foreground/25 focus-visible:ring-2 focus-visible:ring-ring",
         note.color === "default" ? "bg-card" : "note-tint",
       )}
     >
@@ -84,10 +84,11 @@ export function NoteCard({ note, ...h }: { note: NoteSummary } & NoteHandlers) {
       {note.pinned && !note.archived && (
         <Pin aria-label="Pinned" className="absolute right-3 top-3 size-3.5 rotate-45 fill-primary text-primary group-hover:hidden group-focus-within:hidden" />
       )}
-      {note.title && <h3 className="mb-1 pr-5 text-[14px] font-semibold leading-snug tracking-tight">{note.title}</h3>}
-      {note.excerpt && <p className="line-clamp-6 whitespace-pre-line text-[13px] leading-[1.55] text-foreground/75">{note.excerpt}</p>}
+      {note.title && <h3 className="mb-2 pr-5 text-[14.5px] font-semibold leading-snug tracking-tight">{note.title}</h3>}
+      {note.excerpt && <p className="line-clamp-6 whitespace-pre-line text-[13px] leading-relaxed text-foreground/75">{note.excerpt}</p>}
       {!note.title && !note.excerpt && <p className="text-[13px] italic text-muted-foreground">Empty note</p>}
-      <div className="mt-3 flex items-center gap-1.5">
+      <div className="mt-4 flex items-center gap-1.5">
+        {note.project && <Badge>{note.project}</Badge>}
         {note.labels.slice(0, 3).map((l) => (
           <Badge key={l.id}>{l.name}</Badge>
         ))}
@@ -137,7 +138,7 @@ export function PinnedCard({ note, ...h }: { note: NoteSummary } & NoteHandlers)
       data-note-color={note.color}
       {...open}
       className={cn(
-        "group relative flex min-h-36 cursor-pointer flex-col overflow-hidden rounded-xl border p-4 pt-[18px] text-left outline-none transition-colors hover:border-foreground/25 focus-visible:ring-2 focus-visible:ring-ring",
+        "group relative flex min-h-36 cursor-pointer flex-col overflow-hidden rounded-xl border p-4 pt-5 text-left outline-none transition-colors hover:border-foreground/25 focus-visible:ring-2 focus-visible:ring-ring",
         note.color === "default" ? "bg-card" : "note-tint",
       )}
     >
@@ -146,9 +147,10 @@ export function PinnedCard({ note, ...h }: { note: NoteSummary } & NoteHandlers)
         <Actions note={note} {...h} />
       </div>
       <Pin aria-label="Pinned" className="absolute right-3.5 top-4 size-3.5 rotate-45 fill-primary text-primary group-hover:hidden group-focus-within:hidden" />
-      <h3 className="mb-1.5 pr-6 text-[15px] font-semibold leading-snug tracking-tight">{note.title || "Untitled"}</h3>
+      <h3 className="mb-2 pr-6 text-[15px] font-semibold leading-snug tracking-tight">{note.title || "Untitled"}</h3>
       <p className="line-clamp-3 whitespace-pre-line text-[13px] leading-relaxed text-foreground/75">{note.excerpt}</p>
-      <div className="mt-auto flex items-center gap-1.5 pt-3">
+      <div className="mt-auto flex items-center gap-1.5 pt-4">
+        {note.project && <Badge>{note.project}</Badge>}
         {note.labels.slice(0, 2).map((l) => <Badge key={l.id}>{l.name}</Badge>)}
         <span className="ml-auto text-[11px] text-muted-foreground">{timeAgo(note.edited_at)}</span>
       </div>

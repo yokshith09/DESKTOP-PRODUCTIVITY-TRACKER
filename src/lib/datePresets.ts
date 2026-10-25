@@ -7,13 +7,15 @@ export function dayPresets(now = new Date()): { label: string; value: string }[]
   const dow = now.getDay(); // 0 Sun … 6 Sat
   const weekend = dow === 6 || dow === 0 ? now : add(now, 6 - dow);
   const nextMonday = add(now, ((8 - dow) % 7) || 7);
-  return [
+  const all = [
     { label: "Today", value: ymd(now) },
     { label: "Tomorrow", value: ymd(add(now, 1)) },
     { label: "This weekend", value: ymd(weekend) },
     { label: "Next week", value: ymd(nextMonday) },
     { label: "In 3 days", value: ymd(add(now, 3)) },
   ];
+  // On a Saturday "This weekend" is today: show one button per day, never two lit at once.
+  return all.filter((o, i) => all.findIndex((x) => x.value === o.value) === i);
 }
 
 /** `YYYY-MM-DDTHH:mm` for a datetime-local input. */

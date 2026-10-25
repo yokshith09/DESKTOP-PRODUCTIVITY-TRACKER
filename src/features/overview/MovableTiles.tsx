@@ -11,8 +11,8 @@ import { TileHandleContext } from "@/features/shell/TileHandle";
 import { ipc } from "@/ipc";
 import { cn } from "@/lib/utils";
 
-export type TileId = "agenda" | "time" | "routine" | "links" | "activity" | "done";
-export const DEFAULT_ORDER: TileId[] = ["agenda", "time", "routine", "links", "activity", "done"];
+export type TileId = "agenda" | "focus" | "routine" | "time" | "links";
+export const DEFAULT_ORDER: TileId[] = ["agenda", "focus", "routine", "time", "links"];
 const KEY = ["prefs", "ui.overview_order"] as const;
 
 /** Stored order, with anything unknown dropped and anything missing put back at the end. */
@@ -80,7 +80,7 @@ export function MovableTiles({ tiles }: { tiles: Record<TileId, TileSpec> }) {
     <div>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={() => setActive(true)} onDragCancel={() => setActive(false)} onDragEnd={onEnd}>
         <SortableContext items={order} strategy={rectSortingStrategy}>
-          <div className={cn("grid gap-4 lg:grid-flow-row-dense lg:auto-rows-[15rem] lg:grid-cols-12", active && "select-none")}>
+          <div className={cn("grid gap-5 md:grid-cols-2 lg:grid-flow-row-dense lg:auto-rows-[15rem] lg:grid-cols-12", active && "select-none")}>
             {order.map((id) => <SortableTile key={id} id={id} spec={tiles[id]} />)}
           </div>
         </SortableContext>

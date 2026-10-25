@@ -5,4 +5,4 @@ import type { NoteColor } from "./NoteColor";
 /**
  * What the list shows: a card, not the whole note.
  */
-export type NoteSummary = { id: string, title: string, excerpt: string, color: NoteColor, pinned: boolean, archived: boolean, created_at: number, edited_at: number, labels: Array<Label>, };
+export type NoteSummary = { id: string, title: string, excerpt: string, color: NoteColor, pinned: boolean, archived: boolean, created_at: number, edited_at: number, labels: Array<Label>, project: string | null, };

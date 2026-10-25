@@ -30,7 +30,7 @@ export function createMock() {
     id: string, title: string, body: string, color: NoteColor, hoursAgo: number,
     ls: Label[], pinned = false,
   ): Note => ({
-    id, title, body, color, pinned, archived: false, labels: ls,
+    id, title, body, color, pinned, archived: false, labels: ls, project: null,
     created_at: now() - hoursAgo * HOUR, edited_at: now() - hoursAgo * HOUR,
   });
   const notes: Note[] = [
@@ -49,10 +49,10 @@ export function createMock() {
     { ...summary(n("b2", "Draft: release notes", "v0.1 — first public build", "blue", 80, L("l1"))), deleted_at: now() - 3 * 24 * HOUR },
   ];
   const reminders: Reminder[] = [
-    { id: "r0", title: "Review the sync PR", remind_at: now() - 40 * 60_000, note_id: null, fired_at: now() - 40 * 60_000, done_at: null, created_at: now(), starred: false },
-    { id: "r1", title: "Stand-up", remind_at: now() + 1.5 * HOUR, note_id: null, fired_at: null, done_at: null, created_at: now(), starred: false },
-    { id: "r2", title: "Call the dentist", remind_at: now() + 20 * HOUR, note_id: null, fired_at: null, done_at: null, created_at: now(), starred: false },
-    { id: "r3", title: "Send invoice", remind_at: now() + 3 * 24 * HOUR, note_id: null, fired_at: null, done_at: null, created_at: now(), starred: false },
+    { id: "r0", title: "Review the sync PR", remind_at: now() - 40 * 60_000, note_id: null, fired_at: now() - 40 * 60_000, done_at: null, created_at: now(), starred: false, task_id: null, lead_min: 0, sound: true },
+    { id: "r1", title: "Stand-up", remind_at: now() + 1.5 * HOUR, note_id: null, fired_at: null, done_at: null, created_at: now(), starred: false, task_id: null, lead_min: 0, sound: true },
+    { id: "r2", title: "Call the dentist", remind_at: now() + 20 * HOUR, note_id: null, fired_at: null, done_at: null, created_at: now(), starred: false, task_id: null, lead_min: 0, sound: true },
+    { id: "r3", title: "Send invoice", remind_at: now() + 3 * 24 * HOUR, note_id: null, fired_at: null, done_at: null, created_at: now(), starred: false, task_id: null, lead_min: 0, sound: true },
   ];
   const today = ymd(new Date());
   const inDays = (n: number) => ymd(daysAgo(-n));
@@ -68,6 +68,9 @@ export function createMock() {
     t("t7", "Write release notes", "LOW", inDays(3), inDays(4), "PLANNED"),
     t("t8", "Clear design feedback", "LOW", inDays(4), null, "PLANNED"),
   ];
+  // A sample project (owner 2026-10-25: tasks and notes per project).
+  for (const id of ["t1", "t3", "t7"]) { const x = tasks.find((k) => k.id === id); if (x) x.project = "Loaf v1"; }
+  for (const id of ["n1", "n8"]) { const x = notes.find((k) => k.id === id); if (x) x.project = "Loaf v1"; }
   // Meetings: stored without task status; `withStatus` reads it from the tasks, like the core.
   type StoredMeeting = Omit<Meeting, "action_items"> & { action_items: { id: string; body: string; assignee: string | null; task_id: string | null }[] };
   const meetings: StoredMeeting[] = [
@@ -326,9 +329,11 @@ export function createMock() {
       return sorted.map(summary);
     },
     note_get: (a) => find(a.id),
+    note_window_open: (a) => { window.open(`/main.html?note=${encodeURIComponent(String(a.id))}`, `note-${String(a.id)}`, "width=720,height=640"); return null; },
     note_create: (a) => {
       const i = (a.input ?? {}) as Partial<Note> & { label_ids?: string[] };
       const x = n(`n${++seq}`, i.title ?? "", i.body ?? "", i.color ?? "default", 0, L(...(i.label_ids ?? [])));
+      x.project = i.project?.trim() || null;
       notes.unshift(x);
       emit("NoteCreated");
       return x;
@@ -340,6 +345,7 @@ export function createMock() {
       if (p.body !== undefined) x.body = p.body;
       if (p.color !== undefined) x.color = p.color;
       if (p.label_ids) x.labels = L(...p.label_ids);
+      if (p.project !== undefined && p.project !== null) x.project = p.project.trim() || null;
       x.edited_at = now();
       emit("NoteUpdated");
       return x;
@@ -354,7 +360,7 @@ export function createMock() {
       const i = bin.findIndex((b) => b.id === a.id);
       if (i < 0) fail("NOT_FOUND", "That note is no longer in the Bin.");
       const [b] = bin.splice(i, 1);
-      const x: Note = { ...(b as BinNote), body: (b as BinNote).excerpt, archived: false };
+      const x: Note = { ...(b as BinNote), body: (b as BinNote).excerpt, archived: false, project: null };
       notes.unshift(x); emit("NoteRestored"); return x;
     },
     note_discard_if_empty: (a) => {
@@ -376,18 +382,20 @@ export function createMock() {
     reminders_list: (a) =>
       reminders.filter((r) => a.includeDone || !r.done_at).sort((p, q) => Number(!!p.done_at) - Number(!!q.done_at) || Number(q.starred) - Number(p.starred) || p.remind_at - q.remind_at),
     reminder_create: (a) => {
-      const i = a.input as { title: string; remind_at: number };
+      const i = a.input as { title: string; remind_at: number; task_id?: string | null; lead_min?: number | null; sound?: boolean | null };
       if (!i.title.trim()) fail("VALIDATION", "A reminder needs a title.");
-      const r: Reminder = { id: `r${++seq}`, title: i.title.trim(), remind_at: i.remind_at, note_id: null, fired_at: null, done_at: null, created_at: now(), starred: false };
+      const r: Reminder = { id: `r${++seq}`, title: i.title.trim(), remind_at: i.remind_at, note_id: null, fired_at: null, done_at: null, created_at: now(), starred: false, task_id: i.task_id ?? null, lead_min: i.lead_min ?? 0, sound: i.sound ?? true };
       reminders.push(r); emit("ReminderCreated", { reminder: r }); return r;
     },
     reminder_update: (a) => {
       const r = reminders.find((x) => x.id === a.id) ?? fail("NOT_FOUND", "That reminder no longer exists.");
-      const patch = a.patch as { title?: string | null; remind_at?: number };
+      const patch = a.patch as { title?: string | null; remind_at?: number; lead_min?: number | null; sound?: boolean | null };
       // Like the core: a new time is a new reminder as far as firing goes.
       if (patch.remind_at !== undefined && patch.remind_at !== r.remind_at) r.fired_at = null;
       if (patch.title) r.title = patch.title;
       if (patch.remind_at !== undefined) r.remind_at = patch.remind_at;
+      if (patch.lead_min != null) r.lead_min = patch.lead_min;
+      if (patch.sound != null) r.sound = patch.sound;
       emit("ReminderUpdated", { reminder: r }); return r;
     },
     reminder_set_done: (a) => {

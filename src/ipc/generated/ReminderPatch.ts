@@ -3,4 +3,4 @@
 /**
  * Fields left as `None` are not touched. Changing `remind_at` makes the reminder fire again.
  */
-export type ReminderPatch = { title?: string | null, remind_at: number, };
+export type ReminderPatch = { title?: string | null, remind_at: number, lead_min?: number | null, sound?: boolean | null, };

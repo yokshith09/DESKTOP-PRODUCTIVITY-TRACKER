@@ -26,6 +26,8 @@ pub enum PetSource {
     Loaf,
     /// Read in place from `~/.codex/pets` (Codex / Petdex installs).
     Codex,
+    /// Shipped with Loaf (owner 2026-10-25: characters can be changed). Never removed.
+    Builtin,
 }
 
 /// One checked pet pack.

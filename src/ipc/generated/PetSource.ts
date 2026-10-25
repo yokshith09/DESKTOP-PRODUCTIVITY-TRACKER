@@ -3,4 +3,4 @@
 /**
  * Where an installed pet came from.
  */
-export type PetSource = "loaf" | "codex";
+export type PetSource = "loaf" | "codex" | "builtin";

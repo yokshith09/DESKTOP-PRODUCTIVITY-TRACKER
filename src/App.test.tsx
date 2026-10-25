@@ -47,12 +47,17 @@ async function goTo(user: ReturnType<typeof userEvent.setup>, name: RegExp) {
 const openNotes = (user: ReturnType<typeof userEvent.setup>) => goTo(user, /^Notes/);
 
 describe("Notes screen (against the in-memory shell)", () => {
-  it("opens on Today overview: agenda, time, links and activity, without search or New note", async () => {
+  it("opens on Today overview: agenda, focus, routine, time and links, without search or New note", async () => {
     render(<App />);
     expect(await screen.findByRole("region", { name: "Today’s agenda" })).toBeTruthy();
-    for (const name of ["Total time today", "Apps", "Websites", "Links", "Done this week", "Activity"]) {
+    for (const name of ["Focus", "Daily routine", "Total time today", "Apps", "Websites", "Links"]) {
       expect(await screen.findByRole("region", { name })).toBeTruthy();
     }
+    // Owner 2026-10-25: no activity feed and no week count on Today.
+    expect(screen.queryByRole("region", { name: "Activity" })).toBeNull();
+    expect(screen.queryByRole("region", { name: "Done this week" })).toBeNull();
+    // The quote of the day sits beside the greeting.
+    expect(await screen.findByRole("button", { name: "Edit quotes" })).toBeTruthy();
     expect(screen.queryByRole("textbox", { name: "Search notes" })).toBeNull();
     expect(screen.queryByRole("button", { name: /New note/ })).toBeNull();
   });
@@ -68,17 +73,27 @@ describe("Notes screen (against the in-memory shell)", () => {
     expect(await within(dialog).findByText(/Active from/)).toBeTruthy();
   });
 
-  it("a task can be edited from Today: priority and deadline", async () => {
+  it("a task opens from Today in the full editor: priority and deadline, then back to Today", async () => {
     const user = userEvent.setup();
     render(<App />);
     await user.click(await screen.findByRole("button", { name: "Edit Refactor the tray menu" }));
-    const form = await screen.findByRole("form", { name: "Edit Refactor the tray menu" });
-    await user.click(within(form).getByRole("radio", { name: "High" }));
-    await user.type(within(form).getByLabelText("Deadline"), "2030-05-04");
-    await user.click(within(form).getByRole("button", { name: "Save" }));
+    const dialog = await screen.findByRole("dialog");
+    // Each setting says what it is for (owner 2026-10-25).
+    expect(within(dialog).getByText("The last day it can be done. After that it shows as overdue.")).toBeTruthy();
+    await user.click(within(dialog).getByRole("radio", { name: "High" }));
+    await user.type(within(dialog).getByLabelText("Deadline date"), "2030-05-04");
+    await user.click(within(dialog).getByRole("button", { name: "Save changes" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     const row = (await screen.findByRole("button", { name: "Edit Refactor the tray menu" })).closest("li") as HTMLElement;
     expect(await within(row).findByText(/High/)).toBeTruthy();
     expect(within(row).getByTitle("Deadline")).toBeTruthy();
+  });
+
+  it("an overdue task on Today says how many days late it is", async () => {
+    render(<App />);
+    const late = await screen.findByRole("region", { name: "Overdue" });
+    expect(within(late).getByRole("button", { name: "Edit Finish the sync spec" })).toBeTruthy();
+    expect(within(late).getByText(/overdue$/)).toBeTruthy();
   });
 
   it("browsers list their sites with time under the browser", async () => {
@@ -104,7 +119,7 @@ describe("Notes screen (against the in-memory shell)", () => {
 
   it("every overview tile has a move handle", async () => {
     render(<App />);
-    for (const t of ["Today", "Total time today", "Links", "Activity", "Done this week"]) {
+    for (const t of ["Today", "Focus", "Daily routine", "Total time today", "Links"]) {
       expect(await screen.findByRole("button", { name: `Move ${t}` })).toBeTruthy();
     }
   });
@@ -348,14 +363,15 @@ describe("Notes screen (against the in-memory shell)", () => {
     expect(await screen.findByRole("button", { name: "Open Course handbook" })).toBeTruthy();
   });
 
-  it("Notes has search and New note, shows Today first, then the next 7 days, Pinned, and the rest", async () => {
+  it("Notes has search and New note, shows Today first, then Pinned, and the rest (the week lives on Tasks)", async () => {
     const user = userEvent.setup();
     render(<App />);
     await openNotes(user);
     expect(await screen.findByRole("textbox", { name: "Search notes" })).toBeTruthy();
     expect(screen.getByRole("button", { name: /New note/ })).toBeTruthy();
     const regions = (await screen.findAllByRole("region")).map((r) => r.getAttribute("aria-label"));
-    const order = ["Today", "Next 7 days", "Pinned", "All notes"].map((n) => regions.indexOf(n));
+    expect(regions).not.toContain("Next 7 days");
+    const order = ["Today", "Pinned", "All notes"].map((n) => regions.indexOf(n));
     expect(order.every((n) => n >= 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
     expect(within(screen.getByRole("region", { name: "All notes" })).getByRole("button", { name: "Groceries" })).toBeTruthy();
@@ -720,19 +736,25 @@ describe("task upgrades (FR-106..FR-109)", () => {
 });
 
 describe("focus sessions (FR-05)", () => {
-  it("starts from Today, shows the time left with pause, +5 and stop, and from a task with its name", async () => {
+  it("starts from its own tile on Today, shows the time left with pause, +5 and stop, and from a task with its name", async () => {
     const user = userEvent.setup();
     render(<App />);
+    // Owner 2026-10-25: no focus timer in the Today list; Focus has its own tile.
     const agenda = await screen.findByRole("region", { name: "Today’s agenda" });
-    await user.click(within(agenda).getByRole("button", { name: "Focus 25 minutes" }));
-    const bar = await within(agenda).findByRole("group", { name: "Focus session" }, { timeout: 3000 });
-    expect(within(bar).getByRole("timer", { name: "Time left" }).textContent).toMatch(/^2[45]:\d\d$/);
-    await user.click(within(bar).getByRole("button", { name: "Add 5 minutes" }));
-    await waitFor(() => expect(within(bar).getByRole("timer").textContent).toMatch(/^(29|30):\d\d$/));
-    await user.click(within(bar).getByRole("button", { name: "Pause" }));
-    expect(await within(bar).findByRole("button", { name: "Resume" })).toBeTruthy();
-    await user.click(within(bar).getByRole("button", { name: "Stop" }));
-    expect(await within(agenda).findByRole("group", { name: "Focus" })).toBeTruthy();
+    expect(within(agenda).queryByRole("button", { name: /Focus/ })).toBeNull();
+    const tile = await screen.findByRole("region", { name: "Focus" });
+    await user.click(within(tile).getByRole("button", { name: "5 minutes shorter" }));
+    expect(within(tile).getByText("20:00")).toBeTruthy();
+    await user.click(within(tile).getByRole("button", { name: "25 min" }));
+    await user.click(within(tile).getByRole("button", { name: "Start" }));
+    const timer = await within(tile).findByRole("timer", { name: "Time left" }, { timeout: 3000 });
+    expect(timer.textContent).toMatch(/^2[45]:\d\d$/);
+    await user.click(within(tile).getByRole("button", { name: "5 min" }));
+    await waitFor(() => expect(within(tile).getByRole("timer").textContent).toMatch(/^(29|30):\d\d$/));
+    await user.click(within(tile).getByRole("button", { name: "Pause" }));
+    expect(await within(tile).findByRole("button", { name: "Resume" })).toBeTruthy();
+    await user.click(within(tile).getByRole("button", { name: "Stop" }));
+    expect(await within(tile).findByRole("button", { name: "Start" })).toBeTruthy();
 
     // From a task: the session carries its name.
     await goTo(user, /^Tasks/);
@@ -800,7 +822,7 @@ describe("date presets (FR-45)", () => {
     await user.click(await screen.findByRole("button", { name: "Open Refactor the tray menu" }));
     const dialog = await screen.findByRole("dialog");
     await user.click(within(within(dialog).getByRole("group", { name: "Deadline presets" })).getByRole("button", { name: "Tomorrow" }));
-    expect((within(dialog).getByLabelText("Deadline") as HTMLInputElement).value).toBe(dayPresets().find((p) => p.label === "Tomorrow")?.value);
+    expect((within(dialog).getByLabelText("Deadline date") as HTMLInputElement).value).toBe(dayPresets().find((p) => p.label === "Tomorrow")?.value);
     await user.keyboard("{Escape}");
 
     await goTo(user, /^Today/);
@@ -823,5 +845,93 @@ describe("open tabs are easy to find (FR-62)", () => {
       const s = await ipc.settingsGetAll();
       expect([s["tracking.apps"], s["tracking.sites"]]).toEqual([true, true]);
     });
+  });
+});
+
+describe("owner's UI reset, batch 1 (2026-10-25)", () => {
+  it("a task reminder: when it starts, how many minutes before (+ / −), and sound", async () => {
+    const { ipc } = await import("@/ipc");
+    const user = userEvent.setup();
+    render(<App />);
+    await goTo(user, /^Tasks/);
+    await user.click(await screen.findByRole("button", { name: "Open Refactor the tray menu" }));
+    const dialog = await screen.findByRole("dialog");
+    const card = within(dialog).getByRole("region", { name: "Reminder" });
+    const start = within(card).getByLabelText("It starts at") as HTMLInputElement;
+    await user.clear(start);
+    await user.type(start, "2031-03-04T10:00");
+    expect(within(card).getByText("5 min before")).toBeTruthy();
+    await user.click(within(card).getByRole("button", { name: "Remind earlier" }));
+    expect(within(card).getByText("10 min before")).toBeTruthy();
+    await user.click(within(card).getByRole("switch", { name: "Play a sound" }));
+    await user.click(within(card).getByRole("button", { name: "Add reminder" }));
+    await waitFor(async () => {
+      const r = (await ipc.remindersList(false)).find((x) => x.task_id === "t3");
+      expect(r && [r.lead_min, r.sound, r.remind_at]).toEqual([10, false, new Date(2031, 2, 4, 9, 50).getTime()]);
+    });
+    expect(await within(card).findByRole("list", { name: "Reminders for this task" })).toBeTruthy();
+  });
+
+  it("Tasks has the next 7 days as a large tile, and a task opens from it", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await goTo(user, /^Tasks/);
+    const week = await screen.findByRole("region", { name: "Next 7 days" });
+    expect(await screen.findByRole("region", { name: "Task list" })).toBeTruthy();
+    await user.click(await within(week).findByRole("button", { name: /Send research notes to Mara/ }));
+    expect(await screen.findByRole("dialog")).toBeTruthy();
+  });
+
+  it("Projects shows a project's tasks and notes, numbered, and adds to it", async () => {
+    const { ipc } = await import("@/ipc");
+    const user = userEvent.setup();
+    render(<App />);
+    await goTo(user, /^Projects/);
+    const project = await screen.findByRole("region", { name: "Project Loaf v1" });
+    const tasks = within(project).getByRole("region", { name: "Tasks" });
+    expect(within(tasks).getByText("1.")).toBeTruthy();
+    expect(within(project).getByRole("button", { name: "Open note Loaf v1 scope" })).toBeTruthy();
+    await user.type(within(tasks).getByRole("textbox", { name: "New project task" }), "Write the release post{Enter}");
+    await waitFor(async () => {
+      const all = await ipc.tasksQuery("all");
+      expect(all.find((r) => r.task.title === "Write the release post")?.task.project).toBe("Loaf v1");
+    });
+    // A new project starts empty and fills from here.
+    await user.type(screen.getByRole("textbox", { name: "New project name" }), "Thesis{Enter}");
+    expect(await screen.findByRole("region", { name: "Project Thesis" })).toBeTruthy();
+  });
+
+  it("the note editor formats (bold, numbered list) and can move to its own window", async () => {
+    const { ipc } = await import("@/ipc");
+    const open = vi.spyOn(ipc, "noteWindowOpen").mockResolvedValue(null);
+    const user = userEvent.setup();
+    render(<App />);
+    await openNotes(user);
+    await user.click(await screen.findByRole("button", { name: "Groceries" }));
+    const dialog = await screen.findByRole("dialog");
+    const body = within(dialog).getByRole("textbox", { name: "Note" }) as HTMLTextAreaElement;
+    body.setSelectionRange(0, 4); // "Oats"
+    await user.click(within(dialog).getByRole("button", { name: /^Bold/ }));
+    await waitFor(() => expect(body.value.startsWith("**Oats**")).toBe(true));
+    await new Promise((r) => setTimeout(r, 50)); // the editor puts the selection back on the next frame
+    body.setSelectionRange(0, body.value.length);
+    await user.click(within(dialog).getByRole("button", { name: "Numbered list" }));
+    await waitFor(() => expect(body.value.split("\n")[1]).toBe("2. Peanut butter"));
+    await user.click(within(dialog).getByRole("button", { name: /Own window/ }));
+    await waitFor(() => expect(open).toHaveBeenCalledWith("n4"));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  });
+
+  it("quotes can be added and edited by the user", async () => {
+    const { ipc } = await import("@/ipc");
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(await screen.findByRole("button", { name: "Edit quotes" }));
+    const dialog = await screen.findByRole("dialog");
+    await user.type(within(dialog).getByLabelText("Add a quote"), "Small steps every day.");
+    await user.type(within(dialog).getByRole("textbox", { name: "Who said it" }), "Me");
+    await user.click(within(dialog).getByRole("button", { name: "Add" }));
+    expect(await within(dialog).findByRole("region", { name: "Your quotes" })).toBeTruthy();
+    await waitFor(async () => expect(await ipc.prefsGet("ui.quotes")).toMatchObject({ custom: [{ text: "Small steps every day.", author: "Me" }] }));
   });
 });

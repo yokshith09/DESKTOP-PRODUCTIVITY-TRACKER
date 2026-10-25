@@ -5,6 +5,16 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Changed (2026-10-25, owner's UI reset batch 1; OS parts Unverified):
+  - **Today**: four clean tiles, Today, **Focus** (its own tile with − / + length, 15/25/50 and a task to focus on), Daily routine, Time today and Links. **Activity** and **Done this week** removed; roomier spacing in every tile. The Today list is grouped Overdue / Tasks / Reminders and an overdue task says "**N days overdue**". **Quote of the day**, large, beside the greeting; add, edit and delete your own quotes; built-in public-domain quotes can be turned off.
+  - **Task editor** rebuilt: title and actions on top; details, links, work updates and history on the left; on the right one card per setting, each with one line saying what it is for (When, Deadline, Reminder, Priority, Project, Note). Nothing hidden. Clicking a task on Today opens the same editor (the small pop-up editor is gone). Duplicate date buttons removed (on a Saturday "Today" and "This weekend" were both lit).
+  - **Focus length per task** (− / + in steps of 5, remembered). **Task reminders**: when it starts, "5 min before" with − / + (up to a day), and sound on/off; several per task, listed in the task. Reminder notifications now **play a sound** (Windows toasts were silent because no sound was named).
+  - **Tasks** page: a large **Next 7 days** tile under the list; tasks open from it. **Notes**: the week removed, Today and Links wider (link names readable), even spacing in cards, a **formatting toolbar** (bold, italic, heading, numbered list, bullets, checklist, font: Sans / Serif / Mono) and **Own window** to keep writing in a separate window.
+  - **Projects** tab: a project's tasks and notes together, numbered, with progress; add tasks and notes into it; notes can belong to a project (migration 007).
+  - **Characters**: Bolt, Ghosty, Mochi and Pip ship with Loaf and can be used as the pet (they were preview-only). The preview-only section was removed.
+  - **Small windows**: below 1024 px the sidebar shows icons only and page headers wrap.
+- Database (2026-10-25): migration **007** — `notes.project`; `reminders.task_id`, `lead_min`, `sound`. Backed up automatically before migrating.
+
 - Fixed (2026-10-25, Unverified on Windows): **File Explorer counted while unused** — Windows draws the desktop, taskbar, tray and Alt+Tab with `explorer.exe`, so they were recorded as File Explorer. Now only real folder windows (`CabinetWClass`) count; the rest records nothing (`loaf_core::usage::is_shell_surface`). macOS has the same effect with Finder when you click the desktop; not changed yet.
 - Fixed (2026-10-25): task editor **Save** is never a dead button — with nothing changed it just closes the task (before, it was greyed out and a click did nothing). An empty title says so instead.
 - Fixed (2026-10-25): the **daily hello** could show more than once when several checks started together (page re-renders, focus and wake at the same moment). One check runs at a time and reads the saved state.

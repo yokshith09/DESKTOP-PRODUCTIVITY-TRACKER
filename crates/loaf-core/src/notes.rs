@@ -89,6 +89,8 @@ pub struct Note {
     pub edited_at: i64,
     /// Sorted by folded name.
     pub labels: Vec<Label>,
+    /// The project this note belongs to, like `Task::project` (owner 2026-10-25).
+    pub project: Option<String>,
 }
 
 #[cfg(test)]
@@ -107,6 +109,7 @@ impl Note {
                 id: "l1".into(),
                 name: "work".into(),
             }],
+            project: None,
         }
     }
 }
@@ -126,6 +129,7 @@ pub struct NoteSummary {
     #[cfg_attr(feature = "ts", ts(type = "number"))]
     pub edited_at: i64,
     pub labels: Vec<Label>,
+    pub project: Option<String>,
 }
 
 /// A card in the Bin: what the list shows, plus when the note was binned. It is permanently
@@ -166,6 +170,7 @@ pub struct NoteInput {
     pub body: String,
     pub color: NoteColor,
     pub label_ids: Vec<String>,
+    pub project: Option<String>,
 }
 
 /// Fields left as `None` are not touched.
@@ -177,6 +182,8 @@ pub struct NotePatch {
     pub body: Option<String>,
     pub color: Option<NoteColor>,
     pub label_ids: Option<Vec<String>>,
+    /// `Some("")` takes the note out of its project.
+    pub project: Option<String>,
 }
 
 fn check_title(title: &str) -> Result<()> {
@@ -187,6 +194,22 @@ fn check_title(title: &str) -> Result<()> {
         ));
     }
     Ok(())
+}
+
+pub const PROJECT_MAX: usize = 100;
+
+/// Trimmed; empty means no project.
+fn clean_project(project: Option<&str>) -> Result<Option<String>> {
+    let Some(p) = project.map(str::trim).filter(|p| !p.is_empty()) else {
+        return Ok(None);
+    };
+    if p.chars().count() > PROJECT_MAX {
+        return Err(AppError::validation(
+            "project",
+            format!("Project names can be up to {PROJECT_MAX} characters."),
+        ));
+    }
+    Ok(Some(p.to_owned()))
 }
 
 fn check_body(body: &str) -> Result<()> {
@@ -222,12 +245,12 @@ fn note_labels(conn: &Connection, note_id: &str) -> Result<Vec<Label>> {
 fn load(conn: &Connection, id: &str) -> Result<Note> {
     let row = conn
         .query_row(
-            "SELECT title, body, color, pinned, archived, created_at, edited_at FROM notes WHERE id = ?1",
+            "SELECT title, body, color, pinned, archived, created_at, edited_at, project FROM notes WHERE id = ?1",
             [id],
-            |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?, r.get::<_, String>(2)?, r.get::<_, bool>(3)?, r.get::<_, bool>(4)?, r.get(5)?, r.get(6)?)),
+            |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?, r.get::<_, String>(2)?, r.get::<_, bool>(3)?, r.get::<_, bool>(4)?, r.get(5)?, r.get(6)?, r.get::<_, Option<String>>(7)?)),
         )
         .optional()?;
-    let Some((title, body, color, pinned, archived, created_at, edited_at)) = row else {
+    let Some((title, body, color, pinned, archived, created_at, edited_at, project)) = row else {
         return Err(not_found());
     };
     Ok(Note {
@@ -240,6 +263,7 @@ fn load(conn: &Connection, id: &str) -> Result<Note> {
         created_at,
         edited_at,
         labels: note_labels(conn, id)?,
+        project,
     })
 }
 
@@ -302,12 +326,13 @@ pub async fn get(db: &Database, id: &str) -> Result<Note> {
 pub async fn create(db: &Database, clock: &dyn Clock, input: NoteInput) -> Result<Note> {
     check_title(&input.title)?;
     check_body(&input.body)?;
+    let project = clean_project(input.project.as_deref())?;
     let (id, now) = (new_id(), clock.now_ms());
     db.write(move |tx| {
         tx.execute(
-            "INSERT INTO notes (id, title, body, color, pinned, archived, created_at, edited_at)
-             VALUES (?1, ?2, ?3, ?4, 0, 0, ?5, ?5)",
-            params![id, input.title, input.body, input.color.as_str(), now],
+            "INSERT INTO notes (id, title, body, color, pinned, archived, created_at, edited_at, project)
+             VALUES (?1, ?2, ?3, ?4, 0, 0, ?5, ?5, ?6)",
+            params![id, input.title, input.body, input.color.as_str(), now, project],
         )?;
         set_labels(tx, &id, &input.label_ids)?;
         let note = load(tx, &id)?;
@@ -325,6 +350,10 @@ pub async fn update(db: &Database, clock: &dyn Clock, id: &str, patch: NotePatch
     if let Some(b) = &patch.body {
         check_body(b)?;
     }
+    let mut patch = patch;
+    if let Some(p) = &patch.project {
+        patch.project = Some(clean_project(Some(p))?.unwrap_or_default());
+    }
     let current = get(db, id).await?;
     if !differs(&current, &patch) {
         return Ok(current);
@@ -337,12 +366,17 @@ pub async fn update(db: &Database, clock: &dyn Clock, id: &str, patch: NotePatch
             return Ok((current, vec![]));
         }
         tx.execute(
-            "UPDATE notes SET title = ?1, body = ?2, color = ?3, edited_at = ?4 WHERE id = ?5",
+            "UPDATE notes SET title = ?1, body = ?2, color = ?3, edited_at = ?4, project = ?5 WHERE id = ?6",
             params![
                 patch.title.as_deref().unwrap_or(&current.title),
                 patch.body.as_deref().unwrap_or(&current.body),
                 patch.color.unwrap_or(current.color).as_str(),
                 now,
+                match &patch.project {
+                    Some(p) if p.is_empty() => None,
+                    Some(p) => Some(p.as_str()),
+                    None => current.project.as_deref(),
+                },
                 id
             ],
         )?;
@@ -363,6 +397,10 @@ fn differs(current: &Note, patch: &NotePatch) -> bool {
             .label_ids
             .as_ref()
             .is_some_and(|ids| !same_labels(&current.labels, ids))
+        || patch
+            .project
+            .as_ref()
+            .is_some_and(|p| current.project.as_deref().unwrap_or("") != p)
 }
 
 /// Pin or unpin. Does not touch `edited_at`. Pinning an archived note is allowed but has no
@@ -636,7 +674,7 @@ fn summaries(
     args: &[&dyn rusqlite::ToSql],
 ) -> Result<Vec<SummaryRow>> {
     let sql = format!(
-        "SELECT n.id, n.title, substr(n.body, 1, {EXCERPT_CHARS}), n.color, n.pinned, n.archived, n.created_at, n.edited_at, n.deleted_at
+        "SELECT n.id, n.title, substr(n.body, 1, {EXCERPT_CHARS}), n.color, n.pinned, n.archived, n.created_at, n.edited_at, n.deleted_at, n.project
            FROM notes n {tail}"
     );
     let mut stmt = conn.prepare(&sql)?;
@@ -652,12 +690,24 @@ fn summaries(
                 r.get::<_, i64>(6)?,
                 r.get::<_, i64>(7)?,
                 r.get::<_, Option<i64>>(8)?,
+                r.get::<_, Option<String>>(9)?,
             ))
         })?
         .collect::<rusqlite::Result<Vec<_>>>()?
         .into_iter()
         .map(
-            |(id, title, excerpt, color, pinned, archived, created_at, edited_at, deleted_at)| {
+            |(
+                id,
+                title,
+                excerpt,
+                color,
+                pinned,
+                archived,
+                created_at,
+                edited_at,
+                deleted_at,
+                project,
+            )| {
                 Ok((
                     NoteSummary {
                         id,
@@ -669,6 +719,7 @@ fn summaries(
                         created_at,
                         edited_at,
                         labels: Vec::new(),
+                        project,
                     },
                     deleted_at,
                 ))
@@ -985,6 +1036,31 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn a_note_joins_and_leaves_a_project() {
+        let f = setup();
+        let note = make(&f, "Outline", "Body").await;
+        assert_eq!(note.project, None);
+        let set = |p: &str| NotePatch {
+            project: Some(p.into()),
+            ..Default::default()
+        };
+        let n = update(&f.db, &f.clock, &note.id, set("  Thesis  "))
+            .await
+            .unwrap();
+        assert_eq!(n.project.as_deref(), Some("Thesis"));
+        let cards = list(&f.db, false, None, NoteSort::LastEdited)
+            .await
+            .unwrap();
+        assert_eq!(cards[0].project.as_deref(), Some("Thesis"));
+        let n = update(&f.db, &f.clock, &note.id, set("")).await.unwrap();
+        assert_eq!(n.project, None);
+        let err = update(&f.db, &f.clock, &note.id, set(&"x".repeat(101)))
+            .await
+            .unwrap_err();
+        assert_eq!(err.field.as_deref(), Some("project"));
+    }
+
+    #[tokio::test]
     async fn an_autosave_that_changes_nothing_writes_nothing_and_says_nothing() {
         let f = setup();
         let note = make(&f, "Title", "Body").await;
@@ -1000,6 +1076,7 @@ mod tests {
                 body: Some("Body".into()),
                 color: Some(NoteColor::Default),
                 label_ids: Some(vec![]),
+                project: Some(String::new()),
             },
         )
         .await

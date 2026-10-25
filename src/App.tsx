@@ -24,10 +24,11 @@ import { TasksPage } from "@/features/tasks/TasksPage";
 import { TimePage } from "@/features/time/TimePage";
 import { TodayOverviewPage } from "@/features/overview/TodayOverviewPage";
 import { MeetingsPage } from "@/features/meetings/MeetingsPage";
+import { ProjectsPage } from "@/features/projects/ProjectsPage";
 import type { TaskFocus } from "@/features/overview/YesterdayLine";
 import { Welcome, useFirstRun, type WelcomeNext } from "@/features/welcome/Welcome";
 
-const PAGES: readonly Page[] = ["today", "tasks", "time", "notes", "meetings", "archive", "bin", "character", "mcp", "settings"];
+const PAGES: readonly Page[] = ["today", "tasks", "time", "notes", "projects", "meetings", "archive", "bin", "character", "mcp", "settings"];
 
 function Screen() {
   const [page, setPageState] = useState<Page>("today");
@@ -142,7 +143,7 @@ function Screen() {
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <main className="min-h-0 flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-[1280px] px-6 py-6">
+          <div className="mx-auto max-w-[1280px] px-4 py-6 sm:px-6">
             {(page === "notes" || page === "archive") && (
               <NotesPage
                 archived={page === "archive"} labelId={page === "notes" ? labelId : null} {...(labelName ? { labelName } : {})}
@@ -159,6 +160,7 @@ function Screen() {
             {page === "settings" && <SettingsPage />}
             {page === "tasks" && <TasksPage focus={taskFocus} onClearFocus={() => setTaskFocus(null)} />}
             {page === "meetings" && <MeetingsPage newTick={newMeeting} />}
+            {page === "projects" && <ProjectsPage />}
             {page === "time" && <TimePage />}
             {page === "mcp" && <ComingSoon icon={<Plug />} title="MCP" description="Connect external tools and services to Loaf through the Model Context Protocol. This arrives in a later release." />}
           </div>

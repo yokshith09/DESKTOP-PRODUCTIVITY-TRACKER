@@ -7,11 +7,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { DeleteTaskButton } from "@/features/tasks/DeleteTaskButton";
 import { LinkChips, PlanBadge, StarButton } from "@/features/tasks/TaskBits";
-import { TaskEditor } from "./TaskEditor";
+import { TaskDetail } from "@/features/tasks/TaskDetail";
 import { AddReminder } from "@/features/reminders/AddReminder";
 import { EditReminder } from "@/features/reminders/EditReminder";
 import { useReminderActions, useReminders, useTaskActions, useTodayTasks } from "@/hooks/useLoaf";
-import { ymd } from "@/lib/dates";
+import { overdueLabel, ymd } from "@/lib/dates";
 import { formatWhen } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import type { Priority, Reminder, Task } from "@/ipc";
@@ -38,10 +38,10 @@ export function useAgenda() {
   return { tasks, reminders, upcoming, open: tasks.length + reminders.length, missed, overdue, next: all.find((r) => r.remind_at >= Date.now()) };
 }
 
-function SectionLabel({ icon, children, count }: { icon: React.ReactNode; children: React.ReactNode; count: number }) {
+function SectionLabel({ icon, children, count, tone }: { icon: React.ReactNode; children: React.ReactNode; count: number; tone?: "danger" }) {
   return (
-    <h3 className="mb-1 mt-1 flex items-center gap-1.5 px-1.5 text-[11px] font-medium text-muted-foreground [&_svg]:size-3">
-      {icon}{children}<span className="tabular-nums text-muted-foreground/70">{count}</span>
+    <h3 className={cn("mb-1.5 flex items-center gap-1.5 px-2 text-xs font-medium [&_svg]:size-3.5", tone === "danger" ? "text-destructive" : "text-muted-foreground")}>
+      {icon}{children}<span className="tabular-nums opacity-70">{count}</span>
     </h3>
   );
 }
@@ -51,7 +51,7 @@ function ReminderRow({ r }: { r: Reminder }) {
   const now = Date.now();
   const missed = r.remind_at < now;
   return (
-    <li className="group flex h-9 items-center gap-2.5 rounded-md px-1.5 hover:bg-accent/50">
+    <li className="group flex min-h-10 items-center gap-3 rounded-lg px-2 hover:bg-accent/50">
       <Checkbox aria-label={`Mark “${r.title}” done`} checked={false} onCheckedChange={() => void setDone(r.id, true)} />
       <EditReminder reminder={r}>
         <button type="button" title="Change the text or time" aria-label={`Edit reminder “${r.title}”`}
@@ -77,6 +77,10 @@ function ReminderRow({ r }: { r: Reminder }) {
 export function TodayAgenda({ showUpcoming = false }: { showUpcoming?: boolean }) {
   const { tasks, reminders, upcoming } = useAgenda();
   const { setDone, star, tick } = useTaskActions();
+  const [openId, setOpenId] = useState<string | null>(null);
+  const today = ymd(new Date());
+  const late = tasks.filter((r) => r.overdue);
+  const onTime = tasks.filter((r) => !r.overdue);
   const complete = async (task: Task) => {
     // A repeating task is ticked for today only; it comes back on its next day (FR-109).
     if (task.repeat) {
@@ -101,59 +105,70 @@ export function TodayAgenda({ showUpcoming = false }: { showUpcoming?: boolean }
     );
   }
   return (
-    <div className="space-y-3">
+    <div className="space-y-5">
+      {late.length > 0 && (
+        <section aria-label="Overdue">
+          <SectionLabel icon={<CalendarClock />} count={late.length} tone="danger">Overdue</SectionLabel>
+          <ul className="space-y-0.5">{late.map((r) => <TaskLine key={r.task.id} row={r} today={today} onOpen={setOpenId} onComplete={complete} onStar={(t) => void star(t.id, !t.starred)} />)}</ul>
+        </section>
+      )}
+      {onTime.length > 0 && (
+        <section aria-label="Tasks">
+          <SectionLabel icon={<CalendarCheck2 />} count={onTime.length}>Tasks</SectionLabel>
+          <ul className="space-y-0.5">{onTime.map((r) => <TaskLine key={r.task.id} row={r} today={today} onOpen={setOpenId} onComplete={complete} onStar={(t) => void star(t.id, !t.starred)} />)}</ul>
+        </section>
+      )}
       {reminders.length > 0 && (
         <section aria-label="Reminders">
           <SectionLabel icon={<Bell />} count={reminders.length}>Reminders</SectionLabel>
-          <ul className="-mx-0.5">{reminders.map((r) => <ReminderRow key={r.id} r={r} />)}</ul>
-        </section>
-      )}
-      {tasks.length > 0 && (
-        <section aria-label="Tasks">
-          <SectionLabel icon={<CalendarCheck2 />} count={tasks.length}>Tasks</SectionLabel>
-          <ul className="-mx-0.5">
-            {tasks.map(({ task, overdue }) => (
-              <li key={task.id} className={cn("group flex h-9 items-center gap-2.5 rounded-md px-1.5 hover:bg-accent/50", task.starred && "bg-primary/[0.06]")}>
-                <Checkbox aria-label={task.repeat ? `Tick ${task.title} for today` : `Complete ${task.title}`} checked={false} onCheckedChange={() => void complete(task)} />
-                <TaskEditor task={task}>
-                  <button type="button" title="Edit priority, deadline and reminder" aria-label={`Edit ${task.title}`}
-                    className={cn("min-w-0 shrink truncate rounded text-left text-[13px] outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring", task.starred && "font-medium")}>
-                    {task.title}
-                  </button>
-                </TaskEditor>
-                <LinkChips links={task.links} max={2} />
-                <span className="flex-1" />
-                <PlanBadge task={task} />
-                {/* FR-52: a task made from a meeting's action item names the meeting. */}
-                {task.source_action_item_id && task.project && (
-                  <span title={`From the meeting “${task.project}”`} className="flex max-w-36 items-center gap-1 truncate rounded-md bg-violet/12 px-1.5 py-0.5 text-[11px] text-violet">
-                    <Users className="size-3 shrink-0" /><span className="truncate">{task.project}</span>
-                  </span>
-                )}
-                {task.due_date && !overdue && (
-                  <span className="flex items-center gap-1 text-[11px] tabular-nums text-muted-foreground" title="Deadline"><CalendarClock className="size-3" />{shortDate(task.due_date)}</span>
-                )}
-                {task.status === "IN_PROGRESS" && <Badge variant="primary">In progress</Badge>}
-                {overdue && <Badge variant="destructive">Overdue</Badge>}
-                {task.priority && (
-                  <span className={cn("w-14 text-right text-[11px]", PRIORITY[task.priority].cls)} title={`${PRIORITY[task.priority].label} priority`}>
-                    <span aria-hidden>{PRIORITY[task.priority].glyph}</span> {PRIORITY[task.priority].label}
-                  </span>
-                )}
-                <StarButton starred={task.starred} title={task.title} onToggle={() => void star(task.id, !task.starred)} />
-                <DeleteTaskButton task={task} />
-              </li>
-            ))}
-          </ul>
+          <ul className="space-y-0.5">{reminders.map((r) => <ReminderRow key={r.id} r={r} />)}</ul>
         </section>
       )}
       {showUpcoming && upcoming.length > 0 && (
         <section aria-label="Upcoming reminders">
           <SectionLabel icon={<Bell />} count={upcoming.length}>Upcoming this week</SectionLabel>
-          <ul className="-mx-0.5">{upcoming.map((r) => <ReminderRow key={r.id} r={r} />)}</ul>
+          <ul className="space-y-0.5">{upcoming.map((r) => <ReminderRow key={r.id} r={r} />)}</ul>
         </section>
       )}
+      <TaskDetail taskId={openId} onClose={() => setOpenId(null)} />
     </div>
+  );
+}
+
+/** One task on Today: tick, title (opens the task), links, and on the right what matters most. */
+function TaskLine({ row: { task, overdue }, today, onOpen, onComplete, onStar }: {
+  row: { task: Task; overdue: boolean }; today: string; onOpen: (id: string) => void; onComplete: (t: Task) => void; onStar: (t: Task) => void;
+}) {
+  return (
+    <li className={cn("group flex min-h-10 items-center gap-3 rounded-lg px-2 hover:bg-accent/50", task.starred && "bg-primary/[0.06]")}>
+      <Checkbox aria-label={task.repeat ? `Tick ${task.title} for today` : `Complete ${task.title}`} checked={false} onCheckedChange={() => onComplete(task)} />
+      <button type="button" title="Open the task" aria-label={`Edit ${task.title}`} onClick={() => onOpen(task.id)}
+        className={cn("min-w-0 shrink truncate rounded text-left text-[13.5px] outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring", task.starred && "font-medium")}>
+        {task.title}
+      </button>
+      <LinkChips links={task.links} max={2} />
+      <span className="flex-1" />
+      <PlanBadge task={task} />
+      {/* FR-52: a task made from a meeting's action item names the meeting. */}
+      {task.source_action_item_id && task.project && (
+        <span title={`From the meeting “${task.project}”`} className="flex max-w-36 items-center gap-1 truncate rounded-md bg-violet/12 px-1.5 py-0.5 text-[11px] text-violet">
+          <Users className="size-3 shrink-0" /><span className="truncate">{task.project}</span>
+        </span>
+      )}
+      {task.status === "IN_PROGRESS" && <Badge variant="primary">In progress</Badge>}
+      {overdue && task.due_date ? (
+        <span className="shrink-0 text-xs font-medium text-destructive">{overdueLabel(task.due_date, today)}</span>
+      ) : task.due_date ? (
+        <span className="flex shrink-0 items-center gap-1 text-xs tabular-nums text-muted-foreground" title="Deadline"><CalendarClock className="size-3.5" />Due {shortDate(task.due_date)}</span>
+      ) : null}
+      {task.priority && (
+        <span className={cn("w-16 shrink-0 text-right text-xs", PRIORITY[task.priority].cls)} title={`${PRIORITY[task.priority].label} priority`}>
+          <span aria-hidden>{PRIORITY[task.priority].glyph}</span> {PRIORITY[task.priority].label}
+        </span>
+      )}
+      <StarButton starred={task.starred} title={task.title} onToggle={() => onStar(task)} />
+      <DeleteTaskButton task={task} />
+    </li>
   );
 }
 

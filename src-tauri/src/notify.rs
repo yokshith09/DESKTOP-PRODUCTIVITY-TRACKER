@@ -20,22 +20,31 @@ pub fn settings_url() -> Option<&'static str> {
     }
 }
 
-fn show<R: Runtime>(app: &AppHandle<R>, title: &str, body: &str) -> Result<()> {
-    app.notification()
-        .builder()
-        .title(title)
-        .body(body)
-        .show()
-        .map_err(|error| {
-            tracing::warn!(%error, "couldn't show a notification");
-            AppError::io("Loaf couldn't show a notification.")
-        })
+/// The system sound a reminder plays. Without one, a Windows toast is silent (the owner found
+/// reminders made no sound, 2026-10-25). Windows: the "Reminder" toast sound; macOS: "Glass".
+pub const REMINDER_SOUND: &str = if cfg!(target_os = "macos") {
+    "Glass"
+} else {
+    "Reminder"
+};
+
+fn show<R: Runtime>(app: &AppHandle<R>, title: &str, body: &str, sound: bool) -> Result<()> {
+    let builder = app.notification().builder().title(title).body(body);
+    let builder = if sound {
+        builder.sound(REMINDER_SOUND)
+    } else {
+        builder
+    };
+    builder.show().map_err(|error| {
+        tracing::warn!(%error, "couldn't show a notification");
+        AppError::io("Loaf couldn't show a notification.")
+    })
 }
 
 /// A reminder is due: notify, and ask for attention in case the notification is hidden.
 pub fn reminder<R: Runtime>(app: &AppHandle<R>, reminder: &Reminder) {
     // Best effort: a refused or failed notification must not stop the bus.
-    let _ = show(app, &reminder.title, "Reminder from Loaf");
+    let _ = show(app, &reminder.title, "Reminder from Loaf", reminder.sound);
     if let Some(main) = app.get_webview_window("main") {
         if !main.is_focused().unwrap_or(false) {
             let _ = main.request_user_attention(Some(UserAttentionType::Informational));
@@ -50,6 +59,7 @@ pub fn notification_test(app: AppHandle) -> Result<()> {
         &app,
         "Loaf notifications work",
         "Reminders will show up like this.",
+        true,
     )
 }
 
@@ -66,6 +76,15 @@ pub fn notification_settings_open(app: AppHandle) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn reminders_name_a_sound_the_system_knows() {
+        // Windows toasts know "Default", "IM", "Mail", "Reminder" and "SMS"; an unknown name or
+        // none at all means a silent toast. macOS plays a named system sound.
+        let windows = ["Default", "IM", "Mail", "Reminder", "SMS"];
+        let mac = ["Basso", "Blow", "Glass", "Hero", "Ping", "Pop", "Submarine"];
+        assert!(windows.contains(&REMINDER_SOUND) || mac.contains(&REMINDER_SOUND));
+    }
 
     #[test]
     fn the_settings_link_is_a_system_scheme_on_desktop_systems() {

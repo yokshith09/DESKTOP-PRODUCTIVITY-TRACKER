@@ -1,10 +1,10 @@
 import {
-  Archive, CheckSquare, Clock3, LayoutDashboard, Moon, NotebookPen, PawPrint, Plug, Settings, Sun, Trash2, Users,
+  Archive, CheckSquare, Clock3, FolderKanban, LayoutDashboard, Moon, NotebookPen, PawPrint, Plug, Settings, Sun, Trash2, Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Bear } from "./Bear";
 
-export type Page = "today" | "tasks" | "time" | "notes" | "meetings" | "archive" | "bin" | "character" | "mcp" | "settings";
+export type Page = "today" | "tasks" | "time" | "notes" | "projects" | "meetings" | "archive" | "bin" | "character" | "mcp" | "settings";
 
 interface Props {
   page: Page;
@@ -22,16 +22,18 @@ function Item({
       type="button"
       onClick={onClick}
       aria-current={active ? "page" : undefined}
+      title={typeof children === "string" ? children : undefined}
       className={cn(
-        "group relative flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-left text-[13px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring [&_svg]:size-4 [&_svg]:shrink-0",
+        "group relative flex h-8 w-full items-center justify-center gap-2.5 rounded-md px-0 text-left text-[13px] font-medium lg:justify-start lg:px-2.5 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring [&_svg]:size-4 [&_svg]:shrink-0",
         active ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
       )}
     >
       {active && <span aria-hidden className="absolute -left-2 top-1.5 h-5 w-[3px] rounded-r bg-primary" />}
       {icon}
-      <span className="truncate">{children}</span>
+      {/* Narrow windows show icons only; the name stays for screen readers (owner 2026-10-25). */}
+      <span className="sr-only truncate lg:not-sr-only">{children}</span>
       {count !== undefined && count > 0 && (
-        <span className="ml-auto text-[11px] tabular-nums text-muted-foreground">{count}</span>
+        <span className="ml-auto hidden text-[11px] tabular-nums text-muted-foreground lg:inline">{count}</span>
       )}
     </button>
   );
@@ -40,7 +42,8 @@ function Item({
 function Group({ title, children }: { title?: string; children: React.ReactNode }) {
   return (
     <nav aria-label={title} className="space-y-0.5">
-      {title && <p className="mb-1 mt-4 px-2.5 text-[11px] font-medium text-muted-foreground/80">{title}</p>}
+      {title && <p className="mb-1 mt-4 hidden px-2.5 text-[11px] font-medium text-muted-foreground/80 lg:block">{title}</p>}
+      {title && <div aria-hidden className="mx-2 my-3 border-t lg:hidden" />}
       {children}
     </nav>
   );
@@ -49,13 +52,13 @@ function Group({ title, children }: { title?: string; children: React.ReactNode 
 export function Sidebar({ page, counts, onPage, isDark, onToggleTheme }: Props) {
   const go = (p: Page) => () => onPage(p);
   return (
-    <aside className="flex w-56 shrink-0 flex-col border-r bg-[var(--sidebar)] px-3 pb-3 pt-3.5">
-      <div className="mb-3 flex items-center gap-2.5 px-1.5">
+    <aside className="flex w-14 shrink-0 flex-col border-r bg-[var(--sidebar)] px-2 pb-3 pt-3.5 lg:w-56 lg:px-3">
+      <div className="mb-3 flex items-center justify-center gap-2.5 lg:justify-start lg:px-1.5">
         <span className="grid size-7 place-items-center overflow-hidden rounded-md bg-primary/12 ring-1 ring-primary/25">
           <Bear className="mt-1 size-7" />
         </span>
-        <span className="text-sm font-semibold tracking-tight">Loaf</span>
-        <span className="ml-auto rounded bg-muted px-1.5 py-px text-[10px] font-medium text-muted-foreground">Local</span>
+        <span className="hidden text-sm font-semibold tracking-tight lg:inline">Loaf</span>
+        <span className="ml-auto hidden rounded bg-muted px-1.5 py-px text-[10px] font-medium text-muted-foreground lg:inline">Local</span>
       </div>
 
       <Group>
@@ -63,6 +66,7 @@ export function Sidebar({ page, counts, onPage, isDark, onToggleTheme }: Props) 
         <Item active={page === "tasks"} onClick={go("tasks")} icon={<CheckSquare />}>Tasks</Item>
         <Item active={page === "time"} onClick={go("time")} icon={<Clock3 />}>Time</Item>
         <Item active={page === "notes"} onClick={go("notes")} icon={<NotebookPen />} count={counts.notes}>Notes</Item>
+        <Item active={page === "projects"} onClick={go("projects")} icon={<FolderKanban />}>Projects</Item>
         <Item active={page === "meetings"} onClick={go("meetings")} icon={<Users />}>Meetings</Item>
         <Item active={page === "character"} onClick={go("character")} icon={<PawPrint />}>Character</Item>
         <Item active={page === "mcp"} onClick={go("mcp")} icon={<Plug />}>MCP</Item>
@@ -74,7 +78,7 @@ export function Sidebar({ page, counts, onPage, isDark, onToggleTheme }: Props) 
       </Group>
 
       <div className="mt-auto space-y-0.5 border-t pt-3">
-        <div className="flex items-center gap-1">
+        <div className="flex flex-col items-center gap-1 lg:flex-row">
           <div className="min-w-0 flex-1"><Item active={page === "settings"} onClick={go("settings")} icon={<Settings />}>Settings</Item></div>
           <button
             type="button" onClick={onToggleTheme} aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"} title={isDark ? "Light theme" : "Dark theme"}
@@ -83,7 +87,7 @@ export function Sidebar({ page, counts, onPage, isDark, onToggleTheme }: Props) 
             {isDark ? <Sun /> : <Moon />}
           </button>
         </div>
-        <p className="px-2.5 pt-2 text-[11px] leading-4 text-muted-foreground/80">Everything stays on this computer.</p>
+        <p className="hidden px-2.5 pt-2 text-[11px] leading-4 text-muted-foreground/80 lg:block">Everything stays on this computer.</p>
       </div>
     </aside>
   );

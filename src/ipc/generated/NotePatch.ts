@@ -4,4 +4,8 @@ import type { NoteColor } from "./NoteColor";
 /**
  * Fields left as `None` are not touched.
  */
-export type NotePatch = { title?: string | null, body?: string | null, color?: NoteColor | null, label_ids?: Array<string> | null, };
+export type NotePatch = { title?: string | null, body?: string | null, color?: NoteColor | null, label_ids?: Array<string> | null, 
+/**
+ * `Some("")` takes the note out of its project.
+ */
+project?: string | null, };

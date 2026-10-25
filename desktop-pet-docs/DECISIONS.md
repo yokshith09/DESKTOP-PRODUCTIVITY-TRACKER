@@ -327,3 +327,18 @@ Still open: none of Q1-Q7 except the Q4 spike result.
   - **Daily quote**: a bundled list of public-domain quotes, on by default with a switch; no network.
   - **Analytics**: allowed as long as it is computed on this PC from data already stored and nothing is sent anywhere (local-first rule). Sending usage data out would break the rule.
 - Open (owner): approve or change the preview; character-creation skill — when, and which image source (Codex image tool or the owner's OpenAI key; we never pay for AI); what exactly the "hello" looks like when it repeats (greeting text, or the wave when the pointer is over the pet).
+
+## 2026-10-25 (later) — UI reset batch 1 built
+- Owner: delete the preview, then build A4, A6, B1–B7, C1–C5, D1–D4, E1 now; the rest next turn. The preview canvas was deleted.
+- Owner: the Tasks page stays as it is, with a **separate Next 7 days tile** (not on Today). Extras in the task editor are **not collapsed**; they sit in neat cards. The quote is **bigger, editable, user quotes can be added**, in an empty place (beside the greeting).
+- Claude's choices inside the owner's direction (owner may change):
+  - Today's tiles: Today (left, tall), Focus and Daily routine (right), Time today and Links (below). Tiles stay movable.
+  - Clicking a task on Today opens the full task editor; the small pop-up editor is removed (one editor, one way).
+  - Task reminders are real reminders linked to the task (`task_id`), created at "start − N min"; N steps 0, 5, 10, 15, 20, 30, 45 min, 1, 1.5, 2, 3, 4 h, 1 day. Sound is per reminder, on by default. Windows sound "Reminder", macOS "Glass".
+  - Focus length is one remembered value shared by the Focus tile and the task editor (5–240 min, steps of 5), not stored per task.
+  - Note font is one choice for all notes (Sans / Serif / Mono). Formatting writes Markdown; Preview shows it.
+  - A note's own window shows only that note; the dashboard's daily jobs don't run there.
+  - Projects are names on tasks and notes (no separate table); a project exists while something uses it. Meeting action items are left out of Projects (their project field holds the meeting name).
+  - Built-in characters: Bolt, Ghosty, Mochi, Pip ship as packs (the bear pack is left out; the drawn bear stays the default). ~3.9 MB added to the installer.
+  - Small windows (< 1024 px): icon-only sidebar.
+- Built-in quotes: 21 short lines by authors long dead (Aristotle … Theodore Roosevelt); misattributed favourites were left out on purpose.

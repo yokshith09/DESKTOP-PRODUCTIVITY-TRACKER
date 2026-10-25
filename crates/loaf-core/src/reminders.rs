@@ -45,6 +45,12 @@ pub struct Reminder {
     pub created_at: i64,
     /// Starred reminders come first (FR-107).
     pub starred: bool,
+    /// The task this reminder is for, if any (owner 2026-10-25).
+    pub task_id: Option<String>,
+    /// How many minutes before the moment it was set for: `remind_at` is already that early.
+    pub lead_min: u32,
+    /// Play a sound when it is due.
+    pub sound: bool,
 }
 
 #[cfg(test)]
@@ -59,6 +65,9 @@ impl Reminder {
             done_at: None,
             created_at: 1,
             starred: false,
+            task_id: None,
+            lead_min: 0,
+            sound: true,
         }
     }
 }
@@ -71,6 +80,11 @@ pub struct ReminderInput {
     #[cfg_attr(feature = "ts", ts(type = "number"))]
     pub remind_at: i64,
     pub note_id: Option<String>,
+    pub task_id: Option<String>,
+    /// Defaults to 0.
+    pub lead_min: Option<u32>,
+    /// Defaults to on.
+    pub sound: Option<bool>,
 }
 
 /// Fields left as `None` are not touched. Changing `remind_at` makes the reminder fire again.
@@ -81,6 +95,8 @@ pub struct ReminderPatch {
     pub title: Option<String>,
     #[cfg_attr(feature = "ts", ts(type = "number"))]
     pub remind_at: Option<i64>,
+    pub lead_min: Option<u32>,
+    pub sound: Option<bool>,
 }
 
 fn clean_title(title: &str) -> Result<String> {
@@ -105,11 +121,25 @@ fn check_time(remind_at: i64) -> Result<()> {
     Ok(())
 }
 
+/// The longest "minutes before" offered: one day.
+pub const LEAD_MAX: u32 = 1440;
+
+fn check_lead(lead_min: u32) -> Result<()> {
+    if lead_min > LEAD_MAX {
+        return Err(AppError::validation(
+            "lead_min",
+            "Remind at most a day before.",
+        ));
+    }
+    Ok(())
+}
+
 fn not_found() -> AppError {
     AppError::not_found("That reminder no longer exists.")
 }
 
-const COLUMNS: &str = "id, title, remind_at, note_id, fired_at, done_at, created_at, starred";
+const COLUMNS: &str =
+    "id, title, remind_at, note_id, fired_at, done_at, created_at, starred, task_id, lead_min, sound";
 
 fn from_row(r: &Row) -> rusqlite::Result<Reminder> {
     Ok(Reminder {
@@ -121,6 +151,9 @@ fn from_row(r: &Row) -> rusqlite::Result<Reminder> {
         done_at: r.get(5)?,
         created_at: r.get(6)?,
         starred: r.get(7)?,
+        task_id: r.get(8)?,
+        lead_min: r.get(9)?,
+        sound: r.get(10)?,
     })
 }
 
@@ -137,6 +170,8 @@ fn load(conn: &Connection, id: &str) -> Result<Reminder> {
 pub async fn create(db: &Database, clock: &dyn Clock, input: ReminderInput) -> Result<Reminder> {
     let title = clean_title(&input.title)?;
     check_time(input.remind_at)?;
+    let lead_min = input.lead_min.unwrap_or(0);
+    check_lead(lead_min)?;
     let (id, now) = (new_id(), clock.now_ms());
     db.write(move |tx| {
         if let Some(note_id) = &input.note_id {
@@ -151,9 +186,31 @@ pub async fn create(db: &Database, clock: &dyn Clock, input: ReminderInput) -> R
                 );
             }
         }
+        if let Some(task_id) = &input.task_id {
+            let exists: bool = tx.query_row(
+                "SELECT EXISTS(SELECT 1 FROM tasks WHERE id = ?1)",
+                [task_id],
+                |r| r.get(0),
+            )?;
+            if !exists {
+                return Err(
+                    AppError::not_found("That task no longer exists.").with_field("task_id")
+                );
+            }
+        }
         tx.execute(
-            "INSERT INTO reminders (id, title, remind_at, note_id, created_at) VALUES (?1, ?2, ?3, ?4, ?5)",
-            params![id, title, input.remind_at, input.note_id, now],
+            "INSERT INTO reminders (id, title, remind_at, note_id, created_at, task_id, lead_min, sound)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            params![
+                id,
+                title,
+                input.remind_at,
+                input.note_id,
+                now,
+                input.task_id,
+                lead_min,
+                input.sound.unwrap_or(true)
+            ],
         )?;
         let reminder = load(tx, &id)?;
         Ok((
@@ -175,12 +232,21 @@ pub async fn update(
     if let Some(t) = patch.remind_at {
         check_time(t)?;
     }
+    if let Some(l) = patch.lead_min {
+        check_lead(l)?;
+    }
     let (id, now) = (id.to_owned(), clock.now_ms());
     db.write(move |tx| {
         let current = load(tx, &id)?;
         let new_title = title.unwrap_or_else(|| current.title.clone());
         let new_time = patch.remind_at.unwrap_or(current.remind_at);
-        if new_title == current.title && new_time == current.remind_at {
+        let new_lead = patch.lead_min.unwrap_or(current.lead_min);
+        let new_sound = patch.sound.unwrap_or(current.sound);
+        if new_title == current.title
+            && new_time == current.remind_at
+            && new_lead == current.lead_min
+            && new_sound == current.sound
+        {
             return Ok((current, vec![]));
         }
         // A new time is a new reminder as far as firing goes.
@@ -190,8 +256,8 @@ pub async fn update(
             None
         };
         tx.execute(
-            "UPDATE reminders SET title = ?1, remind_at = ?2, fired_at = ?3 WHERE id = ?4",
-            params![new_title, new_time, fired_at, id],
+            "UPDATE reminders SET title = ?1, remind_at = ?2, fired_at = ?3, lead_min = ?4, sound = ?5 WHERE id = ?6",
+            params![new_title, new_time, fired_at, new_lead, new_sound, id],
         )?;
         let reminder = load(tx, &id)?;
         Ok((
@@ -485,7 +551,7 @@ mod tests {
         ReminderInput {
             title: title.into(),
             remind_at,
-            note_id: None,
+            ..Default::default()
         }
     }
 
@@ -517,6 +583,81 @@ mod tests {
                 reminder: r
             }
         );
+    }
+
+    #[tokio::test]
+    async fn a_task_reminder_keeps_its_task_lead_and_sound() {
+        use crate::tasks::{self, TaskInput};
+        let f = setup();
+        let task = tasks::create(
+            &f.db,
+            &f.clock,
+            TaskInput {
+                title: "Submit report".into(),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+        let r = create(
+            &f.db,
+            &f.clock,
+            ReminderInput {
+                title: "Submit report".into(),
+                remind_at: 50_000,
+                task_id: Some(task.id.clone()),
+                lead_min: Some(5),
+                sound: Some(false),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+        assert_eq!(
+            (r.task_id.as_deref(), r.lead_min, r.sound),
+            (Some(task.id.as_str()), 5, false)
+        );
+        // Sound defaults to on; lead and sound can change; more than a day is refused.
+        assert!(create(&f.db, &f.clock, input("x", 5)).await.unwrap().sound);
+        let r = update(
+            &f.db,
+            &f.clock,
+            &r.id,
+            ReminderPatch {
+                lead_min: Some(15),
+                sound: Some(true),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+        assert_eq!((r.lead_min, r.sound), (15, true));
+        let err = update(
+            &f.db,
+            &f.clock,
+            &r.id,
+            ReminderPatch {
+                lead_min: Some(LEAD_MAX + 1),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap_err();
+        assert_eq!(err.field.as_deref(), Some("lead_min"));
+        // A task that is gone can't get a reminder.
+        let err = create(
+            &f.db,
+            &f.clock,
+            ReminderInput {
+                title: "y".into(),
+                remind_at: 5,
+                task_id: Some("nope".into()),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap_err();
+        assert_eq!(err.field.as_deref(), Some("task_id"));
     }
 
     #[tokio::test]
@@ -664,6 +805,8 @@ mod tests {
             ReminderPatch {
                 title: Some(" t ".into()),
                 remind_at: Some(5_000),
+                lead_min: Some(0),
+                sound: Some(true),
             },
         )
         .await

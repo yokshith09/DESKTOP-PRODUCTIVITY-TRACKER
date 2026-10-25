@@ -2,6 +2,7 @@ import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { useAllTasks, useDailyLog } from "@/hooks/useLoaf";
 import { daysAgo, ymd } from "@/lib/dates";
 import type { DailyLog, TaskRow } from "@/ipc";
+import { cn } from "@/lib/utils";
 
 /** Tasks shown on the Tasks page instead of a view: "what is still open from yesterday". */
 export interface TaskFocus { title: string; ids: string[] }
@@ -19,19 +20,19 @@ export function yesterdaySummary(log: DailyLog | null | undefined, now: TaskRow[
 }
 
 /** One line under the greeting; a click opens Tasks on what yesterday left unfinished. */
-export function YesterdayLine({ onShow }: { onShow: (focus: TaskFocus) => void }) {
+export function YesterdayLine({ onShow, className }: { onShow: (focus: TaskFocus) => void; className?: string }) {
   const { data: log } = useDailyLog(ymd(daysAgo(1)));
   const { data: all = [] } = useAllTasks();
   const sum = yesterdaySummary(log, all);
   if (!sum || (sum.planned === 0 && sum.done === 0)) return null;
   const head = `Yesterday: ${sum.done} of ${Math.max(sum.planned, sum.done)} done`;
   if (sum.open.length === 0) {
-    return <p className="-mt-3 mb-1 flex items-center gap-1.5 text-[12.5px] text-muted-foreground"><CheckCircle2 className="size-3.5 text-success" />{head} · nothing left over</p>;
+    return <p className={cn("flex items-center gap-1.5 text-[12.5px] text-muted-foreground", className)}><CheckCircle2 className="size-3.5 text-success" />{head} · nothing left over</p>;
   }
   return (
     <button
       type="button" onClick={() => onShow({ title: "Unfinished from yesterday", ids: sum.open })}
-      className="-mt-3 mb-1 flex items-center gap-1.5 rounded text-[12.5px] text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+      className={cn("flex items-center gap-1.5 rounded text-[12.5px] text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring", className)}
     >
       {head} · <span className="font-medium text-primary">{sum.open.length} still open</span><ArrowRight className="size-3.5" />
     </button>

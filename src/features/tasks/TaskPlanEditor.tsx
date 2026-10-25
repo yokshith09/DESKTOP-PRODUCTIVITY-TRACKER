@@ -57,7 +57,7 @@ export function PlanEditor({ value, onChange, planned, onPlanned }: {
       {value.mode === "one" && (
         <div className="flex items-center gap-2">
           <Input type="date" value={planned} onChange={(e) => onPlanned(e.target.value)} aria-label="Planned for" className="w-44" />
-          <span className="text-xs text-muted-foreground">Leave empty for “some day”.</span>
+          <span className="text-xs text-muted-foreground">Empty: someday</span>
         </div>
       )}
       {value.mode === "one" && (
@@ -185,7 +185,8 @@ export function LinksEditor({ task }: { task: Task }) {
   };
   return (
     <section aria-label="Links">
-      <h3 className="mb-2 flex items-center gap-1.5 text-xs font-medium text-muted-foreground"><Link2 className="size-3.5" />Links<span className="tabular-nums text-muted-foreground/70">{task.links.length}</span></h3>
+      <h3 className="flex items-center gap-1.5 text-[13px] font-semibold"><Link2 className="size-4 text-muted-foreground" />Links{task.links.length > 0 && <span className="text-xs font-normal tabular-nums text-muted-foreground">{task.links.length}</span>}</h3>
+      <p className="mb-2 mt-0.5 text-xs text-muted-foreground">Web pages for this task. Click one to open it.</p>
       {task.links.length > 0 && (
         <ul className="mb-2 space-y-1">
           {task.links.map((l, i) => (
@@ -202,7 +203,7 @@ export function LinksEditor({ task }: { task: Task }) {
       )}
       <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); void add(); }}>
         <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Paste a link" aria-label="New link" maxLength={2048} />
-        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name (optional)" aria-label="Link name" maxLength={200} className="w-40" />
+        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name (optional)" aria-label="Link name" maxLength={200} className="w-44" />
         <Button type="submit" size="sm" variant="secondary" disabled={!url.trim()} aria-label="Add link">Add</Button>
       </form>
     </section>

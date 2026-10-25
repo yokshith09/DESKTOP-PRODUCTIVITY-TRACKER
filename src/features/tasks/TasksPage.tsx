@@ -20,6 +20,7 @@ import { LinkChips, PlanBadge, StarButton } from "./TaskBits";
 import { ymd } from "@/lib/dates";
 import { taskOccurs } from "@/lib/repeat";
 import { TaskDetail } from "./TaskDetail";
+import { WeekCalendar } from "@/features/calendar/WeekCalendar";
 
 const VIEWS: { key: TaskView; label: string; empty: string }[] = [
   { key: "today", label: "Today", empty: "Nothing planned for today." },
@@ -32,7 +33,8 @@ const VIEWS: { key: TaskView; label: string; empty: string }[] = [
 const shortDate = (ymd: string) => new Date(`${ymd}T00:00:00`).toLocaleDateString([], { month: "short", day: "numeric" });
 const when = (ms: number) => new Date(ms).toLocaleDateString([], { month: "short", day: "numeric" });
 
-function Row({ row, onOpen }: { row: TaskRow; onOpen: (id: string) => void }) {
+/** One task in a list. `n` numbers it (Projects); `inProject` hides the project it is already under. */
+export function Row({ row, onOpen, n, inProject = false }: { row: TaskRow; onOpen: (id: string) => void; n?: number; inProject?: boolean }) {
   const { task, overdue } = row;
   const actions = useTaskActions();
   // A repeating task's box is today's tick (FR-109); finishing the whole task is in its detail.
@@ -52,22 +54,23 @@ function Row({ row, onOpen }: { row: TaskRow; onOpen: (id: string) => void }) {
   };
   return (
     <li className={cn("group flex h-11 items-center gap-3 rounded-md px-2 hover:bg-accent/50", task.starred && "bg-primary/[0.06]")}>
+      {n !== undefined && <span className="w-6 shrink-0 text-right text-xs tabular-nums text-muted-foreground">{n}.</span>}
       <Checkbox
         aria-label={task.repeat ? (done ? `Untick ${task.title} for today` : `Tick ${task.title} for today`) : done ? `Reopen ${task.title}` : `Complete ${task.title}`}
         checked={done} disabled={task.status === "CANCELLED" || (!!task.repeat && task.status === "COMPLETED")} onCheckedChange={() => void toggle()}
       />
       <button type="button" onClick={() => onOpen(task.id)} aria-label={`Open ${task.title}`}
-        className={cn("min-w-0 shrink truncate rounded text-left text-[13px] outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring", task.starred && "font-medium", ((done && !task.repeat) || task.status === "CANCELLED") && "text-muted-foreground line-through")}>
+        className={cn("min-w-24 shrink truncate rounded text-left text-[13px] outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring", task.starred && "font-medium", ((done && !task.repeat) || task.status === "CANCELLED") && "text-muted-foreground line-through")}>
         {task.title}
       </button>
       <LinkChips links={task.links} />
       <span className="flex-1" />
       <PlanBadge task={task} />
-      {task.project && <Badge>{task.project}</Badge>}
+      {task.project && !inProject && <Badge>{task.project}</Badge>}
       {task.status !== "PLANNED" && task.status !== "COMPLETED" && <Badge variant={task.status === "IN_PROGRESS" ? "primary" : "default"}>{STATUS_LABEL[task.status]}</Badge>}
       {overdue && <Badge variant="destructive">Overdue</Badge>}
       {task.due_date && !overdue && (
-        <span className="flex items-center gap-1 text-[11px] tabular-nums text-muted-foreground" title="Deadline"><CalendarClock className="size-3" />{shortDate(task.due_date)}</span>
+        <span className="flex shrink-0 items-center gap-1 whitespace-nowrap text-[11px] tabular-nums text-muted-foreground" title="Deadline"><CalendarClock className="size-3" />{shortDate(task.due_date)}</span>
       )}
       {done && task.completed_at && <span className="w-14 text-right text-[11px] tabular-nums text-muted-foreground">{when(task.completed_at)}</span>}
       {task.priority && (
@@ -194,6 +197,9 @@ export function TasksPage({ focus = null, onClearFocus = () => {} }: { focus?: T
         )}
       </section>
       <p className="px-1 text-xs text-muted-foreground">{shown.length} {shown.length === 1 ? "task" : "tasks"}</p>
+
+      {/* Owner 2026-10-25: the week, large, on its own tile under the list. */}
+      <div className="overflow-x-auto rounded-xl"><WeekCalendar large onOpenTask={setOpen} className="min-w-[56rem]" /></div>
 
       <TaskDetail taskId={open} onClose={() => setOpen(null)} />
     </div>

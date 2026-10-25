@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Archive, ArchiveRestore, Check, Eye, Palette, Pencil, Pin, PinOff, Plus, Tag, Trash2 } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Archive, ArchiveRestore, Bold, Check, CheckSquare, Eye, FolderKanban, Heading2, Italic, List, ListOrdered, Palette, Pencil, Pin, PinOff, Plus, SquareArrowOutUpRight, Tag, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -10,16 +10,35 @@ import { mod } from "@/lib/platform";
 import { cn } from "@/lib/utils";
 import { timeAgo } from "@/lib/time";
 import { ipc, NOTE_COLORS, type Note, type NoteColor } from "@/ipc";
-import { keys, useLabels, useNoteActions, useTasksQuery } from "@/hooks/useLoaf";
+import { keys, useAllTasks, useLabels, useNoteActions, useNotes, useTasksQuery } from "@/hooks/useLoaf";
 import { TaskDetail } from "@/features/tasks/TaskDetail";
 import { STATUS_LABEL } from "@/lib/taskStatus";
 import { COLOR_NAMES } from "./colors";
 import { MarkdownView } from "./MarkdownView";
+import { NOTE_FONTS, fontClass, lines, wrap, type Edit, type LineKind, type NoteFont } from "./format";
+
+const FONT_KEY = ["prefs", "ui.note_font"] as const;
+
+/** The font for notes (Sans, Serif or Mono), one choice for every note. */
+function useNoteFont() {
+  const qc = useQueryClient();
+  const { data } = useQuery({ queryKey: FONT_KEY, queryFn: async () => (await ipc.prefsGet<NoteFont>("ui.note_font")) ?? "sans" });
+  const set = async (f: NoteFont) => { qc.setQueryData(FONT_KEY, f); await ipc.prefsSet("ui.note_font", f); };
+  return { font: data ?? "sans", set };
+}
+
+/** Every project name in use, from tasks and notes. */
+export function useProjectNames(): string[] {
+  const { data: tasks = [] } = useAllTasks();
+  const { data: notes = [] } = useNotes(false, null, "last_edited");
+  return [...new Set([...tasks.map((r) => r.task.project), ...notes.map((n) => n.project)].filter((p): p is string => !!p))].sort((a, b) => a.localeCompare(b));
+}
 
 const TITLE_MAX = 200;
 const BODY_MAX = 100_000;
 
-export function NoteEditor({ noteId, onClose }: { noteId: string | null; onClose: () => void }) {
+/** `fullWindow`: the note fills its own window (opened with "Own window"). */
+export function NoteEditor({ noteId, onClose, fullWindow = false }: { noteId: string | null; onClose: () => void; fullWindow?: boolean }) {
   const { data: note } = useQuery({
     queryKey: noteId ? keys.note(noteId) : ["note", "none"],
     queryFn: () => ipc.noteGet(noteId ?? ""),
@@ -27,7 +46,7 @@ export function NoteEditor({ noteId, onClose }: { noteId: string | null; onClose
   });
   return (
     <Dialog open={noteId !== null} onOpenChange={(o) => !o && onClose()}>
-      {note && noteId === note.id && <EditorBody key={note.id} note={note} onClose={onClose} />}
+      {note && noteId === note.id && <EditorBody key={note.id} note={note} onClose={onClose} fullWindow={fullWindow} />}
     </Dialog>
   );
 }
@@ -57,8 +76,11 @@ function LinkedTasks({ noteId }: { noteId: string }) {
   );
 }
 
-function EditorBody({ note, onClose }: { note: Note; onClose: () => void }) {
+function EditorBody({ note, onClose, fullWindow }: { note: Note; onClose: () => void; fullWindow: boolean }) {
   const actions = useNoteActions();
+  const { font, set: setFont } = useNoteFont();
+  const projects = useProjectNames();
+  const [project, setProject] = useState(note.project ?? "");
   const { data: labelCounts = [] } = useLabels();
   const [title, setTitle] = useState(note.title);
   const [body, setBody] = useState(note.body);
@@ -94,6 +116,24 @@ function EditorBody({ note, onClose }: { note: Note; onClose: () => void }) {
     await flush();
     await actions.discardIfEmpty(note.id);
     onClose();
+  };
+  /** Owner 2026-10-25: keep writing in a window of its own; the dashboard is free again. */
+  const popOut = async () => {
+    await flush();
+    await ipc.noteWindowOpen(note.id);
+    onClose();
+  };
+  /** A toolbar button: change the text and keep the selection on what was changed. */
+  const format = (f: (e: Edit) => Edit) => {
+    const el = bodyRef.current;
+    if (!el) return;
+    const next = f({ text: body, start: el.selectionStart, end: el.selectionEnd });
+    edit({ body: next.text });
+    requestAnimationFrame(() => { el.focus(); el.setSelectionRange(next.start, next.end); });
+  };
+  const line = (kind: LineKind) => format((e) => lines(e, kind));
+  const saveProject = () => {
+    if ((note.project ?? "") !== project.trim()) void actions.update(note.id, { project: project.trim() });
   };
   const labelIds = note.labels.map((l) => l.id);
   const toggleLabel = (id: string) =>
@@ -131,13 +171,41 @@ function EditorBody({ note, onClose }: { note: Note; onClose: () => void }) {
         else if (k === "e" && !e.shiftKey) { e.preventDefault(); setPreview((p) => !p); }
         else if (k === "a" && e.shiftKey) { e.preventDefault(); void actions.archive(note.id, !note.archived).then(onClose); }
         else if (k === "l" && !e.shiftKey) { e.preventDefault(); setLabelsOpen(true); }
+        else if (k === "b" && !e.shiftKey && !preview) { e.preventDefault(); format((x) => wrap(x, "**")); }
+        else if (k === "i" && !e.shiftKey && !preview) { e.preventDefault(); format((x) => wrap(x, "_")); }
       }}
       showClose={false}
-      className={cn("gap-0 overflow-hidden", note.color !== "default" && "note-tint")}
+      className={cn("gap-0 overflow-hidden", fullWindow && "left-0 top-0 flex h-screen w-screen max-w-none translate-x-0 translate-y-0 flex-col rounded-none border-0 data-[state=open]:zoom-in-100", note.color !== "default" && "note-tint")}
     >
       <DialogTitle className="sr-only">Edit note</DialogTitle>
       <DialogDescription id="note-editor-desc" className="sr-only">Changes save automatically.</DialogDescription>
-      <div className="flex flex-col gap-1 px-6 pb-2 pt-6">
+      <div role="toolbar" aria-label="Formatting" className="flex flex-wrap items-center gap-0.5 border-b border-foreground/10 px-4 py-2">
+        <ToolButton label={`Bold (${mod}+B)`} onClick={() => format((e) => wrap(e, "**"))} disabled={preview}><Bold /></ToolButton>
+        <ToolButton label={`Italic (${mod}+I)`} onClick={() => format((e) => wrap(e, "_"))} disabled={preview}><Italic /></ToolButton>
+        <ToolButton label="Heading" onClick={() => line("heading")} disabled={preview}><Heading2 /></ToolButton>
+        <span aria-hidden className="mx-1 h-5 w-px bg-foreground/15" />
+        <ToolButton label="Numbered list" onClick={() => line("number")} disabled={preview}><ListOrdered /></ToolButton>
+        <ToolButton label="Bullet list" onClick={() => line("bullet")} disabled={preview}><List /></ToolButton>
+        <ToolButton label="Checklist" onClick={() => line("check")} disabled={preview}><CheckSquare /></ToolButton>
+        <span aria-hidden className="mx-1 h-5 w-px bg-foreground/15" />
+        <select aria-label="Font" value={font} onChange={(e) => void setFont(e.target.value as NoteFont)}
+          className="h-7 rounded-md border border-foreground/15 bg-transparent px-1.5 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          {NOTE_FONTS.map((f) => <option key={f.value} value={f.value} className="bg-popover">{f.label}</option>)}
+        </select>
+        <label className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
+          <FolderKanban className="size-3.5" />
+          <input value={project} onChange={(e) => setProject(e.target.value)} onBlur={saveProject} onKeyDown={(e) => e.key === "Enter" && (e.currentTarget as HTMLInputElement).blur()}
+            list="note-projects" maxLength={100} placeholder="No project" aria-label="Project"
+            className="h-7 w-36 rounded-md border border-foreground/15 bg-transparent px-2 text-xs text-foreground outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring" />
+          <datalist id="note-projects">{projects.map((p) => <option key={p} value={p} />)}</datalist>
+        </label>
+        {!fullWindow && (
+          <Button variant="ghost" size="sm" className="ml-1 h-7 px-2 text-xs" onClick={() => void popOut()} title="Keep writing in a window of its own">
+            <SquareArrowOutUpRight />Own window
+          </Button>
+        )}
+      </div>
+      <div className={cn("flex flex-col gap-1 px-6 pb-2 pt-5", fullWindow && "min-h-0 flex-1", fontClass(font))}>
         <Input
           ref={titleRef}
           value={title}
@@ -148,7 +216,7 @@ function EditorBody({ note, onClose }: { note: Note; onClose: () => void }) {
           className="h-auto border-0 bg-transparent px-0 text-xl font-semibold tracking-tight shadow-none focus-visible:ring-0"
         />
         {preview ? (
-          <div aria-label="Preview" className="max-h-[50vh] min-h-64 overflow-y-auto"><MarkdownView source={body} /></div>
+          <div aria-label="Preview" className={cn("min-h-64 overflow-y-auto", fullWindow ? "flex-1" : "max-h-[50vh]")}><MarkdownView source={body} /></div>
         ) : (
           <textarea
             ref={bodyRef}
@@ -157,7 +225,7 @@ function EditorBody({ note, onClose }: { note: Note; onClose: () => void }) {
             onChange={(e) => edit({ body: e.target.value })}
             placeholder="Take a note…"
             aria-label="Note"
-            className="max-h-[50vh] min-h-64 resize-none overflow-y-auto bg-transparent text-[15px] leading-relaxed outline-none placeholder:text-muted-foreground"
+            className={cn("min-h-64 resize-none overflow-y-auto bg-transparent text-[15px] leading-relaxed outline-none placeholder:text-muted-foreground", fullWindow ? "flex-1" : "max-h-[50vh]")}
           />
         )}
         <LinkedTasks noteId={note.id} />
@@ -255,5 +323,14 @@ function EditorBody({ note, onClose }: { note: Note; onClose: () => void }) {
         <Button size="sm" onClick={() => void close()}>Done</Button>
       </div>
     </DialogContent>
+  );
+}
+
+function ToolButton({ label, onClick, disabled, children }: { label: string; onClick: () => void; disabled?: boolean; children: React.ReactNode }) {
+  return (
+    <button type="button" aria-label={label} title={label} onClick={onClick} disabled={disabled}
+      className="grid size-7 place-items-center rounded-md text-muted-foreground outline-none hover:bg-foreground/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40 [&_svg]:size-4">
+      {children}
+    </button>
   );
 }

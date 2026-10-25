@@ -19,3 +19,15 @@ export function parseYmd(s: string): Date {
 export const weekdayShort = (d: Date) => d.toLocaleDateString([], { weekday: "short" });
 export const weekdayNarrow = (d: Date) => d.toLocaleDateString([], { weekday: "narrow" });
 export const dayLabel = (d: Date) => d.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" });
+
+/** Whole days from `from` to `to` (both YYYY-MM-DD); negative when `to` is earlier. */
+export function daysBetween(from: string, to: string): number {
+  return Math.round((parseYmd(to).getTime() - parseYmd(from).getTime()) / 86_400_000);
+}
+
+/** "1 day overdue", "3 days overdue" for a deadline before `today`. */
+export function overdueLabel(due: string, today: string): string {
+  const n = Math.max(1, daysBetween(due, today));
+  if (n > 365) return "Over a year overdue";
+  return `${n} ${n === 1 ? "day" : "days"} overdue`;
+}

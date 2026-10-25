@@ -6,4 +6,8 @@ export type Note = { id: string, title: string, body: string, color: NoteColor, 
 /**
  * Sorted by folded name.
  */
-labels: Array<Label>, };
+labels: Array<Label>, 
+/**
+ * The project this note belongs to, like `Task::project` (owner 2026-10-25).
+ */
+project: string | null, };

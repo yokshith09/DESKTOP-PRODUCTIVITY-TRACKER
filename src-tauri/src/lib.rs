@@ -4,6 +4,7 @@
 mod autostart;
 mod ipc;
 mod logs;
+mod note_window;
 mod notify;
 mod pet;
 mod pets;
@@ -134,6 +135,7 @@ pub fn run() {
         .plugin(
             tauri_plugin_window_state::Builder::new()
                 .with_denylist(&[pet::LABEL])
+                .with_filter(|label| !label.starts_with(note_window::PREFIX))
                 .with_state_flags(window_state_flags())
                 .build(),
         )
@@ -225,6 +227,7 @@ pub fn run() {
             pet::pet_command,
             pet::pet_menu,
             notify::notification_test,
+            note_window::note_window_open,
             ipc::app_paths,
             ipc::folder_open,
             ipc::settings_reset,

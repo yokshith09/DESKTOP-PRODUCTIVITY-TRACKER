@@ -12,4 +12,16 @@ fired_at: number | null, done_at: number | null, created_at: number,
 /**
  * Starred reminders come first (FR-107).
  */
-starred: boolean, };
+starred: boolean, 
+/**
+ * The task this reminder is for, if any (owner 2026-10-25).
+ */
+task_id: string | null, 
+/**
+ * How many minutes before the moment it was set for: `remind_at` is already that early.
+ */
+lead_min: number, 
+/**
+ * Play a sound when it is due.
+ */
+sound: boolean, };

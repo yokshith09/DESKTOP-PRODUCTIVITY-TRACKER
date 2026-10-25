@@ -48,3 +48,26 @@ export function useFocus() {
     stop: () => run(ipc.focusStop()),
   };
 }
+
+const LENGTH_KEY = ["prefs", "ui.focus_minutes"] as const;
+export const FOCUS_MIN = 5;
+export const FOCUS_MAX = 240;
+export const clampFocus = (m: number) => Math.min(FOCUS_MAX, Math.max(FOCUS_MIN, Math.round(m)));
+
+/** The focus length last picked (Focus tile and task editor share it; 25 at first). */
+export function useFocusLength() {
+  const qc = useQueryClient();
+  const { data } = useQuery({
+    queryKey: LENGTH_KEY,
+    queryFn: async () => {
+      const v = await ipc.prefsGet<number>("ui.focus_minutes");
+      return typeof v === "number" && Number.isFinite(v) ? clampFocus(v) : 25;
+    },
+  });
+  const set = async (m: number) => {
+    const v = clampFocus(m);
+    qc.setQueryData(LENGTH_KEY, v);
+    await ipc.prefsSet("ui.focus_minutes", v);
+  };
+  return { minutes: data ?? 25, set };
+}
