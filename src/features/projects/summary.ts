@@ -43,3 +43,14 @@ export function summarize(rows: TaskRow[], today: string): ProjectSummary {
     next,
   };
 }
+
+/** What changing a project's name touches: every task and note filed under `from`. */
+export function planRename(tasks: TaskRow[], notes: { id: string; project: string | null }[], from: string, to: string): { ok: boolean; taskIds: string[]; noteIds: string[] } {
+  const name = to.trim().slice(0, 100);
+  if (!name || name === from) return { ok: false, taskIds: [], noteIds: [] };
+  return {
+    ok: true,
+    taskIds: tasks.filter((r) => r.task.project === from).map((r) => r.task.id),
+    noteIds: notes.filter((n) => n.project === from).map((n) => n.id),
+  };
+}

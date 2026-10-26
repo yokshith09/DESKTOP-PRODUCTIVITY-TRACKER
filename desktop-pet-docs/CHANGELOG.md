@@ -5,6 +5,10 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-10-26 (draft for owner testing; Unverified)
+
+Task editor and Projects redesigned, resizable Today tiles, highlighted quote, Character → Reactions, hello as a text bubble, Character page preview, Settings without sub-tabs, pet focus timer below the pet with media buttons (Windows and macOS), Time Analytics view, time tracking now counts the app in front, character standard and skill. Nothing here has run on a real PC yet.
+
 - Changed (2026-10-26, owner's redesign request; OS parts Unverified):
   - **Task editor**: where the task is (Planned → In progress → Completed), the project and the deadline ("Overdue by 2 days", "Due tomorrow") sit at the top; the one next action is the highlighted button. A **Suggestions** strip says the next useful step in kind words ("Planned for today. Start it when you are ready", "The deadline was 2 days ago. Make it due today…") with a one-click button. Settings are two cards, **Schedule** (When, Deadline, Reminder) and **Organise** (Priority, Project, Note); History folds away. An "Unsaved changes" dot shows beside Save.
   - **Projects**: each project in the list shows its progress and an overdue dot; the page shows counts (open, overdue, next deadline, % done), a progress bar and a **Next up** card (in progress first, then starred, then nearest deadline) with Open and Focus; finished tasks fold under "Done (n)".
@@ -24,6 +28,8 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
   - **Pet** (H1–H4): the focus timer sits below the pet in the pet's own pixel style; hover-card tasks keep their colours and open the Tasks page when clicked; the card's **Focus** button opens the Focus tile on Today; play/pause and next-track buttons beside the timer (Windows media keys only, no browser extension; Unverified).
   - **Time** (I2): two views — **General** (exactly as before) and an **Analytics** dashboard, switched by a button.
 - Tests: front-end 280 passed / 5 skipped, Rust 412 core + 29 shell passing.
+- Added (2026-10-26): **rename a project** (pencil beside its name); every task and note under it follows. Archived notes are not renamed.
+
 
 ## [0.4.0] — 2026-10-25 (draft for owner testing; Unverified)
 

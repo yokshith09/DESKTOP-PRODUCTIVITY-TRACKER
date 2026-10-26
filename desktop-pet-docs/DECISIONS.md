@@ -334,7 +334,7 @@ Still open: none of Q1-Q7 except the Q4 spike result.
 - **Hello is one text bubble** with the pet's name, then the most useful fact (overdue, else today's count, else the quote). It still comes once a day (notification budget); **Say hello now** is the owner's repeat and does not use up the day's one.
 - **Suggestions in the task editor** are plain rules, no AI, and kind (the no-guilt copy test covers them). "Make it due today" and "Plan for today" only fill the form; Save makes them stick.
 - **Resizable Today tiles**: three sizes per tile rather than free drag-resize, because the grid snaps to 12 columns (FR-44 decision). Open: free resize if wanted later.
-- Not done: renaming a project (a project is a name on tasks and notes; renaming means rewriting them all).
+- Renaming a project (added the same day): the name is rewritten on every task and note under it (archived notes excluded).
 
 ## 2026-10-26 — Time tracking audit
 

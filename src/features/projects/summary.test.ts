@@ -25,3 +25,17 @@ describe("project summary", () => {
     expect(s.nextDeadline).toBe("2026-10-29");
   });
 });
+
+import { planRename } from "./summary";
+
+describe("renaming a project", () => {
+  const tasks = [row("a1", { project: "Old" }), row("a2", { project: "Other" }), row("a3", { project: "Old", status: "COMPLETED" })];
+  const notes = [{ id: "n1", project: "Old" }, { id: "n2", project: null }];
+  it("finds every task and note under the old name, finished ones too", () => {
+    expect(planRename(tasks, notes, "Old", " New ")).toEqual({ ok: true, taskIds: ["a1", "a3"], noteIds: ["n1"] });
+  });
+  it("does nothing for an empty or unchanged name", () => {
+    expect(planRename(tasks, notes, "Old", "  ").ok).toBe(false);
+    expect(planRename(tasks, notes, "Old", "Old").ok).toBe(false);
+  });
+});

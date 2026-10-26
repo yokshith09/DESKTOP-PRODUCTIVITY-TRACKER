@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { CalendarClock, ChevronRight, FolderKanban, NotebookPen, Plus, Timer } from "lucide-react";
+import { CalendarClock, ChevronRight, FolderKanban, NotebookPen, Pencil, Plus, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader, Tile } from "@/features/shell/PageHeader";
@@ -13,7 +13,7 @@ import { useAllTasks, useNotes, useTaskActions } from "@/hooks/useLoaf";
 import { useFocus, useFocusLength } from "@/hooks/useFocus";
 import { ymd } from "@/lib/dates";
 import { STATUS_LABEL } from "@/lib/taskStatus";
-import { summarize } from "./summary";
+import { planRename, summarize } from "./summary";
 import { errorMessage, ipc, type NoteSummary, type TaskRow } from "@/ipc";
 import { notify } from "@/lib/notify";
 import { timeAgo } from "@/lib/time";
@@ -72,6 +72,29 @@ export function ProjectsPage() {
   const [taskDraft, setTaskDraft] = useState("");
   const [openTask, setOpenTask] = useState<string | null>(null);
   const [openNote, setOpenNote] = useState<string | null>(null);
+  const [renaming, setRenaming] = useState<string | null>(null);
+
+  /** Changes the name on every task and note in the project (a project is only that name). */
+  const rename = async (to: string) => {
+    if (!current) return;
+    const plan = planRename(tasks, notes, current.name, to);
+    setRenaming(null);
+    if (!plan.ok) return;
+    const name = to.trim().slice(0, 100);
+    try {
+      for (const id of plan.taskIds) {
+        const row = tasks.find((r) => r.task.id === id);
+        if (row) await update(id, { ...toEdit(row.task), project: name });
+      }
+      for (const id of plan.noteIds) await ipc.noteUpdate(id, { project: name });
+      await qc.invalidateQueries({ queryKey: ["notes"] });
+      setStarted((s) => s.map((x) => (x === current.name ? name : x)));
+      setChosen(name);
+      notify.success(`Renamed to “${name}”`);
+    } catch (e) {
+      notify.error(errorMessage(e));
+    }
+  };
 
   const start = () => {
     const name = newName.trim().slice(0, 100);
@@ -132,7 +155,16 @@ export function ProjectsPage() {
         {current ? (
           <section aria-label={`Project ${current.name}`} className="min-w-0 space-y-5">
             <div>
-              <h2 className="text-xl font-semibold tracking-tight">{current.name}</h2>
+              {renaming !== null ? (
+                <form onSubmit={(e) => { e.preventDefault(); void rename(renaming); }} className="flex items-center gap-2">
+                  <Input autoFocus value={renaming} maxLength={100} aria-label="Project name" onChange={(e) => setRenaming(e.target.value)} onBlur={() => void rename(renaming)} onKeyDown={(e) => e.key === "Escape" && setRenaming(null)} className="h-9 max-w-xs text-lg font-semibold" />
+                </form>
+              ) : (
+                <h2 className="group flex items-center gap-2 text-xl font-semibold tracking-tight">
+                  {current.name}
+                  <button type="button" aria-label={`Rename ${current.name}`} onClick={() => setRenaming(current.name)} className="grid size-7 place-items-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"><Pencil className="size-3.5" /></button>
+                </h2>
+              )}
               <p className="mt-0.5 text-[13px] text-muted-foreground">
                 {current.tasks.length - current.open} of {current.tasks.length} tasks done · {current.notes.length} {current.notes.length === 1 ? "note" : "notes"}
               </p>

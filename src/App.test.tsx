@@ -942,6 +942,24 @@ describe("owner's UI reset, batch 1 (2026-10-25)", () => {
     expect(await screen.findByRole("region", { name: "Project Thesis" })).toBeTruthy();
   });
 
+  it("a project can be renamed, and its tasks and notes follow", async () => {
+    const { ipc } = await import("@/ipc");
+    const user = userEvent.setup();
+    render(<App />);
+    await goTo(user, /^Projects/);
+    await screen.findByRole("region", { name: "Project Loaf v1" });
+    await user.click(screen.getByRole("button", { name: "Rename Loaf v1" }));
+    const box = screen.getByRole("textbox", { name: "Project name" });
+    await user.clear(box);
+    await user.type(box, "Loaf v2{Enter}");
+    expect(await screen.findByRole("region", { name: "Project Loaf v2" })).toBeTruthy();
+    await waitFor(async () => {
+      const all = await ipc.tasksQuery("all");
+      expect(all.some((r) => r.task.project === "Loaf v1")).toBe(false);
+      expect(all.some((r) => r.task.project === "Loaf v2")).toBe(true);
+    });
+  });
+
   it("the note editor formats (bold, numbered list) and can move to its own window", async () => {
     const { ipc } = await import("@/ipc");
     const open = vi.spyOn(ipc, "noteWindowOpen").mockResolvedValue(null);
