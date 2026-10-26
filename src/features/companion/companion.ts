@@ -7,6 +7,8 @@ import { ymd } from "@/lib/dates";
  * Stored in preferences under `ui.companion` (included in the data export).
  */
 export interface Companion {
+  /** What you call the pet. Empty: it answers to "Loaf". */
+  petName: string;
   /** The pet's birthday: the day it was first met (YYYY-MM-DD). */
   born: string;
   userName: string;
@@ -17,7 +19,7 @@ export interface Companion {
   greetedOn: string | null;
 }
 
-export const emptyCompanion = (today: string): Companion => ({ born: today, userName: "", userBirthday: null, greet: true, greetedOn: null });
+export const emptyCompanion = (today: string): Companion => ({ born: today, petName: "", userName: "", userBirthday: null, greet: true, greetedOn: null });
 
 const isDay = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v));
 const isMonthDay = (v: unknown): v is string => {
@@ -32,6 +34,7 @@ export function parseCompanion(raw: unknown, today: string): Companion {
   const r = raw as Partial<Record<keyof Companion, unknown>>;
   return {
     born: isDay(r.born) ? r.born : base.born,
+    petName: typeof r.petName === "string" ? r.petName.trim().slice(0, 30) : "",
     userName: typeof r.userName === "string" ? r.userName.trim().slice(0, 40) : "",
     userBirthday: isMonthDay(r.userBirthday) ? r.userBirthday : null,
     greet: r.greet !== false,

@@ -278,16 +278,31 @@ describe("Notes screen (against the in-memory shell)", () => {
     expect(within(log).getAllByRole("button", { name: /Copy .+ as Markdown/ }).length).toBeGreaterThan(0);
   });
 
-  it("Settings › website tracking is off by default and needs app tracking", async () => {
+  it("Time › website tracking is off by default and needs app tracking", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await goTo(user, /^Settings/);
+    await goTo(user, /^Time/);
     const sites = await screen.findByRole("switch", { name: "Track websites" });
     expect(sites.getAttribute("aria-checked")).toBe("false");
     await user.click(sites);
     await waitFor(() => expect(sites.getAttribute("aria-checked")).toBe("true"));
     await user.click(screen.getByRole("switch", { name: "Track app usage" }));
     await waitFor(() => expect((sites as HTMLButtonElement).disabled).toBe(true));
+  });
+
+  it("Settings holds no pet or tracking settings; they live on Character, Time and Today", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await goTo(user, /^Settings/);
+    await screen.findByRole("heading", { name: "General" });
+    expect(screen.queryByRole("switch", { name: "Type along with me" })).toBeNull();
+    expect(screen.queryByRole("switch", { name: "Track app usage" })).toBeNull();
+    await goTo(user, /^Character/);
+    expect(await screen.findByRole("switch", { name: "Type along with me" })).toBeTruthy();
+    await goTo(user, /^Time/);
+    expect(await screen.findByRole("switch", { name: "Track websites" })).toBeTruthy();
+    await goTo(user, /^Today/);
+    expect((await screen.findAllByText("Reminder alerts")).length).toBeGreaterThan(0);
   });
 
   it("Settings › Your data: export, refused import into a non-empty Loaf, delete all with the word DELETE", async () => {

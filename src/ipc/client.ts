@@ -93,11 +93,14 @@ export const ipc = {
   /** Opens the system "open" dialog and restores that export into an empty Loaf. `null` if cancelled. */
   dataImport: () => call<Record<string, number> | null>("data_import"),
   dataDeleteAll: (confirm: string) => call<unknown>("data_delete_all", { confirm }),
-  petHover: (expanded: boolean, cardWidth: number, cardHeight: number) =>
-    call<{ pet: "left" | "right"; card: "above" | "below" } | null>("pet_hover", { expanded, cardWidth, cardHeight }),
+  /** `below`: the panel prefers the side under the pet (the focus timer), if it fits there. */
+  petHover: (expanded: boolean, cardWidth: number, cardHeight: number, below?: boolean) =>
+    call<{ pet: "left" | "right"; card: "above" | "below" } | null>("pet_hover", { expanded, cardWidth, cardHeight, below: below ?? null }),
   petClick: () => call<unknown>("pet_click"),
   /** Hover-card buttons: open the dashboard and start a new note or task (FR-111). */
-  petCommand: (what: "new-note" | "new-task") => call<unknown>("pet_command", { what }),
+  petCommand: (what: "new-note" | "new-task" | "focus" | "tasks") => call<unknown>("pet_command", { what }),
+  /** Media keys under the pet (Windows only, Unverified). */
+  petMedia: (action: "play-pause" | "next" | "previous") => call<unknown>("pet_media", { action }),
   petDoubleClick: () => call<unknown>("pet_double_click"),
   petMenu: () => call<unknown>("pet_menu"),
   meetingsList: (filters: MeetingFilters = { participant: null, from: null, to: null }) => call<MeetingSummary[]>("meetings_list", { filters }),

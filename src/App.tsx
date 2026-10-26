@@ -101,7 +101,11 @@ function Screen() {
     else if (command === "new-task") {
       setPage("tasks");
       setTimeout(() => document.getElementById("new-task")?.focus(), 80);
-    } else if (command === "settings") setPage("settings");
+    } else if (command === "focus") {
+      setPage("today");
+      setTimeout(() => document.getElementById("focus-tile")?.scrollIntoView?.({ block: "center" }), 120);
+    } else if (command === "tasks") setPage("tasks");
+    else if (command === "settings") setPage("settings");
   }));
 
   const newNote = async () => {

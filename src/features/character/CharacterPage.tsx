@@ -4,6 +4,10 @@ import { PageHeader, Panel } from "@/features/shell/PageHeader";
 import { BEAR_POSES, Bear, type BearPose } from "@/features/shell/Bear";
 import { BACK_TURN_SHAKE, playEmote, type EmoteRun } from "@/pet/emotes";
 import { PetLibrary } from "./PetLibrary";
+import { PackPreview } from "./PackPreview";
+import { useQuery } from "@tanstack/react-query";
+import { ipc } from "@/ipc";
+import { NudgeSettings } from "@/features/settings/NudgeSettings";
 import { CompanionPanel } from "@/features/companion/CompanionPanel";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
@@ -32,6 +36,9 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
 }
 
 export function CharacterPage() {
+  const [shown, setShown] = useState<string | null>(null);
+  const { data: packs = [] } = useQuery({ queryKey: ["pets", "library"], queryFn: ipc.petsList });
+  const shownPack = shown ? packs.find((p) => p.id === shown) : undefined;
   const [pose, setPose] = useState<BearPose>("idle");
   const [replay, setReplay] = useState(0);
   const [visible, setVisible] = useSetting("pet.visible");
@@ -54,6 +61,8 @@ export function CharacterPage() {
       <PageHeader title="Character" description="Your desktop companion. It sits on your screen and stays out of the way." />
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <Panel className="flex flex-col items-center justify-between gap-6 p-6">
+          {shownPack ? <PackPreview key={shownPack.id} pack={shownPack} /> : (
+            <>
           <div className="grid min-h-72 w-full flex-1 place-items-center rounded-lg border bg-muted/40 [background-image:radial-gradient(circle_at_center,var(--border)_1px,transparent_1px)] [background-size:16px_16px]">
             <Bear key={`${pose}-${replay}`} pose={pose} animated className="size-56" />
           </div>
@@ -75,6 +84,8 @@ export function CharacterPage() {
             ))}
             <Button size="sm" variant="secondary" onClick={playBackTurn}>Play back-turn shake</Button>
           </div>
+            </>
+          )}
         </Panel>
 
         <Panel className="divide-y px-5">
@@ -116,7 +127,8 @@ export function CharacterPage() {
           </div>
         </Panel>
       </div>
-      <PetLibrary />
+      <PetLibrary shown={shownPack ? shown : null} onShow={setShown} />
+      <div className="mt-6"><NudgeSettings /></div>
       <CompanionPanel />
     </div>
   );

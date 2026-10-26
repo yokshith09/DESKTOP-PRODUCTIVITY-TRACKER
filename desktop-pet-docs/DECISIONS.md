@@ -328,6 +328,13 @@ Still open: none of Q1-Q7 except the Q4 spike result.
   - **Analytics**: allowed as long as it is computed on this PC from data already stored and nothing is sent anywhere (local-first rule). Sending usage data out would break the rule.
 - Open (owner): approve or change the preview; character-creation skill — when, and which image source (Codex image tool or the owner's OpenAI key; we never pay for AI); what exactly the "hello" looks like when it repeats (greeting text, or the wave when the pointer is over the pet).
 
+## 2026-10-26 — UI reset batch 2 built (F, G, H, I2)
+
+- **Settings has no sub-tabs or groups** (owner, G1). Pet settings only on the Character page; settings that belong to another tab moved there.
+- **Time has two views**: General (unchanged) and Analytics (owner, I2).
+- **Media buttons** use the Windows media keys (`SendInput`) only; no browser extension, ever. macOS is not implemented. They show beside the focus timer only while a session runs and only on Windows (Unverified). A standalone media strip or an opt-in setting is **not** built — open question for the owner.
+- **Open:** J1–J3 (standard character format, one-prompt character-building skill and prompt using the owner's Codex image tool — Loaf never pays for AI — default changeable reactions, hello repeat as a text bubble). "J3" is not defined in the docs; treated as the character prompt/image pipeline until the owner confirms.
+
 ## 2026-10-25 (later) — UI reset batch 1 built
 - Owner: delete the preview, then build A4, A6, B1–B7, C1–C5, D1–D4, E1 now; the rest next turn. The preview canvas was deleted.
 - Owner: the Tasks page stays as it is, with a **separate Next 7 days tile** (not on Today). Extras in the task editor are **not collapsed**; they sit in neat cards. The quote is **bigger, editable, user quotes can be added**, in an empty place (beside the greeting).

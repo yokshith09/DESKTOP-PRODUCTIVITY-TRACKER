@@ -5,6 +5,13 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Changed (2026-10-26, owner's UI reset batch 2 — F, G, H, I2; OS parts Unverified):
+  - **Character page** (F1–F3): stays as it was; choosing another character changes the preview and shows that character's animations. Name, birthday, age in days and the daily-hello tile; accessories, outfits and reactions are shown as "Later".
+  - **Settings** (G1, G3): no groups or sub-tabs. Pet settings live only on the Character page; tracking settings moved to the Time page, reminder sound/alerts to Today's agenda. What is left is General, Keyboard shortcuts, Auto-delete, Your data, Advanced and About. Hints are at most 2–3 lines.
+  - **Pet** (H1–H4): the focus timer sits below the pet in the pet's own pixel style; hover-card tasks keep their colours and open the Tasks page when clicked; the card's **Focus** button opens the Focus tile on Today; play/pause and next-track buttons beside the timer (Windows media keys only, no browser extension; Unverified).
+  - **Time** (I2): two views — **General** (exactly as before) and an **Analytics** dashboard, switched by a button.
+- Tests: front-end 280 passed / 5 skipped, Rust 412 core + 29 shell passing.
+
 ## [0.4.0] — 2026-10-25 (draft for owner testing; Unverified)
 
 The UI reset batch 1 below, the File Explorer, Save and hello fixes, and reminder sounds. Database update 007 (backed up automatically before migrating).

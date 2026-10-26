@@ -71,12 +71,15 @@ export function PetCard({ className, style, napping = false, onNap }: { classNam
           <ul className="space-y-1">
             {top.map(({ task, overdue }) => (
               // Tasks stand out on the card (owner 2026-10-23): a tinted row, starred ones marked.
-              <li key={task.id} className={cn("flex items-center gap-2 rounded-md px-2 py-1 text-[12.5px] font-medium", overdue ? "bg-destructive/10" : "bg-primary/10")}>
+              <li key={task.id}>
+               <button type="button" onClick={() => void ipc.petCommand("tasks")} onPointerUp={(e) => e.stopPropagation()} aria-label={`Open task: ${task.title}`}
+                className={cn("flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[12.5px] font-medium outline-none hover:brightness-95 focus-visible:ring-2 focus-visible:ring-ring", overdue ? "bg-destructive/10" : "bg-primary/10")}>
                 {task.starred ? <Star className="size-3 shrink-0 fill-current text-primary" /> : <Circle className="size-3 shrink-0 text-primary" />}
                 <span className="min-w-0 flex-1 truncate">{task.title}</span>
                 {overdue ? <span className="text-[11px] text-destructive">Overdue</span> : task.priority && (
                   <span className={cn("text-[11px]", PRIORITY[task.priority].cls)}>{PRIORITY[task.priority].label}</span>
                 )}
+               </button>
               </li>
             ))}
           </ul>
@@ -90,7 +93,7 @@ export function PetCard({ className, style, napping = false, onNap }: { classNam
         {focus.session ? (
           <CardButton icon={<Timer />} label="Stop focus" onClick={() => void focus.stop()} />
         ) : (
-          <CardButton icon={<Timer />} label="Focus 25" onClick={() => void focus.start("FOCUS", 25)} />
+          <CardButton icon={<Timer />} label="Focus" onClick={() => void ipc.petCommand("focus")} />
         )}
         <CardButton icon={<NotebookPen />} label="Add note" onClick={() => void ipc.petCommand("new-note")} />
         {napping ? (

@@ -15,7 +15,9 @@ import { OpenTabsPanel } from "./OpenTabsPanel";
 import { HEIGHT_CLASS, TileLayoutPicker, WIDTH_CLASS, useTileLayout } from "./tileLayout";
 import { PrivacyRadar } from "./PrivacyRadar";
 import { RANGES, rangeBounds, type RangeKey } from "./range";
+import { TimeAnalytics } from "./TimeAnalytics";
 import { TimeCard } from "./TimeCard";
+import { TrackingSettings } from "./TrackingSettings";
 
 function Stat({ label, value, sub }: { label: string; value: React.ReactNode; sub?: string | undefined }) {
   return (
@@ -32,6 +34,7 @@ export function TimePage() {
   const [range, setRange] = useState<RangeKey>("today");
   const [category, setCategory] = useState<string>("all");
   const [view, setView] = useState<"apps" | "sites">("apps");
+  const [mode, setMode] = useState<"general" | "analytics">("general");
   const [layout, setLayout] = useTileLayout();
   const { from, to, days } = rangeBounds(range);
   const { data: status } = useTrackingStatus();
@@ -62,11 +65,16 @@ export function TimePage() {
   return (
     <div className="space-y-4">
       <PageHeader title="Time" description="Where your time went, by app and site." />
+      <ToggleGroup type="single" value={mode} onValueChange={(v) => v && setMode(v as "general" | "analytics")} aria-label="Time view">
+        <ToggleGroupItem value="general">General</ToggleGroupItem>
+        <ToggleGroupItem value="analytics">Analytics</ToggleGroupItem>
+      </ToggleGroup>
 
       <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filters">
         <ToggleGroup type="single" value={range} onValueChange={(v) => v && setRange(v as RangeKey)} aria-label="Period">
           {RANGES.map((r) => <ToggleGroupItem key={r.key} value={r.key}>{r.label}</ToggleGroupItem>)}
         </ToggleGroup>
+        {mode === "general" && (<>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="h-8">
@@ -87,7 +95,10 @@ export function TimePage() {
         {filtered && (
           <Button variant="ghost" size="sm" onClick={() => { setRange("today"); setCategory("all"); setView("apps"); }}>Reset filters</Button>
         )}
+        </>)}
       </div>
+
+      {mode === "analytics" ? <TimeAnalytics from={from} to={to} days={days} tracking={tracking} /> : (<>
 
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         <Stat label="Total time" value={tracking ? formatDuration(total) : "—"} sub={tracking ? `${days === 1 ? "in the day" : `~${formatDuration(total / days)} a day`}` : "Tracking is off"} />
@@ -133,6 +144,8 @@ export function TimePage() {
       {/* FR-62: always here, not only under "Sites", so it can be found. */}
       <OpenTabsPanel enabled={sitesOn} className="max-h-[26rem]" />
       <DailyLogs className="max-h-[26rem]" />
+      </>)}
+      <TrackingSettings />
       <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Info className="size-3.5" />Time is recorded on this computer only. Window titles and full web addresses are never stored.</p>
     </div>
   );

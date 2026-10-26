@@ -57,9 +57,22 @@ pub struct Anchor {
     pub card: &'static str,
 }
 
+#[cfg(test)]
 /// The window grown to hold the card next to the pet, kept inside the work area. The pet's
 /// own square stays exactly where it was.
 pub fn expanded(pet: Rect, card_w: u32, card_h: u32, work: Rect) -> (Rect, Anchor) {
+    expanded_with(pet, card_w, card_h, work, false)
+}
+
+/// Like [`expanded`], but `prefer_below` keeps the panel under the pet whenever it fits there
+/// (the focus timer and media buttons always sit below the pet: owner 2026-10-25, H1/H4).
+pub fn expanded_with(
+    pet: Rect,
+    card_w: u32,
+    card_h: u32,
+    work: Rect,
+    prefer_below: bool,
+) -> (Rect, Anchor) {
     let w = pet.w.max(card_w);
     let h = pet.h + GAP + card_h;
     // Above when it fits there; else below when it fits; else whichever side has more room, so
@@ -69,7 +82,11 @@ pub fn expanded(pet: Rect, card_w: u32, card_h: u32, work: Rect) -> (Rect, Ancho
         work.y + work.h as i32 - (pet.y + pet.h as i32),
     );
     let need_v = (card_h + GAP) as i32;
-    let above = room_above >= need_v || (room_below < need_v && room_above >= room_below);
+    let above = if prefer_below && room_below >= need_v {
+        false
+    } else {
+        room_above >= need_v || (room_below < need_v && room_above >= room_below)
+    };
     let (room_left, room_right) = (
         pet.x + pet.w as i32 - work.x,
         work.x + work.w as i32 - pet.x,
@@ -195,6 +212,7 @@ pub async fn pet_hover(
     expanded: bool,
     card_width: f64,
     card_height: f64,
+    below: Option<bool>,
     app: AppHandle,
     state: State<'_, Arc<PetState>>,
 ) -> Result<Option<Anchor>> {
@@ -208,7 +226,14 @@ pub async fn pet_hover(
         };
         let scale = w.scale_factor().map_err(internal)?;
         let work = work_area(&w).unwrap_or(pet);
-        let (rect, anchor) = expanded_rect(pet, card_width, card_height, scale, work);
+        let (rect, anchor) = expanded_rect(
+            pet,
+            card_width,
+            card_height,
+            scale,
+            work,
+            below.unwrap_or(false),
+        );
         *lock(&state.base) = Some(pet);
         *lock(&state.grown) = Some(rect);
         state.expanded.store(true, Ordering::SeqCst);
@@ -251,12 +276,20 @@ fn current_base<R: Runtime>(w: &WebviewWindow<R>, state: &PetState) -> Option<Re
     }
 }
 
-fn expanded_rect(pet: Rect, card_w: f64, card_h: f64, scale: f64, work: Rect) -> (Rect, Anchor) {
-    expanded(
+fn expanded_rect(
+    pet: Rect,
+    card_w: f64,
+    card_h: f64,
+    scale: f64,
+    work: Rect,
+    prefer_below: bool,
+) -> (Rect, Anchor) {
+    expanded_with(
         pet,
         (card_w * scale).round() as u32,
         (card_h * scale).round() as u32,
         work,
+        prefer_below,
     )
 }
 
@@ -270,7 +303,7 @@ pub fn pet_click(app: AppHandle) {
 /// commands the pet menu already sends are accepted.
 #[tauri::command]
 pub fn pet_command(what: String, app: AppHandle) {
-    if matches!(what.as_str(), "new-note" | "new-task") {
+    if matches!(what.as_str(), "new-note" | "new-task" | "focus" | "tasks") {
         command(&app, &what);
     }
 }
@@ -399,7 +432,8 @@ pub fn on_menu(app: &AppHandle, id: &str) {
     }
 }
 
-/// Bring the dashboard up and ask it to do something (`new-note`, `new-task`, `settings`).
+/// Bring the dashboard up and ask it to do something (`new-note`, `new-task`, `focus`, `tasks`,
+/// `settings`).
 pub fn command<R: Runtime>(app: &AppHandle<R>, what: &str) {
     crate::tray::show_main(app);
     let _ = app.emit_to("main", "loaf://command", what);
@@ -765,6 +799,23 @@ mod tests {
             "right",
             "358 px to the left beats 170 to the right"
         );
+    }
+
+    #[test]
+    fn a_panel_that_prefers_below_goes_below_when_it_fits_and_above_when_it_does_not() {
+        // Bottom-right of a tall screen: the card goes above, the timer still goes below if
+        // there is room under the pet.
+        let pet = Rect {
+            x: 1768,
+            y: 700,
+            w: 128,
+            h: 128,
+        };
+        assert_eq!(expanded(pet, 184, 34, WORK).1.card, "above");
+        assert_eq!(expanded_with(pet, 184, 34, WORK, true).1.card, "below");
+        // No room under the pet: it falls back to above rather than being cut off.
+        let low = Rect { y: 912, ..pet };
+        assert_eq!(expanded_with(low, 184, 34, WORK, true).1.card, "above");
     }
 
     #[test]

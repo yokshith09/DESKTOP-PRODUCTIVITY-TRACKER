@@ -4,6 +4,7 @@
 mod autostart;
 mod ipc;
 mod logs;
+mod media;
 mod note_window;
 mod notify;
 mod pet;
@@ -225,6 +226,7 @@ pub fn run() {
             pet::pet_click,
             pet::pet_double_click,
             pet::pet_command,
+            media::pet_media,
             pet::pet_menu,
             notify::notification_test,
             note_window::note_window_open,

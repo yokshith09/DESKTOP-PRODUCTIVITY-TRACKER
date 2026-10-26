@@ -20,8 +20,8 @@ export const CARD_H = 352; // measured: 291 px with 3 apps and 2 tasks, + task r
 export const BUBBLE_W = 220;
 export const BUBBLE_H = 52;
 /** The focus timer above or below the pet (FR-110). */
-export const TIMER_W = 184;
-export const TIMER_H = 34;
+export const TIMER_W = 252;
+export const TIMER_H = 36;
 const SIZES = { S: 96, M: 128, L: 160 } as const;
 const DOUBLE_CLICK_MS = 260;
 const DRAG_PX = 4;
@@ -86,7 +86,8 @@ export function PetApp() {
 
   const expand = async (next: Exclude<Panel, null>) => {
     const [w, h] = next === "card" ? [CARD_W, CARD_H] : next === "timer" ? [TIMER_W, TIMER_H] : [BUBBLE_W, BUBBLE_H];
-    const a = await ipc.petHover(true, w, h);
+    // The timer sits under the pet, in its own pixel area; the card and bubble keep above.
+    const a = await ipc.petHover(true, w, h, next === "timer");
     if (a) {
       setAnchor(a);
       setPanel(next);
@@ -256,6 +257,8 @@ export function PetApp() {
     press.current = null;
   };
 
+  // Media keys are sent through Windows only (Unverified); elsewhere the buttons stay hidden.
+  const canMedia = typeof navigator !== "undefined" && /windows/i.test(navigator.userAgent);
   const working = openToday.some((r) => r.task.status === "IN_PROGRESS");
   // Typing along beats hover and the rest: you are busy, it keeps you company.
   const pose: BearPose = playing?.pose ?? (napping ? "sleep" : typing !== "off" ? typing : hovering ? "wave" : asleep ? "sleep" : working ? "work" : "idle");
@@ -283,7 +286,7 @@ export function PetApp() {
     : panel === "bubble" && playing
       ? <Bubble text={playing.action ? `${playing.bubble} · click: ${playing.action.label}` : playing.bubble} anchor={anchor} />
       : panel === "timer" && focus.session
-        ? <FocusChip label={focus.session.kind === "BREAK" ? "Break" : focus.session.label || "Focus"} left={clock(focus.remaining)} paused={focus.session.paused_at !== null} onPause={(p) => void focus.pause(p)} />
+        ? <FocusChip label={focus.session.kind === "BREAK" ? "Break" : focus.session.label || "Focus"} left={clock(focus.remaining)} paused={focus.session.paused_at !== null} onPause={(p) => void focus.pause(p)} media={canMedia} />
         : null;
 
   return (
@@ -321,17 +324,21 @@ function Bubble({ text, anchor }: { text: string; anchor: Anchor | null }) {
   );
 }
 
-/** The focus timer by the pet (FR-110): time left, what it's for, pause/resume. */
-function FocusChip({ label, left, paused, onPause }: { label: string; left: string; paused: boolean; onPause: (paused: boolean) => void }) {
+/** The focus timer under the pet (FR-110, H1): pixel style, time left, pause/resume, and media keys (H4). */
+function FocusChip({ label, left, paused, onPause, media }: { label: string; left: string; paused: boolean; onPause: (paused: boolean) => void; media: boolean }) {
+  const btn = "grid size-6 shrink-0 place-items-center border-2 border-foreground/70 bg-background font-mono text-[10px] leading-none outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring";
   return (
-    <div className="flex shrink-0 items-center gap-2 rounded-full border bg-popover px-3 text-popover-foreground shadow-md" style={{ width: TIMER_W, height: TIMER_H }} role="timer" aria-label={`${label}: ${left} left${paused ? ", paused" : ""}`}>
-      <span className={cn("size-2 shrink-0 rounded-full", paused ? "bg-muted-foreground" : "bg-primary")} />
-      <span className="text-[13px] font-semibold tabular-nums">{left}</span>
-      <span className="min-w-0 flex-1 truncate text-[11.5px] text-muted-foreground">{label}</span>
-      <button type="button" aria-label={paused ? "Resume focus" : "Pause focus"} onClick={() => onPause(!paused)}
-        className="grid size-6 shrink-0 place-items-center rounded-full text-[11px] outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring">
-        {paused ? "▶" : "❚❚"}
-      </button>
+    <div className="flex shrink-0 items-center gap-1.5 border-2 border-foreground/70 bg-popover px-2 font-mono text-popover-foreground shadow-[3px_3px_0_0_var(--border)]" style={{ width: TIMER_W, height: TIMER_H, imageRendering: "pixelated" }} role="timer" aria-label={`${label}: ${left} left${paused ? ", paused" : ""}`}>
+      <span className={cn("size-2 shrink-0", paused ? "bg-muted-foreground" : "bg-primary")} />
+      <span className="text-[13px] font-bold tabular-nums">{left}</span>
+      <span className="min-w-0 flex-1 truncate text-[10.5px] text-muted-foreground">{label}</span>
+      <button type="button" aria-label={paused ? "Resume focus" : "Pause focus"} onClick={() => onPause(!paused)} className={btn}>{paused ? "▶" : "❚❚"}</button>
+      {media && (
+        <>
+          <button type="button" aria-label="Play or pause music" onClick={() => void ipc.petMedia("play-pause")} className={btn}>♪</button>
+          <button type="button" aria-label="Next track" onClick={() => void ipc.petMedia("next")} className={btn}>▶▶</button>
+        </>
+      )}
     </div>
   );
 }

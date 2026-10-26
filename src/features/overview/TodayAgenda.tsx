@@ -9,6 +9,7 @@ import { DeleteTaskButton } from "@/features/tasks/DeleteTaskButton";
 import { LinkChips, PlanBadge, StarButton } from "@/features/tasks/TaskBits";
 import { TaskDetail } from "@/features/tasks/TaskDetail";
 import { AddReminder } from "@/features/reminders/AddReminder";
+import { ReminderAlerts } from "@/features/reminders/ReminderAlerts";
 import { EditReminder } from "@/features/reminders/EditReminder";
 import { useReminderActions, useReminders, useTaskActions, useTodayTasks } from "@/hooks/useLoaf";
 import { overdueLabel, ymd } from "@/lib/dates";
@@ -130,6 +131,10 @@ export function TodayAgenda({ showUpcoming = false }: { showUpcoming?: boolean }
           <ul className="space-y-0.5">{upcoming.map((r) => <ReminderRow key={r.id} r={r} />)}</ul>
         </section>
       )}
+      <details className="group/alerts">
+        <summary className="cursor-pointer text-xs text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring">Reminder alerts</summary>
+        <div className="mt-2"><ReminderAlerts /></div>
+      </details>
       <TaskDetail taskId={openId} onClose={() => setOpenId(null)} />
     </div>
   );

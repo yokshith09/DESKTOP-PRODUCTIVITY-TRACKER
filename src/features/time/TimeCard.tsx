@@ -94,7 +94,7 @@ export function TimeCard({ from, to, category = null, className, title = "Where 
             Loaf can record which app is in front and for how long. It stays on this computer, never stores window titles or full web addresses, and you can delete it any time.
           </p>
           <label className="mt-4 flex items-center gap-2.5 text-[13px] font-medium">
-            <Switch checked={false} onCheckedChange={(v) => void setEnabled(v)} aria-label="Track app usage" />
+            <Switch checked={false} onCheckedChange={(v) => void setEnabled(v)} aria-label="Turn on app tracking" />
             Turn on app tracking
           </label>
         </div>

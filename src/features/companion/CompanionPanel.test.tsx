@@ -23,7 +23,7 @@ const wrap = (node: React.ReactNode) => render(
 describe("About you and your pet (FR-93)", () => {
   it("remembers the day you met as the pet's birthday and shows its age", async () => {
     const m = prefs({});
-    wrap(<CompanionPanel petName="Loaf" />);
+    wrap(<CompanionPanel />);
     expect(await screen.findByText("Loaf is born today")).toBeTruthy();
     await waitFor(() => expect((m.get("ui.companion") as { born: string }).born).toBe(ymd(new Date())));
   });
@@ -38,6 +38,19 @@ describe("About you and your pet (FR-93)", () => {
     await user.selectOptions(screen.getByLabelText("Birthday month"), "03");
     await user.selectOptions(screen.getByLabelText("Birthday day"), "14");
     await waitFor(() => expect(m.get("ui.companion")).toMatchObject({ userName: "Asha", userBirthday: "03-14" }));
+  });
+
+  it("saves the pet's name, counts days together and lists what comes later", async () => {
+    const m = prefs({ "ui.companion": { born: "2026-01-01", userName: "", userBirthday: null, greet: true, greetedOn: null } });
+    const user = userEvent.setup();
+    wrap(<CompanionPanel />);
+    await user.type(await screen.findByLabelText("Pet’s name"), "Biscuit");
+    await user.tab();
+    await waitFor(() => expect(m.get("ui.companion")).toMatchObject({ petName: "Biscuit" }));
+    expect(await screen.findByText(/^Biscuit is /)).toBeTruthy();
+    expect(screen.getByText(/days together/)).toBeTruthy();
+    for (const t of ["Accessories", "Outfits", "Reactions"]) expect(screen.getByText(t)).toBeTruthy();
+    expect(screen.getAllByText("Later")).toHaveLength(3);
   });
 
   it("the hello can be turned off", async () => {

@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Cake } from "lucide-react";
+import { Cake, Lock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Panel } from "@/features/shell/PageHeader";
-import { ageLabel, type Companion } from "./companion";
+import { ageDays, ageLabel, type Companion } from "./companion";
 import { useCompanion } from "./useCompanion";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -12,14 +12,17 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
  * About you and your pet (FR-93/FR-94): your name and birthday (day and month, never the year),
  * the pet's age and birthday, and the once-a-day hello. Everything stays on this computer.
  */
-export function CompanionPanel({ petName = "Your pet" }: { petName?: string }) {
+export function CompanionPanel() {
   const { companion, save } = useCompanion();
   const [name, setName] = useState<string | null>(null);
+  const [pet, setPet] = useState<string | null>(null);
   if (!companion) return null;
   const [month, day] = companion.userBirthday?.split("-") ?? ["", ""];
   const set = (patch: Partial<Companion>) => void save({ ...companion, ...patch });
   const setBirthday = (m: string, d: string) => set({ userBirthday: m && d ? `${m}-${d}` : null });
   const born = new Date(`${companion.born}T12:00:00`);
+  const petName = companion.petName || "Loaf";
+  const days = ageDays(companion, new Date());
 
   return (
     <section aria-label="About you and your pet" className="mt-6">
@@ -27,6 +30,13 @@ export function CompanionPanel({ petName = "Your pet" }: { petName?: string }) {
       <p className="mt-0.5 text-xs text-muted-foreground">So it can greet you by name and remember birthdays. Stays on this computer.</p>
       <Panel className="mt-3 grid gap-4 p-4 sm:grid-cols-2">
         <div className="space-y-3">
+          <label className="block text-xs font-medium text-muted-foreground" htmlFor="pet-name">Pet’s name</label>
+          <Input
+            id="pet-name" maxLength={30} placeholder="Loaf"
+            value={pet ?? companion.petName}
+            onChange={(e) => setPet(e.target.value)}
+            onBlur={() => { if (pet !== null) set({ petName: pet.trim() }); setPet(null); }}
+          />
           <label className="block text-xs font-medium text-muted-foreground" htmlFor="you-name">Your first name</label>
           <Input
             id="you-name" maxLength={40} placeholder="Optional"
@@ -53,6 +63,7 @@ export function CompanionPanel({ petName = "Your pet" }: { petName?: string }) {
             <Cake className="size-5 text-primary" />
             <div>
               <p className="text-sm font-semibold" aria-live="polite">{petName} is {ageLabel(companion, new Date())}</p>
+              <p className="text-xs text-muted-foreground">{days} {days === 1 ? "day" : "days"} together</p>
               <p className="text-xs text-muted-foreground">Birthday: {born.toLocaleDateString(undefined, { day: "numeric", month: "long" })}, the day you met</p>
             </div>
           </div>
@@ -65,6 +76,17 @@ export function CompanionPanel({ petName = "Your pet" }: { petName?: string }) {
           </div>
         </div>
       </Panel>
+      <div className="mt-3 grid gap-2 sm:grid-cols-3" aria-label="Coming later">
+        {[["Accessories", "Hats and small things to wear."], ["Outfits", "A whole look for the day."], ["Reactions", "Choose how it reacts to each event."]].map(([t, d]) => (
+          <Panel key={t} className="flex items-center gap-3 p-3 opacity-70">
+            <Lock className="size-4 shrink-0 text-muted-foreground" />
+            <div className="min-w-0">
+              <p className="text-[13px] font-medium">{t} <span className="ml-1 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">Later</span></p>
+              <p className="text-xs text-muted-foreground">{d}</p>
+            </div>
+          </Panel>
+        ))}
+      </div>
     </section>
   );
 }

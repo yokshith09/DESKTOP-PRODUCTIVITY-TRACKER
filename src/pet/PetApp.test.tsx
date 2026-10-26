@@ -123,10 +123,62 @@ describe("desktop pet", () => {
     expect(await screen.findByRole("img", { name: "Loaf the bear (sleep)" })).toBeTruthy();
     fireEvent.click(within(shortcuts).getByRole("button", { name: "Wake" }));
     await waitFor(() => expect(screen.queryByRole("img", { name: "Loaf the bear (sleep)" })).toBeNull());
-    fireEvent.click(within(shortcuts).getByRole("button", { name: "Focus 25" }));
+    fireEvent.click(within(shortcuts).getByRole("button", { name: "Focus" }));
+    expect(cmd).toHaveBeenCalledWith("focus");
+    // Tasks keep their tint and open the Tasks page (H2).
+    const row = within(card).queryAllByRole("button", { name: /^Open task:/ })[0];
+    if (row) { fireEvent.click(row); expect(cmd).toHaveBeenCalledWith("tasks"); }
+    await ipc.focusStart({ kind: "FOCUS", minutes: 25 } as never);
     expect(await within(shortcuts).findByRole("button", { name: "Stop focus" }, { timeout: 2000 })).toBeTruthy();
     fireEvent.click(within(shortcuts).getByRole("button", { name: "Stop focus" }));
     await waitFor(async () => expect(await ipc.focusCurrent()).toBeNull());
+  });
+
+  it("the focus timer asks for the strip below the pet (H1)", async () => {
+    const hover = vi.spyOn(ipc, "petHover");
+    renderPet();
+    await screen.findByRole("button", { name: /^Loaf\./ });
+    await act(async () => { await ipc.focusStart({ kind: "FOCUS", minutes: 25, task_id: null }); });
+    try {
+      await screen.findByRole("timer", {}, { timeout: 2000 });
+      await waitFor(() => expect(hover).toHaveBeenCalledWith(true, expect.any(Number), expect.any(Number), true));
+    } finally {
+      await act(async () => { await ipc.focusStop(); });
+      hover.mockRestore();
+    }
+  });
+
+  it("media buttons next to the timer press the Windows media keys, and are hidden elsewhere (H4, Unverified)", async () => {
+    const ua = vi.spyOn(window.navigator, "userAgent", "get").mockReturnValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+    const media = vi.spyOn(ipc, "petMedia").mockResolvedValue(undefined as never);
+    renderPet();
+    await screen.findByRole("button", { name: /^Loaf\./ });
+    await act(async () => { await ipc.focusStart({ kind: "FOCUS", minutes: 25, task_id: null }); });
+    try {
+      await screen.findByRole("timer", {}, { timeout: 2000 });
+      fireEvent.click(screen.getByRole("button", { name: "Play or pause music" }));
+      fireEvent.click(screen.getByRole("button", { name: "Next track" }));
+      expect(media).toHaveBeenNthCalledWith(1, "play-pause");
+      expect(media).toHaveBeenNthCalledWith(2, "next");
+    } finally {
+      await act(async () => { await ipc.focusStop(); });
+      ua.mockRestore();
+      media.mockRestore();
+    }
+  });
+
+  it("no media buttons when the system is not Windows (H4)", async () => {
+    const ua = vi.spyOn(window.navigator, "userAgent", "get").mockReturnValue("Mozilla/5.0 (Macintosh; Intel Mac OS X)");
+    renderPet();
+    await screen.findByRole("button", { name: /^Loaf\./ });
+    await act(async () => { await ipc.focusStart({ kind: "FOCUS", minutes: 25, task_id: null }); });
+    try {
+      await screen.findByRole("timer", {}, { timeout: 2000 });
+      expect(screen.queryByRole("button", { name: "Play or pause music" })).toBeNull();
+    } finally {
+      await act(async () => { await ipc.focusStop(); });
+      ua.mockRestore();
+    }
   });
 
   it("shows the chosen pet pack instead of the bear (FR-63)", async () => {
@@ -154,7 +206,7 @@ describe("desktop pet", () => {
     renderPet();
     fireEvent.mouseEnter(bear().closest("div.flex") as HTMLElement);
     expect(await screen.findByRole("status", { name: "Today at a glance" }, { timeout: 2000 })).toBeTruthy();
-    expect(hover).toHaveBeenCalledWith(true, expect.any(Number), expect.any(Number));
+    expect(hover).toHaveBeenCalledWith(true, expect.any(Number), expect.any(Number), false);
   });
 
   it("one click opens the dashboard, a double click hides it, a right click opens the menu", async () => {
@@ -210,7 +262,7 @@ describe("desktop pet", () => {
     expect(hover).not.toHaveBeenCalledWith(false, 0, 0);
     // The drag is over: the next move has no button pressed.
     fireEvent.pointerMove(bear(), { buttons: 0, screenX: 40, screenY: 40 });
-    await waitFor(() => expect(hover).toHaveBeenCalledWith(true, expect.any(Number), expect.any(Number)));
+    await waitFor(() => expect(hover).toHaveBeenCalledWith(true, expect.any(Number), expect.any(Number), false));
     expect(hover).not.toHaveBeenCalledWith(false, 0, 0);
   });
 
@@ -224,7 +276,7 @@ describe("desktop pet", () => {
     fireEvent.pointerMove(card, { buttons: 1, screenX: 40, screenY: 40 });
     expect(card.parentElement?.className).toContain("invisible");
     fireEvent.pointerMove(card, { buttons: 0, screenX: 40, screenY: 40 });
-    await waitFor(() => expect(hover).toHaveBeenCalledWith(true, expect.any(Number), expect.any(Number)));
+    await waitFor(() => expect(hover).toHaveBeenCalledWith(true, expect.any(Number), expect.any(Number), false));
   });
 
   it("a plain click on the card (no drag) does not open or hide the dashboard", async () => {
