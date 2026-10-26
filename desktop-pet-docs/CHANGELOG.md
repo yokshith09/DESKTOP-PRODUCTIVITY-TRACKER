@@ -5,6 +5,15 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Changed (2026-10-26, owner's redesign request; OS parts Unverified):
+  - **Task editor**: where the task is (Planned → In progress → Completed), the project and the deadline ("Overdue by 2 days", "Due tomorrow") sit at the top; the one next action is the highlighted button. A **Suggestions** strip says the next useful step in kind words ("Planned for today. Start it when you are ready", "The deadline was 2 days ago. Make it due today…") with a one-click button. Settings are two cards, **Schedule** (When, Deadline, Reminder) and **Organise** (Priority, Project, Note); History folds away. An "Unsaved changes" dot shows beside Save.
+  - **Projects**: each project in the list shows its progress and an overdue dot; the page shows counts (open, overdue, next deadline, % done), a progress bar and a **Next up** card (in progress first, then starred, then nearest deadline) with Open and Focus; finished tasks fold under "Done (n)".
+  - **Today**: the quote is now a highlighted card (accent bar, large text). **Tiles can be resized** (small / medium / large, button beside the drag grip, remembered; Reset layout undoes it).
+- Added (2026-10-26, J1–J3):
+  - **J1** the Loaf character standard v1 (`docs/character/CHARACTER_STANDARD.md`): the pack format, the nine rows, the pose → row map and every default reaction in one page.
+  - **J2** the character-building skill and one prompt (`skills/loaf-character/`): one description → reference sheet → nine row strips (Codex image tool or any tool the user has; Loaf never calls or pays for AI) → `pack.py assemble` writes `pet.json` + `spritesheet.webp` and checks the pack (tested with synthetic strips; no real AI-made character run through it yet).
+  - **J3** **Character → Reactions**: each pet reaction (task added, started, done, all done, deleted, reminder, focus done) can be turned off, play another pose, or use your own words with `{title}` / `{left}`. The **daily hello is a text bubble**: "Good morning, <you>! I'm <pet>, your assistant." plus what is overdue, what is waiting today, or the day's quote; **Say hello now** repeats it any time. Long bubbles grow (up to six lines).
+
 - Fixed (2026-10-26, time tracking audit): **the app in front was not counted until you switched away.** Totals only read saved sessions, so a long stretch in one app showed as zero, and the page only refreshed when something was saved. Now the stretch in progress is included in the totals (Time page, Today, pet card) and the pages look again every 30 seconds while open. Idle time is still cut off at your last input once Loaf notices (up to about 6 minutes later), so the number can briefly run ahead and then drop back. Tests added in core and the collector.
 - Added (2026-10-26): **macOS media buttons** (play/pause, next, previous) via system media-key events sent by `osascript`; may ask for the Accessibility permission. Unverified (nobody ran it on a Mac). The pet shows the buttons on Windows and macOS.
 - Docs (2026-10-26): how often Loaf looks at the computer, per feature (PROJECT_STATUS §4.8).

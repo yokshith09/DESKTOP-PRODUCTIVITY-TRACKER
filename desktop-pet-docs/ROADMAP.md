@@ -80,7 +80,7 @@ M-ids are unchanged; this is the order we build in. Specs for the new rows are i
 | 11 | **FM-BE** Backend and gallery, **FM-PLUG** plugins | FR-56, FR-55 | Needs the privacy statement; code signing on HOLD |
 | 12 | M4, M5, M7, M9, M10, M11, M13 | As in the table above | M5 blocked on the AI provider |
 
-### UI reset (owner, 2026-10-25) — batch 2 (F, G, H, I2) built 2026-10-26, Unverified; J1–J3 next
+### UI reset (owner, 2026-10-25) — batch 2 (F, G, H, I2, J1–J3) built 2026-10-26, Unverified; task editor and Projects redesigned the same day
 
 **Batch 1 built (owner's list A4, A6, B1–B7, C1–C5, D1–D4, E1).** Projects (FR-53) is pulled forward as a sidebar tab, always on (supersedes "opt-in, off by default"). **Batch 2 (next):** F Character page layout, G Settings reset, H pet (timer below the pet inside its width, clickable hover-card tasks, Focus → Focus tile, music controls), I Time per-app visuals, J character format/skill and editable reactions. The preview canvas below was deleted at the owner's request.
 

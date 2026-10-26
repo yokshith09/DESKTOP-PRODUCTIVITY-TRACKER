@@ -11,7 +11,8 @@ import { ipc, onEvent, onPetSay, petAction, type TaskRow } from "@/ipc";
 import { cn } from "@/lib/utils";
 import { PetCard } from "./PetCard";
 import { glanceText } from "./glance";
-import { enqueue, isAsleep, reactionFor, reactionForSay, type Reaction } from "./reactions";
+import { enqueue, isAsleep, reactionForSay, type Reaction } from "./reactions";
+import { parseReactionSettings, reactionWithSettings } from "./reactionSettings";
 import { useTypingAlong } from "./typing";
 
 /** Card and bubble sizes in logical pixels; the shell grows the window by this much. */
@@ -19,6 +20,18 @@ export const CARD_W = 300;
 export const CARD_H = 352; // measured: 291 px with 3 apps and 2 tasks, + task rows and the shortcuts row
 export const BUBBLE_W = 220;
 export const BUBBLE_H = 52;
+/** Roughly how many characters fit on a bubble line at 220 px. */
+const BUBBLE_CHARS = 32;
+const BUBBLE_MAX_LINES = 6;
+
+/** What a bubble says, with the click hint when it has an action. */
+export const bubbleText = (r: { bubble: string; action?: { label: string } | undefined }) => (r.action ? `${r.bubble} · click: ${r.action.label}` : r.bubble);
+
+/** A bubble is two lines tall for a short line and grows (to six lines) for a long one, like the daily hello. */
+export function bubbleHeight(text: string): number {
+  const lines = Math.min(BUBBLE_MAX_LINES, Math.max(2, Math.ceil(text.length / BUBBLE_CHARS)));
+  return lines === 2 ? BUBBLE_H : 20 + lines * 16;
+}
 /** The focus timer above or below the pet (FR-110). */
 export const TIMER_W = 252;
 export const TIMER_H = 36;
@@ -84,8 +97,8 @@ export function PetApp() {
   hoverRef.current = hovering;
   panelRef.current = panel;
 
-  const expand = async (next: Exclude<Panel, null>) => {
-    const [w, h] = next === "card" ? [CARD_W, CARD_H] : next === "timer" ? [TIMER_W, TIMER_H] : [BUBBLE_W, BUBBLE_H];
+  const expand = async (next: Exclude<Panel, null>, text = "") => {
+    const [w, h] = next === "card" ? [CARD_W, CARD_H] : next === "timer" ? [TIMER_W, TIMER_H] : [BUBBLE_W, bubbleHeight(text)];
     // The timer sits under the pet, in its own pixel area; the card and bubble keep above.
     const a = await ipc.petHover(true, w, h, next === "timer");
     if (a) {
@@ -113,7 +126,7 @@ export function PetApp() {
       return;
     }
     // While hovering, the card has the space, unless the card is turned off (FR-110).
-    if (!hoverRef.current || !hoverCardRef.current) void expand("bubble");
+    if (!hoverRef.current || !hoverCardRef.current) void expand("bubble", bubbleText(next));
     timers.current.play = window.setTimeout(playNext, next.ms);
   };
   const reactRef = useRef((r: Reaction | null) => {
@@ -130,7 +143,12 @@ export function PetApp() {
   }), []);
   useEffect(() => onEvent((e) => {
     wake();
-    reactRef.current(reactionFor(e, { openToday: tasks.current }));
+    // The user's changes to what the pet does (Character page) are read fresh for each event.
+    const ctx = { openToday: tasks.current };
+    void ipc.prefsGet("ui.reactions").then(
+      (raw) => reactRef.current(reactionWithSettings(e, ctx, parseReactionSettings(raw))),
+      () => reactRef.current(reactionWithSettings(e, ctx, {})),
+    );
     void qc.invalidateQueries();
   }), [qc]);
 
@@ -150,7 +168,7 @@ export function PetApp() {
     clearTimeout(timers.current.enter);
     if (panelRef.current !== "card") return;
     // A reaction still playing gets its bubble back.
-    if (playingRef.current) await expand("bubble");
+    if (playingRef.current) await expand("bubble", bubbleText(playingRef.current));
     else await settle();
   };
 
@@ -284,7 +302,7 @@ export function PetApp() {
   const extra = panel === "card"
     ? <PetCard className="shrink-0" style={{ width: CARD_W, height: CARD_H }} napping={napping} onNap={setNapping} />
     : panel === "bubble" && playing
-      ? <Bubble text={playing.action ? `${playing.bubble} · click: ${playing.action.label}` : playing.bubble} anchor={anchor} />
+      ? <Bubble text={bubbleText(playing)} anchor={anchor} />
       : panel === "timer" && focus.session
         ? <FocusChip label={focus.session.kind === "BREAK" ? "Break" : focus.session.label || "Focus"} left={clock(focus.remaining)} paused={focus.session.paused_at !== null} onPause={(p) => void focus.pause(p)} media={canMedia} />
         : null;
@@ -317,9 +335,9 @@ function Bubble({ text, anchor }: { text: string; anchor: Anchor | null }) {
         "pet-bubble-in relative flex shrink-0 items-center rounded-2xl border bg-popover px-3.5 text-[12.5px] font-medium leading-tight text-popover-foreground shadow-lg",
         anchor?.pet === "right" ? "rounded-br-md" : "rounded-bl-md",
       )}
-      style={{ width: BUBBLE_W, height: BUBBLE_H }}
+      style={{ width: BUBBLE_W, height: bubbleHeight(text) }}
     >
-      <span className="line-clamp-2">{text}</span>
+      <span className="line-clamp-6">{text}</span>
     </div>
   );
 }

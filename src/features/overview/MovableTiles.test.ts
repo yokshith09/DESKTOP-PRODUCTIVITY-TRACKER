@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleanOrder, DEFAULT_ORDER } from "./MovableTiles";
+import { cleanOrder, cleanSizes, DEFAULT_ORDER } from "./MovableTiles";
 
 describe("cleanOrder", () => {
   it("keeps a valid saved order", () => {
@@ -12,5 +12,16 @@ describe("cleanOrder", () => {
   it("falls back to the default for junk", () => {
     expect(cleanOrder(null)).toEqual(DEFAULT_ORDER);
     expect(cleanOrder("x")).toEqual(DEFAULT_ORDER);
+  });
+});
+
+describe("cleanSizes", () => {
+  it("keeps known sizes for known tiles", () => {
+    expect(cleanSizes({ agenda: "l", focus: "s", time: "m" })).toEqual({ agenda: "l", focus: "s", time: "m" });
+  });
+  it("drops unknown tiles and sizes, and bad input", () => {
+    expect(cleanSizes({ agenda: "huge", nope: "l", links: "s" })).toEqual({ links: "s" });
+    expect(cleanSizes(null)).toEqual({});
+    expect(cleanSizes("x")).toEqual({});
   });
 });

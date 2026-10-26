@@ -2,7 +2,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { ipc, type TaskRow } from "@/ipc";
-import { PetApp } from "./PetApp";
+import { BUBBLE_H, PetApp, bubbleHeight, bubbleText } from "./PetApp";
 import { topTasks } from "./PetCard";
 
 beforeAll(() => {
@@ -334,5 +334,19 @@ describe("typing along", () => {
     await act(async () => { await new Promise((r) => setTimeout(r, 50)); });
     typing(true);
     expect(screen.queryByRole("img", { name: "Loaf the bear (type)" })).toBeNull();
+  });
+});
+
+describe("text bubbles", () => {
+  it("a short line keeps the small bubble and a long hello grows it, up to six lines", () => {
+    expect(bubbleHeight("Tossed it")).toBe(BUBBLE_H);
+    expect(bubbleHeight("x".repeat(64))).toBe(BUBBLE_H);
+    const hello = "Good morning, Asha! I'm Mochi, your assistant. 2 tasks are overdue, starting with “Finish the sync spec”.";
+    expect(bubbleHeight(hello)).toBeGreaterThan(BUBBLE_H);
+    expect(bubbleHeight("x".repeat(1000))).toBe(20 + 6 * 16);
+  });
+  it("adds the click hint when a bubble has an action", () => {
+    expect(bubbleText({ bubble: "Reminder", action: { label: "Done" } })).toBe("Reminder · click: Done");
+    expect(bubbleText({ bubble: "Hi" })).toBe("Hi");
   });
 });

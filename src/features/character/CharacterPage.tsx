@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ipc } from "@/ipc";
 import { NudgeSettings } from "@/features/settings/NudgeSettings";
 import { CompanionPanel } from "@/features/companion/CompanionPanel";
+import { ReactionsPanel } from "@/features/companion/ReactionsPanel";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -130,6 +131,7 @@ export function CharacterPage() {
       <PetLibrary shown={shownPack ? shown : null} onShow={setShown} />
       <div className="mt-6"><NudgeSettings /></div>
       <CompanionPanel />
+      <ReactionsPanel />
     </div>
   );
 }

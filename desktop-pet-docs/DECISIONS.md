@@ -328,6 +328,14 @@ Still open: none of Q1-Q7 except the Q4 spike result.
   - **Analytics**: allowed as long as it is computed on this PC from data already stored and nothing is sent anywhere (local-first rule). Sending usage data out would break the rule.
 - Open (owner): approve or change the preview; character-creation skill — when, and which image source (Codex image tool or the owner's OpenAI key; we never pay for AI); what exactly the "hello" looks like when it repeats (greeting text, or the wave when the pointer is over the pet).
 
+## 2026-10-26 — Redesign request: task editor, Projects, tile sizes, J1–J3
+
+- **J1 format, J2 skill and prompt, J3 reactions and hello** (owner, 2026-10-26). The "standard format" is the existing Codex/OpenPets V1 pack plus Loaf's pose → row map and reaction defaults (no new file format). Reactions are stored as `ui.reactions` and applied on top of the defaults when an event arrives (read fresh per event).
+- **Hello is one text bubble** with the pet's name, then the most useful fact (overdue, else today's count, else the quote). It still comes once a day (notification budget); **Say hello now** is the owner's repeat and does not use up the day's one.
+- **Suggestions in the task editor** are plain rules, no AI, and kind (the no-guilt copy test covers them). "Make it due today" and "Plan for today" only fill the form; Save makes them stick.
+- **Resizable Today tiles**: three sizes per tile rather than free drag-resize, because the grid snaps to 12 columns (FR-44 decision). Open: free resize if wanted later.
+- Not done: renaming a project (a project is a name on tasks and notes; renaming means rewriting them all).
+
 ## 2026-10-26 — Time tracking audit
 
 - The stretch in progress is shown in the totals but never stored until it ends (`UsageService::set_live`, set by the collector). Reason: storing partial checkpoints would split sessions and double count on reload.

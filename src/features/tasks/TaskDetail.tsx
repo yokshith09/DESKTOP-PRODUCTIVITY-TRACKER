@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Presets } from "@/components/Presets";
 import { dayPresets } from "@/lib/datePresets";
-import { AlignLeft, Bell, CalendarClock, CalendarPlus, Timer, ExternalLink, FilePlus2, Flag, FolderKanban, History, Link2, MessageSquarePlus, Trash2, X } from "lucide-react";
+import { AlignLeft, Bell, CalendarClock, CalendarPlus, Check, ChevronRight, Timer, ExternalLink, FilePlus2, Flag, FolderKanban, History, Lightbulb, Link2, MessageSquarePlus, Trash2, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { NoteEditor } from "@/features/notes/NoteEditor";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +21,7 @@ import { useFocus, useFocusLength } from "@/hooks/useFocus";
 import { FocusLength } from "@/features/focus/FocusTile";
 import { TaskReminders } from "./TaskReminders";
 import { StarButton } from "./TaskBits";
+import { STEPS, dueLine, stepIndex, taskHints } from "./hints";
 import { LinksEditor, PlanEditor, RepeatHistory, planOf, planStateOf, samePlan } from "./TaskPlanEditor";
 
 const NONE = "none";
@@ -44,6 +45,39 @@ function Card({ icon, title, hint, children }: { icon: React.ReactNode; title: s
       <SectionHead icon={icon} title={title} hint={hint} />
       {children}
     </section>
+  );
+}
+
+/** A smaller part inside a card, with its own one-line hint. */
+function Sub({ icon, title, hint, children, first = false }: { icon: React.ReactNode; title: string; hint: string; children: React.ReactNode; first?: boolean }) {
+  return (
+    <section aria-label={title} className={`space-y-2.5 ${first ? "" : "border-t pt-4"}`}>
+      <SectionHead icon={icon} title={title} hint={hint} />
+      {children}
+    </section>
+  );
+}
+
+function HintButton({ action, run }: { action: { id: "move-today" | "start" | "set-today"; label: string }; run: (id: "move-today" | "start" | "set-today") => Promise<void> }) {
+  return <Button size="sm" variant="outline" onClick={() => void run(action.id)}>{action.label}</Button>;
+}
+
+/** Planned, In progress, Completed: where the task is, at a glance. */
+function StatusTrack({ status }: { status: Task["status"] }) {
+  const at = stepIndex(status);
+  if (at < 0) return <Badge>{STATUS_LABEL[status]}</Badge>;
+  return (
+    <ol aria-label="Progress" className="flex items-center gap-1.5 text-xs">
+      {STEPS.map((st, i) => (
+        <li key={st.id} aria-current={i === at ? "step" : undefined} className="flex items-center gap-1.5">
+          {i > 0 && <ChevronRight aria-hidden className="size-3 text-muted-foreground/60" />}
+          <span className={`flex items-center gap-1 rounded-full px-2 py-0.5 font-medium ${i === at ? "bg-primary/15 text-primary" : i < at ? "text-foreground" : "text-muted-foreground"}`}>
+            {i < at && <Check aria-hidden className="size-3" />}
+            {i === at && status === "PENDING" ? "Paused" : st.label}
+          </span>
+        </li>
+      ))}
+    </ol>
   );
 }
 
@@ -134,16 +168,28 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
     setUpdate("");
   };
 
-  const overdueText = task.due_date && task.due_date < ymd(new Date()) && !finished ? overdueLabel(task.due_date, ymd(new Date())) : null;
+  const todayStr = ymd(new Date(now));
+  const draft: Task = { ...task, planned_date: planned || null, due_date: due || null };
+  const hints = taskHints(draft, todayStr);
+  const dueText = finished ? "" : dueLine(draft, todayStr);
+  const primaryTo = task.status === "IN_PROGRESS" ? "COMPLETED" : finished ? "PLANNED" : "IN_PROGRESS";
+  const runHint = async (id: "move-today" | "start" | "set-today") => {
+    if (id === "start") return void actions.transition(task.id, "IN_PROGRESS");
+    // These only fill the form; Save makes them stick, like any other edit.
+    if (id === "move-today") setDue(todayStr);
+    setPlanned(todayStr);
+  };
+  const overdueText = due && due < todayStr && !finished ? overdueLabel(due, todayStr) : null;
   const projects = [...new Set(allTasks.map((r) => r.task.project).filter((p): p is string => !!p))].sort();
 
   return (
     <>
-      {/* 1. What it is and what to do now. */}
+      {/* 1. Where it is and what to do now. */}
       <div className="border-b px-6 pb-4 pt-5 pr-14">
-        <DialogDescription className="mb-2 flex items-center gap-2 text-xs">
-          <Badge variant={task.status === "COMPLETED" ? "success" : task.status === "IN_PROGRESS" ? "primary" : "default"}>{STATUS_LABEL[task.status]}</Badge>
-          {overdueText && <span className="font-medium text-destructive">{overdueText}</span>}
+        <DialogDescription className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+          <span className="font-medium uppercase tracking-wide">Task</span>
+          {task.project && <span className="flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5"><FolderKanban aria-hidden className="size-3" />{task.project}</span>}
+          {dueText && <span className={overdueText ? "font-medium text-destructive" : "font-medium text-foreground"}>{dueText}</span>}
         </DialogDescription>
         <div className="flex items-start gap-2">
           <DialogTitle className="sr-only">Task: {task.title}</DialogTitle>
@@ -153,10 +199,13 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
           />
           <StarButton starred={task.starred} title={task.title} onToggle={() => void actions.star(task.id, !task.starred)} className="mt-1 opacity-100" />
         </div>
-        <div className="mt-3 flex flex-wrap items-center gap-2" role="group" aria-label="Status">
-          {transitionsFrom(task.status).map((t) => (
-            <Button key={t.to} size="sm" variant={t.to === "COMPLETED" ? "default" : "outline"} onClick={() => void actions.transition(task.id, t.to)}>{t.label}</Button>
-          ))}
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <StatusTrack status={task.status} />
+          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Status">
+            {transitionsFrom(task.status).map((t) => (
+              <Button key={t.to} size="sm" variant={t.to === primaryTo ? "default" : "outline"} onClick={() => void actions.transition(task.id, t.to)}>{t.label}</Button>
+            ))}
+          </div>
           <span className="flex-1" />
           {focus.session?.task_id === task.id ? (
             <span className="text-xs font-medium text-primary tabular-nums">Focusing · {focusClock(focus.remaining)} left</span>
@@ -168,6 +217,18 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
           ) : null}
         </div>
       </div>
+
+      {hints.length > 0 && (
+        <ul aria-label="Suggestions" className="space-y-1.5 border-b bg-primary/5 px-6 py-3">
+          {hints.map((h) => (
+            <li key={h.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
+              <Lightbulb aria-hidden className="size-4 shrink-0 text-primary" />
+              <span className="min-w-0 flex-1">{h.text}</span>
+              {h.action && <HintButton action={h.action} run={runHint} />}
+            </li>
+          ))}
+        </ul>
+      )}
 
       <div className="grid max-h-[68vh] gap-6 overflow-y-auto p-6 md:grid-cols-[minmax(0,1fr)_22rem]">
         {/* 2. The work itself. */}
@@ -206,9 +267,14 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
             )}
           </section>
 
-          <section aria-label="History" className="space-y-2">
-            <SectionHead icon={<History />} title="History" hint="Everything that happened to this task." />
-            <ol className="space-y-1">
+          <details aria-label="History" className="group rounded-lg border bg-muted/10 px-4 py-3">
+            <summary className="flex cursor-pointer list-none items-center gap-1.5 text-[13px] font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+              <History aria-hidden className="size-4 text-muted-foreground" />History
+              <span className="text-xs font-normal tabular-nums text-muted-foreground">{history.length}</span>
+              <ChevronRight aria-hidden className="ml-auto size-4 text-muted-foreground transition-transform group-open:rotate-90" />
+            </summary>
+            <p className="mt-2 text-xs text-muted-foreground">Everything that happened to this task.</p>
+            <ol className="mt-2 space-y-1">
               {[...history].reverse().map((e, i) => (
                 <li key={i} className="flex items-baseline gap-3 text-[12px]">
                   <span className="w-32 shrink-0 tabular-nums text-muted-foreground">{formatWhen(e.at, now)}</span>
@@ -216,58 +282,58 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
                 </li>
               ))}
             </ol>
-            <p className="text-[11px] text-muted-foreground">Created {formatWhen(task.created_at, now)}{task.completed_at ? ` · finished at ${clockTime(task.completed_at)}` : ""}</p>
-          </section>
+            <p className="mt-2 text-[11px] text-muted-foreground">Created {formatWhen(task.created_at, now)}{task.completed_at ? ` · finished at ${clockTime(task.completed_at)}` : ""}</p>
+          </details>
         </div>
 
-        {/* 3. Its settings, one card each, each saying what it is for. */}
-        <div className="min-w-0 space-y-3">
-          <Card icon={<CalendarPlus />} title="When" hint="The day it shows on Today.">
-            <PlanEditor value={plan} onChange={setPlan} planned={planned} onPlanned={setPlanned} />
-            <RepeatHistory task={task} />
-            {!finished && plan.mode === "one" && (
-              <div className="flex flex-wrap items-center gap-2 border-t pt-3">
-                <span className="text-xs text-muted-foreground">Move it</span>
-                <Button size="sm" variant="outline" aria-label="Defer to tomorrow" onClick={() => void actions.defer(task.id, tomorrow)}>Tomorrow</Button>
-                <Input type="date" value={deferTo} min={tomorrow} onChange={(e) => setDeferTo(e.target.value)} aria-label="Defer to" className="h-8 w-36" />
-                <Button size="sm" variant="outline" disabled={!deferTo} onClick={() => void actions.defer(task.id, deferTo).then(() => setDeferTo(""))}>Move</Button>
+        {/* 3. Its settings: when it happens, then how it is filed. */}
+        <div className="min-w-0 space-y-4">
+          <Card icon={<CalendarPlus />} title="Schedule" hint="When it shows up, when it is due, and when to be reminded.">
+            <Sub first icon={<CalendarPlus />} title="When" hint="The day it shows on Today.">
+              <PlanEditor value={plan} onChange={setPlan} planned={planned} onPlanned={setPlanned} />
+              <RepeatHistory task={task} />
+              {!finished && plan.mode === "one" && (
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <span className="text-xs text-muted-foreground">Move it</span>
+                  <Button size="sm" variant="outline" aria-label="Defer to tomorrow" onClick={() => void actions.defer(task.id, tomorrow)}>Tomorrow</Button>
+                  <Input type="date" value={deferTo} min={tomorrow} onChange={(e) => setDeferTo(e.target.value)} aria-label="Defer to" className="h-8 w-36" />
+                  <Button size="sm" variant="outline" disabled={!deferTo} onClick={() => void actions.defer(task.id, deferTo).then(() => setDeferTo(""))}>Move</Button>
+                </div>
+              )}
+            </Sub>
+            <Sub icon={<CalendarClock />} title="Deadline" hint="The last day it can be done. After that it shows as overdue.">
+              <div className="flex gap-2">
+                <Input id="td-due" type="date" value={due} onChange={(e) => setDue(e.target.value)} aria-label="Deadline date" />
+                {due && <Button size="sm" variant="ghost" onClick={() => setDue("")}>Clear</Button>}
               </div>
-            )}
+              <Presets label="Deadline presets" options={dayPresets()} value={due} onPick={setDue} />
+            </Sub>
+            <Sub icon={<Bell />} title="Reminder" hint="A notification and the pet ring before it starts.">
+              <TaskReminders task={task} />
+            </Sub>
           </Card>
 
-          <Card icon={<CalendarClock />} title="Deadline" hint="The last day it can be done. After that it shows as overdue.">
-            <div className="flex gap-2">
-              <Input id="td-due" type="date" value={due} onChange={(e) => setDue(e.target.value)} aria-label="Deadline date" />
-              {due && <Button size="sm" variant="ghost" onClick={() => setDue("")}>Clear</Button>}
-            </div>
-            <Presets label="Deadline presets" options={dayPresets()} value={due} onPick={setDue} />
-          </Card>
-
-          <Card icon={<Bell />} title="Reminder" hint="A notification and the pet ring before it starts.">
-            <TaskReminders task={task} />
-          </Card>
-
-          <Card icon={<Flag />} title="Priority" hint="High comes first on Today.">
-            <ToggleGroup type="single" value={priority} onValueChange={(v) => v && setPriority(v)} aria-label="Priority" className="w-full">
-              {PRIORITIES.map((p) => <ToggleGroupItem key={p.value} value={p.value} className="flex-1 px-2">{p.label}</ToggleGroupItem>)}
-            </ToggleGroup>
-          </Card>
-
-          <Card icon={<FolderKanban />} title="Project" hint="Keeps it with the project’s tasks and notes.">
-            <Input id="td-project" value={project} maxLength={100} onChange={(e) => setProject(e.target.value)} placeholder="No project" aria-label="Project name" list="td-projects" />
-            <datalist id="td-projects">{projects.map((p) => <option key={p} value={p} />)}</datalist>
-          </Card>
-
-          <Card icon={<Link2 />} title="Note" hint="A longer page for this task: plans, notes, research.">
-            <select id="td-note" aria-label="Linked note" value={noteId} onChange={(e) => setNoteId(e.target.value)} className="h-8 w-full rounded-md border border-input bg-card px-2 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-ring">
-              <option value="">No note</option>
-              {notes.map((n) => <option key={n.id} value={n.id}>{n.title || "Untitled"}</option>)}
-            </select>
-            {noteId ? (
-              <Button size="sm" variant="outline" className="w-full" onClick={() => setOpenNote(noteId)}><ExternalLink />Open note</Button>
-            ) : (
-              <Button size="sm" variant="outline" className="w-full" onClick={() => void noteFromTask()}><FilePlus2 />New note from this task</Button>
-            )}
+          <Card icon={<FolderKanban />} title="Organise" hint="How it is filed and how much it matters.">
+            <Sub first icon={<Flag />} title="Priority" hint="High comes first on Today.">
+              <ToggleGroup type="single" value={priority} onValueChange={(v) => v && setPriority(v)} aria-label="Priority" className="w-full">
+                {PRIORITIES.map((p) => <ToggleGroupItem key={p.value} value={p.value} className="flex-1 px-2">{p.label}</ToggleGroupItem>)}
+              </ToggleGroup>
+            </Sub>
+            <Sub icon={<FolderKanban />} title="Project" hint="Keeps it with the project’s tasks and notes.">
+              <Input id="td-project" value={project} maxLength={100} onChange={(e) => setProject(e.target.value)} placeholder="No project" aria-label="Project name" list="td-projects" />
+              <datalist id="td-projects">{projects.map((p) => <option key={p} value={p} />)}</datalist>
+            </Sub>
+            <Sub icon={<Link2 />} title="Note" hint="A longer page for this task: plans, notes, research.">
+              <select id="td-note" aria-label="Linked note" value={noteId} onChange={(e) => setNoteId(e.target.value)} className="h-8 w-full rounded-md border border-input bg-card px-2 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <option value="">No note</option>
+                {notes.map((n) => <option key={n.id} value={n.id}>{n.title || "Untitled"}</option>)}
+              </select>
+              {noteId ? (
+                <Button size="sm" variant="outline" className="w-full" onClick={() => setOpenNote(noteId)}><ExternalLink />Open note</Button>
+              ) : (
+                <Button size="sm" variant="outline" className="w-full" onClick={() => void noteFromTask()}><FilePlus2 />New note from this task</Button>
+              )}
+            </Sub>
           </Card>
         </div>
       </div>
@@ -282,7 +348,8 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
         ) : (
           <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive" onClick={() => setConfirmDelete(true)}><Trash2 />Delete task</Button>
         )}
-        <div className="ml-auto flex gap-2">
+        <div className="ml-auto flex items-center gap-2">
+          {dirty && <span className="mr-1 flex items-center gap-1.5 text-xs text-muted-foreground"><span aria-hidden className="size-1.5 rounded-full bg-primary" />Unsaved changes</span>}
           <Button size="sm" variant="ghost" onClick={onClose}>Close</Button>
           <Button size="sm" onClick={() => void save()}>Save changes</Button>
         </div>

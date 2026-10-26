@@ -71,10 +71,38 @@ export function greetingFor(c: Companion, now: Date): string {
   return c.userName ? `${part}, ${c.userName}!` : `${part}!`;
 }
 
+/** What the pet can tell you today besides hello. */
+export interface HelloFacts {
+  /** Open tasks for today (overdue ones included). */
+  open: number;
+  overdue: number;
+  /** The title of the most overdue task, if any. */
+  firstOverdue?: string;
+  quote?: { text: string; author: string } | null;
+}
+
+const clip = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1).trimEnd()}…` : s);
+
+/**
+ * The hello as one text bubble (owner 2026-10-26, J3): who it is, then the most useful thing:
+ * what is overdue, else what is waiting today, else the day's quote. Kind words only.
+ */
+export function helloLine(c: Companion, now: Date, facts?: HelloFacts): string {
+  const intro = `${greetingFor(c, now)} I'm ${c.petName || "Loaf"}, your assistant.`;
+  if (!facts) return greetingFor(c, now);
+  if (facts.overdue > 0) {
+    const first = facts.firstOverdue ? `, starting with “${clip(facts.firstOverdue, 28)}”` : "";
+    return `${intro} ${facts.overdue} ${facts.overdue === 1 ? "task is" : "tasks are"} overdue${first}.`;
+  }
+  if (facts.open > 0) return `${intro} ${facts.open} ${facts.open === 1 ? "thing" : "things"} to do today.`;
+  if (facts.quote?.text) return `${intro} “${clip(facts.quote.text, 90)}”${facts.quote.author ? ` — ${clip(facts.quote.author, 24)}` : ""}`;
+  return `${intro} Nothing planned yet. A calm day.`;
+}
+
 export interface Greeting { kind: "birthday-user" | "birthday-pet" | "greeting"; text: string; pose: string }
 
 /** The one greeting for today, or null if already given or turned off. Birthdays come first. */
-export function todaysGreeting(c: Companion, now: Date): Greeting | null {
+export function todaysGreeting(c: Companion, now: Date, facts?: HelloFacts): Greeting | null {
   if (!c.greet || c.greetedOn === ymd(now)) return null;
   const bday = birthdayToday(c, now);
   if (bday === "user") return { kind: "birthday-user", text: c.userName ? `Happy birthday, ${c.userName}! 🎂` : "Happy birthday! 🎂", pose: "party" };
@@ -82,5 +110,5 @@ export function todaysGreeting(c: Companion, now: Date): Greeting | null {
     const years = Math.floor(ageDays(c, now) / 365);
     return { kind: "birthday-pet", text: `I'm ${years} today! Thanks for having me 🎂`, pose: "party" };
   }
-  return { kind: "greeting", text: greetingFor(c, now), pose: "wave" };
+  return { kind: "greeting", text: helloLine(c, now, facts), pose: "wave" };
 }

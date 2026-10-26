@@ -30,10 +30,11 @@ export function QuoteOfTheDay({ className }: { className?: string }) {
   return (
     <>
       {quote ? (
-        <figure className={cn("group relative max-w-xl rounded-xl border bg-card/60 px-5 py-4", className)}>
-          <QuoteIcon aria-hidden className="absolute -top-2.5 left-4 size-5 rounded bg-background px-0.5 text-primary" />
-          <blockquote className="text-[17px] font-medium leading-relaxed tracking-tight">{quote.text}</blockquote>
-          {quote.author && <figcaption className="mt-1.5 text-[13px] text-muted-foreground">— {quote.author}</figcaption>}
+        <figure className={cn("group relative max-w-xl overflow-hidden rounded-xl border border-primary/40 bg-primary/10 py-4 pl-6 pr-5 shadow-sm", className)}>
+          <span aria-hidden className="absolute inset-y-0 left-0 w-1.5 bg-primary" />
+          <QuoteIcon aria-hidden className="mb-1.5 size-6 text-primary" />
+          <blockquote className="text-xl font-semibold leading-snug tracking-tight">{quote.text}</blockquote>
+          {quote.author && <figcaption className="mt-2 text-[13px] font-medium text-primary">— {quote.author}</figcaption>}
           <button type="button" aria-label="Edit quotes" onClick={() => setEditing(true)}
             className="absolute right-2 top-2 grid size-7 place-items-center rounded-md text-muted-foreground opacity-0 outline-none hover:bg-accent hover:text-foreground focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring group-hover:opacity-100">
             <Pencil className="size-3.5" />

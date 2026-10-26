@@ -68,7 +68,7 @@ describe("messages from the dashboard (FR-43)", () => {
   });
   it("ignores empty text, shortens long text and bounds the time", () => {
     expect(reactionForSay({ text: "   " }, poses)).toBeNull();
-    expect(reactionForSay({ text: "x".repeat(200) }, poses)?.bubble).toHaveLength(80);
+    expect(reactionForSay({ text: "x".repeat(200) }, poses)?.bubble).toHaveLength(160);
     expect(reactionForSay({ text: "a", ms: 1 }, poses)?.ms).toBe(2000);
     expect(reactionForSay({ text: "a", ms: 999_999 }, poses)?.ms).toBe(20_000);
   });

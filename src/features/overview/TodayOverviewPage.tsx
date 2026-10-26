@@ -16,12 +16,12 @@ export function TodayOverviewPage({ onShowTasks = () => {} }: { onShowTasks?: (f
   const now = new Date();
   const flagged = agenda.overdue + agenda.missed;
 
-  const tiles: Record<TileId, { span: string; node: React.ReactNode; title: string }> = {
-    agenda: { span: "md:col-span-2 lg:col-span-7 lg:row-span-2", title: "Today", node: <AgendaCard className="h-full" /> },
-    focus: { span: "lg:col-span-5", title: "Focus", node: <FocusTile className="h-full" /> },
-    routine: { span: "lg:col-span-5", title: "Daily routine", node: <RoutineCard className="h-full" /> },
-    time: { span: "md:col-span-2 lg:col-span-8 lg:row-span-2", title: "Total time today", node: <TimeHero className="h-full" /> },
-    links: { span: "lg:col-span-4 lg:row-span-2", title: "Links", node: <LinksCard className="h-full" /> },
+  const tiles: Record<TileId, { span: string; sizes?: { s: string; l: string }; node: React.ReactNode; title: string }> = {
+    agenda: { span: "md:col-span-2 lg:col-span-7 lg:row-span-2", sizes: { s: "md:col-span-2 lg:col-span-5 lg:row-span-2", l: "md:col-span-2 lg:col-span-12 lg:row-span-2" }, title: "Today", node: <AgendaCard className="h-full" /> },
+    focus: { span: "lg:col-span-5", sizes: { s: "lg:col-span-4", l: "lg:col-span-7" }, title: "Focus", node: <FocusTile className="h-full" /> },
+    routine: { span: "lg:col-span-5", sizes: { s: "lg:col-span-4", l: "lg:col-span-7" }, title: "Daily routine", node: <RoutineCard className="h-full" /> },
+    time: { span: "md:col-span-2 lg:col-span-8 lg:row-span-2", sizes: { s: "md:col-span-2 lg:col-span-6 lg:row-span-2", l: "md:col-span-2 lg:col-span-12 lg:row-span-2" }, title: "Total time today", node: <TimeHero className="h-full" /> },
+    links: { span: "lg:col-span-4 lg:row-span-2", sizes: { s: "lg:col-span-3 lg:row-span-2", l: "lg:col-span-6 lg:row-span-2" }, title: "Links", node: <LinksCard className="h-full" /> },
   };
 
   return (

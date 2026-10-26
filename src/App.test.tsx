@@ -897,6 +897,32 @@ describe("owner's UI reset, batch 1 (2026-10-25)", () => {
     expect(await screen.findByRole("dialog")).toBeTruthy();
   });
 
+  it("Today tiles can be resized: small, medium, large, and reset (owner: can I resize the tiles?)", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const resize = await screen.findByRole("button", { name: /^Resize Focus: medium/ });
+    await user.click(resize);
+    expect(await screen.findByRole("button", { name: /^Resize Focus: large/ })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: /^Resize Focus: large/ }));
+    expect(await screen.findByRole("button", { name: /^Resize Focus: small/ })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Reset layout" }));
+    expect(await screen.findByRole("button", { name: /^Resize Focus: medium/ })).toBeTruthy();
+  });
+
+  it("the task editor suggests a next step and shows where the task is", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await goTo(user, /^Tasks/);
+    const list = await screen.findByRole("region", { name: "Task list" });
+    const [first] = await within(list).findAllByRole("button", { name: /^Open / });
+    await user.click(first as HTMLElement);
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByRole("list", { name: "Progress" })).toBeTruthy();
+    expect(within(dialog).queryByText("Unsaved changes")).toBeNull();
+    await user.type(within(dialog).getByRole("textbox", { name: "Title" }), "!");
+    expect(await within(dialog).findByText("Unsaved changes")).toBeTruthy();
+  });
+
   it("Projects shows a project's tasks and notes, numbered, and adds to it", async () => {
     const { ipc } = await import("@/ipc");
     const user = userEvent.setup();

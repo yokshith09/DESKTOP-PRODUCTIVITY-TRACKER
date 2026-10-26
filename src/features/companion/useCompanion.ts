@@ -3,7 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ipc, onWake, petSay } from "@/ipc";
 import { ymd } from "@/lib/dates";
 import { canNudge, inQuietHours, markNudged, parseNudges, type NudgeState } from "@/lib/nudges";
-import { parseCompanion, todaysGreeting, type Companion } from "./companion";
+import { quoteFor, parseQuotes } from "@/features/overview/quotes";
+import { parseCompanion, todaysGreeting, type Companion, type HelloFacts } from "./companion";
 
 export const COMPANION_KEY = ["prefs", "ui.companion"] as const;
 export const NUDGES_KEY = ["prefs", "ui.nudges"] as const;
@@ -25,6 +26,14 @@ export function useCompanion() {
     await ipc.prefsSet("ui.companion", next);
   };
   return { companion: data, save };
+}
+
+/** What the hello can mention: today's open and overdue tasks, and the day's quote. */
+export async function helloFacts(now: Date): Promise<HelloFacts> {
+  const [rows, rawQuotes] = await Promise.all([ipc.tasksQuery("today").catch(() => []), ipc.prefsGet("ui.quotes").catch(() => null)]);
+  const overdue = rows.filter((r) => r.overdue);
+  const quote = quoteFor(parseQuotes(rawQuotes), now);
+  return { open: rows.length, overdue: overdue.length, ...(overdue[0] ? { firstOverdue: overdue[0].task.title } : {}), quote };
 }
 
 /** The notification budget (FR-96), shared by every unasked nudge. */
@@ -55,7 +64,7 @@ export function useDailyGreeting() {
     const greet = async () => {
       const now = new Date();
       const saved = parseCompanion(await ipc.prefsGet("ui.companion"), ymd(now));
-      const g = todaysGreeting(saved, now);
+      const g = todaysGreeting(saved, now, await helloFacts(now));
       if (!g) return;
       const shown = await tryNudge(g.kind, now, () => petSay({ text: g.text, pose: g.pose, ms: 8000 }));
       if (!shown) return;

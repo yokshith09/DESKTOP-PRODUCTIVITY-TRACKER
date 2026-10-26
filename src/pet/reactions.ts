@@ -54,7 +54,7 @@ export function reactionForSay(say: { text: string; pose?: string; ms?: number; 
   const text = say.text.trim();
   if (!text) return null;
   const pose = (say.pose && poses.includes(say.pose) ? say.pose : "wave") as BearPose;
-  const r: Reaction = { pose, bubble: text.length > 80 ? `${text.slice(0, 79)}…` : text, ms: Math.min(Math.max(say.ms ?? 8000, 2000), 20_000), priority: 4 };
+  const r: Reaction = { pose, bubble: text.length > 160 ? `${text.slice(0, 159)}…` : text, ms: Math.min(Math.max(say.ms ?? 8000, 2000), 20_000), priority: 4 };
   if (say.actionId && say.actionLabel) r.action = { id: say.actionId, label: say.actionLabel.slice(0, 20) };
   return r;
 }

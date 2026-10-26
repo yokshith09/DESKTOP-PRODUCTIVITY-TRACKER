@@ -1,14 +1,19 @@
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { FolderKanban, NotebookPen, Plus } from "lucide-react";
+import { CalendarClock, ChevronRight, FolderKanban, NotebookPen, Plus, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader, Tile } from "@/features/shell/PageHeader";
 import { NoteEditor } from "@/features/notes/NoteEditor";
 import { TaskDetail } from "@/features/tasks/TaskDetail";
 import { Row } from "@/features/tasks/TasksPage";
+import { Badge } from "@/components/ui/badge";
 import { toEdit } from "@/features/tasks/edit";
 import { useAllTasks, useNotes, useTaskActions } from "@/hooks/useLoaf";
+import { useFocus, useFocusLength } from "@/hooks/useFocus";
+import { ymd } from "@/lib/dates";
+import { STATUS_LABEL } from "@/lib/taskStatus";
+import { summarize } from "./summary";
 import { errorMessage, ipc, type NoteSummary, type TaskRow } from "@/ipc";
 import { notify } from "@/lib/notify";
 import { timeAgo } from "@/lib/time";
@@ -33,6 +38,17 @@ const ordered = (rows: TaskRow[]) => {
   return [...rows].sort((a, b) => Number(done(a)) - Number(done(b)) || a.task.created_at - b.task.created_at);
 };
 
+/** A thin progress bar and the overdue count under a project's name in the list. */
+function ProjectBar({ tasks, today }: { tasks: TaskRow[]; today: string }) {
+  const s = summarize(tasks, today);
+  return (
+    <span className="mt-2 flex items-center gap-2" aria-hidden>
+      <span className="h-1 flex-1 overflow-hidden rounded-full bg-muted"><span className="block h-full rounded-full bg-primary" style={{ width: `${s.percent}%` }} /></span>
+      {s.overdue > 0 && <span className="size-1.5 rounded-full bg-destructive" title={`${s.overdue} overdue`} />}
+    </span>
+  );
+}
+
 /** Projects (owner 2026-10-25): a project's tasks and notes together, numbered. */
 export function ProjectsPage() {
   const qc = useQueryClient();
@@ -43,6 +59,15 @@ export function ProjectsPage() {
   const projects = useMemo(() => projectsFrom(tasks, notes, started), [tasks, notes, started]);
   const [chosen, setChosen] = useState<string | null>(null);
   const current = projects.find((p) => p.name === chosen) ?? projects[0] ?? null;
+  const focus = useFocus();
+  const { minutes } = useFocusLength();
+  const today = ymd(new Date());
+  const stats = useMemo(() => (current ? summarize(current.tasks, today) : null), [current, today]);
+  const next = stats?.next ?? null;
+  const sorted = current ? ordered(current.tasks) : [];
+  const isDone = (r: TaskRow) => r.task.status === "COMPLETED" || r.task.status === "CANCELLED";
+  const openRows = sorted.filter((r) => !isDone(r));
+  const doneRows = sorted.filter(isDone);
   const [newName, setNewName] = useState("");
   const [taskDraft, setTaskDraft] = useState("");
   const [openTask, setOpenTask] = useState<string | null>(null);
@@ -86,11 +111,14 @@ export function ProjectsPage() {
             {projects.map((p) => (
               <li key={p.name}>
                 <button type="button" onClick={() => setChosen(p.name)} aria-current={current?.name === p.name ? "page" : undefined}
-                  className={cn("flex h-10 w-full items-center gap-2.5 rounded-lg px-3 text-left text-[13.5px] outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    current?.name === p.name ? "bg-accent font-medium text-foreground" : "text-muted-foreground hover:bg-accent/60 hover:text-foreground")}>
-                  <FolderKanban className="size-4 shrink-0" />
-                  <span className="min-w-0 flex-1 truncate">{p.name}</span>
-                  <span className="text-xs tabular-nums text-muted-foreground">{p.open}</span>
+                  className={cn("w-full rounded-lg border px-3 py-2.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    current?.name === p.name ? "border-primary/40 bg-accent text-foreground" : "border-transparent text-muted-foreground hover:bg-accent/60 hover:text-foreground")}>
+                  <span className="flex items-center gap-2.5 text-[13.5px]">
+                    <FolderKanban className="size-4 shrink-0" />
+                    <span className={cn("min-w-0 flex-1 truncate", current?.name === p.name && "font-semibold")}>{p.name}</span>
+                    <span className="text-xs tabular-nums" title="Open tasks">{p.open}</span>
+                  </span>
+                  <ProjectBar tasks={p.tasks} today={today} />
                 </button>
               </li>
             ))}
@@ -103,18 +131,38 @@ export function ProjectsPage() {
 
         {current ? (
           <section aria-label={`Project ${current.name}`} className="min-w-0 space-y-5">
-            <div className="flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h2 className="text-xl font-semibold tracking-tight">{current.name}</h2>
-                <p className="mt-0.5 text-[13px] text-muted-foreground">
-                  {current.tasks.length - current.open} of {current.tasks.length} tasks done · {current.notes.length} {current.notes.length === 1 ? "note" : "notes"}
-                </p>
-              </div>
+            <div>
+              <h2 className="text-xl font-semibold tracking-tight">{current.name}</h2>
+              <p className="mt-0.5 text-[13px] text-muted-foreground">
+                {current.tasks.length - current.open} of {current.tasks.length} tasks done · {current.notes.length} {current.notes.length === 1 ? "note" : "notes"}
+              </p>
+              {stats && (
+                <ul aria-label="Project summary" className="mt-2 flex flex-wrap gap-2 text-xs">
+                  <li className="rounded-md bg-muted px-2 py-1 tabular-nums">{stats.open} open</li>
+                  {stats.overdue > 0 && <li className="rounded-md bg-destructive/15 px-2 py-1 font-medium tabular-nums text-destructive">{stats.overdue} overdue</li>}
+                  {stats.nextDeadline && <li className="flex items-center gap-1 rounded-md bg-muted px-2 py-1"><CalendarClock aria-hidden className="size-3" />Next deadline {new Date(`${stats.nextDeadline}T00:00:00`).toLocaleDateString([], { month: "short", day: "numeric" })}</li>}
+                  <li className="rounded-md bg-muted px-2 py-1 tabular-nums">{stats.percent}% done</li>
+                </ul>
+              )}
             </div>
-            {current.tasks.length > 0 && (
-              <div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden>
-                <div className="h-full rounded-full bg-primary" style={{ width: `${Math.round(((current.tasks.length - current.open) / current.tasks.length) * 100)}%` }} />
+            {stats && stats.total > 0 && (
+              <div role="progressbar" aria-label="Project progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={stats.percent} className="h-2 overflow-hidden rounded-full bg-muted">
+                <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${stats.percent}%` }} />
               </div>
+            )}
+            {next && (
+              <section aria-label="Next up" className="flex flex-wrap items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">Next up</p>
+                  <p className="mt-0.5 truncate text-[15px] font-semibold">{next.task.title}</p>
+                  <p className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                    <Badge variant={next.task.status === "IN_PROGRESS" ? "primary" : "default"}>{STATUS_LABEL[next.task.status]}</Badge>
+                    {next.task.due_date && <span>Due {new Date(`${next.task.due_date}T00:00:00`).toLocaleDateString([], { month: "short", day: "numeric" })}</span>}
+                  </p>
+                </div>
+                <Button size="sm" variant="outline" onClick={() => setOpenTask(next.task.id)}>Open</Button>
+                {!focus.session && <Button size="sm" onClick={() => void focus.start("FOCUS", minutes, next.task.id)}><Timer />Focus {minutes} min</Button>}
+              </section>
             )}
             <div className="grid gap-5 2xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
               <Tile title="Tasks" count={current.tasks.length} footer={
@@ -126,7 +174,17 @@ export function ProjectsPage() {
                 {current.tasks.length === 0 ? (
                   <p className="px-2 py-8 text-center text-[13px] text-muted-foreground">No tasks yet. Add the first one below.</p>
                 ) : (
-                  <ul>{ordered(current.tasks).map((r, i) => <Row key={r.task.id} row={r} onOpen={setOpenTask} n={i + 1} inProject />)}</ul>
+                  <>
+                    <ul>{openRows.map((r, i) => <Row key={r.task.id} row={r} onOpen={setOpenTask} n={i + 1} inProject />)}</ul>
+                    {doneRows.length > 0 && (
+                      <details className="group mt-3 border-t pt-3">
+                        <summary className="flex cursor-pointer list-none items-center gap-1.5 px-2 text-xs font-medium text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+                          <ChevronRight aria-hidden className="size-3.5 transition-transform group-open:rotate-90" />Done ({doneRows.length})
+                        </summary>
+                        <ul className="mt-1">{doneRows.map((r, i) => <Row key={r.task.id} row={r} onOpen={setOpenTask} n={openRows.length + i + 1} inProject />)}</ul>
+                      </details>
+                    )}
+                  </>
                 )}
               </Tile>
               <Tile title="Notes" count={current.notes.length} action={<Button size="sm" variant="outline" onClick={() => void addNote()}><Plus />Note</Button>}>

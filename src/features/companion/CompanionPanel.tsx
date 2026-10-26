@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Cake, Lock } from "lucide-react";
+import { Cake, Lock, MessageCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Panel } from "@/features/shell/PageHeader";
-import { ageDays, ageLabel, type Companion } from "./companion";
-import { useCompanion } from "./useCompanion";
+import { petSay } from "@/ipc";
+import { ageDays, ageLabel, helloLine, type Companion } from "./companion";
+import { helloFacts, useCompanion } from "./useCompanion";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -23,6 +25,11 @@ export function CompanionPanel() {
   const born = new Date(`${companion.born}T12:00:00`);
   const petName = companion.petName || "Loaf";
   const days = ageDays(companion, new Date());
+  /** The hello again, as a text bubble above the pet; it doesn't use up today's one. */
+  const sayHello = async () => {
+    const now = new Date();
+    await petSay({ text: helloLine(companion, now, await helloFacts(now)), pose: "wave", ms: 10_000 });
+  };
 
   return (
     <section aria-label="About you and your pet" className="mt-6">
@@ -74,10 +81,11 @@ export function CompanionPanel() {
             </div>
             <Switch checked={companion.greet} onCheckedChange={(v) => set({ greet: v })} aria-label="Say hello once a day" />
           </div>
+          <Button size="sm" variant="outline" onClick={() => void sayHello()}><MessageCircle />Say hello now</Button>
         </div>
       </Panel>
-      <div className="mt-3 grid gap-2 sm:grid-cols-3" aria-label="Coming later">
-        {[["Accessories", "Hats and small things to wear."], ["Outfits", "A whole look for the day."], ["Reactions", "Choose how it reacts to each event."]].map(([t, d]) => (
+      <div className="mt-3 grid gap-2 sm:grid-cols-2" aria-label="Coming later">
+        {[["Accessories", "Hats and small things to wear."], ["Outfits", "A whole look for the day."]].map(([t, d]) => (
           <Panel key={t} className="flex items-center gap-3 p-3 opacity-70">
             <Lock className="size-4 shrink-0 text-muted-foreground" />
             <div className="min-w-0">
