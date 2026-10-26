@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import type { BearPose } from "@/features/shell/Bear";
 import { cn } from "@/lib/utils";
+import { headGear, neckGear } from "@/features/wardrobe/Accessories";
+import { DEFAULT_ANCHOR, NO_FIT, loadAnchors, placement, type Fit, type SheetAnchors } from "@/features/wardrobe/spriteAnchors";
+import type { ItemId } from "@/features/wardrobe/wardrobe";
 
 /**
  * Plays a Codex / OpenPets pet pack (FR-63). The sheet is 8 columns of 192x208 cells; each row
@@ -34,10 +37,21 @@ export function frameAt(row: SpriteRow, elapsed: number): number {
   return Math.floor(((elapsed % ms) / ms) * frames);
 }
 
-export function SpritePet({ sheet, row = "idle", animated = true, size = 128, className, label }: {
+export function SpritePet({ sheet, row = "idle", animated = true, size = 128, className, label, wear = [], fit = NO_FIT }: {
   sheet: string; row?: SpriteRow; animated?: boolean; size?: number; className?: string; label: string;
+  /** Accessories on top (owner 2026-10-26: the wardrobe is for every character). */
+  wear?: readonly ItemId[]; fit?: Fit;
 }) {
   const [frame, setFrame] = useState(0);
+  const [anchors, setAnchors] = useState<SheetAnchors | null>(null);
+  const dressed = wear.length > 0;
+  // Looks at the picture (once per sheet) only when something is worn.
+  useEffect(() => {
+    if (!dressed) return;
+    let live = true;
+    void loadAnchors(sheet).then((a) => live && setAnchors(a));
+    return () => { live = false; };
+  }, [sheet, dressed]);
   useEffect(() => {
     setFrame(0);
     if (!animated) return;
@@ -49,13 +63,14 @@ export function SpritePet({ sheet, row = "idle", animated = true, size = 128, cl
   }, [row, animated]);
   const { row: r } = SPRITE_ROWS[row];
   const scale = size / 208;
+  const place = placement(anchors?.[r]?.[frame] ?? DEFAULT_ANCHOR, fit);
   return (
     <div
       role="img"
       aria-label={label}
       data-row={row}
       data-frame={frame}
-      className={cn("shrink-0", className)}
+      className={cn("relative shrink-0", className)}
       style={{
         width: 192 * scale,
         height: size,
@@ -65,6 +80,13 @@ export function SpritePet({ sheet, row = "idle", animated = true, size = 128, cl
         backgroundRepeat: "no-repeat",
         imageRendering: "auto",
       }}
-    />
+    >
+      {dressed && (
+        <svg viewBox="0 0 192 208" aria-hidden="true" className="pointer-events-none absolute inset-0 size-full overflow-visible">
+          <g transform={place.head}>{headGear(wear)}</g>
+          <g transform={place.neck}>{neckGear(wear)}</g>
+        </svg>
+      )}
+    </div>
   );
 }

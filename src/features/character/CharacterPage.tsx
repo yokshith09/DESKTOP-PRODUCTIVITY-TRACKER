@@ -46,6 +46,7 @@ export function CharacterPage() {
   const worn = useWorn();
   const [replay, setReplay] = useState(0);
   const [visible, setVisible] = useSetting("pet.visible");
+  const [activePack] = useSetting("pet.pack");
   const [size, setSize] = useSetting("pet.size");
   const [opacity, setOpacity] = useSetting("pet.opacity");
   const [onTop, setOnTop] = useSetting("pet.always_on_top");
@@ -138,7 +139,7 @@ export function CharacterPage() {
       <PetLibrary shown={shownPack ? shown : null} onShow={setShown} />
       <div className="mt-6"><NudgeSettings /></div>
       <CompanionPanel />
-      <WardrobePanel />
+      <WardrobePanel character={(() => { const p = shownPack ?? packs.find((x) => x.id === activePack); return p ? { id: p.id, name: p.display_name } : undefined; })()} />
       <ReactionsPanel />
     </div>
   );

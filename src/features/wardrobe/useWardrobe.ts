@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ipc } from "@/ipc";
 import { useCompanion } from "@/features/companion/useCompanion";
 import { parseWardrobe, wornNow, type ItemId, type Wardrobe } from "./wardrobe";
+import { NO_FIT, type Fit } from "./spriteAnchors";
 
 export const WARDROBE_KEY = ["prefs", "ui.wardrobe"] as const;
 
@@ -13,7 +14,9 @@ export function useWardrobe() {
     qc.setQueryData(WARDROBE_KEY, next);
     await ipc.prefsSet("ui.wardrobe", next);
   };
-  return { wardrobe: data, save };
+  /** Shows a change right away (while a slider is dragged) without saving it yet. */
+  const preview = (next: Wardrobe) => qc.setQueryData(WARDROBE_KEY, next);
+  return { wardrobe: data, save, preview };
 }
 
 /** What the bear has on right now, birthday hat included. */
@@ -21,4 +24,10 @@ export function useWorn(): ItemId[] {
   const { wardrobe } = useWardrobe();
   const { companion } = useCompanion();
   return wardrobe ? wornNow(wardrobe, companion, new Date()) : [];
+}
+
+/** How far to nudge the gear on one picture character. */
+export function useFit(packId: string | null | undefined): Fit {
+  const { wardrobe } = useWardrobe();
+  return (packId && wardrobe?.fits[packId]) || NO_FIT;
 }

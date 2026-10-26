@@ -11,7 +11,7 @@ import { ipc, onEvent, onPetSay, petAction, type TaskRow } from "@/ipc";
 import { cn } from "@/lib/utils";
 import { PetCard } from "./PetCard";
 import { glanceText } from "./glance";
-import { WARDROBE_KEY, useWorn } from "@/features/wardrobe/useWardrobe";
+import { WARDROBE_KEY, useFit, useWorn } from "@/features/wardrobe/useWardrobe";
 import { enqueue, isAsleep, reactionForSay, type Reaction } from "./reactions";
 import { parseReactionSettings, reactionWithSettings } from "./reactionSettings";
 import { useTypingAlong } from "./typing";
@@ -59,6 +59,7 @@ export function PetApp() {
   const size = SIZES[settings?.["pet.size"] ?? "M"];
   // A pet pack from the library replaces the bear (FR-63); reactions map to its rows.
   const packId = settings?.["pet.pack"] ?? null;
+  const fit = useFit(packId);
   const { data: sheet } = useQuery({ queryKey: ["pets", "sheet", packId], queryFn: () => ipc.petsSheet(packId ?? ""), enabled: !!packId, staleTime: Infinity, retry: false });
   const opacity = (settings?.["pet.opacity"] ?? 100) / 100;
   const hoverCard = settings?.["pet.hover_card"] ?? true;
@@ -299,7 +300,7 @@ export function PetApp() {
       {/* key: a new reaction restarts its animation even when the pose repeats. One key for the
           whole typing sequence, so the laptop comes out once and isn't pulled out again. */}
       {packId && sheet ? (
-        <SpritePet sheet={sheet} row={ROW_FOR_POSE[pose]} size={size} label={`${packId} (${pose})`} className="pointer-events-none mx-auto" />
+        <SpritePet sheet={sheet} row={ROW_FOR_POSE[pose]} size={size} label={`${packId} (${pose})`} wear={worn} fit={fit} className="pointer-events-none mx-auto" />
       ) : (
         <Bear key={playing ? `${playing.pose}-${playing.bubble}` : typing !== "off" ? "typing" : pose} pose={pose} wear={worn} animated className="pointer-events-none size-full" />
       )}

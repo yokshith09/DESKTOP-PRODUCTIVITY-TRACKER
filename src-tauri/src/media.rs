@@ -62,6 +62,8 @@ fn press(action: &str) -> Result<()> {
     use windows_sys::Win32::UI::Input::KeyboardAndMouse::{
         SendInput, INPUT, INPUT_0, INPUT_KEYBOARD, KEYBDINPUT, KEYEVENTF_KEYUP,
     };
+    let vk =
+        key_for(action).ok_or_else(|| AppError::validation("action", "Unknown media action."))?;
     let key = |flags| INPUT {
         r#type: INPUT_KEYBOARD,
         Anonymous: INPUT_0 {

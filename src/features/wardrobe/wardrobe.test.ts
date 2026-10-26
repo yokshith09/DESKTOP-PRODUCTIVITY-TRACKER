@@ -35,7 +35,7 @@ describe("wardrobe", () => {
   it("reads bad saved data without throwing", () => {
     expect(parseWardrobe(null)).toEqual(emptyWardrobe);
     expect(parseWardrobe({ worn: ["cap", "cap", "mystery", 3, "beanie"], outfit: "cool", partyOnBirthday: false }))
-      .toEqual({ worn: ["beanie"], outfit: "", partyOnBirthday: false });
+      .toEqual({ worn: ["beanie"], outfit: "", partyOnBirthday: false, fits: {} });
     expect(parseWardrobe({ worn: ["cap", "sunglasses"], outfit: "cool" }).outfit).toBe("cool");
   });
 
@@ -46,5 +46,12 @@ describe("wardrobe", () => {
     expect(wornNow(w, c, new Date("2026-10-27T10:00:00"))).toEqual(["crown", "scarf"]);
     expect(wornNow({ ...w, partyOnBirthday: false }, c, new Date("2026-10-26T10:00:00"))).toEqual(["crown", "scarf"]);
     expect(wornNow(w, undefined, new Date("2026-10-26T10:00:00"))).toEqual(["crown", "scarf"]);
+  });
+
+  it("keeps each character's nudge inside safe limits", () => {
+    const w = parseWardrobe({ fits: { boba: { x: 999, y: -5, s: 0.1 }, bad: "x", mini: { x: 3, y: 4, s: 1.2 } } });
+    expect(w.fits.boba).toEqual({ x: 40, y: -5, s: 0.5 });
+    expect(w.fits.bad).toEqual({ x: 0, y: 0, s: 1 });
+    expect(w.fits.mini).toEqual({ x: 3, y: 4, s: 1.2 });
   });
 });
