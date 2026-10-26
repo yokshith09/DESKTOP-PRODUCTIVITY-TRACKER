@@ -9,6 +9,7 @@ name: Release build
 # version already exists (draft or published), a version-change push does nothing.
 #
 # Publishing the draft creates the tag `v<version>` on the commit that was built.
+# To rebuild the same version (for example after a fix), change this file or press "Run workflow".
 #
 # Signing is NOT set up: it needs the owner's certificates. Unsigned installers work, but Windows
 # SmartScreen and macOS Gatekeeper will warn. To sign, add the secrets listed below to the
