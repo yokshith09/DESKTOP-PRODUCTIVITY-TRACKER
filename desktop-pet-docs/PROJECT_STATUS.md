@@ -46,6 +46,7 @@ Every claim is tagged with how it was checked. **Fact** = seen in code, tests, G
 | **Blockers** | Signing **on hold** (owner, 2026-10-19). Owner asked for the remote branch `claude/repo-context-review-trprp8` to be deleted; deletion failed from this session (proxy hang-up, retried). Owner or a session with push rights to run `git push origin --delete claude/repo-context-review-trprp8`. |
 | **Docs in progress (2026-10-22)** | Emote and Reactions System defined as FR-40 in [`docs/character/EMOTE_FEATURE_SPECS.md`](docs/character/EMOTE_FEATURE_SPECS.md); all **Planned**, except: the bear now has drawn three-quarter, back and look-back views and a tested `back_turn_shake` sequence runner with a preview button on the Character page, now also for Mochi, Pip, Bolt and Ghosty (**Unverified**: not seen on a real PC, not wired into the pet window). Rive trial (CH-08) **blocked**: needs a `.riv` authored by the owner in the Rive editor. |
 | **Next** | Owner's order after M3 (`ROADMAP.md`): M4 Quick Actions. Not started; not to start without the owner's go-ahead. |
+| **Latest (2026-10-26, after 0.5.0)** | Built, local, **Unverified on a real PC**: wardrobe (accessories and outfits for the bear, FR-49 first part), music buttons as an opt-in setting (`pet.media`), richer per-app sessions view in Time. Tests re-run in this session: see CHANGELOG. Seasonal/weekday outfit schedules (FR-64) and outfits for packs are still Planned. |
 
 ---
 

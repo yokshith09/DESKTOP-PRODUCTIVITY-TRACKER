@@ -49,8 +49,7 @@ describe("About you and your pet (FR-93)", () => {
     await waitFor(() => expect(m.get("ui.companion")).toMatchObject({ petName: "Biscuit" }));
     expect(await screen.findByText(/^Biscuit is /)).toBeTruthy();
     expect(screen.getByText(/days together/)).toBeTruthy();
-    for (const t of ["Accessories", "Outfits"]) expect(screen.getByText(t)).toBeTruthy();
-    expect(screen.getAllByText("Later")).toHaveLength(2);
+    expect(screen.queryByText("Later")).toBeNull();
   });
 
   it("the hello can be turned off", async () => {

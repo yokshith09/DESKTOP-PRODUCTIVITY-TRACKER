@@ -410,7 +410,7 @@ F1-20 and F1-21 (search) are cancelled; their numbers are retired.
 - Character switching UI
 
 **Milestone 13.2 — Wardrobe**
-- Outfits and closet
+- Outfits and closet — 🟡 first part built 2026-10-26 for the bear (nine accessories, six outfits, party hat on birthdays; Unverified). Still planned: schedules (FR-64), packs wearing outfits.
 - Seasonal packs
 
 **Milestone 13.3 — Context**

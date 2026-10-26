@@ -364,3 +364,10 @@ Still open: none of Q1-Q7 except the Q4 spike result.
   - Small windows (< 1024 px): icon-only sidebar.
 - Built-in quotes: 21 short lines by authors long dead (Aristotle … Theodore Roosevelt); misattributed favourites were left out on purpose.
 - Owner: "build a draft release so I can test" → version 0.3.0 → 0.4.0; the release workflow builds a **draft**; the owner tests before publishing.
+
+## 2026-10-26 (later) — Music option, session view, wardrobe
+
+- **Music buttons are opt-in** (`pet.media`, default off). Reason: they press the system media keys, which also reach whatever app is playing; the owner asked for an enable/disable switch. With no focus session the buttons show alone under the pet.
+- **Wardrobe is drawn over the built-in bear, not into sprite packs.** A pack is one baked picture (1536x1872 sheet), so an overlay would not follow its poses. Accessories are SVG inside the bear's head group so they follow its tilt. Packs made with the Loaf Character skill can draw their own outfits. The back-turn views have no accessories (open).
+- **Everything is free from day one**: no unlocks, streaks or "earned" gear, in line with the no-guilt rule. One item per place (head, face, neck); an outfit is a preset of those. The party hat on birthdays is a rule, not a schedule engine; the seasonal and weekday schedule (FR-64) stays **Planned**.
+- The pet window is a separate window, so after a change the dashboard sends a short "New look!" say; the pet reads `ui.wardrobe` again when it hears it (prefs have no change event).

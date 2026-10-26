@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Cake, Lock, MessageCircle } from "lucide-react";
+import { Cake, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -84,17 +84,6 @@ export function CompanionPanel() {
           <Button size="sm" variant="outline" onClick={() => void sayHello()}><MessageCircle />Say hello now</Button>
         </div>
       </Panel>
-      <div className="mt-3 grid gap-2 sm:grid-cols-2" aria-label="Coming later">
-        {[["Accessories", "Hats and small things to wear."], ["Outfits", "A whole look for the day."]].map(([t, d]) => (
-          <Panel key={t} className="flex items-center gap-3 p-3 opacity-70">
-            <Lock className="size-4 shrink-0 text-muted-foreground" />
-            <div className="min-w-0">
-              <p className="text-[13px] font-medium">{t} <span className="ml-1 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">Later</span></p>
-              <p className="text-xs text-muted-foreground">{d}</p>
-            </div>
-          </Panel>
-        ))}
-      </div>
     </section>
   );
 }

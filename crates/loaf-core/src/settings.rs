@@ -40,6 +40,9 @@ pub enum SettingsKey {
     /// come as a short bubble instead.
     #[serde(rename = "pet.hover_card")]
     PetHoverCard,
+    /// Play/pause/next buttons under the pet (owner 2026-10-26); off until the user turns them on.
+    #[serde(rename = "pet.media")]
+    PetMedia,
     /// The installed pet pack shown instead of the built-in bear (FR-63); null = the bear.
     #[serde(rename = "pet.pack")]
     PetPack,
@@ -117,6 +120,7 @@ impl SettingsKey {
             Self::PetAlwaysOnTop => "pet.always_on_top",
             Self::PetTyping => "pet.typing",
             Self::PetHoverCard => "pet.hover_card",
+            Self::PetMedia => "pet.media",
             Self::PetPack => "pet.pack",
             Self::ShortcutsGlobalOpen => "shortcuts.global_open",
             Self::ShortcutsGlobalNewNote => "shortcuts.global_new_note",
@@ -142,6 +146,7 @@ impl SettingsKey {
             "pet.always_on_top" => Some(Self::PetAlwaysOnTop),
             "pet.typing" => Some(Self::PetTyping),
             "pet.hover_card" => Some(Self::PetHoverCard),
+            "pet.media" => Some(Self::PetMedia),
             "pet.pack" => Some(Self::PetPack),
             "shortcuts.global_open" => Some(Self::ShortcutsGlobalOpen),
             "shortcuts.global_new_note" => Some(Self::ShortcutsGlobalNewNote),
@@ -168,6 +173,7 @@ impl SettingsKey {
             Self::PetAlwaysOnTop => json!(true),
             Self::PetTyping => json!(false),
             Self::PetHoverCard => json!(true),
+            Self::PetMedia => json!(false),
             Self::PetPack => json!(null),
             Self::ShortcutsGlobalOpen => json!(null),
             Self::ShortcutsGlobalNewNote => json!(null),
@@ -189,6 +195,7 @@ impl SettingsKey {
             | Self::PetAlwaysOnTop
             | Self::PetTyping
             | Self::PetHoverCard
+            | Self::PetMedia
             | Self::TrackingApps
             | Self::TrackingSites
             | Self::TrackingSafari => {
@@ -324,6 +331,7 @@ pub fn all_defaults() -> BTreeMap<String, Value> {
         SettingsKey::PetAlwaysOnTop,
         SettingsKey::PetTyping,
         SettingsKey::PetHoverCard,
+        SettingsKey::PetMedia,
         SettingsKey::PetPack,
         SettingsKey::ShortcutsGlobalOpen,
         SettingsKey::ShortcutsGlobalNewNote,
@@ -381,11 +389,16 @@ mod tests {
     #[test]
     fn all_defaults_exist() {
         let defaults = all_defaults();
-        assert_eq!(defaults.len(), 19);
+        assert_eq!(defaults.len(), 20);
         assert_eq!(
             defaults["pet.hover_card"],
             json!(true),
             "the card on hover stays the default"
+        );
+        assert_eq!(
+            defaults["pet.media"],
+            json!(false),
+            "music buttons are opt-in"
         );
         assert_eq!(
             defaults["tracking.sites"],

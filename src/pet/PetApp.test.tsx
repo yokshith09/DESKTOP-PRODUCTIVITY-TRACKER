@@ -148,43 +148,61 @@ describe("desktop pet", () => {
     }
   });
 
-  it("media buttons next to the timer press the Windows media keys, and are hidden elsewhere (H4, Unverified)", async () => {
+  it("wears the saved accessories on the bear, and a say from the dashboard makes it look again", async () => {
+    let saved: unknown = { worn: ["crown", "scarf"], outfit: "royal", partyOnBirthday: true };
+    vi.spyOn(ipc, "prefsGet").mockImplementation(async (k: string) => (k === "ui.wardrobe" ? saved : null) as never);
+    const { container } = renderPet();
+    await waitFor(() => expect(container.querySelector('[data-accessory="crown"]')).toBeTruthy());
+    expect(container.querySelector('[data-accessory="scarf"]')).toBeTruthy();
+    saved = { worn: [], outfit: "", partyOnBirthday: true };
+    act(() => { window.dispatchEvent(new CustomEvent("loaf-pet-say", { detail: { text: "Back to plain me", pose: "cheer", ms: 3500 } })); });
+    await waitFor(() => expect(container.querySelector('[data-accessory]')).toBeNull());
+  });
+
+  /** The settings the pet sees, with the music buttons on or off (owner 2026-10-26: the user can enable and disable them). */
+  const withMedia = async (on: boolean) => {
+    const all = await ipc.settingsGetAll();
+    return vi.spyOn(ipc, "settingsGetAll").mockResolvedValue({ ...all, "pet.media": on });
+  };
+
+  it("with music buttons on, they sit next to the timer and press the Windows media keys (H4, Unverified)", async () => {
     const ua = vi.spyOn(window.navigator, "userAgent", "get").mockReturnValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
     const media = vi.spyOn(ipc, "petMedia").mockResolvedValue(undefined as never);
+    await withMedia(true);
     renderPet();
     await screen.findByRole("button", { name: /^Loaf\./ });
     await act(async () => { await ipc.focusStart({ kind: "FOCUS", minutes: 25, task_id: null }); });
     try {
       await screen.findByRole("timer", {}, { timeout: 2000 });
-      fireEvent.click(screen.getByRole("button", { name: "Play or pause music" }));
+      fireEvent.click(await screen.findByRole("button", { name: "Play or pause music" }));
       fireEvent.click(screen.getByRole("button", { name: "Next track" }));
       expect(media).toHaveBeenNthCalledWith(1, "play-pause");
       expect(media).toHaveBeenNthCalledWith(2, "next");
     } finally {
       await act(async () => { await ipc.focusStop(); });
       ua.mockRestore();
-      media.mockRestore();
     }
   });
 
-  it("media buttons also show on a Mac (H4, Unverified)", async () => {
+  it("with music buttons on and no focus timer, a Music strip shows under the pet with previous, play/pause and next", async () => {
     const ua = vi.spyOn(window.navigator, "userAgent", "get").mockReturnValue("Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0)");
+    const media = vi.spyOn(ipc, "petMedia").mockResolvedValue(undefined as never);
+    const hover = vi.spyOn(ipc, "petHover");
+    await withMedia(true);
     renderPet();
-    await screen.findByRole("button", { name: /^Loaf\./ });
-    await act(async () => { await ipc.focusStart({ kind: "FOCUS", minutes: 25, task_id: null }); });
-    try {
-      await screen.findByRole("timer", {}, { timeout: 2000 });
-      expect(screen.getByRole("button", { name: "Next track" })).toBeTruthy();
-    } finally {
-      await act(async () => { await ipc.focusStop(); });
-      ua.mockRestore();
-    }
+    const strip = await screen.findByRole("group", { name: "Music" });
+    fireEvent.click(within(strip).getByRole("button", { name: "Previous track" }));
+    expect(media).toHaveBeenCalledWith("previous");
+    await waitFor(() => expect(hover).toHaveBeenCalledWith(true, expect.any(Number), expect.any(Number), true));
+    ua.mockRestore();
   });
 
-  it("no media buttons on other systems (H4)", async () => {
-    const ua = vi.spyOn(window.navigator, "userAgent", "get").mockReturnValue("Mozilla/5.0 (X11; Linux x86_64)");
+  it("with music buttons off (the default) there are none, even during focus", async () => {
+    const ua = vi.spyOn(window.navigator, "userAgent", "get").mockReturnValue("Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+    await withMedia(false);
     renderPet();
     await screen.findByRole("button", { name: /^Loaf\./ });
+    expect(screen.queryByRole("group", { name: "Music" })).toBeNull();
     await act(async () => { await ipc.focusStart({ kind: "FOCUS", minutes: 25, task_id: null }); });
     try {
       await screen.findByRole("timer", {}, { timeout: 2000 });
@@ -193,6 +211,15 @@ describe("desktop pet", () => {
       await act(async () => { await ipc.focusStop(); });
       ua.mockRestore();
     }
+  });
+
+  it("no music buttons on other systems, even when turned on (H4)", async () => {
+    const ua = vi.spyOn(window.navigator, "userAgent", "get").mockReturnValue("Mozilla/5.0 (X11; Linux x86_64)");
+    await withMedia(true);
+    renderPet();
+    await screen.findByRole("button", { name: /^Loaf\./ });
+    expect(screen.queryByRole("group", { name: "Music" })).toBeNull();
+    ua.mockRestore();
   });
 
   it("shows the chosen pet pack instead of the bear (FR-63)", async () => {

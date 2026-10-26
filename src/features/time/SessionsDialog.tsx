@@ -3,7 +3,9 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { Badge } from "@/components/ui/badge";
 import { ipc, type TimeRange } from "@/ipc";
 import { clockTime, formatDuration } from "@/lib/time";
+import { Bars, type Bar } from "@/features/charts/Bars";
 import { categoryStyle } from "./categories";
+import { hourName, sessionStats } from "./sessionStats";
 
 export interface Detail { kind: "app" | "domain"; name: string; category: string }
 
@@ -29,12 +31,18 @@ export function SessionsDialog({ detail, from, to, onClose }: { detail: Detail |
   const byDay = new Map<number, TimeRange[]>();
   for (const r of data) byDay.set(dayStart(r.started_at), [...(byDay.get(dayStart(r.started_at)) ?? []), r]);
   const days = [...byDay.entries()].sort((a, b) => b[0] - a[0]);
+  const stats = sessionStats(data);
+  const hourBars: Bar[] = stats.hourly.map((v, h) => ({ key: String(h), value: v, label: h % 6 === 0 ? String(h) : "", title: `${hourName(h)}: ${formatDuration(v)}`, active: h === stats.peakHour }));
+  const dayBars: Bar[] = stats.daily.map((d) => ({
+    key: String(d.day), value: d.seconds, label: stats.daily.length > 8 ? String(new Date(d.day).getDate()) : new Date(d.day).toLocaleDateString([], { weekday: "narrow" }), active: true,
+    title: `${new Date(d.day).toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" })}: ${formatDuration(d.seconds)}, ${d.sessions} ${d.sessions === 1 ? "session" : "sessions"}`,
+  }));
   const first = data[0]?.started_at;
   const last = data[data.length - 1]?.ended_at;
 
   return (
     <Dialog open={detail !== null} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-xl gap-0 overflow-hidden">
+      <DialogContent className="max-w-2xl gap-0 overflow-hidden">
         <div className="flex items-center gap-3 border-b p-5 pr-12">
           <span className={`grid size-10 place-items-center rounded-lg text-base font-semibold ${style.tile}`}>{detail?.name.charAt(0).toUpperCase()}</span>
           <div className="min-w-0">
@@ -52,9 +60,34 @@ export function SessionsDialog({ detail, from, to, onClose }: { detail: Detail |
             <p className="py-8 text-center text-[13px] text-muted-foreground">Nothing was recorded for {detail?.name} in this period.</p>
           ) : (
             <>
-              {first && last && days.length === 1 && (
-                <p className="mb-4 text-[13px]">Active from <span className="font-semibold">{clockTime(first)}</span> to <span className="font-semibold">{clockTime(last)}</span></p>
+              <ul aria-label="Summary" className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {[
+                  ["Total", formatDuration(stats.total)],
+                  ["Sessions", String(stats.count)],
+                  ["Longest", formatDuration(stats.longest)],
+                  ["Average", formatDuration(stats.average)],
+                ].map(([label, value]) => (
+                  <li key={label} className="rounded-lg border bg-muted/20 px-3 py-2.5">
+                    <p className="text-[11px] font-medium text-muted-foreground">{label}</p>
+                    <p className="mt-1 text-lg font-semibold leading-none tabular-nums">{value}</p>
+                  </li>
+                ))}
+              </ul>
+              <p className="mb-5 text-[13px] text-muted-foreground">
+                {stats.peakHour !== null && <>Most used around <span className="font-semibold text-foreground">{hourName(stats.peakHour)}</span>. </>}
+                {first && last && days.length === 1 && <>Active from <span className="font-semibold text-foreground">{clockTime(first)}</span> to <span className="font-semibold text-foreground">{clockTime(last)}</span>.</>}
+              </p>
+              <section aria-label="When you use it" className="mb-5">
+                <h3 className="mb-2 text-xs font-medium">When you use it <span className="font-normal text-muted-foreground">· by hour of the day</span></h3>
+                <Bars bars={hourBars} className="h-28 gap-1" ariaLabel={`Time by hour of the day. Most used: ${stats.peakHour === null ? "none" : hourName(stats.peakHour)}`} />
+              </section>
+              {days.length > 1 && (
+                <section aria-label="By day" className="mb-5">
+                  <h3 className="mb-2 text-xs font-medium">By day</h3>
+                  <Bars bars={dayBars} className="h-28" average={stats.total / days.length} ariaLabel={`Time per day: ${dayBars.map((b) => b.value).join(", ")}`} />
+                </section>
               )}
+              <h3 className="mb-2 text-xs font-medium">Sessions</h3>
               <div className="space-y-5">
                 {days.map(([start, list]) => (
                   <section key={start} aria-label={dayTitle(start)}>

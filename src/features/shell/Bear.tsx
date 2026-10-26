@@ -3,6 +3,8 @@ import { cn } from "@/lib/utils";
 import { BackLaptop, Pocket } from "@/features/character/Laptop";
 import { Clipboard, Tear } from "@/features/character/SpriteProps";
 import { BearDefs, BearTurned, TURNED_POSES, isTurnedPose } from "./BearViews";
+import { headGear, neckGear } from "@/features/wardrobe/Accessories";
+import type { ItemId } from "@/features/wardrobe/wardrobe";
 
 /** Everything the bear can do. Reactions (src/pet/reactions.ts) pick one of these. */
 const FRONT_POSES = ["idle", "wave", "sleep", "work", "type", "wait", "stow", "cheer", "party", "catch", "worried", "ring", "toss", "jump", "sad", "review"] as const;
@@ -53,7 +55,7 @@ const CONFETTI = [
  * a warm rim light on the shadow side, contact shadows where parts meet, and a blurred ground
  * shadow. `animated` turns on the motion (CSS transforms only; reduced motion stops it).
  */
-export function Bear({ pose = "idle", animated = false, className, style }: { pose?: BearPose; animated?: boolean; className?: string; style?: React.CSSProperties }) {
+export function Bear({ pose = "idle", animated = false, className, style, wear = [] }: { pose?: BearPose; animated?: boolean; className?: string; style?: React.CSSProperties; wear?: readonly ItemId[] }) {
   const u = useId().replace(/:/g, "");
   const g = (name: string) => `${name}-${u}`;
   const url = (name: string) => `url(#${g(name)})`;
@@ -225,7 +227,9 @@ export function Bear({ pose = "idle", animated = false, className, style }: { po
           {pose === "worried" && (
             <path d="M150 52 q6 10 0 14 q-6 -4 0 -14 z" fill="#93C5FD" stroke="#60A5FA" strokeWidth="1" className={anim("bear-sweat")} />
           )}
+          {headGear(wear)}
         </g>
+        {neckGear(wear)}
 
         {/* Typing: the arms reach over the lid to the keys; the lid hides the paw tips. */}
         {look.arms === "reach" && (["l", "r"] as const).map((side) => {

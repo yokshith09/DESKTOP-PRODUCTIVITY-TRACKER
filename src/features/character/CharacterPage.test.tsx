@@ -11,7 +11,7 @@ const boba: PetPack = { id: "boba", display_name: "Boba", description: "A boba t
 const short: PetPack = { id: "mini", display_name: "Mini", description: "", rows: 3, format: "webp", source: "loaf" };
 
 function renderPage() {
-  vi.spyOn(ipc, "settingsGetAll").mockResolvedValue({ "pet.pack": null } as never);
+  vi.spyOn(ipc, "settingsGetAll").mockResolvedValue({ "pet.pack": null, "pet.media": false } as never);
   vi.spyOn(ipc, "petsList").mockResolvedValue([boba, short]);
   vi.spyOn(ipc, "petsSheet").mockResolvedValue("data:image/webp;base64,AA==");
   vi.spyOn(ipc, "prefsGet").mockResolvedValue(null as never);
@@ -45,5 +45,14 @@ describe("Character page preview (F1/F2)", () => {
     expect(group.querySelectorAll("button")).toHaveLength(3);
     fireEvent.click(screen.getByRole("button", { name: "Preview Loaf the bear" }));
     expect(await screen.findByRole("group", { name: "Preview pose" })).toBeTruthy();
+  });
+
+  it("the music buttons under the pet are an option the user turns on and off (H4)", async () => {
+    const set = vi.spyOn(ipc, "settingSet").mockResolvedValue(undefined as never);
+    renderPage();
+    const sw = await screen.findByRole("switch", { name: "Music buttons under the pet" });
+    expect(sw.getAttribute("aria-checked")).toBe("false");
+    fireEvent.click(sw);
+    await waitFor(() => expect(set).toHaveBeenCalledWith("pet.media", true));
   });
 });

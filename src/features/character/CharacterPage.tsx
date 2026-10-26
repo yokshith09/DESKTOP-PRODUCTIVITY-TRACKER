@@ -9,6 +9,8 @@ import { useQuery } from "@tanstack/react-query";
 import { ipc } from "@/ipc";
 import { NudgeSettings } from "@/features/settings/NudgeSettings";
 import { CompanionPanel } from "@/features/companion/CompanionPanel";
+import { WardrobePanel } from "@/features/wardrobe/WardrobePanel";
+import { useWorn } from "@/features/wardrobe/useWardrobe";
 import { ReactionsPanel } from "@/features/companion/ReactionsPanel";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
@@ -41,6 +43,7 @@ export function CharacterPage() {
   const { data: packs = [] } = useQuery({ queryKey: ["pets", "library"], queryFn: ipc.petsList });
   const shownPack = shown ? packs.find((p) => p.id === shown) : undefined;
   const [pose, setPose] = useState<BearPose>("idle");
+  const worn = useWorn();
   const [replay, setReplay] = useState(0);
   const [visible, setVisible] = useSetting("pet.visible");
   const [size, setSize] = useSetting("pet.size");
@@ -48,6 +51,7 @@ export function CharacterPage() {
   const [onTop, setOnTop] = useSetting("pet.always_on_top");
   const [typing, setTyping] = useSetting("pet.typing");
   const [hoverCard, setHoverCard] = useSetting("pet.hover_card");
+  const [media, setMedia] = useSetting("pet.media");
   const px = SIZES[size ?? "M"];
   const emote = useRef<EmoteRun | null>(null);
   useEffect(() => () => emote.current?.cancel(), []);
@@ -65,7 +69,7 @@ export function CharacterPage() {
           {shownPack ? <PackPreview key={shownPack.id} pack={shownPack} /> : (
             <>
           <div className="grid min-h-72 w-full flex-1 place-items-center rounded-lg border bg-muted/40 [background-image:radial-gradient(circle_at_center,var(--border)_1px,transparent_1px)] [background-size:16px_16px]">
-            <Bear key={`${pose}-${replay}`} pose={pose} animated className="size-56" />
+            <Bear key={`${pose}-${replay}`} pose={pose} wear={worn} animated className="size-56" />
           </div>
           <div className="flex w-full items-center justify-between">
             <div>
@@ -106,6 +110,9 @@ export function CharacterPage() {
           <Row label="Card when I hover the pet" hint="Today at a glance when you hover the pet. Off: the same facts (focus time left, the next task, the next reminder) come as a short bubble instead.">
             <Switch checked={hoverCard ?? true} onCheckedChange={(v) => void setHoverCard(v)} aria-label="Card when I hover the pet" />
           </Row>
+          <Row label="Music buttons under the pet" hint="Previous, play or pause, and next for whatever is playing (YouTube, Spotify…). Windows and macOS. Off by default.">
+            <Switch checked={media ?? false} onCheckedChange={(v) => void setMedia(v)} aria-label="Music buttons under the pet" />
+          </Row>
           <Row label="Always on top" hint="Keep the companion above other windows.">
             <Switch checked={onTop ?? true} onCheckedChange={(v) => void setOnTop(v)} aria-label="Always on top" />
           </Row>
@@ -131,6 +138,7 @@ export function CharacterPage() {
       <PetLibrary shown={shownPack ? shown : null} onShow={setShown} />
       <div className="mt-6"><NudgeSettings /></div>
       <CompanionPanel />
+      <WardrobePanel />
       <ReactionsPanel />
     </div>
   );

@@ -5,6 +5,10 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Added (2026-10-26, owner's follow-up; Unverified on a real PC): **Accessories and outfits** for the bear (Character → Accessories and outfits): nine things to wear — party hat, crown, beanie, cap, headphones (head), round glasses, sunglasses (face), bow tie, scarf (neck) — one per place, and six outfits (Cosy, Smart, Study, Cool, Royal, Party). All free and open, nothing earned or locked. The look shows on the pet and the Character preview and moves with the head. A party hat is worn on your birthday and the pet's (can be turned off). Saved as `ui.wardrobe` (in the data export). A picture character from the library keeps its own look; the turned-around views (back-turn emote) are drawn without accessories. The two "Later" tiles are gone.
+- Added (2026-10-26; OS part Unverified): **Music buttons under the pet are now an option**, off by default (Character → "Music buttons under the pet", setting `pet.media`). On: Previous / Play-pause / Next appear beside the focus timer, or alone under the pet when no focus session is running. Windows and macOS only.
+- Changed (2026-10-26): **Time → an app's sessions** is richer: totals (time, sessions, longest, average), the busiest hour in words, a 24-hour "when you use it" chart, a by-day chart over several days, then the session list.
+
 ## [0.5.0] — 2026-10-26 (draft for owner testing; Unverified)
 
 Task editor and Projects redesigned, resizable Today tiles, highlighted quote, Character → Reactions, hello as a text bubble, Character page preview, Settings without sub-tabs, pet focus timer below the pet with media buttons (Windows and macOS), Time Analytics view, time tracking now counts the app in front, character standard and skill. Nothing here has run on a real PC yet.

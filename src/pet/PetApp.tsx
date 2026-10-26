@@ -11,6 +11,7 @@ import { ipc, onEvent, onPetSay, petAction, type TaskRow } from "@/ipc";
 import { cn } from "@/lib/utils";
 import { PetCard } from "./PetCard";
 import { glanceText } from "./glance";
+import { WARDROBE_KEY, useWorn } from "@/features/wardrobe/useWardrobe";
 import { enqueue, isAsleep, reactionForSay, type Reaction } from "./reactions";
 import { parseReactionSettings, reactionWithSettings } from "./reactionSettings";
 import { useTypingAlong } from "./typing";
@@ -52,6 +53,7 @@ type Panel = "card" | "bubble" | "timer" | null;
 export function PetApp() {
   useTheme();
   const qc = useQueryClient();
+  const worn = useWorn();
   const { data: settings } = useSettings();
   const { data: openToday = [] } = useTodayTasks();
   const size = SIZES[settings?.["pet.size"] ?? "M"];
@@ -65,6 +67,11 @@ export function PetApp() {
   const focus = useFocus();
   const focusRef = useRef(focus.session);
   focusRef.current = focus.session;
+  // Music buttons (owner 2026-10-26): Windows and macOS only, and only when the user turned them on.
+  const canMedia = typeof navigator !== "undefined" && /windows|macintosh|mac os x/i.test(navigator.userAgent);
+  const mediaOn = canMedia && (settings?.["pet.media"] ?? false);
+  const mediaRef = useRef(mediaOn);
+  mediaRef.current = mediaOn;
   const { data: reminders = [] } = useReminders(false);
   const [anchor, setAnchor] = useState<Anchor | null>(null);
   const [panel, setPanel] = useState<Panel>(null);
@@ -112,7 +119,7 @@ export function PetApp() {
     await ipc.petHover(false, 0, 0);
   };
   /** Back to resting: the focus timer while a session runs, else just the pet. */
-  const settle = () => (focusRef.current ? expand("timer") : collapse());
+  const settle = () => (focusRef.current || mediaRef.current ? expand("timer") : collapse());
 
   // Play the next waiting reaction: pose for its duration, bubble unless the card is open.
   const playingRef = useRef<Reaction | null>(null);
@@ -138,9 +145,11 @@ export function PetApp() {
   // Keep the card fresh, and react to what happens in Loaf.
   // Messages from the dashboard, e.g. the daily routine reminder (FR-85), shown above the pet.
   useEffect(() => onPetSay((say) => {
+    // A say can follow a change of look made in the dashboard (a separate window): look again.
+    void qc.invalidateQueries({ queryKey: WARDROBE_KEY });
     const r = reactionForSay(say, BEAR_POSES);
     if (r) reactRef.current(r);
-  }), []);
+  }), [qc]);
   useEffect(() => onEvent((e) => {
     wake();
     // The user's changes to what the pet does (Character page) are read fresh for each event.
@@ -173,7 +182,7 @@ export function PetApp() {
   };
 
   // The timer comes and goes with the session, unless a bubble or the card is showing.
-  const running = !!focus.session;
+  const running = !!focus.session || mediaOn;
   useEffect(() => {
     if (running && panelRef.current === null) void expand("timer");
     if (!running && panelRef.current === "timer") void collapse();
@@ -275,8 +284,6 @@ export function PetApp() {
     press.current = null;
   };
 
-  // Media keys are sent through Windows (SendInput) or macOS (NSEvent via osascript), both Unverified; elsewhere the buttons stay hidden.
-  const canMedia = typeof navigator !== "undefined" && /windows|macintosh|mac os x/i.test(navigator.userAgent);
   const working = openToday.some((r) => r.task.status === "IN_PROGRESS");
   // Typing along beats hover and the rest: you are busy, it keeps you company.
   const pose: BearPose = playing?.pose ?? (napping ? "sleep" : typing !== "off" ? typing : hovering ? "wave" : asleep ? "sleep" : working ? "work" : "idle");
@@ -294,7 +301,7 @@ export function PetApp() {
       {packId && sheet ? (
         <SpritePet sheet={sheet} row={ROW_FOR_POSE[pose]} size={size} label={`${packId} (${pose})`} className="pointer-events-none mx-auto" />
       ) : (
-        <Bear key={playing ? `${playing.pose}-${playing.bubble}` : typing !== "off" ? "typing" : pose} pose={pose} animated className="pointer-events-none size-full" />
+        <Bear key={playing ? `${playing.pose}-${playing.bubble}` : typing !== "off" ? "typing" : pose} pose={pose} wear={worn} animated className="pointer-events-none size-full" />
       )}
     </button>
   );
@@ -304,8 +311,10 @@ export function PetApp() {
     : panel === "bubble" && playing
       ? <Bubble text={bubbleText(playing)} anchor={anchor} />
       : panel === "timer" && focus.session
-        ? <FocusChip label={focus.session.kind === "BREAK" ? "Break" : focus.session.label || "Focus"} left={clock(focus.remaining)} paused={focus.session.paused_at !== null} onPause={(p) => void focus.pause(p)} media={canMedia} />
-        : null;
+        ? <FocusChip label={focus.session.kind === "BREAK" ? "Break" : focus.session.label || "Focus"} left={clock(focus.remaining)} paused={focus.session.paused_at !== null} onPause={(p) => void focus.pause(p)} media={mediaOn} />
+        : panel === "timer" && mediaOn
+          ? <MediaChip />
+          : null;
 
   return (
     <div
@@ -338,6 +347,20 @@ function Bubble({ text, anchor }: { text: string; anchor: Anchor | null }) {
       style={{ width: BUBBLE_W, height: bubbleHeight(text) }}
     >
       <span className="line-clamp-6">{text}</span>
+    </div>
+  );
+}
+
+const MEDIA_BTN = "grid size-6 shrink-0 place-items-center border-2 border-foreground/70 bg-background font-mono text-[10px] leading-none outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring";
+
+/** Music buttons alone under the pet, when the user turned them on and no focus timer is running. Unverified on a real OS. */
+function MediaChip() {
+  return (
+    <div className="flex shrink-0 items-center justify-center gap-1.5 border-2 border-foreground/70 bg-popover px-2 font-mono text-popover-foreground shadow-[3px_3px_0_0_var(--border)]" style={{ width: TIMER_W, height: TIMER_H, imageRendering: "pixelated" }} role="group" aria-label="Music">
+      <span className="mr-auto text-[10.5px] text-muted-foreground">Music</span>
+      <button type="button" aria-label="Previous track" onClick={() => void ipc.petMedia("previous")} className={MEDIA_BTN}>◀◀</button>
+      <button type="button" aria-label="Play or pause music" onClick={() => void ipc.petMedia("play-pause")} className={MEDIA_BTN}>♪</button>
+      <button type="button" aria-label="Next track" onClick={() => void ipc.petMedia("next")} className={MEDIA_BTN}>▶▶</button>
     </div>
   );
 }
