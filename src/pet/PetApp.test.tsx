@@ -167,8 +167,22 @@ describe("desktop pet", () => {
     }
   });
 
-  it("no media buttons when the system is not Windows (H4)", async () => {
-    const ua = vi.spyOn(window.navigator, "userAgent", "get").mockReturnValue("Mozilla/5.0 (Macintosh; Intel Mac OS X)");
+  it("media buttons also show on a Mac (H4, Unverified)", async () => {
+    const ua = vi.spyOn(window.navigator, "userAgent", "get").mockReturnValue("Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0)");
+    renderPet();
+    await screen.findByRole("button", { name: /^Loaf\./ });
+    await act(async () => { await ipc.focusStart({ kind: "FOCUS", minutes: 25, task_id: null }); });
+    try {
+      await screen.findByRole("timer", {}, { timeout: 2000 });
+      expect(screen.getByRole("button", { name: "Next track" })).toBeTruthy();
+    } finally {
+      await act(async () => { await ipc.focusStop(); });
+      ua.mockRestore();
+    }
+  });
+
+  it("no media buttons on other systems (H4)", async () => {
+    const ua = vi.spyOn(window.navigator, "userAgent", "get").mockReturnValue("Mozilla/5.0 (X11; Linux x86_64)");
     renderPet();
     await screen.findByRole("button", { name: /^Loaf\./ });
     await act(async () => { await ipc.focusStart({ kind: "FOCUS", minutes: 25, task_id: null }); });

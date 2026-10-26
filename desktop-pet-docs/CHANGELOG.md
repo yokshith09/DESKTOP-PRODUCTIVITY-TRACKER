@@ -5,6 +5,10 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Fixed (2026-10-26, time tracking audit): **the app in front was not counted until you switched away.** Totals only read saved sessions, so a long stretch in one app showed as zero, and the page only refreshed when something was saved. Now the stretch in progress is included in the totals (Time page, Today, pet card) and the pages look again every 30 seconds while open. Idle time is still cut off at your last input once Loaf notices (up to about 6 minutes later), so the number can briefly run ahead and then drop back. Tests added in core and the collector.
+- Added (2026-10-26): **macOS media buttons** (play/pause, next, previous) via system media-key events sent by `osascript`; may ask for the Accessibility permission. Unverified (nobody ran it on a Mac). The pet shows the buttons on Windows and macOS.
+- Docs (2026-10-26): how often Loaf looks at the computer, per feature (PROJECT_STATUS §4.8).
+
 - Changed (2026-10-26, owner's UI reset batch 2 — F, G, H, I2; OS parts Unverified):
   - **Character page** (F1–F3): stays as it was; choosing another character changes the preview and shows that character's animations. Name, birthday, age in days and the daily-hello tile; accessories, outfits and reactions are shown as "Later".
   - **Settings** (G1, G3): no groups or sub-tabs. Pet settings live only on the Character page; tracking settings moved to the Time page, reminder sound/alerts to Today's agenda. What is left is General, Keyboard shortcuts, Auto-delete, Your data, Advanced and About. Hints are at most 2–3 lines.

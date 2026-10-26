@@ -257,8 +257,8 @@ export function PetApp() {
     press.current = null;
   };
 
-  // Media keys are sent through Windows only (Unverified); elsewhere the buttons stay hidden.
-  const canMedia = typeof navigator !== "undefined" && /windows/i.test(navigator.userAgent);
+  // Media keys are sent through Windows (SendInput) or macOS (NSEvent via osascript), both Unverified; elsewhere the buttons stay hidden.
+  const canMedia = typeof navigator !== "undefined" && /windows|macintosh|mac os x/i.test(navigator.userAgent);
   const working = openToday.some((r) => r.task.status === "IN_PROGRESS");
   // Typing along beats hover and the rest: you are busy, it keeps you company.
   const pose: BearPose = playing?.pose ?? (napping ? "sleep" : typing !== "off" ? typing : hovering ? "wave" : asleep ? "sleep" : working ? "work" : "idle");

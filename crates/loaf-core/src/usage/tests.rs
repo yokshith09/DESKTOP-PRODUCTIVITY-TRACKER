@@ -1232,3 +1232,76 @@ fn known_trackers_match_the_domain_and_its_subdomains_only() {
     assert!(!is_known_tracker("notdoubleclick.net"));
     assert!(!is_known_tracker("github.com"));
 }
+
+#[test]
+fn the_tracker_reports_the_stretch_in_progress() {
+    let mut t = Tracker::default();
+    assert!(t.open_session(T0).is_none());
+    run(&mut t, vec![focus(T0, "Code.exe")]);
+    let open = t.open_session(T0 + 10 * MIN).unwrap();
+    assert_eq!(
+        (open.app.as_str(), open.started_at, open.ended_at),
+        ("VS Code", T0, T0 + 10 * MIN)
+    );
+    run(&mut t, vec![TrackEvent::Idle { at: T0 + 12 * MIN }]);
+    assert!(
+        t.open_session(T0 + 20 * MIN).is_none(),
+        "nothing is timed while idle"
+    );
+}
+
+#[tokio::test]
+async fn the_app_in_front_counts_before_it_is_saved() {
+    let f = fixture();
+    let now = f.clock.now_ms();
+    f.usage
+        .record_app_session(code(now - 3 * HOUR, now - 2 * HOUR))
+        .await
+        .unwrap();
+    f.usage.set_live(Some(code(now - 30 * MIN, now - 30 * MIN)));
+    f.clock.advance_ms(0);
+    let s = f.usage.summary(now - 24 * HOUR, now + HOUR).await.unwrap();
+    assert_eq!(
+        s.total_seconds,
+        90 * 60,
+        "one saved hour plus 30 live minutes"
+    );
+    assert_eq!(s.apps[0].total_seconds, 90 * 60);
+    assert_eq!(s.apps[0].sessions, 2);
+    assert_eq!(s.hourly_seconds.iter().sum::<i64>(), 90 * 60);
+
+    f.clock.advance_ms(10 * MIN);
+    let s = f.usage.summary(now - 24 * HOUR, now + HOUR).await.unwrap();
+    assert_eq!(
+        s.total_seconds,
+        100 * 60,
+        "it keeps growing as the clock moves"
+    );
+
+    f.usage.set_live(None);
+    let s = f.usage.summary(now - 24 * HOUR, now + HOUR).await.unwrap();
+    assert_eq!(s.total_seconds, 60 * 60);
+}
+
+#[tokio::test]
+async fn the_live_stretch_is_clipped_to_the_range_and_can_add_a_new_app() {
+    let f = fixture();
+    let now = f.clock.now_ms();
+    f.usage.set_live(Some(app_session(
+        "Slack",
+        "Communication",
+        false,
+        now - HOUR,
+        now,
+    )));
+    let s = f.usage.summary(now - 30 * MIN, now + HOUR).await.unwrap();
+    assert_eq!(s.total_seconds, 30 * 60);
+    assert_eq!(s.apps.len(), 1);
+    assert_eq!(s.apps[0].app, "Slack");
+    let before = f
+        .usage
+        .summary(now - 5 * HOUR, now - 2 * HOUR)
+        .await
+        .unwrap();
+    assert_eq!(before.total_seconds, 0);
+}

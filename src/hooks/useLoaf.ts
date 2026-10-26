@@ -85,7 +85,9 @@ export const useTrackingStatus = () => useQuery({ queryKey: ["tracking", "status
 export const useOpenTabs = (enabled: boolean) =>
   useQuery({ queryKey: ["tabs", "open"], queryFn: ipc.petOpenTabs, enabled, staleTime: 0 });
 export const useUsage = (from: number, to: number) =>
-  useQuery({ queryKey: ["usage", from, to], queryFn: () => ipc.usageSummary(from, to), refetchInterval: false });
+  useQuery({ queryKey: ["usage", from, to], queryFn: () => ipc.usageSummary(from, to),
+    // The stretch in progress grows between saves, so look again now and then while the window is open.
+    refetchInterval: 30_000 });
 export const useAllTasks = () => useQuery({ queryKey: ["tasks", "all"], queryFn: () => ipc.tasksQuery("all") });
 export const useSettings = () => useQuery({ queryKey: keys.settings, queryFn: ipc.settingsGetAll });
 

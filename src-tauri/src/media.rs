@@ -6,11 +6,14 @@
 //!
 //! * **Windows**: `SendInput` with `VK_MEDIA_PLAY_PAUSE`, `VK_MEDIA_NEXT_TRACK` and
 //!   `VK_MEDIA_PREV_TRACK` (key down, key up).
-//! * **macOS and elsewhere**: not built. The command returns a plain "not available" error and
-//!   the buttons stay hidden there. macOS needs `NSEvent` system-defined events and a real Mac
-//!   to check them on; that is not done.
+//! * **macOS**: the same keys as `NSEvent` system-defined events (`NX_KEYTYPE_PLAY` 16,
+//!   `NX_KEYTYPE_NEXT` 17, `NX_KEYTYPE_PREVIOUS` 18), posted with a short JavaScript-for-
+//!   Automation script run by `/usr/bin/osascript`, so no extra crate or build step is needed.
+//!   macOS may ask for the Accessibility permission the first time.
+//! * **Elsewhere**: a plain "not available" error; the buttons stay hidden.
 //!
-//! Unverified on a real OS: the key mapping is unit-tested, nobody has pressed the buttons yet.
+//! Unverified on a real OS: the key mapping and the script text are unit-tested, nobody has
+//! pressed the buttons on a Windows PC or a Mac yet.
 
 use loaf_core::error::{AppError, Result};
 
@@ -28,8 +31,34 @@ pub fn key_for(action: &str) -> Option<u16> {
     }
 }
 
+/// The macOS `NX_KEYTYPE_*` code for a pet media action. Pure, so it is tested everywhere.
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+fn nx_key_for(action: &str) -> Option<u8> {
+    match action {
+        "play-pause" => Some(16),
+        "next" => Some(17),
+        "previous" => Some(18),
+        _ => None,
+    }
+}
+
+/// The JavaScript-for-Automation text that presses and releases one media key.
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+fn mac_script(nx_key: u8) -> String {
+    format!(
+        "ObjC.import('Cocoa');\
+         for (const down of [true, false]) {{\
+           const flags = down ? 0xa00 : 0xb00;\
+           const data = ({nx_key} << 16) | ((down ? 0xa : 0xb) << 8);\
+           const e = $.NSEvent.otherEventWithTypeLocationModifierFlagsTimestampWindowNumberContextSubtypeData1Data2(\
+             $.NSEventTypeSystemDefined, $.NSMakePoint(0, 0), flags, 0, 0, null, 8, data, -1);\
+           $.CGEventPost(0, e.CGEvent);\
+         }}"
+    )
+}
+
 #[cfg(windows)]
-fn press(vk: u16) -> Result<()> {
+fn press(action: &str) -> Result<()> {
     use windows_sys::Win32::UI::Input::KeyboardAndMouse::{
         SendInput, INPUT, INPUT_0, INPUT_KEYBOARD, KEYBDINPUT, KEYEVENTF_KEYUP,
     };
@@ -61,16 +90,38 @@ fn press(vk: u16) -> Result<()> {
     }
 }
 
-#[cfg(not(windows))]
-fn press(_vk: u16) -> Result<()> {
-    Err(AppError::io("Media buttons only work on Windows for now."))
+#[cfg(target_os = "macos")]
+fn press(action: &str) -> Result<()> {
+    let key = nx_key_for(action)
+        .ok_or_else(|| AppError::validation("action", "Unknown media action."))?;
+    let status = std::process::Command::new("/usr/bin/osascript")
+        .args(["-l", "JavaScript", "-e", &mac_script(key)])
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .status()
+        .map_err(|_| AppError::io("Couldn't send the media key."))?;
+    if status.success() {
+        Ok(())
+    } else {
+        Err(AppError::io(
+            "Couldn't send the media key. macOS may need the Accessibility permission for Loaf.",
+        ))
+    }
+}
+
+#[cfg(not(any(windows, target_os = "macos")))]
+fn press(_action: &str) -> Result<()> {
+    Err(AppError::io(
+        "Media buttons only work on Windows and macOS.",
+    ))
 }
 
 #[tauri::command]
 pub fn pet_media(action: String) -> Result<()> {
-    let vk =
-        key_for(&action).ok_or_else(|| AppError::validation("action", "Unknown media action."))?;
-    press(vk)
+    if key_for(&action).is_none() {
+        return Err(AppError::validation("action", "Unknown media action."));
+    }
+    press(&action)
 }
 
 #[cfg(test)]
@@ -82,6 +133,17 @@ mod tests {
         assert_eq!(key_for("play-pause"), Some(0xB3));
         assert_eq!(key_for("next"), Some(0xB0));
         assert_eq!(key_for("previous"), Some(0xB1));
+    }
+
+    #[test]
+    fn mac_actions_map_to_the_nx_media_keys_and_the_script_names_the_right_one() {
+        assert_eq!(nx_key_for("play-pause"), Some(16));
+        assert_eq!(nx_key_for("next"), Some(17));
+        assert_eq!(nx_key_for("previous"), Some(18));
+        assert_eq!(nx_key_for("volume-up"), None);
+        let script = mac_script(17);
+        assert!(script.contains("(17 << 16)"));
+        assert!(script.contains("CGEventPost"));
     }
 
     #[test]

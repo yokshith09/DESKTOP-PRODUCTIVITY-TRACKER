@@ -17,7 +17,7 @@
 
 use std::collections::HashSet;
 use std::sync::atomic::{AtomicI64, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, PoisonError};
 
 use chrono::{DateTime, Timelike, Utc};
 use chrono_tz::Tz;
@@ -455,6 +455,20 @@ impl Tracker {
         self.idle
     }
 
+    /// The stretch in progress, if an app is in front and the person is active. Its `ended_at`
+    /// is `now`; it is not final and is never stored, only shown (see [`UsageService::set_live`]).
+    pub fn open_session(&self, now: i64) -> Option<AppSession> {
+        let started_at = self.open_since?;
+        let focused = self.focused.as_ref()?;
+        Some(AppSession {
+            app: focused.name.clone(),
+            category: focused.category.to_owned(),
+            is_browser: focused.is_browser,
+            started_at,
+            ended_at: now.max(started_at),
+        })
+    }
+
     /// Replace the "do not track" list. If the app in front is now excluded its session ends at
     /// `at` and nothing further is recorded for it.
     pub fn set_excluded(&mut self, at: i64, excluded: &[String]) -> Vec<AppSession> {
@@ -694,6 +708,9 @@ pub struct UsageService {
     clock: Arc<dyn Clock>,
     /// When `UsageUpdated` was last published by a recording (not a delete).
     last_notified: AtomicI64,
+    /// The stretch in progress, so the totals include the app in front right now instead of
+    /// lagging until the person switches away. Set by the collector; never stored.
+    live: Mutex<Option<AppSession>>,
 }
 
 impl UsageService {
@@ -702,7 +719,26 @@ impl UsageService {
             db,
             clock,
             last_notified: AtomicI64::new(i64::MIN),
+            live: Mutex::new(None),
         }
+    }
+
+    /// Tell the service which stretch is in progress (`None` when nothing is being timed).
+    pub fn set_live(&self, session: Option<AppSession>) {
+        *self.live.lock().unwrap_or_else(PoisonError::into_inner) = session;
+    }
+
+    fn live_now(&self) -> Option<AppSession> {
+        let mut s = self
+            .live
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .clone()?;
+        s.ended_at = self
+            .clock
+            .now_ms()
+            .min(s.started_at.saturating_add(MAX_SESSION_MS));
+        Some(s)
     }
 
     fn notification_due(&self, now: i64) -> bool {
@@ -795,7 +831,11 @@ impl UsageService {
     pub async fn summary(&self, from: i64, to: i64) -> Result<UsageSummary> {
         check_range(from, to)?;
         let tz = self.clock.tz();
-        self.db.read(move |c| read_summary(c, tz, from, to)).await
+        let mut summary = self.db.read(move |c| read_summary(c, tz, from, to)).await?;
+        if let Some(live) = self.live_now() {
+            add_live(&mut summary, tz, &live, from, to);
+        }
+        Ok(summary)
     }
 
     /// The exact active spans of one app within `[from, to)`, oldest first, clipped.
@@ -1144,6 +1184,39 @@ fn read_summary(conn: &Connection, tz: Tz, from: i64, to: i64) -> Result<UsageSu
         domains,
         hourly_seconds: hours.iter().map(|ms| ms / 1000).collect(),
     })
+}
+
+/// Add the stretch in progress (the part inside `[from, to)`) to a summary read from the database.
+fn add_live(summary: &mut UsageSummary, tz: Tz, live: &AppSession, from: i64, to: i64) {
+    let (start, end) = (live.started_at.max(from), live.ended_at.min(to));
+    if end - start < MIN_SESSION_MS {
+        return;
+    }
+    let seconds = (end - start) / 1000;
+    summary.total_seconds += seconds;
+    match summary.apps.iter_mut().find(|a| a.app == live.app) {
+        Some(a) => {
+            a.total_seconds += seconds;
+            a.sessions += 1;
+        }
+        None => summary.apps.push(AppUsage {
+            app: live.app.clone(),
+            category: live.category.clone(),
+            is_browser: live.is_browser,
+            total_seconds: seconds,
+            sessions: 1,
+        }),
+    }
+    summary.apps.sort_by(|a, b| {
+        b.total_seconds
+            .cmp(&a.total_seconds)
+            .then_with(|| a.app.cmp(&b.app))
+    });
+    let mut hours = [0i64; 24];
+    add_to_hours(&mut hours, tz, start, end);
+    for (slot, ms) in summary.hourly_seconds.iter_mut().zip(hours) {
+        *slot += ms / 1000;
+    }
 }
 
 /// Split `[start, end)` at local hour boundaries and add each piece (ms) to its hour of day.

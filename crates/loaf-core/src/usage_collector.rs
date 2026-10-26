@@ -179,7 +179,18 @@ impl<P: Platform> Worker<P> {
                 () = sleep_until_opt(flush_at) => self.flush().await,
             }
             self.rearm();
+            self.publish_live();
         }
+    }
+
+    /// Show the stretch in progress in the totals (not stored until it ends).
+    fn publish_live(&self) {
+        let live = if self.running.load(Ordering::Relaxed) {
+            self.tracker.open_session(self.clock.now_ms())
+        } else {
+            None
+        };
+        self.usage.set_live(live);
     }
 
     /// Timers exist only while there is something for them to do.
@@ -296,6 +307,7 @@ impl<P: Platform> Worker<P> {
         }
         let at = self.clock.now_ms();
         self.feed(TrackEvent::Shutdown { at });
+        self.usage.set_live(None);
         self.flush().await;
     }
 }
@@ -435,6 +447,25 @@ mod tests {
 
     async fn running(c: &Collector, want: bool) {
         eventually(|| async { c.is_running() == want }).await;
+    }
+
+    #[tokio::test]
+    async fn the_totals_include_the_app_in_front_before_it_is_saved() {
+        let f = fixture();
+        let c = f.collector(Timing::default());
+        f.settings.set("tracking.apps", json!(true)).await.unwrap();
+        running(&c, true).await;
+        f.platform.focus(Some("Code.exe"));
+        settle().await;
+        f.clock.advance_ms(10 * MIN);
+        let s = f.usage.summary(T0 - MIN, T0 + 60 * MIN).await.unwrap();
+        assert_eq!(s.total_seconds, 600, "nothing was saved yet, still counted");
+        assert!(f.spans("VS Code").await.is_empty());
+
+        f.settings.set("tracking.apps", json!(false)).await.unwrap();
+        running(&c, false).await;
+        let s = f.usage.summary(T0 - MIN, T0 + 60 * MIN).await.unwrap();
+        assert_eq!(s.total_seconds, 600, "saved now, counted once");
     }
 
     #[tokio::test]

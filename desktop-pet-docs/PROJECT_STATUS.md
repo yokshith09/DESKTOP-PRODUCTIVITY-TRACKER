@@ -156,6 +156,20 @@ Every claim is tagged with how it was checked. **Fact** = seen in code, tests, G
 
 Not fixable without the other OS: Safari (private windows can't be told apart, kept off on purpose), Arc and Firefox on Mac (no way to ask), Windows localisation. The UI now lists the right browsers per OS.
 
+#### How often Loaf looks at the computer (audit 2026-10-26, from the code)
+
+| What | Windows | macOS |
+|---|---|---|
+| Which app is in front | Not polled: a Windows event fires on each change | Looked at once a second, reported only on change |
+| Idle check (is the person still there?) | Every 60 s, only while tracking is on and a trackable app is in front; away after 5 min with no input, and the time stops at the last input | same |
+| Waking from sleep | Seen as a gap of more than 150 s between two idle checks; the session ends at the last check | same |
+| Saving to the database | One batch 60 s after the first unsaved session | same |
+| Typing along (off by default) | Key count every 200 ms while on | same |
+| Sites in the browser (off by default) | Every 2 s while the browser is in front | same |
+| Pet wake/monitor watcher | Every 60 s | same |
+
+Known causes of "wrong time" found in this audit: (1) the app in front was not counted until you left it — **fixed 2026-10-26**; (2) up to ~6 minutes after you walk away still show as active until the idle check catches up, then drop back (by design, Unverified); (3) all Microsoft Store apps share one name, "Windows App" (they run inside `ApplicationFrameHost.exe`), **open**; (4) on a Mac, clicking the desktop counts as Finder, **open**; (5) time in Loaf's own windows counts as "Loaf". Everything here is Unverified on a real machine.
+
 ### 4.7 Deprecated
 
 | Item | Replaced by |
