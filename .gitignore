@@ -15,3 +15,5 @@ coverage/
 /spikes/
 packs/*/atlas.svg
 packs/*/spritesheet.png
+__pycache__/
+*.pyc
