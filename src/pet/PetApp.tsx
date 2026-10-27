@@ -51,7 +51,16 @@ type Panel = "card" | "bubble" | "timer" | null;
  * short animation and a speech bubble (see reactions.ts).
  */
 /** Poses that share a row of a picture pet's sheet get their own motion, so a ring, a toss and a catch don't look alike. */
-export const PACK_MOTION: Partial<Record<BearPose, string>> = { ring: "pet-shake", toss: "pet-toss", catch: "pet-pop" };
+/** All in place: a hover greeting must not move the pet (owner 2026-10-27: "it moves when my cursor comes near"). */
+export const PACK_MOTION: Partial<Record<BearPose, string>> = { wave: "pet-pop", ring: "pet-shake", toss: "pet-toss", catch: "pet-pop" };
+
+/** Resolves after the browser has painted the current layout. */
+function nextPaint(): Promise<void> {
+  return new Promise((done) => {
+    if (typeof requestAnimationFrame === "function") requestAnimationFrame(() => requestAnimationFrame(() => done()));
+    else setTimeout(done, 0);
+  });
+}
 
 export function PetApp() {
   useTheme();
@@ -112,7 +121,21 @@ export function PetApp() {
     }
     const [w, h] = next === "card" ? [CARD_W, CARD_H] : next === "timer" ? [TIMER_W, TIMER_H] : [BUBBLE_W, bubbleHeight(text)];
     // The timer sits under the pet, in its own pixel area; the card and bubble keep above.
-    const a = await ipc.petHover(true, w, h, next === "timer");
+    const below = next === "timer";
+    // Lay out for the grown window first (the pet in its corner, the panel clipped), then grow it:
+    // the pet is already where it will stay, so it does not jump when the cursor comes near.
+    const planned = await ipc.petPlan(w, h, below);
+    if (planned) {
+      setAnchor(planned);
+      setPanel(next);
+      await nextPaint();
+      // A drag that began meanwhile gets the window as it is; the panel follows at its end.
+      if (draggingRef.current) {
+        deferred.current = { kind: "expand", next, text };
+        return;
+      }
+    }
+    const a = await ipc.petHover(true, w, h, below);
     if (a) {
       setAnchor(a);
       setPanel(next);
@@ -123,9 +146,11 @@ export function PetApp() {
       deferred.current = { kind: "collapse" };
       return;
     }
+    // Shrink first, then drop the panel: the other order re-centred the pet in the big window
+    // for a moment, so it jumped every time the cursor left it.
+    await ipc.petHover(false, 0, 0);
     setAnchor(null);
     setPanel(null);
-    await ipc.petHover(false, 0, 0);
   };
   /** Back to resting: the focus timer while a session runs, else just the pet. */
   const settle = () => (focusRef.current ? expand("timer") : collapse());
@@ -207,8 +232,6 @@ export function PetApp() {
   const onEnter = () => {
     wake();
     setHovering(true);
-    // A pack's waving row is a small movement; a hop makes the greeting plain (the bear raises an arm).
-    if (packId) setHop(true);
     clearTimeout(timers.current.leave);
     timers.current.enter = window.setTimeout(() => (hoverCard ? void openCard() : glance()), 350);
   };
@@ -349,7 +372,7 @@ export function PetApp() {
     >
       <p className="sr-only" role="status">{playing?.bubble ?? ""}</p>
       {anchor && extra ? (
-        <div className={cn("flex h-full flex-col gap-2", anchor.card === "below" && "flex-col-reverse", anchor.pet === "right" ? "items-end" : "items-start")}>
+        <div className={cn("flex h-full flex-col justify-end gap-2", anchor.card === "below" && "flex-col-reverse", anchor.pet === "right" ? "items-end" : "items-start")}>
           <div className={cn("contents", dragging && "[&>*]:invisible")}>{extra}</div>
           {bear}
         </div>

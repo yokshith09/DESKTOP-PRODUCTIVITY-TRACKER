@@ -5,6 +5,8 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Fixed (pet; owner 2026-10-27, "it moves when my cursor comes near"; Unverified on a real PC): the pet jumped on every hover and every leave. Causes found: (1) growing the window was two steps (size, then position), so for a moment the window had the new size at the old place; (2) the page laid itself out for the card only after the window had grown, and on leave dropped the card before the window shrank, so the pet was re-centred in the wrong window for a moment; (3) the gap between pet and card was 8 physical pixels while the page uses 8 CSS pixels, so at 125%/150% scaling the pet was pushed down a few pixels each time; (4) 0.5.1's hover hop on picture pets moved them up 8 px. Now: one `SetWindowPos` call on Windows; the page lays out first (new `pet_plan`), then the window grows; on leave the window shrinks first; the gap follows the screen scale; the hover greeting and the toss are in place (pop, tilt). Tests in `pet.rs` and `PetApp.test.tsx`. macOS still moves the window in two calls (no single call there), so a one-frame flicker may remain on a Mac.
+
 ## [0.5.1] — 2026-10-27 (draft for owner testing; Unverified)
 
 Fixes and polish from the owner's 2026-10-27 test of 0.5.0: pet Sleep and drag, wardrobe alignment, confirmations, two tile sizes, evenly organised pages, a better Analytics view, four time-tracking gaps, and livelier picture pets. Nothing here has run on a real PC yet.

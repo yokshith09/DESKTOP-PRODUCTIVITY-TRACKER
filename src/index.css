@@ -229,7 +229,7 @@ html.pet * { scrollbar-width: none; }
 .pet-shake { animation: pet-shake 0.5s ease-in-out 2; }
 @keyframes pet-shake { 25% { transform: rotate(-7deg); } 75% { transform: rotate(7deg); } }
 .pet-toss { animation: pet-toss 0.7s ease-out; }
-@keyframes pet-toss { 50% { transform: translateY(-10px) rotate(14deg); } }
+@keyframes pet-toss { 50% { transform: rotate(16deg) scale(1.05); } }
 .pet-pop { animation: pet-pop 0.4s cubic-bezier(.2,.9,.3,1.4); }
 @keyframes pet-pop { from { transform: scale(0.8); } }
 @media (prefers-reduced-motion: reduce) { .pet-shake, .pet-toss, .pet-pop { animation: none; } }

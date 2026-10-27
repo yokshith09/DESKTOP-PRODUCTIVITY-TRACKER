@@ -223,6 +223,7 @@ pub fn run() {
             ipc::action_item_convert,
             ipc::participants_suggest,
             pet::pet_hover,
+            pet::pet_plan,
             pet::pet_click,
             pet::pet_double_click,
             pet::pet_command,

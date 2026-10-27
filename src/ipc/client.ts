@@ -94,6 +94,8 @@ export const ipc = {
   dataImport: () => call<Record<string, number> | null>("data_import"),
   dataDeleteAll: (confirm: string) => call<unknown>("data_delete_all", { confirm }),
   /** `below`: the panel prefers the side under the pet (the focus timer), if it fits there. */
+  petPlan: (cardWidth: number, cardHeight: number, below?: boolean) =>
+    call<{ pet: "left" | "right"; card: "above" | "below" } | null>("pet_plan", { cardWidth, cardHeight, below: below ?? null }),
   petHover: (expanded: boolean, cardWidth: number, cardHeight: number, below?: boolean) =>
     call<{ pet: "left" | "right"; card: "above" | "below" } | null>("pet_hover", { expanded, cardWidth, cardHeight, below: below ?? null }),
   petClick: () => call<unknown>("pet_click"),

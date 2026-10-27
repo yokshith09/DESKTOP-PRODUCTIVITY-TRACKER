@@ -383,3 +383,4 @@ Still open: none of Q1-Q7 except the Q4 spike result.
 - **Loaf's own windows are not tracked** (`IGNORED` in `usage.rs`). Reason: planning inside Loaf is not time spent elsewhere, and the owner listed it as a gap. Easy to flip if they want it back.
 - **Idle:** the live total stops at the last input once a look finds the person away for a full interval (stored sessions already ended at the last input).
 - **Store apps / Mac desktop:** Windows looks inside `ApplicationFrameHost.exe` for the real process; macOS treats Finder with no on-screen window (layer 0) as the desktop. Neither has run on a real machine.
+- **Pet never moves by itself (2026-10-27).** Hover and reaction motions are in place (scale, tilt, shake); the window is moved and resized in one step where the OS allows it, and the page is laid out for the new window before it grows and after it shrinks.

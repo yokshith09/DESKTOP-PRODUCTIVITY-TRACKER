@@ -181,7 +181,7 @@ describe("desktop pet", () => {
     expect(screen.queryByRole("img", { name: /Loaf the bear/ })).toBeNull();
   });
 
-  it("a picture pet waves and hops when you hover it, and is shown asleep after Sleep", async () => {
+  it("a picture pet waves in place when you hover it, and is shown asleep after Sleep", async () => {
     const all = await ipc.settingsGetAll();
     vi.spyOn(ipc, "settingsGetAll").mockResolvedValue({ ...all, "pet.pack": "boba" });
     vi.spyOn(ipc, "petsSheet").mockResolvedValue("data:image/webp;base64,AA==");
@@ -189,7 +189,9 @@ describe("desktop pet", () => {
     const pet = await screen.findByRole("img", { name: /^boba \(/ });
     fireEvent.mouseEnter(pet.closest("div.flex") as HTMLElement);
     await waitFor(() => expect(screen.getByRole("img", { name: /^boba \(wave\)/ }).getAttribute("data-row")).toBe("waving"));
-    expect(screen.getByRole("button", { name: /^Loaf\./ }).className).toContain("pet-hop");
+    // The greeting is in place: no hop, which moved the pet when the cursor came near (owner 2026-10-27).
+    expect(screen.getByRole("button", { name: /^Loaf\./ }).className).not.toContain("pet-hop");
+    expect(screen.getByRole("img", { name: /^boba \(wave\)/ }).className).toContain("pet-pop");
     fireEvent.click(await screen.findByRole("button", { name: /^Sleep/ }, { timeout: 2000 }));
     await waitFor(() => expect(screen.getByRole("img", { name: /^boba \(sleep\)/ }).getAttribute("data-rest")).toBe("true"));
   });
@@ -213,7 +215,25 @@ describe("desktop pet", () => {
     renderPet();
     fireEvent.mouseEnter(bear().closest("div.flex") as HTMLElement);
     expect(await screen.findByRole("status", { name: "Today at a glance" }, { timeout: 2000 })).toBeTruthy();
-    expect(hover).toHaveBeenCalledWith(true, expect.any(Number), expect.any(Number), false);
+    await waitFor(() => expect(hover).toHaveBeenCalledWith(true, expect.any(Number), expect.any(Number), false));
+  });
+
+  it("the pet keeps its place when the cursor comes near: lay out first, then grow; shrink first, then clear (owner 2026-10-27)", async () => {
+    const order: string[] = [];
+    vi.spyOn(ipc, "petPlan").mockImplementation(async () => { order.push("plan"); return { pet: "right", card: "above" }; });
+    vi.spyOn(ipc, "petHover").mockImplementation(async (expanded) => {
+      // The page is already laid out for the grown window when it grows, and still when it shrinks.
+      order.push(`${expanded ? "grow" : "shrink"}:${document.querySelector("[data-pet-bear]")?.parentElement?.className.includes("justify-end") ? "corner" : "centre"}`);
+      return expanded ? { pet: "right", card: "above" } : null;
+    });
+    renderPet();
+    const root = bear().closest("div.flex") as HTMLElement;
+    fireEvent.mouseEnter(root);
+    await screen.findByRole("status", { name: "Today at a glance" }, { timeout: 2000 });
+    fireEvent.mouseLeave(root);
+    await waitFor(() => expect(order).toContain("shrink:corner"));
+    expect(order.slice(order.indexOf("plan"))).toEqual(["plan", "grow:corner", "shrink:corner"]);
+    await waitFor(() => expect(screen.queryByRole("status", { name: "Today at a glance" })).toBeNull());
   });
 
   it("one click opens the dashboard, a double click hides it, a right click opens the menu", async () => {
@@ -316,6 +336,7 @@ describe("desktop pet", () => {
     renderPet();
     fireEvent.mouseEnter(bear().closest("div.flex") as HTMLElement);
     const card = await screen.findByRole("status", { name: "Today at a glance" }, { timeout: 2000 });
+    await waitFor(() => expect(hover).toHaveBeenCalledWith(true, expect.any(Number), expect.any(Number), false));
     fireEvent.pointerDown(card, { button: 0, buttons: 1, screenX: 10, screenY: 10 });
     fireEvent.pointerMove(card, { buttons: 1, screenX: 40, screenY: 40 }); // the drag starts
     hover.mockClear();

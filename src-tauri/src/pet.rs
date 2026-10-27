@@ -31,7 +31,7 @@ const POSITION_PREF: &str = "pet.position";
 /// Space between the pet and the edge of the screen when it is placed by default.
 const MARGIN: i32 = 24;
 /// Space between the pet and its card.
-const GAP: u32 = 8;
+const GAP: u32 = 8; // logical pixels, as `gap-2` in the page
 
 /// A rectangle in physical pixels.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -61,27 +61,31 @@ pub struct Anchor {
 /// The window grown to hold the card next to the pet, kept inside the work area. The pet's
 /// own square stays exactly where it was.
 pub fn expanded(pet: Rect, card_w: u32, card_h: u32, work: Rect) -> (Rect, Anchor) {
-    expanded_with(pet, card_w, card_h, work, false)
+    expanded_with(pet, card_w, card_h, GAP, work, false)
 }
 
 /// Like [`expanded`], but `prefer_below` keeps the panel under the pet whenever it fits there
 /// (the focus timer and media buttons always sit below the pet: owner 2026-10-25, H1/H4).
+/// `gap` is the space between pet and panel in physical pixels: the page's 8 CSS pixels times the
+/// screen scale. (A fixed 8 made the window shorter than the page at 125% or 150%, so the pet was
+/// pushed a few pixels down every time the card opened.)
 pub fn expanded_with(
     pet: Rect,
     card_w: u32,
     card_h: u32,
+    gap: u32,
     work: Rect,
     prefer_below: bool,
 ) -> (Rect, Anchor) {
     let w = pet.w.max(card_w);
-    let h = pet.h + GAP + card_h;
+    let h = pet.h + gap + card_h;
     // Above when it fits there; else below when it fits; else whichever side has more room, so
     // on a short screen the card is cut as little as possible (FR-43). Same for left/right.
     let (room_above, room_below) = (
         pet.y - work.y,
         work.y + work.h as i32 - (pet.y + pet.h as i32),
     );
-    let need_v = (card_h + GAP) as i32;
+    let need_v = (card_h + gap) as i32;
     let above = if prefer_below && room_below >= need_v {
         false
     } else {
@@ -98,7 +102,7 @@ pub fn expanded_with(
         pet.x
     };
     let y = if above {
-        pet.y - (card_h + GAP) as i32
+        pet.y - (card_h + gap) as i32
     } else {
         pet.y
     };
@@ -241,36 +245,17 @@ pub async fn pet_hover(
         return Ok(None);
     };
     if expanded {
-        let pet = match current_base(&w, &state) {
-            Some(base) if state.expanded.load(Ordering::SeqCst) => base,
-            _ => outer_rect(&w).map_err(internal)?,
-        };
-        let scale = w.scale_factor().map_err(internal)?;
-        let work = work_area(&w).unwrap_or(pet);
-        let (rect, anchor) = expanded_rect(
-            pet,
-            card_width,
-            card_height,
-            scale,
-            work,
-            below.unwrap_or(false),
-        );
+        let (pet, rect, anchor) = plan(&w, &state, card_width, card_height, below)?;
         *lock(&state.base) = Some(pet);
         *lock(&state.grown) = Some(rect);
         state.expanded.store(true, Ordering::SeqCst);
-        w.set_size(PhysicalSize::new(rect.w, rect.h))
-            .map_err(internal)?;
-        w.set_position(PhysicalPosition::new(rect.x, rect.y))
-            .map_err(internal)?;
+        set_bounds(&w, rect)?;
         Ok(Some(anchor))
     } else {
         if state.expanded.load(Ordering::SeqCst) {
             if let Some(base) = current_base(&w, &state) {
                 let dragged = *lock(&state.base) != Some(base);
-                w.set_size(PhysicalSize::new(base.w, base.h))
-                    .map_err(internal)?;
-                w.set_position(PhysicalPosition::new(base.x, base.y))
-                    .map_err(internal)?;
+                set_bounds(&w, base)?;
                 // The pet was dragged while its card was open: remember the new spot.
                 if dragged {
                     if let Some(settings) = app.try_state::<Arc<SettingsService>>() {
@@ -286,6 +271,78 @@ pub async fn pet_hover(
         }
         Ok(None)
     }
+}
+
+/// Where the card would go, without moving anything. The page lays itself out for this first
+/// (pet in its corner), so when the window grows the pet is already where it will stay.
+#[tauri::command]
+pub fn pet_plan(
+    card_width: f64,
+    card_height: f64,
+    below: Option<bool>,
+    app: AppHandle,
+    state: State<'_, Arc<PetState>>,
+) -> Result<Option<Anchor>> {
+    let Some(w) = window(&app) else {
+        return Ok(None);
+    };
+    Ok(Some(plan(&w, &state, card_width, card_height, below)?.2))
+}
+
+/// The pet's square, the grown window and where the pet sits in it.
+fn plan<R: Runtime>(
+    w: &WebviewWindow<R>,
+    state: &PetState,
+    card_width: f64,
+    card_height: f64,
+    below: Option<bool>,
+) -> Result<(Rect, Rect, Anchor)> {
+    let pet = match current_base(w, state) {
+        Some(base) if state.expanded.load(Ordering::SeqCst) => base,
+        _ => outer_rect(w).map_err(internal)?,
+    };
+    let scale = w.scale_factor().map_err(internal)?;
+    let work = work_area(w).unwrap_or(pet);
+    let (rect, anchor) = expanded_rect(
+        pet,
+        card_width,
+        card_height,
+        scale,
+        work,
+        below.unwrap_or(false),
+    );
+    Ok((pet, rect, anchor))
+}
+
+/// Move and resize in one step. Two steps (size, then position) showed the window for a moment at
+/// the new size but the old place, so the pet visibly jumped when the cursor came near it
+/// (owner 2026-10-27). Windows has a single call for both; elsewhere it is two calls.
+fn set_bounds<R: Runtime>(w: &WebviewWindow<R>, r: Rect) -> Result<()> {
+    #[cfg(windows)]
+    {
+        use windows_sys::Win32::UI::WindowsAndMessaging::{
+            SetWindowPos, SWP_NOACTIVATE, SWP_NOOWNERZORDER, SWP_NOZORDER,
+        };
+        let hwnd = w.hwnd().map_err(internal)?;
+        // SAFETY: the handle is this live window's; the flags keep its z-order and focus.
+        let ok = unsafe {
+            SetWindowPos(
+                hwnd.0 as _,
+                std::ptr::null_mut(),
+                r.x,
+                r.y,
+                r.w as i32,
+                r.h as i32,
+                SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOACTIVATE,
+            )
+        };
+        if ok != 0 {
+            return Ok(());
+        }
+    }
+    w.set_size(PhysicalSize::new(r.w, r.h)).map_err(internal)?;
+    w.set_position(PhysicalPosition::new(r.x, r.y))
+        .map_err(internal)
 }
 
 /// The pet's square while the window is grown, following any drag of the grown window.
@@ -309,6 +366,7 @@ fn expanded_rect(
         pet,
         (card_w * scale).round() as u32,
         (card_h * scale).round() as u32,
+        (f64::from(GAP) * scale).round() as u32,
         work,
         prefer_below,
     )
@@ -840,10 +898,29 @@ mod tests {
             h: 128,
         };
         assert_eq!(expanded(pet, 184, 34, WORK).1.card, "above");
-        assert_eq!(expanded_with(pet, 184, 34, WORK, true).1.card, "below");
+        assert_eq!(expanded_with(pet, 184, 34, GAP, WORK, true).1.card, "below");
         // No room under the pet: it falls back to above rather than being cut off.
         let low = Rect { y: 912, ..pet };
-        assert_eq!(expanded_with(low, 184, 34, WORK, true).1.card, "above");
+        assert_eq!(expanded_with(low, 184, 34, GAP, WORK, true).1.card, "above");
+    }
+
+    #[test]
+    fn the_gap_scales_with_the_screen_so_the_pet_keeps_its_place() {
+        // 150%: the page's 8 px gap is 12 physical pixels. The window must hold pet + gap + card
+        // exactly, and the pet's square must not move.
+        let pet = Rect {
+            x: 1700,
+            y: 900,
+            w: 192,
+            h: 192,
+        };
+        let (r, a) = expanded_rect(pet, 300.0, 352.0, 1.5, WORK, false);
+        assert_eq!((a.pet, a.card), ("right", "above"));
+        assert_eq!(r.h, 192 + 12 + 528);
+        assert_eq!(
+            (r.x + r.w as i32, r.y + r.h as i32),
+            (pet.x + pet.w as i32, pet.y + pet.h as i32)
+        );
     }
 
     #[test]
