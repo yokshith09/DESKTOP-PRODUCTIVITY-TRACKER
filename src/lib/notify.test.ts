@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { PetSay } from "@/ipc";
-import { ERROR_MS, TOAST_MS, bubbleText, notify } from "./notify";
+import { ERROR_MS, TOAST_MS, bubbleText, completed, notify, setPetShown } from "./notify";
 
 // Every notification goes above the pet as a bubble; nothing shows inside the dashboard.
 let said: PetSay[] = [];
@@ -61,5 +61,15 @@ describe("notify: bubbles above the pet only", () => {
 
   it("ignores an unknown action id", () => {
     expect(() => window.dispatchEvent(new CustomEvent("loaf-pet-action", { detail: "nope" }))).not.toThrow();
+  });
+
+  it("a completion adds no bubble while the pet is on screen (its own reaction says it), and one when it is hidden", () => {
+    setPetShown(true);
+    completed("Water plants", vi.fn());
+    expect(said).toEqual([]);
+    setPetShown(false);
+    completed("Water plants", vi.fn());
+    setPetShown(true);
+    expect(said).toEqual([]); // hidden pet: shown in the dashboard instead, never as a bubble
   });
 });

@@ -121,6 +121,25 @@ pub fn follow(base: Rect, grown: Rect, x: i32, y: i32) -> Rect {
     }
 }
 
+/// Where the pet's square is, for saving. While the window is grown for the card, the window's own
+/// corner is not the pet's: the pet is `base` moved by however far the grown window was dragged.
+/// (Saving the corner, or skipping the save while grown, sent the pet back to an old spot the next
+/// time settings were applied: owner 2026-10-27, "it goes to another place".)
+pub fn pet_spot(
+    expanded: bool,
+    base: Option<Rect>,
+    grown: Option<Rect>,
+    outer: (i32, i32),
+) -> (i32, i32) {
+    match (expanded, base) {
+        (true, Some(base)) => {
+            let r = follow(base, grown.unwrap_or(base), outer.0, outer.1);
+            (r.x, r.y)
+        }
+        _ => outer,
+    }
+}
+
 /// Bottom-right of the work area.
 pub fn default_spot(size: u32, work: Rect) -> (i32, i32) {
     (
@@ -167,6 +186,8 @@ pub struct PetState {
     /// The grown window as it was set, to tell whether it was dragged since.
     grown: Mutex<Option<Rect>>,
     save_pending: AtomicBool,
+    /// The last spot written, so opening and closing the card does not write the same spot again.
+    saved: Mutex<Option<(i32, i32)>>,
 }
 
 fn lock<T>(m: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
@@ -523,10 +544,10 @@ pub fn on_moved<R: Runtime>(app: &AppHandle<R>, x: i32, y: i32) {
     let Some(state) = app.try_state::<Arc<PetState>>().map(|s| Arc::clone(&s)) else {
         return;
     };
-    if state.expanded.load(Ordering::SeqCst) {
-        return; // the window is grown for the card; the pet hasn't moved
+    // Moves while the window is grown are saved too (as the pet's own spot, see `pet_spot`).
+    if !state.expanded.load(Ordering::SeqCst) {
+        *lock(&state.base) = None;
     }
-    *lock(&state.base) = None;
     if state.save_pending.swap(true, Ordering::SeqCst) {
         return;
     }
@@ -542,14 +563,21 @@ pub fn on_moved<R: Runtime>(app: &AppHandle<R>, x: i32, y: i32) {
     tauri::async_runtime::spawn(async move {
         tokio::time::sleep(Duration::from_millis(600)).await;
         state.save_pending.store(false, Ordering::SeqCst);
-        if state.expanded.load(Ordering::SeqCst) {
+        let Ok(p) = w.outer_position() else {
+            return;
+        };
+        let spot = pet_spot(
+            state.expanded.load(Ordering::SeqCst),
+            *lock(&state.base),
+            *lock(&state.grown),
+            (p.x, p.y),
+        );
+        if lock(&state.saved).replace(spot) == Some(spot) {
             return;
         }
-        if let Ok(p) = w.outer_position() {
-            let _ = settings
-                .set_pref(POSITION_PREF, json!({ "x": p.x, "y": p.y }))
-                .await;
-        }
+        let _ = settings
+            .set_pref(POSITION_PREF, json!({ "x": spot.0, "y": spot.1 }))
+            .await;
     });
 }
 
@@ -854,6 +882,36 @@ mod tests {
                 h: 128
             }
         );
+    }
+
+    #[test]
+    fn the_saved_spot_is_the_pets_not_the_grown_windows_corner() {
+        let base = Rect {
+            x: 1000,
+            y: 800,
+            w: 128,
+            h: 128,
+        };
+        let grown = Rect {
+            x: 828,
+            y: 500,
+            w: 300,
+            h: 428,
+        };
+        // Not grown: the window is the pet.
+        assert_eq!(pet_spot(false, None, None, (640, 480)), (640, 480));
+        // Grown and not moved: still where the pet was set, not the window's corner.
+        assert_eq!(
+            pet_spot(true, Some(base), Some(grown), (828, 500)),
+            (1000, 800)
+        );
+        // Grown and dragged 128 left and 50 up: the pet moved by the same amount.
+        assert_eq!(
+            pet_spot(true, Some(base), Some(grown), (700, 450)),
+            (872, 750)
+        );
+        // Grown flag set but no base yet (between steps): fall back to the window.
+        assert_eq!(pet_spot(true, None, None, (10, 20)), (10, 20));
     }
 
     #[test]

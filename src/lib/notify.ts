@@ -76,6 +76,16 @@ function show(kind: Kind, message: string, o?: Options) {
   });
 }
 
+/**
+ * "Completed" feedback. With the pet on screen its own reaction ("Done! 2 left today") already says
+ * so and carries the Undo, so a second bubble would only repeat it (owner: double bubble). With
+ * the pet hidden, nothing else would tell you, so the dashboard shows it.
+ */
+export function completed(title: string, undo: () => void) {
+  if (petShown) return;
+  show("info", `Completed “${title}”`, { action: { label: "Undo", onClick: undo } });
+}
+
 export const notify = {
   success: (message: string, o?: Options) => show("success", message, o),
   info: (message: string, o?: Options) => show("info", message, o),

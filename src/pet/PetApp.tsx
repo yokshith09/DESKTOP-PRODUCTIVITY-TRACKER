@@ -99,7 +99,14 @@ export function PetApp() {
   hoverRef.current = hovering;
   panelRef.current = panel;
 
+  // A layout change (card, bubble, timer) while the OS is moving the window would resize it under
+  // the drag, so the pet slips off the cursor. It waits for the end of the drag instead.
+  const deferred = useRef<{ kind: "expand"; next: Exclude<Panel, null>; text: string } | { kind: "collapse" } | null>(null);
   const expand = async (next: Exclude<Panel, null>, text = "") => {
+    if (draggingRef.current) {
+      deferred.current = { kind: "expand", next, text };
+      return;
+    }
     const [w, h] = next === "card" ? [CARD_W, CARD_H] : next === "timer" ? [TIMER_W, TIMER_H] : [BUBBLE_W, bubbleHeight(text)];
     // The timer sits under the pet, in its own pixel area; the card and bubble keep above.
     const a = await ipc.petHover(true, w, h, next === "timer");
@@ -109,6 +116,10 @@ export function PetApp() {
     }
   };
   const collapse = async () => {
+    if (draggingRef.current) {
+      deferred.current = { kind: "collapse" };
+      return;
+    }
     setAnchor(null);
     setPanel(null);
     await ipc.petHover(false, 0, 0);
@@ -210,6 +221,7 @@ export function PetApp() {
     if (action) {
       // A reminder's "Done" is handled right here; other actions go back to the dashboard.
       if (action.id.startsWith("reminder-done:")) void ipc.reminderSetDone(action.id.slice("reminder-done:".length), true);
+      else if (action.id.startsWith("task-undo:")) void ipc.taskTransition(action.id.slice("task-undo:".length), "PLANNED");
       else if (action.id.startsWith("focus-break:")) void focus.start("BREAK", Number(action.id.slice("focus-break:".length)) || 5);
       else void petAction(action.id);
       const drop = (r: Reaction): Reaction => ({ pose: r.pose, bubble: r.bubble, ms: r.ms, priority: r.priority });
@@ -238,6 +250,14 @@ export function PetApp() {
     // Only the primary button starts a click or a drag. (jsdom leaves `button` unset.)
     if (e.button !== undefined && e.button !== 0) return;
     wake();
+    // A press on a button or link is a click, not a drag: once the OS takes over a drag the click
+    // never arrives (the card's Sleep button did nothing; owner 2026-10-27). The bear is a button
+    // too, and does drag.
+    const control = e.target instanceof Element ? e.target.closest("button, a, input, select, textarea") : null;
+    if (control && !control.hasAttribute("data-pet-bear")) {
+      press.current = null;
+      return;
+    }
     press.current = { x: e.screenX ?? 0, y: e.screenY ?? 0 };
   };
   const startDrag = (e: React.PointerEvent) => {
@@ -247,6 +267,7 @@ export function PetApp() {
     // Drag the window as it is: shrinking it first (to drop the card) loses the grab on Windows.
     // The card is hidden while dragging and the shell works out where the pet ended up.
     clearTimeout(timers.current.enter);
+    draggingRef.current = true;
     setDragging(true);
     void (async () => {
       if (isTauri()) {
@@ -257,9 +278,15 @@ export function PetApp() {
   };
   // The OS owns the pointer during a drag; the first move without a button pressed means it ended.
   const endDrag = () => {
+    draggingRef.current = false;
     setDragging(false);
-    // Lay the card out again for the new spot (it may need to open the other way now).
-    if (panelRef.current) void expand(panelRef.current);
+    const later = deferred.current;
+    deferred.current = null;
+    if (later?.kind === "collapse") void collapse();
+    // A bubble that finished while the pet was being dragged is not worth opening any more.
+    else if (later?.kind === "expand" && (later.next !== "bubble" || playingRef.current)) void expand(later.next, later.text);
+    // Otherwise lay the card out again for the new spot (it may need to open the other way now).
+    else if (panelRef.current) void expand(panelRef.current);
   };
   // One pointermove handler for the whole window: arm a drag while pressed, or notice one ended.
   const onWindowPointerMove = (e: React.PointerEvent) => {
@@ -284,7 +311,7 @@ export function PetApp() {
   const pose: BearPose = playing?.pose ?? (napping ? "sleep" : typing !== "off" ? typing : hovering ? "wave" : asleep ? "sleep" : working ? "work" : "idle");
   const bear = (
     <button
-      type="button" aria-label="Loaf. Click to open, double-click to hide, right-click for options"
+      type="button" data-pet-bear aria-label="Loaf. Click to open, double-click to hide, right-click for options"
       onPointerUp={onBearPointerUp}
       onContextMenu={(e) => { e.preventDefault(); void ipc.petMenu(); }}
       onAnimationEnd={(e) => e.target === e.currentTarget && setHop(false)}

@@ -24,9 +24,11 @@ export const RULES: Rules = {
   TaskStatusChanged: (e, ctx) => {
     if (e.to === "COMPLETED") {
       const left = ctx.openToday.filter((r) => r.task.id !== e.id).length;
+      // The one bubble for a completion also offers Undo (click the pet), so no second one is needed.
+      const undo = { id: `task-undo:${e.id}`, label: "Undo" };
       return left === 0
-        ? { pose: "party", bubble: "All done for today! 🎉", ms: 3600, priority: 4 }
-        : { pose: "cheer", bubble: `Done! ${left} left today`, ms: 3000, priority: 3 };
+        ? { pose: "party", bubble: "All done for today! 🎉", ms: 4500, priority: 4, action: undo }
+        : { pose: "cheer", bubble: `Done! ${left} left today`, ms: 4500, priority: 3, action: undo };
     }
     if (e.to === "IN_PROGRESS") {
       const row = ctx.openToday.find((r) => r.task.id === e.id);

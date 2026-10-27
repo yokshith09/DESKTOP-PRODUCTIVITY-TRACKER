@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { CalendarClock, ChevronDown, ListChecks, Plus, Search, X } from "lucide-react";
-import { notify } from "@/lib/notify";
+import { completed, notify } from "@/lib/notify";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -50,7 +50,7 @@ export function Row({ row, onOpen, n, inProject = false }: { row: TaskRow; onOpe
     }
     if (done) return void actions.setDone(task.id, false);
     await actions.setDone(task.id, true);
-    notify.info(`Completed “${task.title}”`, { action: { label: "Undo", onClick: () => void actions.setDone(task.id, false) } });
+    completed(task.title, () => void actions.setDone(task.id, false));
   };
   return (
     <li className={cn("group flex h-11 items-center gap-3 rounded-md px-2 hover:bg-accent/50", task.starred && "bg-primary/[0.06]")}>

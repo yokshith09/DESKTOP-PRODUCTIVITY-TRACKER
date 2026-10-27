@@ -11,7 +11,7 @@ const ev = (type: string, fields: Record<string, unknown> = {}) => ({ type, at: 
 describe("pet reactions", () => {
   it("cheers when a task is done, and throws a party for the last one", () => {
     const two = { openToday: [row("a"), row("b")] };
-    expect(reactionFor(ev("TaskStatusChanged", { id: "a", from: "PLANNED", to: "COMPLETED" }), two)).toMatchObject({ pose: "cheer", bubble: "Done! 1 left today" });
+    expect(reactionFor(ev("TaskStatusChanged", { id: "a", from: "PLANNED", to: "COMPLETED" }), two)).toMatchObject({ pose: "cheer", bubble: "Done! 1 left today", action: { id: "task-undo:a", label: "Undo" } });
     const one = { openToday: [row("a")] };
     expect(reactionFor(ev("TaskStatusChanged", { id: "a", from: "PLANNED", to: "COMPLETED" }), one)).toMatchObject({ pose: "party" });
   });

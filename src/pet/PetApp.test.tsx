@@ -226,6 +226,19 @@ describe("desktop pet", () => {
     expect(screen.getAllByText("Got it: “Buy honey”").length).toBeGreaterThan(0);
   });
 
+  it("completing a task is one bubble that also offers Undo; clicking the pet puts the task back", { timeout: 15_000 }, async () => {
+    renderPet();
+    let id = "";
+    await act(async () => { id = (await ipc.taskQuickAdd("Water plants")).id; });
+    await act(async () => { await ipc.taskTransition(id, "COMPLETED"); });
+    expect((await screen.findAllByText(/(Done! \d+ left today|All done for today!).*Undo|Undo/, undefined, { timeout: 6000 })).length).toBeGreaterThan(0);
+    // exactly one completion bubble, not a reaction plus a second message
+    expect(screen.queryAllByText(/Completed “Water plants”/)).toHaveLength(0);
+    fireEvent.pointerDown(bear(), { button: 0, buttons: 1, screenX: 10, screenY: 10 });
+    fireEvent.pointerUp(bear(), { button: 0, screenX: 10, screenY: 10 });
+    await waitFor(async () => expect((await ipc.taskGet(id)).status).toBe("PLANNED"));
+  });
+
   it("falls asleep only after 15 quiet minutes, and wakes on hover", async () => {
     vi.useFakeTimers();
     vi.spyOn(ipc, "petHover").mockResolvedValue(null);
@@ -265,6 +278,46 @@ describe("desktop pet", () => {
     expect(card.parentElement?.className).toContain("invisible");
     fireEvent.pointerMove(card, { buttons: 0, screenX: 40, screenY: 40 });
     await waitFor(() => expect(hover).toHaveBeenCalledWith(true, expect.any(Number), expect.any(Number), false));
+  });
+
+  it("a press on a card button is a click even if the mouse wobbles, so Sleep works (owner 2026-10-27)", async () => {
+    renderPet();
+    fireEvent.mouseEnter(bear().closest("div.flex") as HTMLElement);
+    const card = await screen.findByRole("status", { name: "Today at a glance" }, { timeout: 2000 });
+    const sleep = within(card).getByRole("button", { name: "Sleep" });
+    fireEvent.pointerDown(sleep, { button: 0, buttons: 1, screenX: 10, screenY: 10 });
+    fireEvent.pointerMove(sleep, { buttons: 1, screenX: 30, screenY: 30 }); // well past the drag distance
+    expect(card.parentElement?.className).not.toContain("invisible"); // no drag started
+    fireEvent.click(sleep);
+    expect(within(card).getByRole("button", { name: "Wake" })).toBeTruthy();
+  });
+
+  it("a reaction that arrives while the pet is being dragged waits, so the window is not resized under the drag", async () => {
+    const hover = vi.spyOn(ipc, "petHover");
+    renderPet();
+    fireEvent.mouseEnter(bear().closest("div.flex") as HTMLElement);
+    const card = await screen.findByRole("status", { name: "Today at a glance" }, { timeout: 2000 });
+    fireEvent.pointerDown(card, { button: 0, buttons: 1, screenX: 10, screenY: 10 });
+    fireEvent.pointerMove(card, { buttons: 1, screenX: 40, screenY: 40 }); // the drag starts
+    hover.mockClear();
+    act(() => { window.dispatchEvent(new CustomEvent("loaf-pet-say", { detail: { text: "Stretch break", pose: "wave", ms: 4000 } })); });
+    await new Promise((r) => setTimeout(r, 50));
+    expect(hover).not.toHaveBeenCalled(); // nothing resized mid-drag
+    fireEvent.pointerMove(card, { buttons: 0, screenX: 40, screenY: 40 }); // the drag ends
+    await waitFor(() => expect(hover).toHaveBeenCalledWith(true, expect.any(Number), expect.any(Number), false));
+  });
+
+  it("the circle beside a task on the card completes it; the rest of the row opens it (owner 2026-10-27)", async () => {
+    const cmd = vi.spyOn(ipc, "petCommand").mockResolvedValue(null);
+    const move = vi.spyOn(ipc, "taskTransition");
+    await ipc.taskQuickAdd("Send invoice");
+    renderPet();
+    fireEvent.mouseEnter(bear().closest("div.flex") as HTMLElement);
+    const card = await screen.findByRole("status", { name: "Today at a glance" }, { timeout: 2000 });
+    const circle = (await within(card).findAllByRole("button", { name: /^Complete task:/ }))[0] as HTMLElement;
+    fireEvent.click(circle);
+    await waitFor(() => expect(move).toHaveBeenCalledWith(expect.any(String), "COMPLETED"));
+    expect(cmd).not.toHaveBeenCalledWith("tasks");
   });
 
   it("a plain click on the card (no drag) does not open or hide the dashboard", async () => {
