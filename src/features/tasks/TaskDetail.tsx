@@ -231,13 +231,42 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
         </ul>
       )}
 
-      <div className="grid max-h-[68vh] gap-6 overflow-y-auto p-6 md:grid-cols-[minmax(0,1fr)_22rem]">
+      {/* How much it matters and where it is filed come first: they were at the bottom of the right-hand column (owner 2026-10-27). */}
+      <div role="group" aria-label="Task properties" className="grid gap-x-6 gap-y-4 border-b px-6 py-4 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="space-y-1.5">
+          <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"><Flag aria-hidden className="size-3.5" />Priority <span className="font-normal">· High comes first on Today</span></p>
+          <ToggleGroup type="single" value={priority} onValueChange={(v) => v && setPriority(v)} aria-label="Priority" className="w-full">
+            {PRIORITIES.map((p) => <ToggleGroupItem key={p.value} value={p.value} className="flex-1 px-2">{p.label}</ToggleGroupItem>)}
+          </ToggleGroup>
+        </div>
+        <div className="space-y-1.5">
+          <label htmlFor="td-project" className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"><FolderKanban aria-hidden className="size-3.5" />Project</label>
+          <Input id="td-project" value={project} maxLength={100} onChange={(e) => setProject(e.target.value)} placeholder="No project" aria-label="Project name" list="td-projects" />
+          <datalist id="td-projects">{projects.map((p) => <option key={p} value={p} />)}</datalist>
+        </div>
+        <div className="space-y-1.5">
+          <label htmlFor="td-note" className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"><Link2 aria-hidden className="size-3.5" />Note</label>
+          <div className="flex gap-2">
+            <select id="td-note" aria-label="Linked note" value={noteId} onChange={(e) => setNoteId(e.target.value)} className="h-8 min-w-0 flex-1 rounded-md border border-input bg-card px-2 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              <option value="">No note</option>
+              {notes.map((n) => <option key={n.id} value={n.id}>{n.title || "Untitled"}</option>)}
+            </select>
+            {noteId ? (
+              <Button size="sm" variant="outline" aria-label="Open note" onClick={() => setOpenNote(noteId)}><ExternalLink />Open</Button>
+            ) : (
+              <Button size="sm" variant="outline" aria-label="New note from this task" onClick={() => void noteFromTask()}><FilePlus2 />New note</Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid max-h-[60vh] gap-6 overflow-y-auto p-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         {/* 2. The work itself. */}
         <div className="min-w-0 space-y-6">
           <section aria-label="Details" className="space-y-2">
             <SectionHead icon={<AlignLeft />} title="Details" hint="What this task is about." />
             <textarea
-              value={description} onChange={(e) => setDescription(e.target.value)} rows={4} maxLength={20000} aria-label="Description" placeholder="Add details…"
+              value={description} onChange={(e) => setDescription(e.target.value)} rows={6} maxLength={20000} aria-label="Description" placeholder="Add details…"
               className="w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-[13.5px] leading-relaxed outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
             />
           </section>
@@ -313,29 +342,6 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
             </Sub>
             <Sub icon={<Bell />} title="Reminder" hint="A notification and the pet ring before it starts.">
               <TaskReminders task={task} />
-            </Sub>
-          </Card>
-
-          <Card icon={<FolderKanban />} title="Organise" hint="How it is filed and how much it matters.">
-            <Sub first icon={<Flag />} title="Priority" hint="High comes first on Today.">
-              <ToggleGroup type="single" value={priority} onValueChange={(v) => v && setPriority(v)} aria-label="Priority" className="w-full">
-                {PRIORITIES.map((p) => <ToggleGroupItem key={p.value} value={p.value} className="flex-1 px-2">{p.label}</ToggleGroupItem>)}
-              </ToggleGroup>
-            </Sub>
-            <Sub icon={<FolderKanban />} title="Project" hint="Keeps it with the project’s tasks and notes.">
-              <Input id="td-project" value={project} maxLength={100} onChange={(e) => setProject(e.target.value)} placeholder="No project" aria-label="Project name" list="td-projects" />
-              <datalist id="td-projects">{projects.map((p) => <option key={p} value={p} />)}</datalist>
-            </Sub>
-            <Sub icon={<Link2 />} title="Note" hint="A longer page for this task: plans, notes, research.">
-              <select id="td-note" aria-label="Linked note" value={noteId} onChange={(e) => setNoteId(e.target.value)} className="h-8 w-full rounded-md border border-input bg-card px-2 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                <option value="">No note</option>
-                {notes.map((n) => <option key={n.id} value={n.id}>{n.title || "Untitled"}</option>)}
-              </select>
-              {noteId ? (
-                <Button size="sm" variant="outline" className="w-full" onClick={() => setOpenNote(noteId)}><ExternalLink />Open note</Button>
-              ) : (
-                <Button size="sm" variant="outline" className="w-full" onClick={() => void noteFromTask()}><FilePlus2 />New note from this task</Button>
-              )}
             </Sub>
           </Card>
         </div>
