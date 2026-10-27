@@ -17,10 +17,13 @@ describe("cleanOrder", () => {
 
 describe("cleanSizes", () => {
   it("keeps known sizes for known tiles", () => {
-    expect(cleanSizes({ agenda: "l", focus: "s", time: "m" })).toEqual({ agenda: "l", focus: "s", time: "m" });
+    expect(cleanSizes({ agenda: "w", focus: "n" })).toEqual({ agenda: "w", focus: "n" });
+  });
+  it("turns the old three sizes into two: large is full width, small and medium are normal", () => {
+    expect(cleanSizes({ agenda: "l", focus: "s", time: "m" })).toEqual({ agenda: "w", focus: "n", time: "n" });
   });
   it("drops unknown tiles and sizes, and bad input", () => {
-    expect(cleanSizes({ agenda: "huge", nope: "l", links: "s" })).toEqual({ links: "s" });
+    expect(cleanSizes({ agenda: "huge", nope: "l", links: "s" })).toEqual({ links: "n" });
     expect(cleanSizes(null)).toEqual({});
     expect(cleanSizes("x")).toEqual({});
   });

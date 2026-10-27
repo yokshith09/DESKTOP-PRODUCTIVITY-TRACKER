@@ -3,29 +3,22 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ipc } from "@/ipc";
 
 /**
- * Time tiles sized by the user (FR-44): how wide the Apps/Sites list is beside "By category",
- * and how tall the row is. Snapped choices, remembered in prefs `ui.timeLayout`.
+ * Time tiles (FR-44; two choices only, owner 2026-10-27): the Apps/Sites list beside "By category",
+ * or each on its own full-width row. Remembered in prefs `ui.timeLayout`. The row height is fixed.
  */
-export type TileLayout = { width: "wide" | "even" | "stacked"; height: "short" | "medium" | "tall" };
-export const DEFAULT_LAYOUT: TileLayout = { width: "wide", height: "medium" };
+export type TileLayout = { width: "side" | "full" };
+export const DEFAULT_LAYOUT: TileLayout = { width: "side" };
 
 export const WIDTH_CLASS: Record<TileLayout["width"], [string, string]> = {
-  wide: ["lg:col-span-8", "lg:col-span-4"],
-  even: ["lg:col-span-6", "lg:col-span-6"],
-  stacked: ["lg:col-span-12", "lg:col-span-12"],
+  side: ["lg:col-span-8", "lg:col-span-4"],
+  full: ["lg:col-span-12", "lg:col-span-12"],
 };
-export const HEIGHT_CLASS: Record<TileLayout["height"], string> = {
-  short: "lg:[&>*]:h-[20rem]",
-  medium: "lg:[&>*]:h-[30rem]",
-  tall: "lg:[&>*]:h-[40rem]",
-};
+export const ROW_HEIGHT = "lg:[&>*]:h-[30rem]";
 
+/** Reads the saved choice. The old "wide" and "even" are side by side, the old "stacked" is full width. */
 export function parseLayout(raw: unknown): TileLayout {
-  const r = (raw && typeof raw === "object" ? raw : {}) as Partial<TileLayout>;
-  return {
-    width: r.width && r.width in WIDTH_CLASS ? r.width : DEFAULT_LAYOUT.width,
-    height: r.height && r.height in HEIGHT_CLASS ? r.height : DEFAULT_LAYOUT.height,
-  };
+  const w = raw && typeof raw === "object" ? (raw as { width?: unknown }).width : undefined;
+  return { width: w === "full" || w === "stacked" ? "full" : "side" };
 }
 
 export function useTileLayout(): [TileLayout, (l: TileLayout) => void] {
@@ -39,15 +32,9 @@ export function TileLayoutPicker({ value, onChange }: { value: TileLayout; onCha
   return (
     <div className="hidden items-center justify-end gap-3 text-xs text-muted-foreground lg:flex" role="group" aria-label="Tile layout">
       <span>Layout</span>
-      <ToggleGroup type="single" value={value.width} onValueChange={(v) => v && onChange({ ...value, width: v as TileLayout["width"] })} aria-label="Tile width">
-        <ToggleGroupItem value="wide">Wide list</ToggleGroupItem>
-        <ToggleGroupItem value="even">Even</ToggleGroupItem>
-        <ToggleGroupItem value="stacked">Stacked</ToggleGroupItem>
-      </ToggleGroup>
-      <ToggleGroup type="single" value={value.height} onValueChange={(v) => v && onChange({ ...value, height: v as TileLayout["height"] })} aria-label="Tile height">
-        <ToggleGroupItem value="short">Short</ToggleGroupItem>
-        <ToggleGroupItem value="medium">Medium</ToggleGroupItem>
-        <ToggleGroupItem value="tall">Tall</ToggleGroupItem>
+      <ToggleGroup type="single" value={value.width} onValueChange={(v) => v && onChange({ width: v as TileLayout["width"] })} aria-label="Tile width">
+        <ToggleGroupItem value="side">Side by side</ToggleGroupItem>
+        <ToggleGroupItem value="full">Full width</ToggleGroupItem>
       </ToggleGroup>
     </div>
   );

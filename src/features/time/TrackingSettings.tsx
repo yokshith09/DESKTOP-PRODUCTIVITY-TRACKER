@@ -2,13 +2,18 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { Row, Section } from "@/features/settings/parts";
+import { Settings2 } from "lucide-react";
+import { Row } from "@/features/settings/parts";
 import { useSetting } from "@/hooks/useTheme";
 import { ipc } from "@/ipc";
 import { notify } from "@/lib/notify";
 import { isMac } from "@/lib/platform";
 
-/** Tracking and privacy: the switches that decide what the Time page can show. Lives on the Time page. */
+/**
+ * Tracking and privacy: the switches that decide what the Time page can show. A button in the
+ * Time page header opens them (they used to sit in a tile at the bottom of the page: owner
+ * 2026-10-27), with the current state on the button so you can see it without opening it.
+ */
 export function TrackingSettings() {
   const [tracking, setTracking] = useSetting("tracking.apps");
   const [excluded, setExcluded] = useSetting("tracking.exclude_apps");
@@ -16,9 +21,19 @@ export function TrackingSettings() {
   const [safari, setSafari] = useSetting("tracking.safari");
   const [exclText, setExclText] = useState<string | null>(null);
   const [confirm, setConfirm] = useState(false);
+  const [open, setOpen] = useState(false);
   return (
     <>
-      <Section title="Tracking and privacy">
+      <Button variant="outline" size="sm" onClick={() => setOpen(true)} aria-label="Tracking and privacy settings">
+        <span className={tracking ? "size-2 rounded-full bg-emerald-500" : "size-2 rounded-full bg-muted-foreground/50"} />
+        {tracking ? "Tracking on" : "Tracking off"}
+        <Settings2 />
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-xl gap-1 p-5">
+          <DialogTitle className="text-base font-semibold">Tracking and privacy</DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">What Loaf records for the Time page. All of it stays on this computer.</DialogDescription>
+          <div className="mt-2 divide-y">
         <Row label="Track app usage" hint="Which app is in front, and for how long. Stays on this computer. Window titles are never stored.">
           <Switch checked={tracking ?? false} onCheckedChange={(v) => void setTracking(v)} aria-label="Track app usage" />
         </Row>
@@ -43,7 +58,9 @@ export function TrackingSettings() {
         <Row label="Delete tracked time" hint="Removes every recorded app and site session.">
           <Button variant="destructive" size="sm" onClick={() => setConfirm(true)}>Delete…</Button>
         </Row>
-      </Section>
+          </div>
+        </DialogContent>
+      </Dialog>
       <Dialog open={confirm} onOpenChange={setConfirm}>
         <DialogContent className="max-w-sm gap-3 p-5">
           <DialogTitle className="text-base font-semibold">Delete all tracked time?</DialogTitle>

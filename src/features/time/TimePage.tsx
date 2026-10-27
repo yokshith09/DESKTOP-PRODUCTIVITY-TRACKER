@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { CATEGORIES, categoryStyle } from "./categories";
 import { DailyLogs } from "./DailyLogs";
 import { OpenTabsPanel } from "./OpenTabsPanel";
-import { HEIGHT_CLASS, TileLayoutPicker, WIDTH_CLASS, useTileLayout } from "./tileLayout";
+import { ROW_HEIGHT, TileLayoutPicker, WIDTH_CLASS, useTileLayout } from "./tileLayout";
 import { PrivacyRadar } from "./PrivacyRadar";
 import { RANGES, rangeBounds, type RangeKey } from "./range";
 import { TimeAnalytics } from "./TimeAnalytics";
@@ -64,13 +64,13 @@ export function TimePage() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Time" description="Where your time went, by app and site." />
-      <ToggleGroup type="single" value={mode} onValueChange={(v) => v && setMode(v as "general" | "analytics")} aria-label="Time view">
-        <ToggleGroupItem value="general">General</ToggleGroupItem>
-        <ToggleGroupItem value="analytics">Analytics</ToggleGroupItem>
-      </ToggleGroup>
-
+      <PageHeader title="Time" description="Where your time went, by app and site." actions={<TrackingSettings />} />
       <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filters">
+        <ToggleGroup type="single" value={mode} onValueChange={(v) => v && setMode(v as "general" | "analytics")} aria-label="Time view">
+          <ToggleGroupItem value="general">General</ToggleGroupItem>
+          <ToggleGroupItem value="analytics">Analytics</ToggleGroupItem>
+        </ToggleGroup>
+        <span className="mx-1 hidden h-5 w-px bg-border sm:block" aria-hidden="true" />
         <ToggleGroup type="single" value={range} onValueChange={(v) => v && setRange(v as RangeKey)} aria-label="Period">
           {RANGES.map((r) => <ToggleGroupItem key={r.key} value={r.key}>{r.label}</ToggleGroupItem>)}
         </ToggleGroup>
@@ -108,7 +108,7 @@ export function TimePage() {
       </div>
 
       <TileLayoutPicker value={layout} onChange={setLayout} />
-      <div className={cn("grid gap-4 lg:grid-cols-12", HEIGHT_CLASS[layout.height])}>
+      <div className={cn("grid gap-4 lg:grid-cols-12", ROW_HEIGHT)}>
         <TimeCard from={from} to={to} category={cat} view={view} className={WIDTH_CLASS[layout.width][0]} title={view === "sites" ? "Sites" : "Apps"} />
         <Tile className={WIDTH_CLASS[layout.width][1]} title="By category" bodyClassName="p-4">
           {categories.length === 0 ? (
@@ -137,15 +137,16 @@ export function TimePage() {
         </Tile>
       </div>
 
-      <Tile className="h-64" title="Tasks completed" action={<span className="text-[11px] text-muted-foreground">{done} in this period</span>} bodyClassName="flex p-4">
-        <Bars bars={bars} className="flex-1" ariaLabel={`Tasks completed per day: ${bars.map((b) => b.value).join(", ")}`} />
-      </Tile>
       {view === "sites" && <PrivacyRadar from={from} to={to} enabled={sitesOn} />}
-      {/* FR-62: always here, not only under "Sites", so it can be found. */}
-      <OpenTabsPanel enabled={sitesOn} className="max-h-[26rem]" />
+      {/* Two even tiles side by side (FR-62: open tabs is always here, not only under "Sites", so it can be found). */}
+      <div className="grid gap-4 lg:grid-cols-2 lg:[&>*]:h-72">
+        <Tile title="Tasks completed" action={<span className="text-[11px] text-muted-foreground">{done} in this period</span>} bodyClassName="flex p-4">
+          <Bars bars={bars} className="flex-1" ariaLabel={`Tasks completed per day: ${bars.map((b) => b.value).join(", ")}`} />
+        </Tile>
+        <OpenTabsPanel enabled={sitesOn} />
+      </div>
       <DailyLogs className="max-h-[26rem]" />
       </>)}
-      <TrackingSettings />
       <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Info className="size-3.5" />Time is recorded on this computer only. Window titles and full web addresses are never stored.</p>
     </div>
   );

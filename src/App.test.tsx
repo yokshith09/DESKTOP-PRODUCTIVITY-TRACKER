@@ -282,6 +282,8 @@ describe("Notes screen (against the in-memory shell)", () => {
     const user = userEvent.setup();
     render(<App />);
     await goTo(user, /^Time/);
+    // The tracking switches are in a dialog opened from the page header, not a tile at the bottom.
+    await user.click(await screen.findByRole("button", { name: "Tracking and privacy settings" }));
     const sites = await screen.findByRole("switch", { name: "Track websites" });
     expect(sites.getAttribute("aria-checked")).toBe("false");
     await user.click(sites);
@@ -300,7 +302,9 @@ describe("Notes screen (against the in-memory shell)", () => {
     await goTo(user, /^Character/);
     expect(await screen.findByRole("switch", { name: "Type along with me" })).toBeTruthy();
     await goTo(user, /^Time/);
+    await user.click(await screen.findByRole("button", { name: "Tracking and privacy settings" }));
     expect(await screen.findByRole("switch", { name: "Track websites" })).toBeTruthy();
+    await user.keyboard("{Escape}");
     await goTo(user, /^Today/);
     expect((await screen.findAllByText("Reminder alerts")).length).toBeGreaterThan(0);
   });
@@ -902,16 +906,13 @@ describe("owner's UI reset, batch 1 (2026-10-25)", () => {
     expect(await screen.findByRole("dialog")).toBeTruthy();
   });
 
-  it("Today tiles can be resized: small, medium, large, and reset (owner: can I resize the tiles?)", async () => {
+  it("Today tiles have two sizes, normal and full width, and Reset puts them back (owner 2026-10-27)", async () => {
     const user = userEvent.setup();
     render(<App />);
-    const resize = await screen.findByRole("button", { name: /^Resize Focus: medium/ });
-    await user.click(resize);
-    expect(await screen.findByRole("button", { name: /^Resize Focus: large/ })).toBeTruthy();
-    await user.click(screen.getByRole("button", { name: /^Resize Focus: large/ }));
-    expect(await screen.findByRole("button", { name: /^Resize Focus: small/ })).toBeTruthy();
+    await user.click(await screen.findByRole("button", { name: /^Resize Focus: normal, make it full width/ }));
+    expect(await screen.findByRole("button", { name: /^Resize Focus: full width, make it normal/ })).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Reset layout" }));
-    expect(await screen.findByRole("button", { name: /^Resize Focus: medium/ })).toBeTruthy();
+    expect(await screen.findByRole("button", { name: /^Resize Focus: normal/ })).toBeTruthy();
   });
 
   it("the task editor suggests a next step and shows where the task is", async () => {
