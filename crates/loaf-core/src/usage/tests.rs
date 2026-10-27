@@ -1341,3 +1341,24 @@ fn coming_back_makes_the_live_stretch_follow_the_clock_again_and_nothing_is_lost
     let done = t.handle(TrackEvent::Shutdown { at: T0 + 5 * MIN });
     assert_eq!(brief(&done), vec![("VS Code", T0, T0 + 5 * MIN)]);
 }
+
+#[test]
+fn time_in_loaf_itself_is_not_counted_and_ends_the_stretch_before_it() {
+    let mut t = Tracker::default();
+    let done = run(
+        &mut t,
+        vec![
+            focus(T0, "Code.exe"),
+            focus(T0 + 10 * MIN, "loaf.exe"),
+            focus(T0 + 15 * MIN, "Code.exe"),
+            nothing(T0 + 20 * MIN),
+        ],
+    );
+    assert_eq!(
+        brief(&done),
+        vec![
+            ("VS Code", T0, T0 + 10 * MIN),
+            ("VS Code", T0 + 15 * MIN, T0 + 20 * MIN)
+        ]
+    );
+}

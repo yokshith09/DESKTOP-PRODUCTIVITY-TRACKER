@@ -145,7 +145,6 @@ const KNOWN: &[Known] = &[
     app("evernote", "Evernote", "Notes"),
     app("typora", "Typora", "Notes"),
     app("logseq", "Logseq", "Notes"),
-    app("loaf", "Loaf", "Notes"),
     app("spotify", "Spotify", "Entertainment"),
     app("steam", "Steam", "Entertainment"),
     app("netflix", "Netflix", "Entertainment"),
@@ -175,7 +174,8 @@ const KNOWN: &[Known] = &[
 ];
 
 /// Shell surfaces that flash in front of the real foreground app (lock screen, Start menu, task
-/// switcher). They are never "where time went".
+/// switcher), and Loaf itself: planning in Loaf is not time spent "somewhere else" (decided
+/// 2026-10-27; no setting yet, it is one line here to flip).
 const IGNORED: &[&str] = &[
     "lockapp",
     "logonui",
@@ -184,6 +184,7 @@ const IGNORED: &[&str] = &[
     "startmenuexperiencehost",
     "shellexperiencehost",
     "textinputhost",
+    "loaf",
     // macOS: the login and lock screen, the screen saver.
     "loginwindow",
     "screensaverengine",
