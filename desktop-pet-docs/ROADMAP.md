@@ -416,3 +416,8 @@ F1-20 and F1-21 (search) are cancelled; their numbers are retired.
 **Milestone 13.3 — Context**
 - App-specific reactions
 - Character pack download
+
+
+## Later (added 2026-10-27)
+
+- **Music buttons under the pet** (parked): the first try pressed system media keys and did not work reliably. Re-plan before building: per-OS media session (Windows SMTC, macOS MediaRemote), what to show when nothing plays, and a way to test without a real player. Not Planned until the owner approves.

@@ -203,6 +203,18 @@ pub fn is_shell_surface(exe: &str, class: &str) -> bool {
     stem_key(exe) == "explorer" && !matches!(class, "CabinetWClass" | "ExploreWClass")
 }
 
+/// Microsoft Store apps are all drawn inside this one program, so the shell must look inside the
+/// frame for the real app (it falls back to this name, "Windows App", when it cannot).
+pub fn is_store_frame(exe: &str) -> bool {
+    stem_key(exe) == "applicationframehost"
+}
+
+/// On a Mac, clicking the desktop makes Finder the app in front even though no Finder window is
+/// open. Finder with no window on screen is the desktop, not "where time went".
+pub fn is_bare_finder(app: &str, has_window: bool) -> bool {
+    !has_window && app.trim().eq_ignore_ascii_case("finder")
+}
+
 /// `C:\Apps\Chrome.EXE` -> `chrome`: the key used to look an app up.
 fn stem_key(path: &str) -> String {
     let base = base_name(path).to_lowercase();

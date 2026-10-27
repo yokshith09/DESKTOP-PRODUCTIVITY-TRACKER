@@ -46,7 +46,7 @@ Every claim is tagged with how it was checked. **Fact** = seen in code, tests, G
 | **Blockers** | Signing **on hold** (owner, 2026-10-19). Owner asked for the remote branch `claude/repo-context-review-trprp8` to be deleted; deletion failed from this session (proxy hang-up, retried). Owner or a session with push rights to run `git push origin --delete claude/repo-context-review-trprp8`. |
 | **Docs in progress (2026-10-22)** | Emote and Reactions System defined as FR-40 in [`docs/character/EMOTE_FEATURE_SPECS.md`](docs/character/EMOTE_FEATURE_SPECS.md); all **Planned**, except: the bear now has drawn three-quarter, back and look-back views and a tested `back_turn_shake` sequence runner with a preview button on the Character page, now also for Mochi, Pip, Bolt and Ghosty (**Unverified**: not seen on a real PC, not wired into the pet window). Rive trial (CH-08) **blocked**: needs a `.riv` authored by the owner in the Rive editor. |
 | **Next** | Owner's order after M3 (`ROADMAP.md`): M4 Quick Actions. Not started; not to start without the owner's go-ahead. |
-| **Latest (2026-10-26, after 0.5.0)** | Built, local, **Unverified on a real PC**: wardrobe (accessories and outfits for every character, FR-49 first part), music buttons as an opt-in setting (`pet.media`), richer per-app sessions view in Time. Tests re-run in this session: see CHANGELOG. Seasonal/weekday outfit schedules (FR-64) are still Planned. **0.5.0 CI failed on Windows only** (a compile error in the media-key code, now fixed and cross-checked against the Windows target). |
+| **Latest (2026-10-26, after 0.5.0)** | Built, local, **Unverified on a real PC**: wardrobe (accessories and outfits for every character, FR-49 first part), music buttons (UI removed 2026-10-27, parked), richer per-app sessions view in Time. Tests re-run in this session: see CHANGELOG. Seasonal/weekday outfit schedules (FR-64) are still Planned. **0.5.0 CI failed on Windows only** (a compile error in the media-key code, now fixed and cross-checked against the Windows target). |
 
 ---
 
@@ -169,7 +169,7 @@ Not fixable without the other OS: Safari (private windows can't be told apart, k
 | Sites in the browser (off by default) | Every 2 s while the browser is in front | same |
 | Pet wake/monitor watcher | Every 60 s | same |
 
-Known causes of "wrong time" found in this audit: (1) the app in front was not counted until you left it — **fixed 2026-10-26**; (2) up to ~6 minutes after you walk away still show as active until the idle check catches up, then drop back (by design, Unverified); (3) all Microsoft Store apps share one name, "Windows App" (they run inside `ApplicationFrameHost.exe`), **open**; (4) on a Mac, clicking the desktop counts as Finder, **open**; (5) time in Loaf's own windows counts as "Loaf". Everything here is Unverified on a real machine.
+Known causes of "wrong time" found in this audit: (1) the app in front was not counted until you left it — **fixed 2026-10-26**; (2) up to ~6 minutes after you walk away showed as active — **fixed 2026-10-27** (live total stops at the last input); (3) all Microsoft Store apps shared one name, "Windows App" — **fixed 2026-10-27** (Windows type-checked and linted, not run); (4) on a Mac, clicking the desktop counted as Finder — **fixed 2026-10-27** (type-checked and linted for macOS, not run); (5) time in Loaf's own windows counted as "Loaf" — **no longer counted (decision 2026-10-27)**. All Unverified on a real machine.
 
 ### 4.7 Deprecated
 

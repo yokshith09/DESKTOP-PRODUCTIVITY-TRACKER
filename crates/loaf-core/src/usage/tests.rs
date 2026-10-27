@@ -1362,3 +1362,25 @@ fn time_in_loaf_itself_is_not_counted_and_ends_the_stretch_before_it() {
         ]
     );
 }
+
+#[test]
+fn finder_without_a_window_is_the_desktop_and_other_apps_never_are() {
+    assert!(is_bare_finder("Finder", false));
+    assert!(is_bare_finder(" finder ", false));
+    assert!(
+        !is_bare_finder("Finder", true),
+        "a folder window is Finder at work"
+    );
+    assert!(!is_bare_finder("Code", false), "only Finder has a desktop");
+}
+
+#[test]
+fn only_the_store_frame_is_looked_inside() {
+    assert!(is_store_frame("ApplicationFrameHost.exe"));
+    assert!(is_store_frame(
+        r"C:\Windows\System32\applicationframehost.EXE"
+    ));
+    assert!(!is_store_frame("Calculator.exe"));
+    assert_eq!(display_name("ApplicationFrameHost.exe"), "Windows App");
+    assert_eq!(display_name("CalculatorApp.exe"), "CalculatorApp");
+}

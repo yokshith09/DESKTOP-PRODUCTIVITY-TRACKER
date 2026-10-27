@@ -371,3 +371,15 @@ Still open: none of Q1-Q7 except the Q4 spike result.
 - **Wardrobe works on every character** (owner, 2026-10-26, overriding my first cut that limited it to the bear). On the bear, accessories are SVG inside its head group. On sprite packs (Mochi, Pip, Bolt, Ghosty, imports) Loaf reads each frame's pixels once per sheet, finds the head top, width and neck (thin parts like antennas and sparkles ignored), and draws the same gear scaled onto it, per frame. It is a heuristic: a per-character **Fit** (x, y, size) is saved in `ui.wardrobe.fits` for packs where it sits wrong. If the browser cannot read pixels, a default spot is used. The bear's back-turn views have no accessories (open).
 - **Everything is free from day one**: no unlocks, streaks or "earned" gear, in line with the no-guilt rule. One item per place (head, face, neck); an outfit is a preset of those. The party hat on birthdays is a rule, not a schedule engine; the seasonal and weekday schedule (FR-64) stays **Planned**.
 - The pet window is a separate window, so after a change the dashboard sends a short "New look!" say; the pet reads `ui.wardrobe` again when it hears it (prefs have no change event).
+
+
+## 2026-10-27 — Owner's polish list and the time-tracking gaps
+
+- **Wardrobe has no manual fit.** Placement comes from the idle row only; per-frame head width was inflated by raised flippers. Reason: the owner asked for the up/down/left/right/size options to go; a pack that places badly is fixed in the pack, not by the user.
+- **Music buttons parked.** Setting `pet.media` and the Rust command stay (default off); the UI is gone. Re-plan in ROADMAP before bringing it back.
+- **Confirm every delete/remove/✕** through one shared `ConfirmAction`. Undo toasts remain where they exist.
+- **Two tile sizes** (small, large) on Today and Time.
+- **Drag/save diagnosis:** the pet's own spot is saved even while the card is open; controls on the card never start a drag.
+- **Loaf's own windows are not tracked** (`IGNORED` in `usage.rs`). Reason: planning inside Loaf is not time spent elsewhere, and the owner listed it as a gap. Easy to flip if they want it back.
+- **Idle:** the live total stops at the last input once a look finds the person away for a full interval (stored sessions already ended at the last input).
+- **Store apps / Mac desktop:** Windows looks inside `ApplicationFrameHost.exe` for the real process; macOS treats Finder with no on-screen window (layer 0) as the desktop. Neither has run on a real machine.

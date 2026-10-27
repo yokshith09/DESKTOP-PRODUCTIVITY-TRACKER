@@ -94,7 +94,7 @@ pub(crate) mod win {
     use loaf_core::error::{AppError, Result};
     use loaf_core::usage_collector::Platform;
     use tokio::sync::mpsc::UnboundedSender;
-    use windows_sys::Win32::Foundation::{CloseHandle, HWND};
+    use windows_sys::Win32::Foundation::{CloseHandle, HWND, LPARAM};
     use windows_sys::Win32::System::SystemInformation::GetTickCount;
     use windows_sys::Win32::System::Threading::{
         GetCurrentThreadId, OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_WIN32,
@@ -103,7 +103,7 @@ pub(crate) mod win {
     use windows_sys::Win32::UI::Accessibility::{SetWinEventHook, UnhookWinEvent, HWINEVENTHOOK};
     use windows_sys::Win32::UI::Input::KeyboardAndMouse::{GetLastInputInfo, LASTINPUTINFO};
     use windows_sys::Win32::UI::WindowsAndMessaging::{
-        DispatchMessageW, GetClassNameW, GetForegroundWindow, GetMessageW,
+        DispatchMessageW, EnumChildWindows, GetClassNameW, GetForegroundWindow, GetMessageW,
         GetWindowThreadProcessId, PeekMessageW, PostThreadMessageW, TranslateMessage,
         EVENT_SYSTEM_FOREGROUND, MSG, OBJID_WINDOW, PM_NOREMOVE, WINEVENT_OUTOFCONTEXT, WM_QUIT,
         WM_USER,
@@ -268,17 +268,61 @@ pub(crate) mod win {
 
     /// The file name (not the path) of the program that owns `hwnd`; `None` if there is no
     /// window or the process cannot be inspected (elevated or protected processes), in which
-    /// case nothing is recorded for it.
+    /// case nothing is recorded for it. A Microsoft Store app is shown by name, not as the shared
+    /// frame it runs in.
     pub(crate) fn executable_name(hwnd: HWND) -> Option<String> {
+        let frame = executable_of(process_id(hwnd)?)?;
+        if loaf_core::usage::is_store_frame(&frame) {
+            if let Some(app) = store_app_process(hwnd).and_then(executable_of) {
+                return Some(app);
+            }
+        }
+        Some(frame)
+    }
+
+    fn process_id(hwnd: HWND) -> Option<u32> {
         if hwnd.is_null() {
             return None;
         }
         let mut pid = 0u32;
         // SAFETY: `hwnd` came from the OS and `pid` is a valid out pointer.
         unsafe { GetWindowThreadProcessId(hwnd, &mut pid) };
-        if pid == 0 {
-            return None;
+        (pid != 0).then_some(pid)
+    }
+
+    /// Store apps are drawn inside `ApplicationFrameHost.exe`; the real app is the process of the
+    /// frame's `Windows.UI.Core.CoreWindow` child. `None` if it has none (e.g. the app is
+    /// suspended), and the frame is recorded as before.
+    fn store_app_process(frame: HWND) -> Option<u32> {
+        struct Search {
+            frame_pid: u32,
+            found: Option<u32>,
         }
+        unsafe extern "system" fn visit(child: HWND, state: LPARAM) -> i32 {
+            // SAFETY: `state` is the `Search` passed to `EnumChildWindows` below, alive for the
+            // whole enumeration and used only on this thread.
+            let search = unsafe { &mut *(state as *mut Search) };
+            if class_name(child) == "Windows.UI.Core.CoreWindow" {
+                match process_id(child) {
+                    Some(pid) if pid != search.frame_pid => {
+                        search.found = Some(pid);
+                        return 0; // stop: found it
+                    }
+                    _ => {}
+                }
+            }
+            1
+        }
+        let mut search = Search {
+            frame_pid: process_id(frame)?,
+            found: None,
+        };
+        // SAFETY: `search` outlives the call and the callback only touches it through `state`.
+        unsafe { EnumChildWindows(frame, Some(visit), std::ptr::addr_of_mut!(search) as LPARAM) };
+        search.found
+    }
+
+    fn executable_of(pid: u32) -> Option<String> {
         // SAFETY: plain FFI call. A null handle means access was denied or the process is gone.
         let process = unsafe { OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, pid) };
         if process.is_null() {
@@ -313,6 +357,14 @@ pub(crate) mod mac {
     use std::thread::JoinHandle;
     use std::time::Duration;
 
+    use core_foundation::base::{CFType, TCFType};
+    use core_foundation::dictionary::{CFDictionary, CFDictionaryRef};
+    use core_foundation::number::CFNumber;
+    use core_foundation::string::CFString;
+    use core_graphics::window::{
+        copy_window_info, kCGNullWindowID, kCGWindowLayer, kCGWindowListExcludeDesktopElements,
+        kCGWindowListOptionOnScreenOnly, kCGWindowOwnerPID,
+    };
     use loaf_core::error::{AppError, Result};
     use loaf_core::usage_collector::Platform;
     use objc2_app_kit::NSWorkspace;
@@ -329,10 +381,50 @@ pub(crate) mod mac {
     const LOOK_EVERY: Duration = Duration::from_secs(1);
 
     /// The name of the app in front, as macOS shows it ("Google Chrome", "Code", "Finder").
+    /// Finder with no window open is the desktop and reports nothing.
     pub(crate) fn frontmost_app() -> Option<String> {
         let app = NSWorkspace::sharedWorkspace().frontmostApplication()?;
         let name = app.localizedName()?.to_string();
-        (!name.trim().is_empty()).then_some(name)
+        if name.trim().is_empty() {
+            return None;
+        }
+        // Only Finder is asked (a window list is not free), and once a second at most.
+        if !loaf_core::usage::is_bare_finder(&name, false) {
+            return Some(name);
+        }
+        let has_window = has_normal_window(app.processIdentifier());
+        (!loaf_core::usage::is_bare_finder(&name, has_window)).then_some(name)
+    }
+
+    /// Whether the process owns an ordinary window (layer 0) on screen. Window titles are never
+    /// read, so no Screen Recording permission is needed. If the list can't be read, say yes: the
+    /// app then counts as before.
+    fn has_normal_window(pid: i32) -> bool {
+        let Some(list) = copy_window_info(
+            kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements,
+            kCGNullWindowID,
+        ) else {
+            return true;
+        };
+        // SAFETY: the keys are constants exported by CoreGraphics, valid for the whole process.
+        let (pid_key, layer_key) = unsafe {
+            (
+                CFString::wrap_under_get_rule(kCGWindowOwnerPID),
+                CFString::wrap_under_get_rule(kCGWindowLayer),
+            )
+        };
+        let number = |dict: &CFDictionary<CFString, CFType>, key: &CFString| {
+            dict.find(key)
+                .and_then(|v| v.downcast::<CFNumber>())
+                .and_then(|n| n.to_i32())
+        };
+        list.iter().any(|item| {
+            // SAFETY: every element of the window list is a CFDictionary, owned by the array.
+            let dict = unsafe {
+                CFDictionary::<CFString, CFType>::wrap_under_get_rule(*item as CFDictionaryRef)
+            };
+            number(&dict, &pid_key) == Some(pid) && number(&dict, &layer_key) == Some(0)
+        })
     }
 
     struct Watcher {

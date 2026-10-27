@@ -52,5 +52,7 @@ windows-sys = { version = "0.61", features = [
 
 # The macOS foreground-app collector (src/tracking.rs). Same versions Tauri uses.
 [target.'cfg(target_os = "macos")'.dependencies]
-objc2-app-kit = { version = "0.3", default-features = false, features = ["std", "NSRunningApplication", "NSWorkspace"] }
+objc2-app-kit = { version = "0.3", default-features = false, features = ["std", "libc", "NSRunningApplication", "NSWorkspace"] }
+core-foundation = "0.10"
+core-graphics = "0.25"
 objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSString"] }
