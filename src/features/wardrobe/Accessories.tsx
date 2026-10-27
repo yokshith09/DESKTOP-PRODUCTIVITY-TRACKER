@@ -91,3 +91,25 @@ const AT_NECK = ["bow-tie", "scarf"] as const;
 export const headGear = (ids: readonly ItemId[]) => draw(ids, ON_HEAD);
 /** Drawn over the head and body. */
 export const neckGear = (ids: readonly ItemId[]) => draw(ids, AT_NECK);
+
+/** The part of the 200x200 drawing space each accessory occupies, so its icon is cropped to it. */
+const ICON_BOX: Record<ItemId, string> = {
+  "party-hat": "70 2 60 42",
+  crown: "64 0 72 44",
+  beanie: "50 2 100 54",
+  cap: "56 6 88 54",
+  headphones: "28 28 144 74",
+  glasses: "44 52 112 40",
+  sunglasses: "42 56 116 38",
+  "bow-tie": "66 114 68 38",
+  scarf: "44 118 112 68",
+};
+
+/** A small picture of an accessory, for the wardrobe list. */
+export function AccessoryIcon({ id, className }: { id: ItemId; className?: string }) {
+  return (
+    <svg viewBox={ICON_BOX[id]} aria-hidden="true" className={className} data-icon={id}>
+      {ART[id]}
+    </svg>
+  );
+}

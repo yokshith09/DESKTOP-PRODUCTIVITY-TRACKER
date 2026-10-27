@@ -29,8 +29,9 @@ describe("Accessories and outfits", () => {
     const say = vi.spyOn(api, "petSay").mockResolvedValue(undefined as never);
     const user = userEvent.setup();
     wrap(<WardrobePanel />);
-    const head = await screen.findByRole("group", { name: "On the head" });
-    expect(within(head).getAllByRole("button")).toHaveLength(ITEMS.filter((i) => i.slot === "head").length);
+    const head = await screen.findByRole("group", { name: "Accessories" });
+    expect(within(head).getAllByRole("button")).toHaveLength(ITEMS.length); // one list, every accessory open
+    expect(head.querySelectorAll("[data-icon]")).toHaveLength(ITEMS.length); // each has its picture
     await user.click(within(head).getByRole("button", { name: "Crown" }));
     await waitFor(() => expect(m.get("ui.wardrobe")).toMatchObject({ worn: ["crown"], outfit: "" }));
     expect(say).toHaveBeenCalled();

@@ -2,7 +2,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ipc } from "@/ipc";
 import { useCompanion } from "@/features/companion/useCompanion";
 import { parseWardrobe, wornNow, type ItemId, type Wardrobe } from "./wardrobe";
-import { NO_FIT, type Fit } from "./spriteAnchors";
 
 export const WARDROBE_KEY = ["prefs", "ui.wardrobe"] as const;
 
@@ -24,10 +23,4 @@ export function useWorn(): ItemId[] {
   const { wardrobe } = useWardrobe();
   const { companion } = useCompanion();
   return wardrobe ? wornNow(wardrobe, companion, new Date()) : [];
-}
-
-/** How far to nudge the gear on one picture character. */
-export function useFit(packId: string | null | undefined): Fit {
-  const { wardrobe } = useWardrobe();
-  return (packId && wardrobe?.fits[packId]) || NO_FIT;
 }

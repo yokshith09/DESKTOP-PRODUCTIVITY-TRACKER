@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_ANCHOR, NO_FIT, anchorFromAlpha, placement } from "./spriteAnchors";
+import { DEFAULT_ANCHOR, anchorFromAlpha, placement, steady } from "./spriteAnchors";
 
 const W = 60, H = 100;
 function draw(parts: { x0: number; x1: number; y0: number; y1: number }[]) {
@@ -29,11 +29,18 @@ describe("looking at a sprite frame", () => {
     expect(anchorFromAlpha(draw([{ x0: 5, x1: 40, y0: 10, y1: 14 }]), W, H)).toBeNull();
   });
 
-  it("scales the bear-sized gear onto a head and applies the nudge", () => {
-    const p = placement({ cx: 96, top: 30, headW: 120, neckY: 128 }, NO_FIT);
-    expect(p.head).toBe("translate(-4 2) scale(1)");
-    const q = placement({ cx: 96, top: 30, headW: 60, neckY: 100 }, { x: 5, y: -3, s: 2 });
-    expect(q.head).toBe("translate(1 -1) scale(1)");
-    expect(placement(DEFAULT_ANCHOR, NO_FIT).neck).toMatch(/^translate\(/);
+  it("scales the bear-sized gear onto a head", () => {
+    expect(placement({ cx: 96, top: 30, headW: 120, neckY: 128 }).head).toBe("translate(-4 2) scale(1)");
+    expect(placement({ cx: 96, top: 30, headW: 60, neckY: 100 }).neck).toBe("translate(46 36) scale(0.5)");
+    expect(placement(DEFAULT_ANCHOR).neck).toMatch(/^translate\(/);
+  });
+
+  it("sizes gear from the calm idle row, so a pose with the arms out cannot make it huge", () => {
+    const idle = { cx: 96, top: 40, headW: 60, neckY: 80 };
+    const arms = { cx: 100, top: 20, headW: 170, neckY: 90 }; // flippers thrown wide
+    const out = steady([[idle, null], [arms, null]]);
+    expect(out[1]?.[0]).toEqual({ cx: 100, top: 20, headW: 60, neckY: 60 }); // own top and middle, idle's size
+    expect(out[0]?.[1]).toBeNull();
+    expect(steady([[null], [arms]])).toEqual([[null], [arms]]); // no idle frame: left alone
   });
 });

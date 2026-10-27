@@ -1,5 +1,4 @@
 import { birthdayToday, type Companion } from "@/features/companion/companion";
-import { parseFit, type Fit } from "./spriteAnchors";
 
 /**
  * Accessories and outfits for the built-in bear (owner 2026-10-26). Everything is free and open
@@ -41,11 +40,9 @@ export interface Wardrobe {
   outfit: string;
   /** Wear the party hat on a birthday (yours or the pet's). */
   partyOnBirthday: boolean;
-  /** Per picture character (by pack id): how far to nudge the gear. The bear never needs it. */
-  fits: Record<string, Fit>;
 }
 
-export const emptyWardrobe: Wardrobe = { worn: [], outfit: "", partyOnBirthday: true, fits: {} };
+export const emptyWardrobe: Wardrobe = { worn: [], outfit: "", partyOnBirthday: true };
 
 const slotOf = (id: ItemId): Slot => ITEMS.find((i) => i.id === id)?.slot ?? "head";
 const isItem = (v: unknown): v is ItemId => ITEMS.some((i) => i.id === v);
@@ -58,15 +55,11 @@ export function normalize(ids: readonly unknown[]): ItemId[] {
 }
 
 export function parseWardrobe(raw: unknown): Wardrobe {
-  if (!raw || typeof raw !== "object") return { ...emptyWardrobe, fits: {} };
+  if (!raw || typeof raw !== "object") return emptyWardrobe;
   const r = raw as Record<string, unknown>;
   const worn = normalize(Array.isArray(r.worn) ? r.worn : []);
   const outfit = typeof r.outfit === "string" && matches(r.outfit, worn) ? r.outfit : "";
-  const fits: Record<string, Fit> = {};
-  if (r.fits && typeof r.fits === "object") {
-    for (const [id, v] of Object.entries(r.fits as Record<string, unknown>).slice(0, 200)) fits[id] = parseFit(v);
-  }
-  return { worn, outfit, partyOnBirthday: r.partyOnBirthday !== false, fits };
+  return { worn, outfit, partyOnBirthday: r.partyOnBirthday !== false };
 }
 
 function matches(outfitId: string, worn: readonly ItemId[]): boolean {

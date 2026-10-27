@@ -3,7 +3,8 @@
  * at it: for every frame it finds the top of the head, how wide the head is and roughly where
  * the neck is, from which pixels are drawn. The same accessory drawings the bear wears are then
  * scaled onto that spot, frame by frame, so they follow the animation. Thin things (an antenna,
- * sparkles) are ignored on purpose. The user can nudge the result per character (see Fit).
+ * sparkles) are ignored on purpose. The size comes from the calm idle row only, so a pose with
+ * the arms thrown out cannot make the gear too big (owner's penguin, 2026-10-27).
  */
 export const CELL_W = 192;
 export const CELL_H = 208;
@@ -19,19 +20,6 @@ export interface Anchor {
 }
 /** What is used until the picture has been looked at, or when it can't be (no canvas). */
 export const DEFAULT_ANCHOR: Anchor = { cx: 96, top: 30, headW: 110, neckY: 120 };
-
-/** The user's nudge for one character: cell pixels, and a size factor. */
-export interface Fit { x: number; y: number; s: number }
-export const NO_FIT: Fit = { x: 0, y: 0, s: 1 };
-export const FIT_LIMITS = { x: [-40, 40], y: [-40, 40], s: [0.5, 1.6] } as const;
-
-const clamp = (v: unknown, [lo, hi]: readonly [number, number], fallback: number) =>
-  typeof v === "number" && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : fallback;
-
-export function parseFit(raw: unknown): Fit {
-  const r = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
-  return { x: clamp(r.x, FIT_LIMITS.x, 0), y: clamp(r.y, FIT_LIMITS.y, 0), s: clamp(r.s, FIT_LIMITS.s, 1) };
-}
 
 /** The anchor of one cell, from its alpha values (w x h, row by row). `null` when nothing is drawn. */
 export function anchorFromAlpha(alpha: ArrayLike<number>, w: number, h: number, threshold = 128): Anchor | null {
@@ -63,6 +51,19 @@ export function anchorFromAlpha(alpha: ArrayLike<number>, w: number, h: number, 
 /** One anchor per frame: `[row][column]`; a frame with nothing in it has none. */
 export type SheetAnchors = (Anchor | null)[][];
 
+/**
+ * Makes the frames agree on size: every frame keeps its own head top and middle (the pet moves),
+ * but the head width and the neck's distance below the head top are the idle row's average.
+ */
+export function steady(raw: SheetAnchors): SheetAnchors {
+  const idle = (raw[0] ?? []).filter((a): a is Anchor => a !== null);
+  if (idle.length === 0) return raw;
+  const mean = (f: (a: Anchor) => number) => idle.reduce((t, a) => t + f(a), 0) / idle.length;
+  const headW = mean((a) => a.headW);
+  const neckDy = mean((a) => a.neckY - a.top);
+  return raw.map((line) => line.map((a) => (a ? { ...a, headW, neckY: a.top + neckDy } : null)));
+}
+
 const cache = new Map<string, Promise<SheetAnchors | null>>();
 
 /** Looks at a whole sheet once (and remembers). `null` where the browser can't read pixels. */
@@ -93,7 +94,7 @@ export function loadAnchors(sheet: string): Promise<SheetAnchors | null> {
               }
               out.push(line);
             }
-            resolve(out);
+            resolve(steady(out));
           } catch {
             resolve(null);
           }
@@ -112,11 +113,11 @@ export function loadAnchors(sheet: string): Promise<SheetAnchors | null> {
  * The two places gear goes, as SVG transforms. Gear is drawn in the bear's 200x200 space (head top
  * at y 28, neck gear centred on y 128), so it is scaled by head width relative to the bear's 120.
  */
-export function placement(a: Anchor, fit: Fit): { head: string; neck: string } {
-  const s = (a.headW / 120) * fit.s;
-  const x = a.cx - 100 * s + fit.x;
+export function placement(a: Anchor): { head: string; neck: string } {
+  const s = a.headW / 120;
+  const x = a.cx - 100 * s;
   return {
-    head: `translate(${x} ${a.top - 28 * s + fit.y}) scale(${s})`,
-    neck: `translate(${x} ${a.neckY - 128 * s + fit.y}) scale(${s})`,
+    head: `translate(${x} ${a.top - 28 * s}) scale(${s})`,
+    neck: `translate(${x} ${a.neckY - 128 * s}) scale(${s})`,
   };
 }

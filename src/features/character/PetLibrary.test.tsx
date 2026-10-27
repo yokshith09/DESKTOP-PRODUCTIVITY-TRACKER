@@ -86,7 +86,7 @@ describe("the wardrobe on a picture character", () => {
     const plain = render(<SpritePet sheet="x.webp" label="Boba" />);
     expect(plain.container.querySelector("[data-accessory]")).toBeNull();
     cleanup();
-    const { container } = render(<SpritePet sheet="x.webp" label="Boba" wear={["party-hat", "scarf"]} fit={{ x: 4, y: 0, s: 1 }} />);
+    const { container } = render(<SpritePet sheet="x.webp" label="Boba" wear={["party-hat", "scarf"]} />);
     expect(container.querySelector('[data-accessory="party-hat"]')).toBeTruthy();
     expect(container.querySelector('[data-accessory="scarf"]')).toBeTruthy();
     expect(container.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");

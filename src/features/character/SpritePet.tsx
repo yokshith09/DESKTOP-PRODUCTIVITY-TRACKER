@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { BearPose } from "@/features/shell/Bear";
 import { cn } from "@/lib/utils";
 import { headGear, neckGear } from "@/features/wardrobe/Accessories";
-import { DEFAULT_ANCHOR, NO_FIT, loadAnchors, placement, type Fit, type SheetAnchors } from "@/features/wardrobe/spriteAnchors";
+import { DEFAULT_ANCHOR, loadAnchors, placement, type SheetAnchors } from "@/features/wardrobe/spriteAnchors";
 import type { ItemId } from "@/features/wardrobe/wardrobe";
 
 /**
@@ -37,10 +37,10 @@ export function frameAt(row: SpriteRow, elapsed: number): number {
   return Math.floor(((elapsed % ms) / ms) * frames);
 }
 
-export function SpritePet({ sheet, row = "idle", animated = true, size = 128, className, label, wear = [], fit = NO_FIT }: {
+export function SpritePet({ sheet, row = "idle", animated = true, size = 128, className, label, wear = [] }: {
   sheet: string; row?: SpriteRow; animated?: boolean; size?: number; className?: string; label: string;
   /** Accessories on top (owner 2026-10-26: the wardrobe is for every character). */
-  wear?: readonly ItemId[]; fit?: Fit;
+  wear?: readonly ItemId[];
 }) {
   const [frame, setFrame] = useState(0);
   const [anchors, setAnchors] = useState<SheetAnchors | null>(null);
@@ -63,7 +63,7 @@ export function SpritePet({ sheet, row = "idle", animated = true, size = 128, cl
   }, [row, animated]);
   const { row: r } = SPRITE_ROWS[row];
   const scale = size / 208;
-  const place = placement(anchors?.[r]?.[frame] ?? DEFAULT_ANCHOR, fit);
+  const place = placement(anchors?.[r]?.[frame] ?? DEFAULT_ANCHOR);
   return (
     <div
       role="img"

@@ -39,20 +39,23 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
 }
 
 export function CharacterPage() {
-  const [shown, setShown] = useState<string | null>(null);
   const { data: packs = [] } = useQuery({ queryKey: ["pets", "library"], queryFn: ipc.petsList });
+  const [activePack] = useSetting("pet.pack");
+  // The big preview follows the character in use (owner 2026-10-27); clicking another card previews
+  // it until the character in use changes.
+  const [picked, setPicked] = useState<string | null | undefined>(undefined);
+  useEffect(() => setPicked(undefined), [activePack]);
+  const shown = picked === undefined ? (activePack ?? null) : picked;
   const shownPack = shown ? packs.find((p) => p.id === shown) : undefined;
   const [pose, setPose] = useState<BearPose>("idle");
   const worn = useWorn();
   const [replay, setReplay] = useState(0);
   const [visible, setVisible] = useSetting("pet.visible");
-  const [activePack] = useSetting("pet.pack");
   const [size, setSize] = useSetting("pet.size");
   const [opacity, setOpacity] = useSetting("pet.opacity");
   const [onTop, setOnTop] = useSetting("pet.always_on_top");
   const [typing, setTyping] = useSetting("pet.typing");
   const [hoverCard, setHoverCard] = useSetting("pet.hover_card");
-  const [media, setMedia] = useSetting("pet.media");
   const px = SIZES[size ?? "M"];
   const emote = useRef<EmoteRun | null>(null);
   useEffect(() => () => emote.current?.cancel(), []);
@@ -65,7 +68,7 @@ export function CharacterPage() {
   return (
     <div className="mx-auto max-w-5xl">
       <PageHeader title="Character" description="Your desktop companion. It sits on your screen and stays out of the way." />
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+      <div className="grid items-start gap-4 lg:grid-cols-2 [&_section]:mt-0">
         <Panel className="flex flex-col items-center justify-between gap-6 p-6">
           {shownPack ? <PackPreview key={shownPack.id} pack={shownPack} /> : (
             <>
@@ -111,9 +114,6 @@ export function CharacterPage() {
           <Row label="Card when I hover the pet" hint="Today at a glance when you hover the pet. Off: the same facts (focus time left, the next task, the next reminder) come as a short bubble instead.">
             <Switch checked={hoverCard ?? true} onCheckedChange={(v) => void setHoverCard(v)} aria-label="Card when I hover the pet" />
           </Row>
-          <Row label="Music buttons under the pet" hint="Previous, play or pause, and next for whatever is playing (YouTube, Spotify…). Windows and macOS. Off by default.">
-            <Switch checked={media ?? false} onCheckedChange={(v) => void setMedia(v)} aria-label="Music buttons under the pet" />
-          </Row>
           <Row label="Always on top" hint="Keep the companion above other windows.">
             <Switch checked={onTop ?? true} onCheckedChange={(v) => void setOnTop(v)} aria-label="Always on top" />
           </Row>
@@ -135,12 +135,15 @@ export function CharacterPage() {
             </div>
           </div>
         </Panel>
+
+        <div className="lg:col-span-2"><PetLibrary shown={shownPack ? shown : null} onShow={setPicked} /></div>
+        <WardrobePanel />
+        <div className="space-y-4">
+          <CompanionPanel />
+          <NudgeSettings />
+        </div>
+        <div className="lg:col-span-2"><ReactionsPanel /></div>
       </div>
-      <PetLibrary shown={shownPack ? shown : null} onShow={setShown} />
-      <div className="mt-6"><NudgeSettings /></div>
-      <CompanionPanel />
-      <WardrobePanel character={(() => { const p = shownPack ?? packs.find((x) => x.id === activePack); return p ? { id: p.id, name: p.display_name } : undefined; })()} />
-      <ReactionsPanel />
     </div>
   );
 }

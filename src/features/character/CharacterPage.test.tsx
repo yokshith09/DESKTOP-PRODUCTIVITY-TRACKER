@@ -47,12 +47,22 @@ describe("Character page preview (F1/F2)", () => {
     expect(await screen.findByRole("group", { name: "Preview pose" })).toBeTruthy();
   });
 
-  it("the music buttons under the pet are an option the user turns on and off (H4)", async () => {
-    const set = vi.spyOn(ipc, "settingSet").mockResolvedValue(undefined as never);
+  it("has no music option for now", async () => {
     renderPage();
-    const sw = await screen.findByRole("switch", { name: "Music buttons under the pet" });
-    expect(sw.getAttribute("aria-checked")).toBe("false");
-    fireEvent.click(sw);
-    await waitFor(() => expect(set).toHaveBeenCalledWith("pet.media", true));
+    await screen.findByText("Show on desktop");
+    expect(screen.queryByRole("switch", { name: "Music buttons under the pet" })).toBeNull();
+  });
+
+  it("previews the character in use, not always the bear, and follows a new choice", async () => {
+    vi.spyOn(ipc, "settingsGetAll").mockResolvedValue({ "pet.pack": "boba", "pet.media": false } as never);
+    vi.spyOn(ipc, "petsList").mockResolvedValue([boba, short]);
+    vi.spyOn(ipc, "petsSheet").mockResolvedValue("data:image/webp;base64,AA==");
+    vi.spyOn(ipc, "prefsGet").mockResolvedValue(null as never);
+    vi.spyOn(ipc, "prefsSet").mockResolvedValue(null as never);
+    render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><CharacterPage /></QueryClientProvider>);
+    // Boba is in use: its animations are offered, the bear's poses are not.
+    expect(await screen.findByRole("group", { name: "Preview animation" })).toBeTruthy();
+    expect(screen.queryByRole("group", { name: "Preview pose" })).toBeNull();
+    expect(screen.getAllByText("Boba").length).toBeGreaterThan(0);
   });
 });

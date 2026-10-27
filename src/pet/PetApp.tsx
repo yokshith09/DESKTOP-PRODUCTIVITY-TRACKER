@@ -11,7 +11,7 @@ import { ipc, onEvent, onPetSay, petAction, type TaskRow } from "@/ipc";
 import { cn } from "@/lib/utils";
 import { PetCard } from "./PetCard";
 import { glanceText } from "./glance";
-import { WARDROBE_KEY, useFit, useWorn } from "@/features/wardrobe/useWardrobe";
+import { WARDROBE_KEY, useWorn } from "@/features/wardrobe/useWardrobe";
 import { enqueue, isAsleep, reactionForSay, type Reaction } from "./reactions";
 import { parseReactionSettings, reactionWithSettings } from "./reactionSettings";
 import { useTypingAlong } from "./typing";
@@ -59,7 +59,6 @@ export function PetApp() {
   const size = SIZES[settings?.["pet.size"] ?? "M"];
   // A pet pack from the library replaces the bear (FR-63); reactions map to its rows.
   const packId = settings?.["pet.pack"] ?? null;
-  const fit = useFit(packId);
   const { data: sheet } = useQuery({ queryKey: ["pets", "sheet", packId], queryFn: () => ipc.petsSheet(packId ?? ""), enabled: !!packId, staleTime: Infinity, retry: false });
   const opacity = (settings?.["pet.opacity"] ?? 100) / 100;
   const hoverCard = settings?.["pet.hover_card"] ?? true;
@@ -68,11 +67,6 @@ export function PetApp() {
   const focus = useFocus();
   const focusRef = useRef(focus.session);
   focusRef.current = focus.session;
-  // Music buttons (owner 2026-10-26): Windows and macOS only, and only when the user turned them on.
-  const canMedia = typeof navigator !== "undefined" && /windows|macintosh|mac os x/i.test(navigator.userAgent);
-  const mediaOn = canMedia && (settings?.["pet.media"] ?? false);
-  const mediaRef = useRef(mediaOn);
-  mediaRef.current = mediaOn;
   const { data: reminders = [] } = useReminders(false);
   const [anchor, setAnchor] = useState<Anchor | null>(null);
   const [panel, setPanel] = useState<Panel>(null);
@@ -120,7 +114,7 @@ export function PetApp() {
     await ipc.petHover(false, 0, 0);
   };
   /** Back to resting: the focus timer while a session runs, else just the pet. */
-  const settle = () => (focusRef.current || mediaRef.current ? expand("timer") : collapse());
+  const settle = () => (focusRef.current ? expand("timer") : collapse());
 
   // Play the next waiting reaction: pose for its duration, bubble unless the card is open.
   const playingRef = useRef<Reaction | null>(null);
@@ -183,7 +177,7 @@ export function PetApp() {
   };
 
   // The timer comes and goes with the session, unless a bubble or the card is showing.
-  const running = !!focus.session || mediaOn;
+  const running = !!focus.session;
   useEffect(() => {
     if (running && panelRef.current === null) void expand("timer");
     if (!running && panelRef.current === "timer") void collapse();
@@ -300,7 +294,7 @@ export function PetApp() {
       {/* key: a new reaction restarts its animation even when the pose repeats. One key for the
           whole typing sequence, so the laptop comes out once and isn't pulled out again. */}
       {packId && sheet ? (
-        <SpritePet sheet={sheet} row={ROW_FOR_POSE[pose]} size={size} label={`${packId} (${pose})`} wear={worn} fit={fit} className="pointer-events-none mx-auto" />
+        <SpritePet sheet={sheet} row={ROW_FOR_POSE[pose]} size={size} label={`${packId} (${pose})`} wear={worn} className="pointer-events-none mx-auto" />
       ) : (
         <Bear key={playing ? `${playing.pose}-${playing.bubble}` : typing !== "off" ? "typing" : pose} pose={pose} wear={worn} animated className="pointer-events-none size-full" />
       )}
@@ -312,10 +306,8 @@ export function PetApp() {
     : panel === "bubble" && playing
       ? <Bubble text={bubbleText(playing)} anchor={anchor} />
       : panel === "timer" && focus.session
-        ? <FocusChip label={focus.session.kind === "BREAK" ? "Break" : focus.session.label || "Focus"} left={clock(focus.remaining)} paused={focus.session.paused_at !== null} onPause={(p) => void focus.pause(p)} media={mediaOn} />
-        : panel === "timer" && mediaOn
-          ? <MediaChip />
-          : null;
+        ? <FocusChip label={focus.session.kind === "BREAK" ? "Break" : focus.session.label || "Focus"} left={clock(focus.remaining)} paused={focus.session.paused_at !== null} onPause={(p) => void focus.pause(p)} />
+        : null;
 
   return (
     <div
@@ -352,22 +344,8 @@ function Bubble({ text, anchor }: { text: string; anchor: Anchor | null }) {
   );
 }
 
-const MEDIA_BTN = "grid size-6 shrink-0 place-items-center border-2 border-foreground/70 bg-background font-mono text-[10px] leading-none outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring";
-
-/** Music buttons alone under the pet, when the user turned them on and no focus timer is running. Unverified on a real OS. */
-function MediaChip() {
-  return (
-    <div className="flex shrink-0 items-center justify-center gap-1.5 border-2 border-foreground/70 bg-popover px-2 font-mono text-popover-foreground shadow-[3px_3px_0_0_var(--border)]" style={{ width: TIMER_W, height: TIMER_H, imageRendering: "pixelated" }} role="group" aria-label="Music">
-      <span className="mr-auto text-[10.5px] text-muted-foreground">Music</span>
-      <button type="button" aria-label="Previous track" onClick={() => void ipc.petMedia("previous")} className={MEDIA_BTN}>◀◀</button>
-      <button type="button" aria-label="Play or pause music" onClick={() => void ipc.petMedia("play-pause")} className={MEDIA_BTN}>♪</button>
-      <button type="button" aria-label="Next track" onClick={() => void ipc.petMedia("next")} className={MEDIA_BTN}>▶▶</button>
-    </div>
-  );
-}
-
-/** The focus timer under the pet (FR-110, H1): pixel style, time left, pause/resume, and media keys (H4). */
-function FocusChip({ label, left, paused, onPause, media }: { label: string; left: string; paused: boolean; onPause: (paused: boolean) => void; media: boolean }) {
+/** The focus timer under the pet (FR-110, H1): pixel style, time left, and pause/resume. (Music buttons were taken out 2026-10-27 to be planned again.) */
+function FocusChip({ label, left, paused, onPause }: { label: string; left: string; paused: boolean; onPause: (paused: boolean) => void }) {
   const btn = "grid size-6 shrink-0 place-items-center border-2 border-foreground/70 bg-background font-mono text-[10px] leading-none outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring";
   return (
     <div className="flex shrink-0 items-center gap-1.5 border-2 border-foreground/70 bg-popover px-2 font-mono text-popover-foreground shadow-[3px_3px_0_0_var(--border)]" style={{ width: TIMER_W, height: TIMER_H, imageRendering: "pixelated" }} role="timer" aria-label={`${label}: ${left} left${paused ? ", paused" : ""}`}>
@@ -375,12 +353,6 @@ function FocusChip({ label, left, paused, onPause, media }: { label: string; lef
       <span className="text-[13px] font-bold tabular-nums">{left}</span>
       <span className="min-w-0 flex-1 truncate text-[10.5px] text-muted-foreground">{label}</span>
       <button type="button" aria-label={paused ? "Resume focus" : "Pause focus"} onClick={() => onPause(!paused)} className={btn}>{paused ? "▶" : "❚❚"}</button>
-      {media && (
-        <>
-          <button type="button" aria-label="Play or pause music" onClick={() => void ipc.petMedia("play-pause")} className={btn}>♪</button>
-          <button type="button" aria-label="Next track" onClick={() => void ipc.petMedia("next")} className={btn}>▶▶</button>
-        </>
-      )}
     </div>
   );
 }
