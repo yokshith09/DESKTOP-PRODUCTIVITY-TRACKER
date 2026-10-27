@@ -5,6 +5,12 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+## [0.5.1] — 2026-10-27 (draft for owner testing; Unverified)
+
+Fixes and polish from the owner's 2026-10-27 test of 0.5.0: pet Sleep and drag, wardrobe alignment, confirmations, two tile sizes, evenly organised pages, a better Analytics view, four time-tracking gaps, and livelier picture pets. Nothing here has run on a real PC yet.
+
+- Added (picture pets): a ring, a toss and a catch now each have their own motion (shake, toss, pop) on top of the shared row they play, so they no longer look alike.
+
 Owner's 2026-10-27 list (screenshots of the oversized crown and the bear preview). All Unverified on a real PC; owner tests on Windows, macOS only in CI.
 
 - Fixed (pet): **the Sleep button and other card buttons did nothing** — a press on any card control armed a window drag and the OS swallowed the click; drags now start only from the pet itself. **The pet jumped to another place**: while the card was open the position was not saved, so the next start used a stale spot; the pet's own spot is now always saved (not the grown window's corner), and a reaction no longer resizes the window mid-drag. Tests in `pet.rs` and `PetApp`.

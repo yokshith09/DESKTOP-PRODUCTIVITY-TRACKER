@@ -50,6 +50,9 @@ type Panel = "card" | "bubble" | "timer" | null;
  * menu, drag moves it, hover shows today at a glance. It reacts to tasks and reminders with a
  * short animation and a speech bubble (see reactions.ts).
  */
+/** Poses that share a row of a picture pet's sheet get their own motion, so a ring, a toss and a catch don't look alike. */
+export const PACK_MOTION: Partial<Record<BearPose, string>> = { ring: "pet-shake", toss: "pet-toss", catch: "pet-pop" };
+
 export function PetApp() {
   useTheme();
   const qc = useQueryClient();
@@ -323,7 +326,7 @@ export function PetApp() {
       {/* key: a new reaction restarts its animation even when the pose repeats. One key for the
           whole typing sequence, so the laptop comes out once and isn't pulled out again. */}
       {packId && sheet ? (
-        <SpritePet key={playing ? `${playing.pose}-${playing.bubble}` : undefined} sheet={sheet} row={ROW_FOR_POSE[pose]} rest={pose === "sleep"} size={size} label={`${packId} (${pose})`} wear={worn} className="pointer-events-none mx-auto" />
+        <SpritePet key={playing ? `${playing.pose}-${playing.bubble}` : undefined} sheet={sheet} row={ROW_FOR_POSE[pose]} rest={pose === "sleep"} size={size} label={`${packId} (${pose})`} wear={worn} className={cn("pointer-events-none mx-auto", PACK_MOTION[pose])} />
       ) : (
         <Bear key={playing ? `${playing.pose}-${playing.bubble}` : typing !== "off" ? "typing" : pose} pose={pose} wear={worn} animated className="pointer-events-none size-full" />
       )}

@@ -2,6 +2,8 @@
 
 > **Active work (2026-10-23): FM-V2 fix pack + companion features + fixing the pet-visibility bugs (report: `docs/BUG_REPORT_2026-10-23_pet_visibility.md`).** M1-M3 are code-complete (owner: works in v2.0.0).
 
+> **Where we stand (2026-10-27):** P0 and P1 are built (Unverified, waiting for the owner's Windows results); P3 Characters is partly pulled forward (wardrobe, reactions, packs); P2 Student release has not started. Version 0.5.1 is the current draft. Details: `PROJECT_STATUS.md` §3.
+
 > **Planning is closed (owner, 2026-10-22).** From here we only build, top to bottom. New ideas go to DECISIONS.md as one line and wait for the next planning round. Blockers and the ways to unblock them: [`docs/BLOCKERS_AND_OPTIONS.md`](docs/BLOCKERS_AND_OPTIONS.md).
 
 **Date:** 2026-10-22 · **Source version:** 0.2.0 (owner label v2.0.0) · **Positioning:** student-first, local-first desktop pet + productivity.

@@ -2,7 +2,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { ipc, type TaskRow } from "@/ipc";
-import { BUBBLE_H, PetApp, bubbleHeight, bubbleText } from "./PetApp";
+import { BUBBLE_H, PACK_MOTION, PetApp, bubbleHeight, bubbleText } from "./PetApp";
 import { topTasks } from "./PetCard";
 
 beforeAll(() => {
@@ -192,6 +192,12 @@ describe("desktop pet", () => {
     expect(screen.getByRole("button", { name: /^Loaf\./ }).className).toContain("pet-hop");
     fireEvent.click(await screen.findByRole("button", { name: /^Sleep/ }, { timeout: 2000 }));
     await waitFor(() => expect(screen.getByRole("img", { name: /^boba \(sleep\)/ }).getAttribute("data-rest")).toBe("true"));
+  });
+
+  it("poses that share a picture row still move differently", () => {
+    const shared = ["ring", "toss", "catch"] as const;
+    expect(new Set(shared.map((p) => PACK_MOTION[p])).size).toBe(3);
+    expect(PACK_MOTION.idle).toBeUndefined();
   });
 
   it("falls back to the bear when the chosen pack is missing (FR-63)", async () => {
