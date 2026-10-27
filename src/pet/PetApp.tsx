@@ -204,6 +204,8 @@ export function PetApp() {
   const onEnter = () => {
     wake();
     setHovering(true);
+    // A pack's waving row is a small movement; a hop makes the greeting plain (the bear raises an arm).
+    if (packId) setHop(true);
     clearTimeout(timers.current.leave);
     timers.current.enter = window.setTimeout(() => (hoverCard ? void openCard() : glance()), 350);
   };
@@ -321,7 +323,7 @@ export function PetApp() {
       {/* key: a new reaction restarts its animation even when the pose repeats. One key for the
           whole typing sequence, so the laptop comes out once and isn't pulled out again. */}
       {packId && sheet ? (
-        <SpritePet sheet={sheet} row={ROW_FOR_POSE[pose]} size={size} label={`${packId} (${pose})`} wear={worn} className="pointer-events-none mx-auto" />
+        <SpritePet key={playing ? `${playing.pose}-${playing.bubble}` : undefined} sheet={sheet} row={ROW_FOR_POSE[pose]} rest={pose === "sleep"} size={size} label={`${packId} (${pose})`} wear={worn} className="pointer-events-none mx-auto" />
       ) : (
         <Bear key={playing ? `${playing.pose}-${playing.bubble}` : typing !== "off" ? "typing" : pose} pose={pose} wear={worn} animated className="pointer-events-none size-full" />
       )}

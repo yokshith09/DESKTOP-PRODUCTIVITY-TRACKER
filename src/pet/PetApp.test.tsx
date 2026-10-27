@@ -181,6 +181,19 @@ describe("desktop pet", () => {
     expect(screen.queryByRole("img", { name: /Loaf the bear/ })).toBeNull();
   });
 
+  it("a picture pet waves and hops when you hover it, and is shown asleep after Sleep", async () => {
+    const all = await ipc.settingsGetAll();
+    vi.spyOn(ipc, "settingsGetAll").mockResolvedValue({ ...all, "pet.pack": "boba" });
+    vi.spyOn(ipc, "petsSheet").mockResolvedValue("data:image/webp;base64,AA==");
+    renderPet();
+    const pet = await screen.findByRole("img", { name: /^boba \(/ });
+    fireEvent.mouseEnter(pet.closest("div.flex") as HTMLElement);
+    await waitFor(() => expect(screen.getByRole("img", { name: /^boba \(wave\)/ }).getAttribute("data-row")).toBe("waving"));
+    expect(screen.getByRole("button", { name: /^Loaf\./ }).className).toContain("pet-hop");
+    fireEvent.click(await screen.findByRole("button", { name: /^Sleep/ }, { timeout: 2000 }));
+    await waitFor(() => expect(screen.getByRole("img", { name: /^boba \(sleep\)/ }).getAttribute("data-rest")).toBe("true"));
+  });
+
   it("falls back to the bear when the chosen pack is missing (FR-63)", async () => {
     const all = await ipc.settingsGetAll();
     vi.spyOn(ipc, "settingsGetAll").mockResolvedValue({ ...all, "pet.pack": "gone" });

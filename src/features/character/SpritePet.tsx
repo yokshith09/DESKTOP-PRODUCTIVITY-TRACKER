@@ -37,8 +37,10 @@ export function frameAt(row: SpriteRow, elapsed: number): number {
   return Math.floor(((elapsed % ms) / ms) * frames);
 }
 
-export function SpritePet({ sheet, row = "idle", animated = true, size = 128, className, label, wear = [] }: {
+export function SpritePet({ sheet, row = "idle", animated = true, rest = false, size = 128, className, label, wear = [] }: {
   sheet: string; row?: SpriteRow; animated?: boolean; size?: number; className?: string; label: string;
+  /** Asleep. A pack has no sleeping row, so the first idle frame is held, dimmed, with a "z". */
+  rest?: boolean;
   /** Accessories on top (owner 2026-10-26: the wardrobe is for every character). */
   wear?: readonly ItemId[];
 }) {
@@ -54,13 +56,13 @@ export function SpritePet({ sheet, row = "idle", animated = true, size = 128, cl
   }, [sheet, dressed]);
   useEffect(() => {
     setFrame(0);
-    if (!animated) return;
+    if (!animated || rest) return;
     const { frames, ms } = SPRITE_ROWS[row];
     // One timer per frame step, only while shown; no work between frames.
     let i = 0;
     const id = window.setInterval(() => { i = (i + 1) % frames; setFrame(i); }, ms / frames);
     return () => window.clearInterval(id);
-  }, [row, animated]);
+  }, [row, animated, rest]);
   const { row: r } = SPRITE_ROWS[row];
   const scale = size / 208;
   const place = placement(anchors?.[r]?.[frame] ?? DEFAULT_ANCHOR);
@@ -70,6 +72,7 @@ export function SpritePet({ sheet, row = "idle", animated = true, size = 128, cl
       aria-label={label}
       data-row={row}
       data-frame={frame}
+      data-rest={rest || undefined}
       className={cn("relative shrink-0", className)}
       style={{
         width: 192 * scale,
@@ -79,8 +82,10 @@ export function SpritePet({ sheet, row = "idle", animated = true, size = 128, cl
         backgroundPosition: `${-frame * 192 * scale}px ${-r * 208 * scale}px`,
         backgroundRepeat: "no-repeat",
         imageRendering: "auto",
+        filter: rest ? "saturate(0.6) brightness(0.85)" : undefined,
       }}
     >
+      {rest && <span aria-hidden className="absolute right-1 top-1 font-mono text-[11px] font-bold text-foreground/70">z<span className="text-[9px]">z</span></span>}
       {dressed && (
         <svg viewBox="0 0 192 208" aria-hidden="true" className="pointer-events-none absolute inset-0 size-full overflow-visible">
           <g transform={place.head}>{headGear(wear)}</g>
