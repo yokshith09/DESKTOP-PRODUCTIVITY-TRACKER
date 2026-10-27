@@ -436,6 +436,10 @@ pub struct Tracker {
     last_event: i64,
     /// The last time the collector looked at the clock, for sleep detection.
     last_look: Option<i64>,
+    /// Set when a look found the person already away (no input for a full look interval, but not
+    /// yet long enough to end the session): when their input stopped. The stretch in progress is
+    /// shown only up to here instead of running on until the idle threshold is reached.
+    quiet_since: Option<i64>,
 }
 
 impl Tracker {
@@ -465,7 +469,7 @@ impl Tracker {
             category: focused.category.to_owned(),
             is_browser: focused.is_browser,
             started_at,
-            ended_at: now.max(started_at),
+            ended_at: self.quiet_since.map_or(now, |q| q.min(now)).max(started_at),
         })
     }
 
@@ -497,6 +501,7 @@ impl Tracker {
                 }
                 out.extend(self.close(at));
                 self.focused = next;
+                self.quiet_since = None;
                 if self.focused.is_some() {
                     self.last_look = Some(at);
                     if !self.idle {
@@ -513,6 +518,7 @@ impl Tracker {
             }
             TrackEvent::Active { at } => {
                 let at = self.advance(at);
+                self.quiet_since = None;
                 if self.idle {
                     self.idle = false;
                     if self.focused.is_some() {
@@ -536,6 +542,8 @@ impl Tracker {
     /// * Input again while idle: a new session starts at that input.
     /// * Much longer since the last look than the interval: the machine slept, so the session
     ///   ends at the last look instead of spanning the night.
+    /// * Quiet for a whole look interval but not yet idle: the session stays open (they may be
+    ///   reading), but [`Tracker::open_session`] shows it only up to the last input.
     pub fn poll(&mut self, now: i64, idle_ms: u64) -> Vec<AppSession> {
         let mut out = Vec::new();
         if self.focused.is_none() {
@@ -553,6 +561,9 @@ impl Tracker {
             out.extend(self.handle(TrackEvent::Idle { at: last_input }));
         } else {
             out.extend(self.handle(TrackEvent::Active { at: last_input }));
+            if idle_ms >= POLL_INTERVAL_MS {
+                self.quiet_since = Some(last_input);
+            }
         }
         out
     }

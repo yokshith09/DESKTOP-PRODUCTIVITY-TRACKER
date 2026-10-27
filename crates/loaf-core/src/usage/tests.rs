@@ -1305,3 +1305,39 @@ async fn the_live_stretch_is_clipped_to_the_range_and_can_add_a_new_app() {
         .unwrap();
     assert_eq!(before.total_seconds, 0);
 }
+
+// ---- the live view while the person is away --------------------------------------------------
+
+#[test]
+fn the_live_stretch_stops_at_the_last_input_once_a_look_finds_the_person_away() {
+    let mut t = Tracker::default();
+    t.handle(focus(T0, "Code.exe"));
+    // Still typing at the look: the stretch runs to now.
+    assert!(t.poll(T0 + MIN, S as u64).is_empty());
+    assert_eq!(t.open_session(T0 + MIN).unwrap().ended_at, T0 + MIN);
+    // Input stopped at T0 + 1:30. Not idle for good yet (5 min), so the session stays open, but
+    // the live view no longer grows with the clock.
+    assert!(t.poll(T0 + 2 * MIN, (30 * S) as u64).is_empty());
+    assert!(t.poll(T0 + 3 * MIN, (90 * S) as u64).is_empty());
+    assert_eq!(
+        t.open_session(T0 + 3 * MIN).unwrap().ended_at,
+        T0 + 90 * S,
+        "shown up to the last input, not to now"
+    );
+    assert_eq!(t.open_session(T0 + 5 * MIN).unwrap().ended_at, T0 + 90 * S);
+}
+
+#[test]
+fn coming_back_makes_the_live_stretch_follow_the_clock_again_and_nothing_is_lost() {
+    let mut t = Tracker::default();
+    t.handle(focus(T0, "Code.exe"));
+    t.poll(T0 + MIN, S as u64); // a look every minute, as the collector does
+    t.poll(T0 + 2 * MIN, MIN as u64); // quiet since T0 + 1:00
+    t.poll(T0 + 3 * MIN, (2 * MIN) as u64);
+    assert_eq!(t.open_session(T0 + 3 * MIN).unwrap().ended_at, T0 + MIN);
+    // Back at the keyboard: the same session continues (it was never closed).
+    assert!(t.poll(T0 + 4 * MIN, S as u64).is_empty());
+    assert_eq!(t.open_session(T0 + 4 * MIN).unwrap().ended_at, T0 + 4 * MIN);
+    let done = t.handle(TrackEvent::Shutdown { at: T0 + 5 * MIN });
+    assert_eq!(brief(&done), vec![("VS Code", T0, T0 + 5 * MIN)]);
+}
