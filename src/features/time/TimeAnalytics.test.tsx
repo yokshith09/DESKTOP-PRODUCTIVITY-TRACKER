@@ -24,7 +24,8 @@ describe("Time analytics", () => {
     await user.click(within(view).getByText("Analytics"));
     expect(await screen.findByTestId("time-analytics")).toBeTruthy();
     expect(screen.getByText("Top apps")).toBeTruthy();
-    expect(screen.getByText("Busiest hours")).toBeTruthy();
+    expect(screen.getByText("Screen time by hour")).toBeTruthy();
+    expect(screen.queryByText("Busiest hours")).toBeNull();
     expect(screen.queryByText("Total time")).toBeNull();
     await user.click(within(view).getByText("General"));
     expect(screen.queryByTestId("time-analytics")).toBeNull();
