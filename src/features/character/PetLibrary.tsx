@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ConfirmAction } from "@/components/ConfirmAction";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileArchive, FolderOpen, Trash2 } from "lucide-react";
 import { notify } from "@/lib/notify";
@@ -31,9 +32,11 @@ function PackCard({ pack, active, shown, onShow, onUse, onRemove }: { pack: PetP
         {active ? "In use" : "Use"}
       </Button>
       {pack.source === "loaf" && (
-        <Button size="icon" variant="ghost" aria-label={`Remove ${pack.display_name}`} onClick={onRemove}>
-          <Trash2 className="size-4" />
-        </Button>
+        <ConfirmAction message={`Remove ${pack.display_name} from your characters?`} verb="Remove" onConfirm={onRemove}>
+          <Button size="icon" variant="ghost" aria-label={`Remove ${pack.display_name}`}>
+            <Trash2 className="size-4" />
+          </Button>
+        </ConfirmAction>
       )}
     </Panel>
   );

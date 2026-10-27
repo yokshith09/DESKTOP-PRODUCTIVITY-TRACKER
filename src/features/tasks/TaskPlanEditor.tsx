@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ConfirmAction } from "@/components/ConfirmAction";
 import { Presets } from "@/components/Presets";
 import { dayPresets } from "@/lib/datePresets";
 import { CalendarDays, Check, ExternalLink, Link2, Plus, Repeat2, X } from "lucide-react";
@@ -84,7 +85,9 @@ export function PlanEditor({ value, onChange, planned, onPlanned }: {
               {value.days.map((d) => (
                 <li key={d} className="flex h-7 items-center gap-1 rounded-md bg-muted pl-2 text-xs">
                   {short(d)}
-                  <button type="button" aria-label={`Remove ${short(d)}`} onClick={() => toggleDay(d)} className="grid size-6 place-items-center rounded text-muted-foreground hover:text-foreground"><X className="size-3" /></button>
+                  <ConfirmAction message={`Remove ${short(d)} from the plan?`} verb="Remove" onConfirm={() => toggleDay(d)}>
+                    <button type="button" aria-label={`Remove ${short(d)}`} className="grid size-6 place-items-center rounded text-muted-foreground hover:text-foreground"><X className="size-3" /></button>
+                  </ConfirmAction>
                 </li>
               ))}
             </ul>
@@ -195,8 +198,10 @@ export function LinksEditor({ task }: { task: Task }) {
                 <ExternalLink className="size-3.5 shrink-0" /><span className="truncate">{linkLabel(l)}</span>
                 {l.title && <span className="truncate text-[11px] text-muted-foreground">{l.url.replace(/^https?:\/\//, "")}</span>}
               </button>
-              <button type="button" aria-label={`Remove link ${linkLabel(l)}`} onClick={() => void setLinks(task.id, current.filter((_, j) => j !== i))}
-                className="grid size-6 shrink-0 place-items-center rounded text-muted-foreground outline-none hover:bg-destructive/15 hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring"><X className="size-3.5" /></button>
+              <ConfirmAction message="Remove this link?" verb="Remove" onConfirm={() => void setLinks(task.id, current.filter((_, j) => j !== i))}>
+                <button type="button" aria-label={`Remove link ${linkLabel(l)}`}
+                  className="grid size-6 shrink-0 place-items-center rounded text-muted-foreground outline-none hover:bg-destructive/15 hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring"><X className="size-3.5" /></button>
+              </ConfirmAction>
             </li>
           ))}
         </ul>

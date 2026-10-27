@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ipc, type PetPack } from "@/ipc";
@@ -76,6 +76,8 @@ describe("pet library", () => {
     const set = vi.spyOn(ipc, "settingSet").mockResolvedValue(null);
     renderLibrary({ "pet.pack": "pip" });
     fireEvent.click(await screen.findByRole("button", { name: "Remove Pip" }));
+    expect(remove).not.toHaveBeenCalled(); // asks first
+    fireEvent.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Remove" }));
     await waitFor(() => expect(remove).toHaveBeenCalledWith("pip"));
     await waitFor(() => expect(set).toHaveBeenCalledWith("pet.pack", null));
   });

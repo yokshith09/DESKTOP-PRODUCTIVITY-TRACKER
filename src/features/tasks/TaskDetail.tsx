@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ConfirmAction } from "@/components/ConfirmAction";
 import { Presets } from "@/components/Presets";
 import { dayPresets } from "@/lib/datePresets";
 import { AlignLeft, Bell, CalendarClock, CalendarPlus, Check, ChevronRight, Timer, ExternalLink, FilePlus2, Flag, FolderKanban, History, Lightbulb, Link2, MessageSquarePlus, Trash2, X } from "lucide-react";
@@ -258,8 +259,10 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
                       <p className="mt-0.5 text-[11px] text-muted-foreground">{formatWhen(u.created_at, now)}</p>
                     </div>
                     {now - u.created_at <= DELETE_WINDOW_MS && (
-                      <button type="button" aria-label="Delete update" title="Can be deleted for 5 minutes" onClick={() => void actions.removeUpdate(u.id)}
-                        className="grid size-6 shrink-0 place-items-center rounded text-muted-foreground outline-none hover:bg-destructive/15 hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring"><X className="size-3.5" /></button>
+                      <ConfirmAction message="Delete this update?" onConfirm={() => void actions.removeUpdate(u.id)}>
+                        <button type="button" aria-label="Delete update" title="Can be deleted for 5 minutes"
+                          className="grid size-6 shrink-0 place-items-center rounded text-muted-foreground outline-none hover:bg-destructive/15 hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring"><X className="size-3.5" /></button>
+                      </ConfirmAction>
                     )}
                   </li>
                 ))}

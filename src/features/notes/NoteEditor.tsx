@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { ConfirmAction } from "@/components/ConfirmAction";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Archive, ArchiveRestore, Bold, Check, CheckSquare, Eye, FolderKanban, Heading2, Italic, List, ListOrdered, Palette, Pencil, Pin, PinOff, Plus, SquareArrowOutUpRight, Tag, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -232,15 +233,15 @@ function EditorBody({ note, onClose, fullWindow }: { note: Note; onClose: () => 
         {note.labels.length > 0 && (
           <div className="flex flex-wrap gap-1.5 pt-2">
             {note.labels.map((l) => (
+              <ConfirmAction key={l.id} message={`Take “${l.name}” off this note?`} verb="Remove" onConfirm={() => toggleLabel(l.id)}>
               <button
-                key={l.id}
                 type="button"
                 title={`Remove “${l.name}”`}
-                onClick={() => toggleLabel(l.id)}
                 className="rounded-full bg-foreground/10 px-2.5 py-0.5 text-xs font-medium hover:bg-foreground/20"
               >
                 {l.name} ×
               </button>
+              </ConfirmAction>
             ))}
           </div>
         )}
@@ -308,9 +309,11 @@ function EditorBody({ note, onClose, fullWindow }: { note: Note; onClose: () => 
         <Button variant="ghost" size="icon-sm" aria-label={note.archived ? "Unarchive" : "Archive"} title={note.archived ? "Unarchive" : "Archive"} onClick={() => void actions.archive(note.id, !note.archived).then(onClose)}>
           {note.archived ? <ArchiveRestore /> : <Archive />}
         </Button>
-        <Button variant="ghost" size="icon-sm" aria-label="Delete" title="Delete" className="hover:text-destructive" onClick={() => void actions.remove(note.id).then(onClose)}>
-          <Trash2 />
-        </Button>
+        <ConfirmAction message="Move this note to the Bin?" onConfirm={() => void actions.remove(note.id).then(onClose)}>
+          <Button variant="ghost" size="icon-sm" aria-label="Delete" title="Delete" className="hover:text-destructive">
+            <Trash2 />
+          </Button>
+        </ConfirmAction>
         <Button
           variant="ghost" size="icon-sm" aria-pressed={preview} aria-label={preview ? "Edit" : "Preview"} title={`${preview ? "Edit" : "Preview"} (${mod}+E)`}
           onClick={() => setPreview((p) => !p)}

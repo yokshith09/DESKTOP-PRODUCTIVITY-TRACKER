@@ -423,6 +423,11 @@ describe("Notes screen (against the in-memory shell)", () => {
     await openNotes(user);
     const card = await screen.findByRole("button", { name: "Groceries" });
     await user.click(within(card).getByRole("button", { name: "Delete" }));
+    // It asks first: Cancel keeps the note, Delete moves it to the Bin.
+    await user.click(within(await screen.findByRole("alertdialog", { name: "Move this note to the Bin?" })).getByRole("button", { name: "Cancel" }));
+    expect(await screen.findByRole("button", { name: "Groceries" })).toBeTruthy();
+    await user.click(within(card).getByRole("button", { name: "Delete" }));
+    await user.click(within(await screen.findByRole("alertdialog", { name: "Move this note to the Bin?" })).getByRole("button", { name: "Delete" }));
     const bubble = await petSays(/^Moved to Bin/);
     expect(bubble.actionLabel).toBe("Undo");
     await waitFor(() => expect(screen.queryByRole("button", { name: "Groceries" })).toBeNull());

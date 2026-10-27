@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ConfirmAction } from "@/components/ConfirmAction";
 import { Bell, Minus, Plus, Volume2, VolumeX, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -72,10 +73,12 @@ export function TaskReminders({ task }: { task: Task }) {
                 className="grid size-6 shrink-0 place-items-center rounded text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring">
                 {r.sound ? <Volume2 className="size-3.5" /> : <VolumeX className="size-3.5" />}
               </button>
-              <button type="button" aria-label="Remove reminder" onClick={() => run(ipc.reminderDelete(r.id))}
-                className="grid size-6 shrink-0 place-items-center rounded text-muted-foreground outline-none hover:bg-destructive/15 hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring">
-                <X className="size-3.5" />
-              </button>
+              <ConfirmAction message="Remove this reminder?" verb="Remove" onConfirm={() => run(ipc.reminderDelete(r.id))}>
+                <button type="button" aria-label="Remove reminder"
+                  className="grid size-6 shrink-0 place-items-center rounded text-muted-foreground outline-none hover:bg-destructive/15 hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring">
+                  <X className="size-3.5" />
+                </button>
+              </ConfirmAction>
             </li>
           ))}
         </ul>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ConfirmAction } from "@/components/ConfirmAction";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Plus, Quote as QuoteIcon, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -94,7 +95,9 @@ function QuotesDialog({ open, onClose, settings, onSave }: { open: boolean; onCl
                       {q.author && <p className="text-xs text-muted-foreground">— {q.author}</p>}
                     </div>
                     <Button size="icon" variant="ghost" className="size-7" aria-label={`Edit “${q.text}”`} onClick={() => edit(i)}><Pencil className="size-3.5" /></Button>
-                    <Button size="icon" variant="ghost" className="size-7" aria-label={`Delete “${q.text}”`} onClick={() => set({ custom: settings.custom.filter((_, j) => j !== i) })}><Trash2 className="size-3.5" /></Button>
+                    <ConfirmAction message="Delete this quote?" onConfirm={() => set({ custom: settings.custom.filter((_, j) => j !== i) })}>
+                      <Button size="icon" variant="ghost" className="size-7" aria-label={`Delete “${q.text}”`}><Trash2 className="size-3.5" /></Button>
+                    </ConfirmAction>
                   </li>
                 ))}
               </ul>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ConfirmAction } from "@/components/ConfirmAction";
 import { Bell, BellRing, CalendarCheck2, CalendarClock, Plus, Trash2, Users } from "lucide-react";
 import { completed, notify } from "@/lib/notify";
 import { Badge } from "@/components/ui/badge";
@@ -65,12 +66,14 @@ function ReminderRow({ r }: { r: Reminder }) {
         {missed ? <BellRing className="size-3" /> : <Bell className="size-3" />}
         {missed ? "Missed · " : ""}{formatWhen(r.remind_at, now)}
       </span>
-      <button
-        type="button" aria-label={`Delete reminder “${r.title}”`} onClick={() => void remove(r.id)}
-        className="grid size-6 place-items-center rounded text-muted-foreground opacity-0 outline-none hover:bg-destructive/15 hover:text-destructive focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring group-hover:opacity-100"
-      >
-        <Trash2 className="size-3.5" />
-      </button>
+      <ConfirmAction message="Delete this reminder?" onConfirm={() => void remove(r.id)}>
+        <button
+          type="button" aria-label={`Delete reminder “${r.title}”`}
+          className="grid size-6 place-items-center rounded text-muted-foreground opacity-0 outline-none hover:bg-destructive/15 hover:text-destructive focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring group-hover:opacity-100 data-[state=open]:opacity-100"
+        >
+          <Trash2 className="size-3.5" />
+        </button>
+      </ConfirmAction>
     </li>
   );
 }

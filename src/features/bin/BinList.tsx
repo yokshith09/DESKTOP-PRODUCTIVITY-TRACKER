@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ConfirmAction } from "@/components/ConfirmAction";
 import { RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -21,7 +22,9 @@ export function BinList({ limit }: { limit?: number }) {
           <span className="min-w-0 flex-1 truncate text-[13px]">{n.title || n.excerpt || "Untitled note"}</span>
           <span className="text-[11px] text-muted-foreground">Deleted {timeAgo(n.deleted_at)}</span>
           <Button variant="ghost" size="icon-sm" aria-label={`Restore “${n.title || "note"}”`} title="Restore" onClick={() => void actions.restore(n.id)}><RotateCcw /></Button>
-          <Button variant="ghost" size="icon-sm" aria-label={`Delete “${n.title || "note"}” forever`} title="Delete forever" className="hover:text-destructive" onClick={() => void actions.purge(n.id)}><Trash2 /></Button>
+          <ConfirmAction message="Delete this note for good? It can't be brought back." verb="Delete" onConfirm={() => void actions.purge(n.id)}>
+            <Button variant="ghost" size="icon-sm" aria-label={`Delete “${n.title || "note"}” forever`} title="Delete forever" className="hover:text-destructive"><Trash2 /></Button>
+          </ConfirmAction>
         </li>
       ))}
     </ul>

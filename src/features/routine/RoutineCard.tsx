@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ConfirmAction } from "@/components/ConfirmAction";
 import { Bell, BellOff, Check, Plus, Repeat, X } from "lucide-react";
 import { Tile } from "@/features/shell/PageHeader";
 import { Input } from "@/components/ui/input";
@@ -113,12 +114,14 @@ export function RoutineCard({ className }: { className?: string }) {
                     {days}/7
                   </span>
                 )}
+                <ConfirmAction message={`Remove “${item.title}” from the routine?`} verb="Remove" onConfirm={() => void apply((s) => removeItem(s, item.id))}>
                 <button
-                  type="button" aria-label={`Remove ${item.title}`} onClick={() => void apply((s) => removeItem(s, item.id))}
+                  type="button" aria-label={`Remove ${item.title}`}
                   className="grid size-6 shrink-0 place-items-center rounded text-muted-foreground opacity-0 outline-none hover:bg-destructive/15 hover:text-destructive focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring group-hover:opacity-100"
                 >
                   <X className="size-3.5" />
                 </button>
+                </ConfirmAction>
               </li>
             );
           })}

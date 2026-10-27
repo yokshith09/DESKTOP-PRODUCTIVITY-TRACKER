@@ -1,4 +1,5 @@
-import type { KeyboardEvent, MouseEvent, ReactNode } from "react";
+import { forwardRef, type ComponentPropsWithoutRef, type KeyboardEvent, type MouseEvent } from "react";
+import { ConfirmAction } from "@/components/ConfirmAction";
 import { Archive, ArchiveRestore, Pin, PinOff, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -12,13 +13,16 @@ export interface NoteHandlers {
   onDelete: (id: string) => void;
 }
 
-function Action({ label, onClick, children, danger }: { label: string; onClick: () => void; children: ReactNode; danger?: boolean }) {
-  const handle = (e: MouseEvent) => {
+/** A small icon button on a note card. It passes extra props on, so it can also be a popover's trigger. */
+const Action = forwardRef<HTMLButtonElement, Omit<ComponentPropsWithoutRef<"button">, "onClick"> & { label: string; onClick?: (e: MouseEvent<HTMLButtonElement>) => void; danger?: boolean }>(function Action({ label, onClick, children, danger, ...rest }, ref) {
+  const handle = (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    onClick();
+    onClick?.(e);
   };
   return (
     <button
+      {...rest}
+      ref={ref}
       type="button"
       title={label}
       aria-label={label}
@@ -32,7 +36,7 @@ function Action({ label, onClick, children, danger }: { label: string; onClick: 
       {children}
     </button>
   );
-}
+});
 
 function Actions({ note, onPin, onArchive, onDelete }: NoteHandlers & { note: NoteSummary }) {
   return (
@@ -45,9 +49,11 @@ function Actions({ note, onPin, onArchive, onDelete }: NoteHandlers & { note: No
       <Action label={note.archived ? "Unarchive" : "Archive"} onClick={() => onArchive(note.id, !note.archived)}>
         {note.archived ? <ArchiveRestore /> : <Archive />}
       </Action>
-      <Action label="Delete" danger onClick={() => onDelete(note.id)}>
-        <Trash2 />
-      </Action>
+      <ConfirmAction message="Move this note to the Bin?" onConfirm={() => onDelete(note.id)}>
+        <Action label="Delete" danger>
+          <Trash2 />
+        </Action>
+      </ConfirmAction>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ConfirmAction } from "@/components/ConfirmAction";
 import { RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { errorMessage, ipc } from "@/ipc";
@@ -26,7 +27,9 @@ export function BinTasks() {
           <li key={t.id} className="flex items-center gap-2 px-3 py-2 text-[13px]">
             <span className="min-w-0 flex-1 truncate">{t.title}</span>
             <Button size="sm" variant="ghost" aria-label={`Restore task “${t.title}”`} onClick={() => void act(ipc.taskRestore(t.id), "Task restored")}><RotateCcw />Restore</Button>
-            <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive" aria-label={`Delete task “${t.title}” for good`} onClick={() => void act(ipc.taskDelete(t.id), "Task deleted")}><Trash2 /></Button>
+            <ConfirmAction message="Delete this task for good? It can't be brought back." onConfirm={() => void act(ipc.taskDelete(t.id), "Task deleted")}>
+              <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive" aria-label={`Delete task “${t.title}” for good`}><Trash2 /></Button>
+            </ConfirmAction>
           </li>
         ))}
       </ul>

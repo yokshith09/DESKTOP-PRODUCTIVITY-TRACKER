@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
+import { ConfirmAction } from "@/components/ConfirmAction";
 import { Presets } from "@/components/Presets";
 import { dayPresets } from "@/lib/datePresets";
 import { ArrowDown, ArrowLeft, ArrowUp, Check, Eye, ListChecks, Pencil, Plus, Trash2, X } from "lucide-react";
@@ -47,7 +48,9 @@ function RowTools({ label, i, count, onMove, onRemove }: { label: string; i: num
     <div className="flex shrink-0 items-center opacity-60 group-hover:opacity-100 group-focus-within:opacity-100">
       <button type="button" className={btn} aria-label={`Move ${label} up`} disabled={i === 0} onClick={() => onMove(-1)}><ArrowUp className="size-3.5" /></button>
       <button type="button" className={btn} aria-label={`Move ${label} down`} disabled={i === count - 1} onClick={() => onMove(1)}><ArrowDown className="size-3.5" /></button>
-      <button type="button" className={cn(btn, "hover:text-destructive")} aria-label={`Remove ${label}`} onClick={onRemove}><X className="size-3.5" /></button>
+      <ConfirmAction message={`Remove ${label}?`} verb="Remove" onConfirm={onRemove}>
+        <button type="button" className={cn(btn, "hover:text-destructive")} aria-label={`Remove ${label}`}><X className="size-3.5" /></button>
+      </ConfirmAction>
     </div>
   );
 }
@@ -66,7 +69,9 @@ function Participants({ value, onChange }: { value: string[]; onChange: (v: stri
       {value.map((p) => (
         <span key={p} className="flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-[12px]">
           {p}
-          <button type="button" aria-label={`Remove ${p}`} className="text-muted-foreground hover:text-foreground" onClick={() => onChange(value.filter((x) => x !== p))}><X className="size-3" /></button>
+          <ConfirmAction message={`Remove ${p}?`} verb="Remove" onConfirm={() => onChange(value.filter((x) => x !== p))}>
+            <button type="button" aria-label={`Remove ${p}`} className="text-muted-foreground hover:text-foreground"><X className="size-3" /></button>
+          </ConfirmAction>
         </span>
       ))}
       <input

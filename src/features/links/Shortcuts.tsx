@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ConfirmAction } from "@/components/ConfirmAction";
 import { ExternalLink, Link2, Pencil, Plus, X } from "lucide-react";
 import { Tile } from "@/features/shell/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -121,12 +122,14 @@ export function LinksCard({ className }: { className?: string }) {
               >
                 <Pencil className="size-3.5" />
               </button>
+              <ConfirmAction message={`Remove “${s.label}”?`} verb="Remove" onConfirm={() => void remove(s.id)}>
               <button
-                type="button" onClick={() => void remove(s.id)} aria-label={`Remove ${s.label}`}
+                type="button" aria-label={`Remove ${s.label}`}
                 className="grid size-7 shrink-0 place-items-center rounded text-muted-foreground opacity-0 outline-none hover:bg-destructive/15 hover:text-destructive focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring group-hover:opacity-100"
               >
                 <X className="size-3.5" />
               </button>
+              </ConfirmAction>
             </li>
           ))}
         </ul>

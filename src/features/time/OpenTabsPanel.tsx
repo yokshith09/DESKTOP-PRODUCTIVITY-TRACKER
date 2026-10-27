@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ConfirmAction } from "@/components/ConfirmAction";
 import { Globe, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tile } from "@/features/shell/PageHeader";
@@ -71,14 +72,17 @@ export function OpenTabsPanel({ enabled, className }: { enabled: boolean; classN
                 </span>
                 {t.domain && <span className="shrink-0 truncate text-[11px] text-muted-foreground">{t.domain}</span>}
                 {/* Firefox tabs come from its session file (macOS) and can't be closed from Loaf. */}
-                {t.browser !== "Firefox" && <Button
-                  type="button" variant="ghost" size="icon" className="size-6 shrink-0 opacity-0 group-hover:opacity-100"
-                  aria-label={`Close ${t.title ?? t.domain ?? "tab"}`}
-                  disabled={closing === key}
-                  onClick={() => void close(t.browser, t.window_index, t.tab_index)}
-                >
-                  <X className="size-3.5" />
-                </Button>}
+                {t.browser !== "Firefox" && (
+                  <ConfirmAction message="Close this tab in your browser?" verb="Close" onConfirm={() => void close(t.browser, t.window_index, t.tab_index)}>
+                    <Button
+                      type="button" variant="ghost" size="icon" className="size-6 shrink-0 opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100"
+                      aria-label={`Close ${t.title ?? t.domain ?? "tab"}`}
+                      disabled={closing === key}
+                    >
+                      <X className="size-3.5" />
+                    </Button>
+                  </ConfirmAction>
+                )}
               </li>
             );
           })}
