@@ -235,10 +235,10 @@ fn a_database_from_a_newer_loaf_is_refused_not_downgraded() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("loaf.db");
     let mut conn = open_connection(&path).unwrap();
-    conn.pragma_update(None, "user_version", 9).unwrap();
+    conn.pragma_update(None, "user_version", 99).unwrap();
     let err = migrate::migrate(&mut conn, MIGRATIONS).unwrap_err();
     assert!(err.message.contains("newer version"));
-    assert_eq!(migrate::user_version(&conn).unwrap(), 9);
+    assert_eq!(migrate::user_version(&conn).unwrap(), 99);
 }
 
 #[test]

@@ -26,6 +26,7 @@ import { TimePage } from "@/features/time/TimePage";
 import { TodayOverviewPage } from "@/features/overview/TodayOverviewPage";
 import { MeetingsPage } from "@/features/meetings/MeetingsPage";
 import { ProjectsPage } from "@/features/projects/ProjectsPage";
+import { DiaryPage } from "@/features/diary/DiaryPage";
 import { StudyPage } from "@/features/student/StudyPage";
 import type { TaskFocus } from "@/features/overview/YesterdayLine";
 import { Welcome, useFirstRun, type WelcomeNext } from "@/features/welcome/Welcome";
@@ -34,7 +35,7 @@ import { ROLE_PREF, parseRole } from "@/features/guide/roles";
 import { TOUR_PREF, parseTour, stepsFor } from "@/features/guide/tour";
 import { usePref } from "@/features/guide/usePref";
 
-const PAGES: readonly Page[] = ["today", "tasks", "time", "notes", "projects", "study", "meetings", "archive", "bin", "character", "mcp", "settings"];
+const PAGES: readonly Page[] = ["today", "tasks", "time", "notes", "projects", "study", "diary", "meetings", "archive", "bin", "character", "mcp", "settings"];
 
 function Screen() {
   const [page, setPageState] = useState<Page>("today");
@@ -180,6 +181,7 @@ function Screen() {
             {page === "meetings" && <MeetingsPage newTick={newMeeting} />}
             {page === "projects" && <ProjectsPage />}
             {page === "study" && <StudyPage />}
+            {page === "diary" && <DiaryPage />}
             {page === "time" && <TimePage />}
             {page === "mcp" && <ComingSoon icon={<Plug />} title="MCP" description="Connect external tools and services to Loaf through the Model Context Protocol. This arrives in a later release." />}
           </div>

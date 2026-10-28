@@ -44,7 +44,7 @@ Same 13 sections as the other specs. Status words per PROJECT_STATUS §2.
 
 ## FR-86 — Private diary with task pick-up
 
-**1 Metadata** — Group: Journal · Status: Planned · Milestone: FM-ST (student release) · Effort: L · Origin: owner 2026-10-23.
+**1 Metadata** — Group: Journal · Status: Built 2026-10-28 without search, mood, recovery key and tray lock (Unverified; see DECISIONS) · Milestone: FM-ST (student release) · Effort: L · Origin: owner 2026-10-23.
 **2 Story** — As a user I write about my day in a calm, beautiful private diary, locked with a password. Loaf can spot things I need to do in what I wrote and turn them into tasks with deadlines, but only when I allow it.
 **3 Behaviour** —
 - **Diary tab** (sidebar). One entry per day by default (more allowed). Calendar strip to jump to a day; mood tag (optional, 5 faces); word count; full-text search inside the diary only after unlock.
