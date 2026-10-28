@@ -2,6 +2,7 @@ import "./index.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { NoteWindow, noteWindowId } from "./features/notes/NoteWindow";
 
 const root = document.getElementById("root");
@@ -12,6 +13,6 @@ const noteId = noteWindowId();
 
 createRoot(root).render(
   <StrictMode>
-    {noteId ? <NoteWindow id={noteId} /> : <App />}
+    <ErrorBoundary>{noteId ? <NoteWindow id={noteId} /> : <App />}</ErrorBoundary>
   </StrictMode>,
 );
