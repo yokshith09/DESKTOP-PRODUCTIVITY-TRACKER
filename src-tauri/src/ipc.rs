@@ -446,6 +446,11 @@ pub async fn focus_start(input: FocusStart, core: State<'_, Core>) -> Result<Foc
 
 /// The running session, if any (one that ran out while Loaf was closed is finished here).
 #[tauri::command]
+pub async fn focus_task_total(task_id: String, core: State<'_, Core>) -> Result<i64> {
+    focus::task_total_ms(&core.db, &task_id).await
+}
+
+#[tauri::command]
 pub async fn focus_current(core: State<'_, Core>) -> Result<Option<FocusSession>> {
     focus::current(&core.db, &*core.clock).await
 }

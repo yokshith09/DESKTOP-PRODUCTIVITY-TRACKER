@@ -3,7 +3,7 @@ import { ConfirmAction } from "@/components/ConfirmAction";
 import { Presets } from "@/components/Presets";
 import { dayPresets } from "@/lib/datePresets";
 import { AlignLeft, Bell, CalendarClock, CalendarPlus, Check, ChevronRight, Timer, ExternalLink, FilePlus2, Flag, FolderKanban, History, Lightbulb, Link2, MessageSquarePlus, Trash2, X } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { NoteEditor } from "@/features/notes/NoteEditor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import { STATUS_LABEL, isFinished, transitionsFrom } from "@/lib/taskStatus";
 import { clockTime, formatWhen } from "@/lib/time";
 import { errorMessage, ipc, type Priority, type Task, type TaskEvent } from "@/ipc";
 import { notify } from "@/lib/notify";
-import { clock as focusClock } from "@/lib/focus";
+import { clock as focusClock, hoursLabel } from "@/lib/focus";
 import { toEdit } from "./edit";
 import { useFocus, useFocusLength } from "@/hooks/useFocus";
 import { FocusLength } from "@/features/focus/FocusTile";
@@ -101,6 +101,7 @@ export function TaskDetail({ taskId, onClose }: { taskId: string | null; onClose
 function Body({ task, onClose }: { task: Task; onClose: () => void }) {
   const actions = useTaskActions();
   const focus = useFocus();
+  const { data: focusedMs = 0 } = useQuery({ queryKey: ["focus-total", task.id, focus.session?.id ?? null], queryFn: () => ipc.focusTaskTotal(task.id) });
   const { minutes, set: setMinutes } = useFocusLength();
   const { data: allTasks = [] } = useAllTasks();
   const { data: notes = [] } = useNotes(false, null, "last_edited");
@@ -194,6 +195,7 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
           <span className="font-medium uppercase tracking-wide">{STATUS_LABEL[task.status]}</span>
           {task.project && <span className="flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5"><FolderKanban aria-hidden className="size-3" />{task.project}</span>}
           {dueText && <span className={overdueText ? "font-medium text-destructive" : "font-medium text-foreground"}>{dueText}</span>}
+          {focusedMs > 0 && <span className="tabular-nums" title="Finished focus sessions on this task">Focused {hoursLabel(focusedMs)}</span>}
           {focus.session?.task_id === task.id && <span className="font-medium text-primary tabular-nums">Focusing · {focusClock(focus.remaining)} left</span>}
         </DialogDescription>
         <div className="flex items-center gap-2">

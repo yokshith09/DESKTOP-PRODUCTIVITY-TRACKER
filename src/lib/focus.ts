@@ -28,3 +28,8 @@ export function endLine(s: FocusSession): { text: string; pose: string; offerBre
 
 export const BREAK_MINUTES = 5;
 export const FOCUS_CHOICES = [15, 25, 50] as const;
+
+export function hoursLabel(ms: number): string {
+  const min = Math.round(ms / 60_000);
+  return min < 60 ? `${min} min` : `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, "0")} min`;
+}

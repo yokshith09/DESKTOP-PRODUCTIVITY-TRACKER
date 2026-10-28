@@ -562,6 +562,7 @@ export function createMock() {
       const f: FocusSession = { id: `f${++seq}`, kind: i.kind, task_id: i.task_id ?? null, label, planned_ms: i.minutes * 60_000, started_at: now(), paused_at: null, paused_ms: 0, ended_at: null, outcome: null, local_date: today };
       focus.push(f); emit("FocusChanged", { session: { ...f } }); return { ...f };
     },
+    focus_task_total: (a) => focus.filter((f) => f.task_id === a.taskId && f.kind === "FOCUS" && f.ended_at !== null).reduce((sum, f) => sum + Math.max(0, (f.ended_at ?? 0) - f.started_at - f.paused_ms), 0),
     focus_current: () => {
       const r = running();
       if (r && ranOut(r)) { endFocus(r, r.started_at + r.paused_ms + r.planned_ms, "DONE"); return null; }

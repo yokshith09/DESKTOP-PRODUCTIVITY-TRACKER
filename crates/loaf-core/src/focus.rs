@@ -198,6 +198,20 @@ pub async fn start(db: &Database, clock: &dyn Clock, input: FocusStart) -> Resul
     .await
 }
 
+/// Time worked on a task across its finished focus sessions (paused time excluded).
+pub async fn task_total_ms(db: &Database, task_id: &str) -> Result<i64> {
+    let task_id = task_id.to_owned();
+    db.read(move |conn| {
+        Ok(conn.query_row(
+            "SELECT COALESCE(SUM(MAX(ended_at - started_at - paused_ms, 0)), 0) FROM focus_sessions
+              WHERE task_id = ?1 AND kind = 'FOCUS' AND ended_at IS NOT NULL",
+            [&task_id],
+            |r| r.get(0),
+        )?)
+    })
+    .await
+}
+
 /// The running session, if any. One whose time ran out (say, while Loaf was closed) is finished
 /// here, at the moment it ran out.
 pub async fn current(db: &Database, clock: &dyn Clock) -> Result<Option<FocusSession>> {
@@ -480,6 +494,29 @@ mod tests {
             Recv::Event(e) => e,
             other => panic!("{other:?}"),
         }
+    }
+
+    #[tokio::test]
+    async fn a_task_adds_up_the_focus_time_worked_on_it() {
+        let f = setup();
+        let t = crate::tasks::quick_add(&f.db, &f.clock, "Essay")
+            .await
+            .unwrap();
+        let with_task = |minutes| FocusStart {
+            kind: FocusKind::Focus,
+            minutes,
+            task_id: Some(t.id.clone()),
+        };
+        assert_eq!(task_total_ms(&f.db, &t.id).await.unwrap(), 0);
+        start(&f.db, &f.clock, with_task(25)).await.unwrap();
+        f.clock.advance_ms(10 * MIN);
+        stop(&f.db, &f.clock).await.unwrap();
+        start(&f.db, &f.clock, with_task(25)).await.unwrap();
+        f.clock.advance_ms(7 * MIN);
+        stop(&f.db, &f.clock).await.unwrap();
+        // A running session and a break on the same task are not counted.
+        start(&f.db, &f.clock, with_task(25)).await.unwrap();
+        assert_eq!(task_total_ms(&f.db, &t.id).await.unwrap(), 17 * MIN);
     }
 
     #[tokio::test]

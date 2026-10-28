@@ -5,7 +5,8 @@ import { ipc } from "@/ipc";
 import { ymd } from "@/lib/dates";
 import { CoursePicker, CourseTag } from "./CoursePicker";
 import { ExamCountdown, countdownLabel } from "./ExamCountdown";
-import { StudyPage, hoursLabel, reportText, shiftWeek, weekStart } from "./StudyPage";
+import { hoursLabel } from "@/lib/focus";
+import { StudyPage, reportText, shiftWeek, weekStart } from "./StudyPage";
 
 beforeAll(() => {
   window.matchMedia ??= ((q: string) => ({ matches: false, media: q, addEventListener() {}, removeEventListener() {} })) as never;

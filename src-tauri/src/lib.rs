@@ -194,6 +194,7 @@ pub fn run() {
             ipc::task_repeat_days,
             ipc::focus_start,
             ipc::focus_current,
+            ipc::focus_task_total,
             ipc::focus_pause,
             ipc::focus_extend,
             ipc::focus_stop,

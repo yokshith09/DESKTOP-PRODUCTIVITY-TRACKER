@@ -87,6 +87,7 @@ export const ipc = {
   taskRepeatDays: (id: string) => call<RepeatDay[]>("task_repeat_days", { id }),
   /** Focus sessions (FR-05). One runs at a time. */
   focusStart: (input: FocusStart) => call<FocusSession>("focus_start", { input }),
+  focusTaskTotal: (taskId: string) => call<number>("focus_task_total", { taskId }),
   focusCurrent: () => call<FocusSession | null>("focus_current"),
   focusPause: (paused: boolean) => call<FocusSession>("focus_pause", { paused }),
   focusExtend: (minutes: number) => call<FocusSession>("focus_extend", { minutes }),

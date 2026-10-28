@@ -9,17 +9,13 @@ import { ipc } from "@/ipc";
 import type { WeeklyReport } from "@/ipc/types";
 import { notify } from "@/lib/notify";
 import { daysBetween, parseYmd, ymd } from "@/lib/dates";
+import { hoursLabel } from "@/lib/focus";
 import { countdownLabel } from "./ExamCountdown";
 import { useCourses, useExams } from "./useStudent";
 
 /** The seven days ending on the given day, as the first day. */
 export const weekStart = (end: Date): string => { const d = new Date(end.getFullYear(), end.getMonth(), end.getDate() - 6); return ymd(d); };
 export const shiftWeek = (from: string, weeks: number): string => { const d = parseYmd(from); d.setDate(d.getDate() + 7 * weeks); return ymd(d); };
-
-export function hoursLabel(ms: number): string {
-  const min = Math.round(ms / 60_000);
-  return min < 60 ? `${min} min` : `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, "0")} min`;
-}
 
 /** The report as plain text you can paste anywhere. */
 export function reportText(r: WeeklyReport): string {
