@@ -81,4 +81,6 @@ pub(crate) fn backup_path(db: &Path, from_version: u32) -> PathBuf {
 }
 
 #[cfg(test)]
+mod scale;
+#[cfg(test)]
 mod tests;

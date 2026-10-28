@@ -27,7 +27,7 @@ function Row({ m, onOpen }: { m: MeetingSummary; onOpen: () => void }) {
     <li className="border-b last:border-b-0">
       <button
         type="button" onClick={onOpen} aria-label={`Open meeting “${m.title}”`}
-        className="flex w-full items-center gap-4 px-4 py-3 text-left outline-none hover:bg-accent/40 focus-visible:bg-accent/40"
+        className="flex w-full items-center gap-4 px-4 py-3 text-left outline-none hover:bg-accent/40 focus-visible:bg-accent/40 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
       >
         <span className="w-24 shrink-0">
           <span className="block text-[12px] font-medium">{w.day}</span>

@@ -1384,3 +1384,30 @@ fn only_the_store_frame_is_looked_inside() {
     assert_eq!(display_name("ApplicationFrameHost.exe"), "Windows App");
     assert_eq!(display_name("CalculatorApp.exe"), "CalculatorApp");
 }
+
+// ---- hour buckets across clock changes and half-hour zones (audit 2026-10-28) --------------------
+
+#[test]
+fn hour_buckets_keep_every_millisecond_across_a_dst_night_and_in_half_hour_zones() {
+    use chrono::TimeZone as _;
+    for (tz, y, mo, d, h, hours) in [
+        (chrono_tz::America::New_York, 2026, 11, 1, 0, 4_i64), // 25-hour day: the 1 am hour happens twice
+        (chrono_tz::America::New_York, 2026, 3, 8, 0, 4),      // 23-hour day: 2 am does not exist
+        (chrono_tz::Asia::Kolkata, 2026, 6, 1, 22, 5),         // +5:30: hours start on :30 UTC
+        (chrono_tz::Asia::Kathmandu, 2026, 6, 1, 22, 5),       // +5:45
+    ] {
+        let start = tz
+            .with_ymd_and_hms(y, mo, d, h, 20, 0)
+            .unwrap()
+            .timestamp_millis();
+        let end = start + hours * 3_600_000 + 17 * 60_000;
+        let mut buckets = [0_i64; 24];
+        super::add_to_hours(&mut buckets, tz, start, end);
+        assert_eq!(
+            buckets.iter().sum::<i64>(),
+            end - start,
+            "{tz} {y}-{mo}-{d}"
+        );
+        assert!(buckets.iter().all(|&ms| (0..=2 * 3_600_000).contains(&ms)));
+    }
+}

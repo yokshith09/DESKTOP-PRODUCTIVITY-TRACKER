@@ -23,7 +23,7 @@ export function NoteComposer({ className, onOpenEditor }: { className?: string; 
 
   if (!open) {
     return (
-      <div className={cn("flex h-11 items-center gap-2 rounded-xl border bg-card px-4 text-[13px] text-muted-foreground shadow-sm transition-colors hover:border-foreground/25", className)}>
+      <div className={cn("flex h-11 items-center gap-2 rounded-xl border bg-card px-4 focus-within:ring-2 focus-within:ring-ring text-[13px] text-muted-foreground shadow-sm transition-colors hover:border-foreground/25", className)}>
         <button type="button" onClick={() => setOpen(true)} className="h-full flex-1 text-left outline-none focus-visible:text-foreground">Take a note…</button>
         <button type="button" onClick={onOpenEditor} className="rounded px-2 py-1 text-xs outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring">Open full editor</button>
       </div>
