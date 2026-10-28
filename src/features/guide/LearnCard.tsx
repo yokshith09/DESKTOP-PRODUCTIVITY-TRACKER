@@ -5,7 +5,7 @@ import type { Page } from "@/features/shell/Sidebar";
 import { cn } from "@/lib/utils";
 import { LEARN_PREF, parseLearn, questionsFor } from "./learn";
 import { ROLE_PREF, parseRole } from "./roles";
-import { TOUR_PREF, parseTour } from "./tour";
+import { TOUR_PREF, parseTour } from "./tourSteps";
 import { usePref } from "./usePref";
 
 function ShowMe({ target, onShow }: { target: { page: Page; label: string }; onShow: (page: Page) => void }) {

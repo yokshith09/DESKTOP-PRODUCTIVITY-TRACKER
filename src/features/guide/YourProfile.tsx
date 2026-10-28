@@ -3,7 +3,7 @@ import { Section } from "@/features/settings/parts";
 import { cn } from "@/lib/utils";
 import { LEARN_PREF, parseLearn } from "./learn";
 import { ROLES, ROLE_INFO, ROLE_PREF, STUDENT_PACK_FEATURES, STUDENT_PACK_PREF, parseRole, parseStudentPack, studentPackOn, type Role } from "./roles";
-import { TOUR_PREF, parseTour } from "./tour";
+import { TOUR_PREF, parseTour } from "./tourSteps";
 import { usePref } from "./usePref";
 
 /** Settings → Your profile: who you are (it only changes order and emphasis), and the tour and quiz again. */

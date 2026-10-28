@@ -6,7 +6,7 @@ import { BANK, QUIZ_ORDER, parseLearn, questionsFor } from "./learn";
 import { LearnCard } from "./LearnCard";
 import { ROLES, parseRole, parseStudentPack, studentPackOn } from "./roles";
 import { Tour } from "./Tour";
-import { STEPS, TOUR_ORDER, stepsFor } from "./tour";
+import { STEPS, TOUR_ORDER, stepsFor } from "./tourSteps";
 import { YourProfile } from "./YourProfile";
 import { GuideSection } from "./GuideSection";
 import { CREDIT, GUIDE } from "./content";

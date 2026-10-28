@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { Page } from "@/features/shell/Sidebar";
-import type { TourStep } from "./tour";
+import type { TourStep } from "./tourSteps";
 
 const PAD = 6;
 const CARD_W = 340;

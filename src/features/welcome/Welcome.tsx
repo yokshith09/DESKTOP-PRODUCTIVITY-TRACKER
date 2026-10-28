@@ -8,7 +8,7 @@ import { useNotes, useTasksQuery } from "@/hooks/useLoaf";
 import { useSetting } from "@/hooks/useTheme";
 import { ipc } from "@/ipc";
 import { ROLES, ROLE_INFO, ROLE_PREF, parseRole, type Role } from "@/features/guide/roles";
-import { TOUR_PREF, parseTour } from "@/features/guide/tour";
+import { TOUR_PREF, parseTour } from "@/features/guide/tourSteps";
 import { usePref } from "@/features/guide/usePref";
 
 const KEY = ["prefs", "ui.onboarded"] as const;

@@ -32,7 +32,7 @@ import type { TaskFocus } from "@/features/overview/YesterdayLine";
 import { Welcome, useFirstRun, type WelcomeNext } from "@/features/welcome/Welcome";
 import { Tour } from "@/features/guide/Tour";
 import { ROLE_PREF, parseRole } from "@/features/guide/roles";
-import { TOUR_PREF, parseTour, stepsFor } from "@/features/guide/tour";
+import { TOUR_PREF, parseTour, stepsFor } from "@/features/guide/tourSteps";
 import { usePref } from "@/features/guide/usePref";
 
 const PAGES: readonly Page[] = ["today", "tasks", "time", "notes", "projects", "study", "diary", "meetings", "archive", "bin", "character", "mcp", "settings"];
