@@ -7,7 +7,7 @@ import { useReminders, useSettings, useTodayTasks } from "@/hooks/useLoaf";
 import { useFocus } from "@/hooks/useFocus";
 import { clock } from "@/lib/focus";
 import { useTheme } from "@/hooks/useTheme";
-import { ipc, onEvent, onPetSay, petAction, type TaskRow } from "@/ipc";
+import { ipc, onEvent, onPetMenu, onPetSay, petAction, type TaskRow } from "@/ipc";
 import { cn } from "@/lib/utils";
 import { PetCard } from "./PetCard";
 import { glanceText } from "./glance";
@@ -96,6 +96,8 @@ export function PetApp() {
   const [asleep, setAsleep] = useState(false);
   // "Sleep" on the card: a nap that lasts until Wake (or a click on the pet), not ended by hovering.
   const [napping, setNapping] = useState(false);
+  // "Sleep or wake" in the right-click menu (owner 2026-10-27).
+  useEffect(() => onPetMenu((what) => { if (what === "nap") setNapping((n) => !n); }), []);
   const wake = () => {
     lastActive.current = Date.now();
     setAsleep(false);

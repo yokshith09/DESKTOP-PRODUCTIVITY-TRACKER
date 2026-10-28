@@ -44,9 +44,17 @@ export function errorMessage(e: unknown): string {
   return typeof e === "string" ? e : "Something went wrong. Your data is safe.";
 }
 
-/** Requests from the shell to the dashboard (`new-note`, `new-task`, `settings`): global shortcuts and the pet menu. */
+/**
+ * Requests from the shell to the dashboard (`new-note`, `new-task`, `focus`, `tasks`, `settings`,
+ * `page:<name>`): global shortcuts and the pet's right-click menu. Outside the app a
+ * `loaf-command` window event stands in, so the browser preview and tests can send one too.
+ */
 export function onCommand(cb: (command: string) => void): () => void {
-  if (!isTauri()) return () => {};
+  if (!isTauri()) {
+    const on = (e: Event) => cb((e as CustomEvent<string>).detail);
+    window.addEventListener("loaf-command", on);
+    return () => window.removeEventListener("loaf-command", on);
+  }
   const pending = listen<string>("loaf://command", (e) => cb(e.payload));
   return () => void pending.then((off) => off());
 }
@@ -132,4 +140,18 @@ export function onPetAction(cb: (id: string) => void): () => void {
   const handler = (e: Event) => cb((e as CustomEvent<string>).detail);
   window.addEventListener("loaf-pet-action", handler);
   return () => window.removeEventListener("loaf-pet-action", handler);
+}
+
+/**
+ * The pet's right-click menu asking the pet window itself to do something (`nap`: sleep or wake).
+ * Outside the app a `loaf-pet-menu` window event stands in.
+ */
+export function onPetMenu(cb: (what: string) => void): () => void {
+  if (!isTauri()) {
+    const on = (e: Event) => cb((e as CustomEvent<string>).detail);
+    window.addEventListener("loaf-pet-menu", on);
+    return () => window.removeEventListener("loaf-pet-menu", on);
+  }
+  const pending = listen<string>("pet://menu", (e) => cb(e.payload));
+  return () => void pending.then((off) => off());
 }

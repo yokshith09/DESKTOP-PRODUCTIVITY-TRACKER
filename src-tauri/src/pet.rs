@@ -21,7 +21,7 @@ use loaf_core::events::Event;
 use loaf_core::settings_service::SettingsService;
 use serde::Serialize;
 use serde_json::{json, Value};
-use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem};
+use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::{
     AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, Runtime, State, WebviewWindow,
 };
@@ -403,95 +403,183 @@ pub fn hide_main<R: Runtime>(app: &AppHandle<R>) {
 #[tauri::command]
 pub async fn pet_menu(app: AppHandle, settings: State<'_, Arc<SettingsService>>) -> Result<()> {
     let all = settings.get_all().await?;
-    let tracking = all
-        .get("tracking.apps")
-        .and_then(Value::as_bool)
-        .unwrap_or(false);
-    // The pet's own shortcut, if one was chosen (FR-48; off by default).
-    let pet_keys = all
-        .get("shortcuts.global_pet")
-        .and_then(Value::as_str)
-        .map(str::to_owned);
     let main_visible = app
         .get_webview_window("main")
         .and_then(|m| m.is_visible().ok())
         .unwrap_or(false);
     let Some(w) = window(&app) else { return Ok(()) };
-    let menu = build_menu(&app, main_visible, tracking, pet_keys.as_deref()).map_err(internal)?;
+    let menu = build_menu(&app, &menu_spec(main_visible, &all)).map_err(internal)?;
     w.popup_menu(&menu).map_err(internal)
 }
 
-fn build_menu<R: Runtime>(
-    app: &AppHandle<R>,
+/// One line of the pet's right-click menu.
+#[derive(Debug, Clone, PartialEq)]
+pub enum Entry {
+    /// `id`, label, and the shortcut shown beside it (only when one is really registered).
+    Item(&'static str, &'static str, Option<String>),
+    /// A setting that is on or off: `id`, label, current value.
+    Check(&'static str, &'static str, bool),
+    Sub(&'static str, Vec<Entry>),
+    Separator,
+}
+
+/// Dashboard pages the menu can open directly, with the keys that open them inside Loaf.
+pub const PAGES: [(&str, &str, &str); 7] = [
+    ("pet:page:today", "Today", "CmdOrCtrl+1"),
+    ("pet:page:tasks", "Tasks", "CmdOrCtrl+2"),
+    ("pet:page:notes", "Notes", "CmdOrCtrl+3"),
+    ("pet:page:time", "Time", "CmdOrCtrl+4"),
+    ("pet:page:meetings", "Meetings", "CmdOrCtrl+5"),
+    ("pet:page:projects", "Projects", ""),
+    ("pet:page:character", "Character", ""),
+];
+
+/// Settings worth one click from the pet, with their defaults.
+pub const QUICK_SETTINGS: [(&str, &str, &str, bool); 4] = [
+    (
+        "pet:set:tracking.apps",
+        "Track app time",
+        "tracking.apps",
+        false,
+    ),
+    (
+        "pet:set:pet.always_on_top",
+        "Keep the pet on top",
+        "pet.always_on_top",
+        true,
+    ),
+    (
+        "pet:set:pet.hover_card",
+        "Card when I hover the pet",
+        "pet.hover_card",
+        true,
+    ),
+    (
+        "pet:set:pet.typing",
+        "Type along with me",
+        "pet.typing",
+        false,
+    ),
+];
+
+/// The menu, decided from the settings alone so it can be tested without a window (owner
+/// 2026-10-27: direct navigation, important settings, the real shortcuts).
+pub fn menu_spec(
     main_visible: bool,
-    tracking: bool,
-    pet_keys: Option<&str>,
-) -> tauri::Result<Menu<R>> {
-    let (open_id, open_label) = if main_visible {
+    settings: &std::collections::BTreeMap<String, Value>,
+) -> Vec<Entry> {
+    let combos = crate::shortcuts::combos(settings);
+    let key = |action: crate::shortcuts::Action| {
+        combos
+            .iter()
+            .find(|(a, _)| *a == action)
+            .map(|(_, c)| c.clone())
+    };
+    let open = if main_visible {
         ("pet:hide-main", "Hide Loaf")
     } else {
         ("pet:open", "Open Loaf")
     };
-    let mod_key = if cfg!(target_os = "macos") {
-        "Cmd"
-    } else {
-        "Ctrl"
-    };
+    let flag = |k: &str, default: bool| settings.get(k).and_then(Value::as_bool).unwrap_or(default);
+    vec![
+        Entry::Item(
+            open.0,
+            open.1,
+            key(crate::shortcuts::Action::ToggleDashboard),
+        ),
+        Entry::Sub(
+            "Go to",
+            PAGES
+                .iter()
+                .map(|(id, label, keys)| {
+                    Entry::Item(id, label, (!keys.is_empty()).then(|| (*keys).to_owned()))
+                })
+                .collect(),
+        ),
+        Entry::Separator,
+        Entry::Item("pet:new-task", "New task", None),
+        Entry::Item(
+            "pet:new-note",
+            "New note",
+            key(crate::shortcuts::Action::NewNote),
+        ),
+        Entry::Item("pet:focus", "Focus…", None),
+        Entry::Item("pet:nap", "Sleep or wake", None),
+        Entry::Separator,
+        Entry::Sub(
+            "Quick settings",
+            QUICK_SETTINGS
+                .iter()
+                .map(|(id, label, k, default)| Entry::Check(id, label, flag(k, *default)))
+                .collect(),
+        ),
+        Entry::Item(
+            "pet:settings",
+            "All settings…",
+            Some("CmdOrCtrl+,".to_owned()),
+        ),
+        Entry::Separator,
+        Entry::Item(
+            "pet:hide-pet",
+            "Hide pet",
+            key(crate::shortcuts::Action::TogglePet),
+        ),
+        Entry::Item("pet:quit", "Quit Loaf", None),
+    ]
+}
+
+fn build_menu<R: Runtime>(app: &AppHandle<R>, spec: &[Entry]) -> tauri::Result<Menu<R>> {
     let menu = Menu::new(app)?;
-    menu.append(&MenuItem::with_id(
-        app,
-        open_id,
-        open_label,
-        true,
-        Some(format!("{mod_key}+Shift+L")),
-    )?)?;
-    menu.append(&PredefinedMenuItem::separator(app)?)?;
-    menu.append(&MenuItem::with_id(
-        app,
-        "pet:new-note",
-        "New note",
-        true,
-        Some(format!("{mod_key}+Shift+N")),
-    )?)?;
-    menu.append(&MenuItem::with_id(
-        app,
-        "pet:new-task",
-        "New task",
-        true,
-        None::<&str>,
-    )?)?;
-    menu.append(&PredefinedMenuItem::separator(app)?)?;
-    menu.append(&CheckMenuItem::with_id(
-        app,
-        "pet:tracking",
-        "Track app time",
-        true,
-        tracking,
-        None::<&str>,
-    )?)?;
-    menu.append(&MenuItem::with_id(
-        app,
-        "pet:settings",
-        "Settings…",
-        true,
-        None::<&str>,
-    )?)?;
-    menu.append(&PredefinedMenuItem::separator(app)?)?;
-    menu.append(&MenuItem::with_id(
-        app,
-        "pet:hide-pet",
-        "Hide pet",
-        true,
-        pet_keys,
-    )?)?;
-    menu.append(&MenuItem::with_id(
-        app,
-        "pet:quit",
-        "Quit Loaf",
-        true,
-        None::<&str>,
-    )?)?;
+    for entry in spec {
+        append(app, &menu, entry)?;
+    }
     Ok(menu)
+}
+
+fn append<R: Runtime, M: MenuAppend<R>>(
+    app: &AppHandle<R>,
+    to: &M,
+    entry: &Entry,
+) -> tauri::Result<()> {
+    match entry {
+        Entry::Item(id, label, keys) => {
+            // A shortcut the menu can't show (an unusual custom one) must not cost the whole menu.
+            let item = MenuItem::with_id(app, *id, *label, true, keys.as_deref())
+                .or_else(|_| MenuItem::with_id(app, *id, *label, true, None::<&str>))?;
+            to.add(&item)
+        }
+        Entry::Check(id, label, on) => to.add(&CheckMenuItem::with_id(
+            app,
+            *id,
+            *label,
+            true,
+            *on,
+            None::<&str>,
+        )?),
+        Entry::Separator => to.add(&PredefinedMenuItem::separator(app)?),
+        Entry::Sub(label, items) => {
+            let sub = Submenu::new(app, *label, true)?;
+            for item in items {
+                append(app, &sub, item)?;
+            }
+            to.add(&sub)
+        }
+    }
+}
+
+/// `Menu` and `Submenu` both take items; this lets one function fill either.
+trait MenuAppend<R: Runtime> {
+    fn add(&self, item: &dyn tauri::menu::IsMenuItem<R>) -> tauri::Result<()>;
+}
+impl<R: Runtime> MenuAppend<R> for Menu<R> {
+    fn add(&self, item: &dyn tauri::menu::IsMenuItem<R>) -> tauri::Result<()> {
+        self.append(item)
+    }
+}
+impl<R: Runtime> MenuAppend<R> for Submenu<R> {
+    fn add(&self, item: &dyn tauri::menu::IsMenuItem<R>) -> tauri::Result<()> {
+        self.append(item)
+    }
 }
 
 /// Menu clicks from the pet menu and the tray's "Show or hide pet".
@@ -502,7 +590,16 @@ pub fn on_menu(app: &AppHandle, id: &str) {
         "pet:new-note" => command(app, "new-note"),
         "pet:new-task" => command(app, "new-task"),
         "pet:settings" => command(app, "settings"),
-        "pet:tracking" => flip_setting(app, "tracking.apps", false),
+        "pet:focus" => command(app, "focus"),
+        "pet:nap" => {
+            let _ = app.emit_to(LABEL, "pet://menu", "nap");
+        }
+        id if id.starts_with("pet:page:") => command(app, &id["pet:".len()..]),
+        id if id.starts_with("pet:set:") => {
+            if let Some((_, _, key, default)) = QUICK_SETTINGS.iter().find(|(i, ..)| *i == id) {
+                flip_setting(app, key, *default);
+            }
+        }
         "pet:hide-pet" => set_visible(app, false),
         crate::tray::ID_PET => toggle_pet(app),
         crate::tray::ID_PET_BACK => bring_back(app),
@@ -989,6 +1086,99 @@ mod tests {
         );
         // Grown flag set but no base yet (between steps): fall back to the window.
         assert_eq!(pet_spot(true, None, None, (10, 20)), (10, 20));
+    }
+
+    fn find<'a>(spec: &'a [Entry], id: &str) -> Option<&'a Entry> {
+        spec.iter().find_map(|e| match e {
+            Entry::Item(i, ..) | Entry::Check(i, ..) if *i == id => Some(e),
+            Entry::Sub(_, items) => find(items, id),
+            _ => None,
+        })
+    }
+
+    #[test]
+    fn the_menu_opens_every_page_and_flips_the_important_settings() {
+        let spec = menu_spec(false, &std::collections::BTreeMap::new());
+        for (id, ..) in PAGES {
+            assert!(find(&spec, id).is_some(), "{id}");
+        }
+        for (id, ..) in [
+            "pet:new-task",
+            "pet:new-note",
+            "pet:focus",
+            "pet:nap",
+            "pet:settings",
+            "pet:hide-pet",
+            "pet:quit",
+        ]
+        .map(|i| (i, ()))
+        {
+            assert!(find(&spec, id).is_some(), "{id}");
+        }
+        // Each quick setting shows its default until it is changed.
+        assert_eq!(
+            find(&spec, "pet:set:pet.always_on_top"),
+            Some(&Entry::Check(
+                "pet:set:pet.always_on_top",
+                "Keep the pet on top",
+                true
+            ))
+        );
+        assert_eq!(
+            find(&spec, "pet:set:tracking.apps"),
+            Some(&Entry::Check(
+                "pet:set:tracking.apps",
+                "Track app time",
+                false
+            ))
+        );
+        let on = std::collections::BTreeMap::from([(
+            "tracking.apps".to_owned(),
+            serde_json::json!(true),
+        )]);
+        assert_eq!(
+            find(&menu_spec(false, &on), "pet:set:tracking.apps"),
+            Some(&Entry::Check(
+                "pet:set:tracking.apps",
+                "Track app time",
+                true
+            ))
+        );
+    }
+
+    #[test]
+    fn the_menu_shows_the_shortcuts_that_are_really_set() {
+        // Defaults: open and new note have keys; the pet's own toggle is off, so no key is shown.
+        let spec = menu_spec(true, &std::collections::BTreeMap::new());
+        assert_eq!(
+            find(&spec, "pet:hide-main"),
+            Some(&Entry::Item(
+                "pet:hide-main",
+                "Hide Loaf",
+                Some("CmdOrCtrl+Shift+L".into())
+            ))
+        );
+        assert_eq!(
+            find(&spec, "pet:new-note"),
+            Some(&Entry::Item(
+                "pet:new-note",
+                "New note",
+                Some("CmdOrCtrl+Shift+N".into())
+            ))
+        );
+        assert_eq!(
+            find(&spec, "pet:hide-pet"),
+            Some(&Entry::Item("pet:hide-pet", "Hide pet", None))
+        );
+        // A changed shortcut is shown as changed (the old menu always said Ctrl+Shift+L).
+        let custom = std::collections::BTreeMap::from([(
+            "shortcuts.global_open".to_owned(),
+            serde_json::json!("Alt+F9"),
+        )]);
+        assert_eq!(
+            find(&menu_spec(false, &custom), "pet:open"),
+            Some(&Entry::Item("pet:open", "Open Loaf", Some("Alt+F9".into())))
+        );
     }
 
     #[test]

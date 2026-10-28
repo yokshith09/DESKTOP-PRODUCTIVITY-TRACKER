@@ -176,7 +176,7 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
 
   const others = transitionsFrom(task.status).filter((t) => t.to !== primaryTo);
   const primary = transitionsFrom(task.status).find((t) => t.to === primaryTo);
-  // What is set in "More options", so it can be seen without opening it.
+  // What is set in "Advanced options", so it can be seen without opening it.
   const extras = [
     due && `Deadline ${day(due)}`,
     project.trim() && project.trim(),
@@ -188,7 +188,7 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
   return (
     <>
       {/* The essentials only (owner 2026-10-27: "so many buttons, it feels confusing"): title, the one
-          next step, when, priority, Save. Everything else is in "More options". */}
+          next step, when, priority, Save. Everything else is in "Advanced options". */}
       <div className="border-b px-6 pb-4 pt-5 pr-14">
         <DialogDescription className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
           <span className="font-medium uppercase tracking-wide">{STATUS_LABEL[task.status]}</span>
@@ -234,10 +234,10 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
           </section>
         </div>
 
-        <details className="group rounded-lg border" aria-label="More options">
+        <details className="group rounded-lg border" aria-label="Advanced options">
           <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-[13px] font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
             <ChevronRight aria-hidden className="size-4 text-muted-foreground transition-transform group-open:rotate-90" />
-            More options
+            Advanced options
             <span className="min-w-0 flex-1 truncate text-xs font-normal text-muted-foreground">{extras || "Details, deadline, reminder, project, note, links, focus"}</span>
           </summary>
           <div className="grid gap-6 border-t p-4 md:grid-cols-2">

@@ -106,6 +106,11 @@ function Screen() {
       setTimeout(() => document.getElementById("focus-tile")?.scrollIntoView?.({ block: "center" }), 120);
     } else if (command === "tasks") setPage("tasks");
     else if (command === "settings") setPage("settings");
+    // The pet's right-click menu: "page:<name>" opens that page (only real pages).
+    else if (command.startsWith("page:")) {
+      const target = command.slice("page:".length) as Page;
+      if (PAGES.includes(target)) setPage(target);
+    }
   }));
 
   const newNote = async () => {

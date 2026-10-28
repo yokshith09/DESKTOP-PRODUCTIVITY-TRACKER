@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -668,11 +668,20 @@ describe("task upgrades (FR-106..FR-109)", () => {
     return screen.findByRole("dialog");
   };
 
+  it("the pet's menu opens a page straight away, and ignores one that does not exist (owner 2026-10-27)", async () => {
+    render(<App />);
+    await screen.findByRole("heading", { name: "Today" });
+    act(() => { window.dispatchEvent(new CustomEvent("loaf-command", { detail: "page:time" })); });
+    expect(await screen.findByRole("heading", { name: "Time" })).toBeTruthy();
+    act(() => { window.dispatchEvent(new CustomEvent("loaf-command", { detail: "page:nonsense" })); });
+    expect(screen.getByRole("heading", { name: "Time" })).toBeTruthy();
+  });
+
   it("the task editor opens calm: title, next step, when, priority and Save; the rest is folded away (owner 2026-10-27)", async () => {
     const user = userEvent.setup();
     render(<App />);
     const dialog = await openTask(user, "Clear design feedback");
-    const more = within(dialog).getByText("More options").closest("details") as HTMLDetailsElement;
+    const more = within(dialog).getByText("Advanced options").closest("details") as HTMLDetailsElement;
     expect(more.open).toBe(false);
     // Only these sit outside the fold (plus the dialog's own close button).
     for (const name of ["Title", "Priority"]) expect(within(dialog).getByLabelText(name)).toBeTruthy();

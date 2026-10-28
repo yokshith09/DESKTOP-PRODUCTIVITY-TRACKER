@@ -140,6 +140,15 @@ describe("desktop pet", () => {
     await waitFor(async () => expect(await ipc.focusCurrent()).toBeNull());
   });
 
+  it("\"Sleep or wake\" in the right-click menu puts the pet to sleep and wakes it (owner 2026-10-27)", async () => {
+    renderPet();
+    await screen.findByRole("button", { name: /^Loaf\./ });
+    act(() => { window.dispatchEvent(new CustomEvent("loaf-pet-menu", { detail: "nap" })); });
+    expect(await screen.findByRole("img", { name: "Loaf the bear (sleep)" })).toBeTruthy();
+    act(() => { window.dispatchEvent(new CustomEvent("loaf-pet-menu", { detail: "nap" })); });
+    await waitFor(() => expect(screen.queryByRole("img", { name: "Loaf the bear (sleep)" })).toBeNull());
+  });
+
   it("adds a task for today from the card's +, without opening the editor (owner 2026-10-27)", async () => {
     const add = vi.spyOn(ipc, "taskQuickAdd");
     renderPet();
