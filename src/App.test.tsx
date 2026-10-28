@@ -155,7 +155,7 @@ describe("Notes screen (against the in-memory shell)", () => {
     expect(await within(dialog).findByRole("button", { name: "Reopen" })).toBeTruthy();
     // A finished task can be deleted, after a confirmation.
     await user.click(within(dialog).getByRole("button", { name: "Delete task" }));
-    await user.click(within(dialog).getByRole("button", { name: "Delete" }));
+    await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Delete" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     expect(screen.queryByRole("button", { name: "Open Refactor the tray menu" })).toBeNull();
   });
@@ -257,7 +257,7 @@ describe("Notes screen (against the in-memory shell)", () => {
     await user.type(input, "pets{Enter}");
     expect(await within(dialog).findByText("pets")).toBeTruthy();
     await user.click(within(dialog).getByRole("button", { name: "Delete home" }));
-    await user.click(within(dialog).getByRole("button", { name: "Delete" }));
+    await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Delete" }));
     await waitFor(() => expect(within(dialog).queryByText("home")).toBeNull());
     // A name that is taken is refused and the label keeps its name.
     await user.click(within(dialog).getByRole("button", { name: "Rename work" }));
@@ -603,7 +603,7 @@ describe("meetings (F1-17…19)", () => {
     await openMeetings(user);
     await user.click(await screen.findByRole("button", { name: "Open meeting “Design review”" }));
     await user.click(await screen.findByRole("button", { name: "Delete meeting" }));
-    await user.click(await screen.findByRole("button", { name: "Delete meeting" }));
+    await user.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Delete" }));
     await screen.findByRole("list", { name: "Meetings" });
     expect(screen.queryByRole("button", { name: "Open meeting “Design review”" })).toBeNull();
   });

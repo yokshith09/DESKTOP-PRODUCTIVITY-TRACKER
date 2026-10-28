@@ -7,6 +7,8 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 Owner's 2026-10-28 list (phases 1 and 2). Unverified on a real PC.
 
+- Changed: **every delete asks first.** The task-row trash button (it used to become a "Delete?" button for three seconds), label delete, meeting delete and the task editor's delete now use the same small "Delete / Cancel" question as links and notes. Cancel has the focus. Tests added for the task row.
+
 - Added: **stretch and water reminders** (Character → Pet notifications). Each has its own switch and its own gap — a break every 50 minutes, water every 1.5 hours by default. They repeat through the day, so they do **not** use up the daily nudge budget; they do keep quiet hours. When app tracking is on they count your time at the screen, so an hour away from the desk does not earn a break; otherwise they count the clock. The pet has no stretch or drink animation of its own yet, so each uses the nearest pose it has; real ones come with the per-character animations.
 - Changed (Character page): the two top panels are the same height, so the page no longer has a tall empty gap beside the preview; the 17 preview poses are a tidy grid instead of a ragged wall; the second size preview (three bears) is gone, since the Size row already says how big the pet is. **Accessories and outfits** are now even tiles with a clear picture above the name, and no name spills out of its tile at 1280, 1024 or 800 px wide. Settings rows keep their words when space is tight (Quiet hours used to squash its own label).
 

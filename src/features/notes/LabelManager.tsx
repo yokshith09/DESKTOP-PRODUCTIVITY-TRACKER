@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Check, Pencil, Tag, Trash2, X } from "lucide-react";
+import { ConfirmAction } from "@/components/ConfirmAction";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,6 @@ function Row({ item, onDeleted }: { item: LabelCount; onDeleted: (id: string) =>
   const { label, count } = item;
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(label.name);
-  const [confirm, setConfirm] = useState(false);
 
   const save = async () => {
     const next = name.trim();
@@ -37,18 +37,10 @@ function Row({ item, onDeleted }: { item: LabelCount; onDeleted: (id: string) =>
         <>
           <span className="min-w-0 flex-1 truncate text-[13px]">{label.name}</span>
           <span className="text-[11px] tabular-nums text-muted-foreground">{count} {count === 1 ? "note" : "notes"}</span>
-          {confirm ? (
-            <>
-              <span className="text-[11px] text-destructive">Remove from {count} {count === 1 ? "note" : "notes"}?</span>
-              <Button size="sm" variant="destructive" onClick={() => void actions.deleteLabel(label.id).then(() => onDeleted(label.id))}>Delete</Button>
-              <Button size="sm" variant="ghost" onClick={() => setConfirm(false)}>Keep</Button>
-            </>
-          ) : (
-            <>
-              <Button size="icon-sm" variant="ghost" aria-label={`Rename ${label.name}`} onClick={() => setEditing(true)}><Pencil /></Button>
-              <Button size="icon-sm" variant="ghost" aria-label={`Delete ${label.name}`} className="hover:text-destructive" onClick={() => setConfirm(true)}><Trash2 /></Button>
-            </>
-          )}
+          <Button size="icon-sm" variant="ghost" aria-label={`Rename ${label.name}`} onClick={() => setEditing(true)}><Pencil /></Button>
+          <ConfirmAction message={`Delete “${label.name}”? It comes off ${count} ${count === 1 ? "note" : "notes"}.`} onConfirm={() => void actions.deleteLabel(label.id).then(() => onDeleted(label.id))}>
+            <Button size="icon-sm" variant="ghost" aria-label={`Delete ${label.name}`} className="hover:text-destructive"><Trash2 /></Button>
+          </ConfirmAction>
         </>
       )}
     </li>

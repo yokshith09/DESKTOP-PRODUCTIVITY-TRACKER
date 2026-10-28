@@ -106,7 +106,6 @@ export function MeetingEditor({ meetingId, onBack, onCreated }: { meetingId: str
   const [loaded, setLoaded] = useState(meetingId === null);
   const [status, setStatus] = useState<Status>("idle");
   const [preview, setPreview] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const dirty = useRef(false);
   const timer = useRef<number | undefined>(undefined);
   const inFlight = useRef<Promise<string | null> | null>(null);
@@ -207,13 +206,10 @@ export function MeetingEditor({ meetingId, onBack, onCreated }: { meetingId: str
         <span className="ml-auto text-xs text-muted-foreground" role="status">
           {!draft.title.trim() ? "Add a title to save" : status === "saving" ? "Saving…" : status === "error" ? "Not saved" : status === "saved" ? "Saved" : ""}
         </span>
-        {confirmDelete ? (
-          <>
-            <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(false)}>Keep</Button>
-            <Button size="sm" variant="destructive" onClick={() => void remove()}>Delete meeting</Button>
-          </>
-        ) : (
-          <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive" onClick={() => setConfirmDelete(true)} aria-label="Delete meeting"><Trash2 /></Button>
+        {id && (
+          <ConfirmAction message="Delete this meeting?" onConfirm={() => void remove()}>
+            <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive" aria-label="Delete meeting"><Trash2 /></Button>
+          </ConfirmAction>
         )}
       </div>
 

@@ -116,7 +116,6 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
   const planChanged = !samePlan(planOf(plan), planOf(planStateOf(task)));
   const [update, setUpdate] = useState("");
   const [deferTo, setDeferTo] = useState("");
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const [openNote, setOpenNote] = useState<string | null>(null);
   const qc = useQueryClient();
   /** FR-42: make a note from this task (title and details), link it, and open it. */
@@ -347,15 +346,12 @@ function Body({ task, onClose }: { task: Task; onClose: () => void }) {
               <p className="text-[11px] text-muted-foreground">Created {formatWhen(task.created_at, now)}{task.completed_at ? ` · finished at ${clockTime(task.completed_at)}` : ""}</p>
             </div>
             <div className="flex items-center gap-2 md:col-span-2">
-              {confirmDelete ? (
-                <>
-                  <span className="text-xs text-destructive">{finished ? "Delete this task and its history for good?" : "This task isn’t finished. Delete it anyway?"}</span>
-                  <Button size="sm" variant="destructive" onClick={() => void actions.removeAny(task).then(onClose)}>Delete</Button>
-                  <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(false)}>Keep</Button>
-                </>
-              ) : (
-                <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive" onClick={() => setConfirmDelete(true)}><Trash2 />Delete task</Button>
-              )}
+              <ConfirmAction
+                message={finished ? "Delete this task and its history for good?" : "This task isn’t finished. Delete it anyway?"}
+                onConfirm={() => void actions.removeAny(task).then(onClose)}
+              >
+                <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive"><Trash2 />Delete task</Button>
+              </ConfirmAction>
             </div>
           </div>
         </details>

@@ -391,3 +391,7 @@ Still open: none of Q1-Q7 except the Q4 spike result.
 - **The pet steps aside in full screen** (`pet.hide_fullscreen`, on). Only the window is hidden; the setting is left alone, so the pet returns by itself. Checked every 2 seconds while the pet is wanted, one cheap call per look.
 - **The right-click menu is a plain list** (`menu_spec`), decided from the settings alone, so what it offers is tested without a window.
 - **Break and water nudges sit outside the daily nudge budget (2026-10-28).** Four a day would swallow a reminder meant to repeat every 50 minutes. They keep quiet hours, and one is shown at a time. They count screen time when app tracking is on, and the clock when it is off, because time away from the desk is already a break.
+
+## 2026-10-28 (later) — Every delete asks
+
+Owner: deleting a link did not ask; anything deleted should ask. Rule: every delete or remove goes through the shared `ConfirmAction` (Delete / Cancel, Cancel focused); no bespoke inline confirms. Reversible resets (wardrobe "Take everything off") are not deletes and do not ask.
