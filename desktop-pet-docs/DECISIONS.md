@@ -404,6 +404,10 @@ Owner: each pack may have its own reactions, the events are common, the user can
 
 Owner: a first-launch tour, then a short quiz-like walkthrough on the dashboard that also shows the features users miss (privacy tracking in Time), and what differs for student, developer and other users. Answers: ask the role with one tap; spotlight tour on the real screens; a "Learn Loaf" card on Today with five questions per role. Built: `ui.role`, `ui.tour`, `ui.learn` preferences (no schema change). The role changes order and emphasis only; privacy features stay off for every role. Feature defaults by role (FR-83 matrix: student pack, flashcards, developer reactions, resource badge) are **not** built because those features do not exist yet; each will add its row to `DIFFERENCES` in `src/features/guide/roles.ts` when it ships. Changing role later never overrides a choice (nothing is applied by role yet).
 
+## 2026-10-28 (later) — Diary finished: search and tray lock built, mood dropped
+
+Owner asked for search and tray lock and for P2 to be marked complete. Built both. Mood faces were optional in FR-86 and are dropped, not built. Lock on hide goes through one function (`lock_diary`) called from the close handler and `hide_main`. Text typed in the last 0.4 s before the window is hidden can be lost (the lock happens first); the save delay was cut from 0.8 s to 0.4 s for that reason.
+
 ## 2026-10-28 (later) — Mira and Raja: originals, not likenesses
 
 Owner asked for two characters "with likeness" of two real film actors. Declined: Loaf does not draw real people's likenesses, private use or not. Offered and approved ("build them") two original characters in the same spirit: Mira (cheerful heroine, red and gold saree, braid, jhumkas; owner sent a cartoon reference of a girl in a red saree) and Raja (cool hero, long jacket, sunglasses). Specials: Petal spin (every 5 tasks) and Shades on (every 2; the pack format clamps "every" to 2 to 50).

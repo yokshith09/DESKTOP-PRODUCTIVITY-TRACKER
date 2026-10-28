@@ -36,6 +36,15 @@ fn window_state_flags() -> StateFlags {
     StateFlags::all() - StateFlags::VISIBLE
 }
 
+/// Putting the dashboard away (closing it, the pet's double click, the shortcut) locks the diary,
+/// and tells the page so it drops what it shows. The text never stays readable behind a hidden window.
+pub(crate) fn lock_diary<R: tauri::Runtime>(app: &AppHandle<R>) {
+    if let Some(core) = app.try_state::<Core>() {
+        loaf_core::diary::lock(&core.diary);
+    }
+    let _ = app.emit_to("main", "loaf://command", "diary-locked");
+}
+
 /// What the shell needs at shutdown.
 pub(crate) struct Core {
     pub(crate) db: Arc<Database>,
@@ -185,6 +194,7 @@ pub fn run() {
             ipc::diary_days,
             ipc::diary_get,
             ipc::diary_save,
+            ipc::diary_search,
             ipc::diary_erase,
             ipc::labels_list,
             ipc::label_create,
@@ -279,6 +289,7 @@ pub fn run() {
             if let WindowEvent::CloseRequested { api, .. } = event {
                 if window.label() == "main" {
                     api.prevent_close();
+                    lock_diary(window.app_handle());
                     let _ = window.hide();
                 }
             }

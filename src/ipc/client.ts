@@ -3,7 +3,7 @@ import { call } from "./transport";
 import type {
   UsageSummary, TimeRange, TrackingStatus, OpenTab, PetPack, BinNote, DailyLog, Reminder, ReminderInput, ReminderPatch, Label, LabelCount, Note, NoteInput, NotePatch, NoteSort, NoteSummary, Task, TaskEdit, TaskEvent, TaskFilters, TaskRow,
   TaskStatus, TaskView, WorkUpdate, LinkInput, TaskPlan, RepeatDay, FocusSession, FocusStart, RetentionRules, RetentionCounts, Meeting, MeetingFilters, MeetingInput, MeetingSummary,
-  Course, CourseLinks, DiaryStatus, Exam, WeeklyReport,
+  Course, CourseLinks, DiaryHit, DiaryStatus, Exam, WeeklyReport,
 } from "./types";
 import type { Settings, SettingsKey } from "./settings";
 
@@ -46,6 +46,7 @@ export const ipc = {
   diaryLock: () => call<unknown>("diary_lock"),
   diaryDays: () => call<string[]>("diary_days"),
   diaryGet: (day: string) => call<string>("diary_get", { day }),
+  diarySearch: (query: string) => call<DiaryHit[]>("diary_search", { query }),
   diarySave: (day: string, text: string) => call<unknown>("diary_save", { day, text }),
   diaryErase: () => call<unknown>("diary_erase"),
   coursesList: () => call<Course[]>("courses_list"),

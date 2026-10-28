@@ -380,6 +380,74 @@ pub async fn day_save(
     .await
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+pub struct DiaryHit {
+    pub day: String,
+    /// A short stretch of the entry around the first match.
+    pub snippet: String,
+}
+
+pub const SEARCH_MAX: usize = 100;
+const SNIPPET_CHARS: usize = 60;
+
+/// Find entries that contain `query` (ignoring case), newest first. Entries are decrypted one at a
+/// time here, in memory, only while the diary is unlocked; nothing is indexed or stored.
+pub async fn search(db: &Database, diary: &Diary, query: &str) -> Result<Vec<DiaryHit>> {
+    let key = need_key(diary)?;
+    let needle = query.trim().to_lowercase();
+    if needle.is_empty() {
+        return Ok(vec![]);
+    }
+    let rows = db
+        .read(|conn| {
+            let mut stmt =
+                conn.prepare("SELECT day, nonce, data FROM diary_entries ORDER BY day DESC")?;
+            let rows = stmt
+                .query_map([], |r| {
+                    Ok((
+                        r.get::<_, String>(0)?,
+                        r.get::<_, String>(1)?,
+                        r.get::<_, String>(2)?,
+                    ))
+                })?
+                .collect::<rusqlite::Result<Vec<_>>>()?;
+            Ok(rows)
+        })
+        .await?;
+    let mut hits = Vec::new();
+    for (day, nonce, data) in rows {
+        let text = String::from_utf8(open(&key, day.as_bytes(), &nonce, &data)?)
+            .map_err(|_| AppError::internal("The diary data is damaged."))?;
+        let lower = text.to_lowercase();
+        let Some(at) = lower.find(&needle) else {
+            continue;
+        };
+        // `lower` can differ in byte length from `text` for some scripts, so cut by characters.
+        let chars: Vec<char> = text.chars().collect();
+        let at_chars = lower[..at].chars().count().min(chars.len());
+        let from = at_chars.saturating_sub(SNIPPET_CHARS / 3);
+        let to = (from + SNIPPET_CHARS).min(chars.len());
+        let snippet: String = chars[from..to]
+            .iter()
+            .collect::<String>()
+            .replace('\n', " ");
+        hits.push(DiaryHit {
+            day,
+            snippet: format!(
+                "{}{}{}",
+                if from > 0 { "…" } else { "" },
+                snippet.trim(),
+                if to < chars.len() { "…" } else { "" }
+            ),
+        });
+        if hits.len() >= SEARCH_MAX {
+            break;
+        }
+    }
+    Ok(hits)
+}
+
 /// Forgotten password: erase the diary (every entry and the password) so a new one can be set.
 pub async fn erase(db: &Database, diary: &Diary) -> Result<()> {
     diary.set(None);
@@ -623,6 +691,55 @@ mod tests {
         assert_eq!(
             day_get(&db, &diary, "2026-10-28").await.unwrap(),
             "kept safe"
+        );
+    }
+
+    #[tokio::test]
+    async fn search_finds_text_ignoring_case_only_while_unlocked_and_shows_a_snippet() {
+        let (_d, db, clock, diary) = setup_db();
+        setup(&db, &diary, &clock, "correct horse").await.unwrap();
+        day_save(
+            &db,
+            &diary,
+            &clock,
+            "2026-10-27",
+            "Went to the Chemistry lab and met Rao.",
+        )
+        .await
+        .unwrap();
+        day_save(
+            &db,
+            &diary,
+            &clock,
+            "2026-10-28",
+            "Quiet day.\nLong walk by the river, then home.",
+        )
+        .await
+        .unwrap();
+        day_save(&db, &diary, &clock, "2026-10-26", "Nothing special.")
+            .await
+            .unwrap();
+
+        let hits = search(&db, &diary, "  CHEMISTRY ").await.unwrap();
+        assert_eq!(hits.len(), 1);
+        assert_eq!(hits[0].day, "2026-10-27");
+        assert!(hits[0].snippet.contains("Chemistry"));
+        let hits = search(&db, &diary, "o").await.unwrap();
+        assert_eq!(
+            hits.iter().map(|h| h.day.as_str()).collect::<Vec<_>>(),
+            ["2026-10-28", "2026-10-27", "2026-10-26"],
+            "newest first"
+        );
+        assert!(!search(&db, &diary, "river").await.unwrap()[0]
+            .snippet
+            .contains('\n'));
+        assert!(search(&db, &diary, "zebra").await.unwrap().is_empty());
+        assert!(search(&db, &diary, "   ").await.unwrap().is_empty());
+
+        lock(&diary);
+        assert_eq!(
+            search(&db, &diary, "river").await.unwrap_err().code,
+            ErrorCode::InvalidTransition
         );
     }
 }

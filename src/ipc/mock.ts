@@ -434,6 +434,12 @@ export function createMock() {
     diary_lock: () => { diary.open = false; return null; },
     diary_days: () => { if (!diary.open) fail("INVALID_TRANSITION", "The diary is locked."); return [...diary.entries.keys()].sort().reverse(); },
     diary_get: (a) => { if (!diary.open) fail("INVALID_TRANSITION", "The diary is locked."); return diary.entries.get(String(a.day)) ?? ""; },
+    diary_search: (a) => {
+      if (!diary.open) fail("INVALID_TRANSITION", "The diary is locked.");
+      const q = String(a.query).trim().toLowerCase();
+      if (!q) return [];
+      return [...diary.entries].filter(([, t]) => t.toLowerCase().includes(q)).sort((x, y) => y[0].localeCompare(x[0])).map(([day, t]) => ({ day, snippet: t.replace(/\n/g, " ").slice(0, 60) }));
+    },
     diary_save: (a) => {
       if (!diary.open) fail("INVALID_TRANSITION", "The diary is locked.");
       const t = String(a.text);

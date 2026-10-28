@@ -108,4 +108,22 @@ describe("the diary page", () => {
     fireEvent.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: "Erase" }));
     expect(await screen.findByText("Set a password for your diary")).toBeTruthy();
   });
+
+  it("searches the entries while open and goes to the day of a result", async () => {
+    await ipc.diaryErase();
+    await ipc.diarySetup("secret pass");
+    await ipc.diarySave("2026-10-20", "Met Rao at the chemistry lab");
+    await ipc.diarySave("2026-10-21", "Long walk by the river");
+    render(wrap());
+    const box = await screen.findByRole("searchbox", { name: "Search the diary" });
+    fireEvent.change(box, { target: { value: "CHEMISTRY" } });
+    const list = await screen.findByRole("list", { name: "Search results" });
+    expect(await within(list).findByText("2026-10-20")).toBeTruthy();
+    expect(within(list).queryByText("2026-10-21")).toBeNull();
+    fireEvent.click(within(list).getByRole("button", { name: /2026-10-20/ }));
+    const area = (await screen.findByRole("textbox", { name: "Diary text" })) as HTMLTextAreaElement;
+    await waitFor(() => expect(area.value).toBe("Met Rao at the chemistry lab"));
+    fireEvent.change(box, { target: { value: "zebra" } });
+    expect(await screen.findByText("No entry has those words.")).toBeTruthy();
+  });
 });

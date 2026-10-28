@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { usePref } from "@/features/guide/usePref";
 import { PageHeader } from "@/features/shell/PageHeader";
 import { errorMessage, ipc } from "@/ipc";
+import { onCommand } from "@/ipc/transport";
 import { dayLabel, parseYmd, ymd } from "@/lib/dates";
 import { notify } from "@/lib/notify";
 import { detectTodos, titleOf } from "./detect";
@@ -81,6 +82,8 @@ function Editor({ onLock }: { onLock: () => void }) {
   const [made, setMade] = useState<Record<string, string>>({});
   const pickup = usePref<boolean>(PICKUP_PREF, (r) => r === true);
   const days = useQuery({ queryKey: ["diary", "days", saved], queryFn: () => ipc.diaryDays() });
+  const [query, setQuery] = useState("");
+  const results = useQuery({ queryKey: ["diary", "search", query.trim()], queryFn: () => ipc.diarySearch(query), enabled: query.trim().length > 0 });
   const area = useRef<HTMLTextAreaElement>(null);
   const pending = useRef<{ day: string; text: string } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>();
@@ -107,7 +110,7 @@ function Editor({ onLock }: { onLock: () => void }) {
     pending.current = { day, text: t };
     setSaved("idle");
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => void flush(), 800);
+    timer.current = setTimeout(() => void flush(), 400);
   };
   const shift = (n: number) => { const d = parseYmd(day); d.setDate(d.getDate() + n); setDay(ymd(d)); };
   const today = ymd(new Date());
@@ -164,6 +167,18 @@ function Editor({ onLock }: { onLock: () => void }) {
           <span><span className="block font-medium text-foreground">Spot things to do</span>Underlines lines like “I need to submit… by Friday”. Off by default; it all happens on this computer.</span>
         </label>
         <div>
+          <label htmlFor="diary-search" className="mb-1 block text-xs font-medium text-muted-foreground">Search the diary</label>
+          <Input id="diary-search" type="search" value={query} maxLength={100} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === "Escape" && setQuery("")} placeholder="Words from an entry" className="h-8" />
+          {query.trim() && (
+            <ul aria-label="Search results" className="mt-2 max-h-60 space-y-1 overflow-auto">
+              {(results.data ?? []).map((h) => (
+                <li key={h.day}><button type="button" onClick={() => setDay(h.day)} className="w-full rounded px-2 py-1 text-left text-xs outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"><span className="block font-medium tabular-nums">{h.day}</span><span className="block text-muted-foreground">{h.snippet}</span></button></li>
+              ))}
+              {results.data && results.data.length === 0 && <li className="px-2 text-xs text-muted-foreground">No entry has those words.</li>}
+            </ul>
+          )}
+        </div>
+        <div>
           <h3 className="mb-1 text-xs font-medium text-muted-foreground">Earlier entries</h3>
           <ul className="max-h-72 space-y-0.5 overflow-auto">
             {(days.data ?? []).slice(0, 60).map((d) => (
@@ -183,6 +198,8 @@ export function DiaryPage() {
   const status = useQuery({ queryKey: STATUS, queryFn: () => ipc.diaryStatus() });
   const lock = useCallback(async () => { await ipc.diaryLock(); await qc.invalidateQueries({ queryKey: STATUS }); }, [qc]);
   const unlocked = status.data?.unlocked === true;
+  // The shell locks the diary when the dashboard is put away; drop what is on screen to match.
+  useEffect(() => onCommand((c) => { if (c === "diary-locked") void qc.invalidateQueries({ queryKey: STATUS }); }), [qc]);
   const [newKey, setNewKey] = useState<string | null>(null);
 
   // Locks after five idle minutes, and when you leave the page.

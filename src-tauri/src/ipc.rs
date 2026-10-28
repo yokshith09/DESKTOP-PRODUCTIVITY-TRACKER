@@ -8,7 +8,7 @@ use loaf_core::clock::Clock;
 use loaf_core::courses::{self, Course, CourseLinks, Exam, WeeklyReport};
 use loaf_core::daily_log::{self, DailyLog};
 use loaf_core::data;
-use loaf_core::diary::{self, DiaryStatus};
+use loaf_core::diary::{self, DiaryHit, DiaryStatus};
 use loaf_core::error::{AppError, Result};
 use loaf_core::events::Event;
 use loaf_core::focus::{self, FocusSession, FocusStart};
@@ -274,6 +274,11 @@ pub async fn diary_days(core: State<'_, Core>) -> Result<Vec<String>> {
 #[tauri::command]
 pub async fn diary_get(day: String, core: State<'_, Core>) -> Result<String> {
     diary::day_get(&core.db, &core.diary, &day).await
+}
+
+#[tauri::command]
+pub async fn diary_search(query: String, core: State<'_, Core>) -> Result<Vec<DiaryHit>> {
+    diary::search(&core.db, &core.diary, &query).await
 }
 
 #[tauri::command]

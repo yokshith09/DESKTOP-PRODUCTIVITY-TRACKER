@@ -395,6 +395,7 @@ pub fn pet_double_click(app: AppHandle) {
 }
 
 pub fn hide_main<R: Runtime>(app: &AppHandle<R>) {
+    crate::lock_diary(app);
     if let Some(main) = app.get_webview_window("main") {
         let _ = main.hide();
     }

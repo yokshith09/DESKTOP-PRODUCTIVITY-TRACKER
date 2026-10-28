@@ -5,6 +5,8 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Added: **diary search and tray lock** (FR-86 finished except mood faces, which are dropped as optional). "Search the diary" finds entries by their words, ignoring case, with a snippet; entries are decrypted one at a time in memory only while the diary is unlocked and nothing is indexed. **Putting the dashboard away locks the diary**: closing it to the tray, the pet's double click and the show/hide shortcut all lock it and the page drops what it showed. Autosave now waits 0.4 s, so very little can be lost when the window is closed. Unverified on a real PC.
+
 ## [0.5.2] — 2026-10-28 (draft for owner testing; Unverified)
 
 Owner's 2026-10-28 list (phases 1 to 5, T16). Nothing here has been run on a real PC.
