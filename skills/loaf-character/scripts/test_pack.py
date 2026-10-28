@@ -194,5 +194,49 @@ class BuildTests(unittest.TestCase):
             self.assertTrue(any("idle" in p and "sideways" in p for p in problems), problems)
 
 
+class PrepareTests(unittest.TestCase):
+    def reference(self, d: Path, colour=(40, 190, 60)) -> Path:
+        p = d / "ref.png"
+        Image.new("RGB", (200, 200), colour).save(p)
+        return p
+
+    def test_prepare_writes_ten_finished_jobs_and_a_key_that_is_not_the_pets_colour(self):
+        with tempfile.TemporaryDirectory() as t:
+            run = Path(t, "run")
+            m = pack.prep.prepare(run, "Mochi", "mochi", self.reference(Path(t)))
+            self.assertEqual([j["id"] for j in m["jobs"]], ["base", *[r for r, _ in pack.ROWS]])
+            self.assertNotEqual(m["key"], "green")                      # the pet is green, so not a green background
+            for j in m["jobs"]:
+                text = Path(j["prompt"]).read_text()
+                self.assertIn(m["key_hex"], text)
+                self.assertNotRegex(text, r"\[[A-Z ]+\]")               # nothing left in brackets to fill in
+            row = next(j for j in m["jobs"] if j["id"] == "waving")
+            self.assertIn("exactly 4 frames", Path(row["prompt"]).read_text())
+            self.assertEqual(len(row["inputs"]), 3)                      # base + the user's picture + the guide
+            self.assertEqual(Image.open(row["inputs"][-1]["path"]).size, (400 * 4, 420))
+
+    def test_prepare_without_a_picture_invents_the_character(self):
+        with tempfile.TemporaryDirectory() as t:
+            m = pack.prep.prepare(Path(t, "run"), "Mochi", "mochi", None)
+            self.assertIn("Invent", Path(m["jobs"][0]["prompt"]).read_text())
+            self.assertEqual(len(m["jobs"][1]["inputs"]), 2)
+
+    def test_status_lists_what_is_missing_and_finish_makes_the_zip(self):
+        with tempfile.TemporaryDirectory() as t:
+            run = Path(t, "run")
+            m = pack.prep.prepare(run, "Fox", "fox", None)
+            self.assertEqual(len(pack.prep.status(run)), 10)
+            Image.new("RGBA", (64, 64), GREEN).save(run / "references" / "base.png")
+            write_loose(run / "strips")
+            self.assertEqual(pack.prep.status(run), [])
+            code = pack.sys.argv
+            try:
+                pack.sys.argv = ["pack.py", "finish", str(run)]
+                self.assertEqual(pack.main(), 0)
+            finally:
+                pack.sys.argv = code
+            self.assertTrue((run / "out" / "fox.zip").exists())
+
+
 if __name__ == "__main__":
     unittest.main()

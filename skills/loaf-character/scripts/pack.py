@@ -4,6 +4,11 @@
   python3 pack.py build <strips-dir> <out-dir> --id mochi --name Mochi [--description ".."] [--extras loaf.json] [--mirror-left]
       Loose strips from an image tool (any size, flat background or transparent) -> aligned pack,
       checked, with <out-dir>/<id>.zip ready to import into Loaf, and a QA contact sheet.
+  python3 pack.py prepare <run-dir> --name Mochi [--id mochi] [--reference picture.png]
+      Writes the background colour, layout guides and ten finished image prompts (jobs.json).
+  python3 pack.py status <run-dir>        which pictures are still missing
+  python3 pack.py finish <run-dir> [--extras loaf.json] [--mirror-left]
+      = build from <run-dir>/strips into <run-dir>/out: <id>.zip, the folder, qa/contact-sheet.png
   python3 pack.py assemble <strips-dir> <out-dir> --id mochi --name Mochi   (strips already exactly 192*frames x 208)
   python3 pack.py check <pack-dir>
 
@@ -20,6 +25,7 @@ from pathlib import Path
 from PIL import Image, ImageOps
 
 import align
+import prep
 
 CELL_W, CELL_H, COLUMNS = 192, 208, 8
 ROWS = [  # name, frames
@@ -259,10 +265,46 @@ def main() -> int:
     b.add_argument("--description", default="")
     b.add_argument("--extras", type=Path, default=None, help="loaf.json with reactions and the special")
     b.add_argument("--mirror-left", action="store_true", help="make running-left by flipping running-right (only for a symmetric pet)")
+    pr = sub.add_parser("prepare")
+    pr.add_argument("run", type=Path)
+    pr.add_argument("--name", required=True)
+    pr.add_argument("--id", default=None)
+    pr.add_argument("--reference", type=Path, default=None)
+    st = sub.add_parser("status")
+    st.add_argument("run", type=Path)
+    fi = sub.add_parser("finish")
+    fi.add_argument("run", type=Path)
+    fi.add_argument("--extras", type=Path, default=None)
+    fi.add_argument("--mirror-left", action="store_true")
     c = sub.add_parser("check")
     c.add_argument("pack", type=Path)
     args = ap.parse_args()
-    if args.cmd == "build":
+    if args.cmd == "prepare":
+        pet_id = args.id or re.sub(r"[^a-z0-9]+", "-", args.name.lower()).strip("-") or "pet"
+        if not ID_RE.match(pet_id):
+            print("Not ready:\n  - the id must be 1-64 characters: letters, digits, - _ .")
+            return 1
+        if args.reference is not None and not args.reference.is_file():
+            print(f"Not ready:\n  - the reference picture {args.reference} was not found")
+            return 1
+        manifest = prep.prepare(args.run, args.name, pet_id, args.reference)
+        print(f"Prepared {len(manifest['jobs'])} image jobs in {args.run}/jobs.json (background {manifest['key']} {manifest['key_hex']}).")
+        return 0
+    if args.cmd == "status":
+        missing = prep.status(args.run)
+        print("All pictures are there. Run: pack.py finish" if not missing else "Still missing: " + ", ".join(missing))
+        return 1 if missing else 0
+    if args.cmd == "finish":
+        manifest = json.loads((args.run / "jobs.json").read_text(encoding="utf-8"))
+        todo = [j for j in prep.status(args.run) if not (args.mirror_left and j == "running-left")]
+        if todo:
+            print("Not ready:\n  - missing pictures: " + ", ".join(todo))
+            return 1
+        problems = build(args.run / "strips", args.run / "out", manifest["id"], manifest["name"], f"{manifest['name']}, a Loaf pet",
+                         args.extras, args.mirror_left)
+        if not problems:
+            print(f"Your pet: {args.run / 'out' / (manifest['id'] + '.zip')}")
+    elif args.cmd == "build":
         problems = build(args.strips, args.out, args.id, args.name, args.description, args.extras, args.mirror_left)
     elif args.cmd == "assemble":
         problems = assemble(args.strips, args.out, args.id, args.name, args.description)
