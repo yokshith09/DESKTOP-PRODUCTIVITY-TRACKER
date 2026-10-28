@@ -1,4 +1,5 @@
-import { Bell, CheckCircle2, Circle, Moon, NotebookPen, Star, Sun, Timer } from "lucide-react";
+import { useState } from "react";
+import { Bell, CheckCircle2, Circle, Moon, NotebookPen, Pause, Play, Plus, Square, Star, Sun, Timer } from "lucide-react";
 import { ipc } from "@/ipc";
 import { PRIORITY } from "@/features/overview/TodayAgenda";
 import { rangeBounds } from "@/features/time/range";
@@ -28,12 +29,13 @@ export function PetCard({ className, style, napping = false, onNap }: { classNam
   const { data: reminders = [] } = useReminders(false);
   const { data: log } = useDailyLog(ymd(new Date()));
   const tracking = status?.enabled ?? false;
-  const apps = (usage?.apps ?? []).slice(0, 3);
+  const focus = useFocus();
+  // The focus controls take a row; one app fewer keeps the card the same height.
+  const apps = (usage?.apps ?? []).slice(0, focus.session ? 2 : 3);
   const top = topTasks(tasks);
   const next = reminders.filter((r) => r.remind_at >= Date.now()).sort((a, b) => a.remind_at - b.remind_at)[0];
   const done = log?.snapshot.stats.completed_count ?? 0;
   const max = apps[0]?.total_seconds ?? 1;
-  const focus = useFocus();
 
   return (
     <div className={cn("flex flex-col gap-3 overflow-hidden rounded-xl border bg-popover p-3.5 text-popover-foreground shadow-lg", className)} style={style} role="status" aria-label="Today at a glance">
@@ -47,6 +49,19 @@ export function PetCard({ className, style, napping = false, onNap }: { classNam
         )}
         <span className="text-[11px] text-muted-foreground">{new Date().toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })}</span>
       </div>
+      {focus.session && (
+        <div className="flex items-center gap-1" role="group" aria-label="Focus controls">
+          {focus.session.paused_at === null
+            ? <MiniButton label="Pause focus" onClick={() => void focus.pause(true)}><Pause /></MiniButton>
+            : <MiniButton label="Resume focus" onClick={() => void focus.pause(false)}><Play /></MiniButton>}
+          <MiniButton label="Add 5 minutes" onClick={() => void focus.extend(5)}>+5</MiniButton>
+          <MiniButton label="Stop focus" onClick={() => void focus.stop()}><Square /></MiniButton>
+          <button type="button" onClick={() => void ipc.petCommand("focus")} onPointerUp={(e) => e.stopPropagation()}
+            className="ml-auto rounded-md px-1.5 text-[11px] text-muted-foreground underline-offset-2 outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring">
+            Edit
+          </button>
+        </div>
+      )}
       <div className="flex items-end gap-3">
         <p className="text-[28px] font-semibold leading-none tabular-nums">{tracking ? formatDuration(usage?.total_seconds ?? 0) : "—"}</p>
         <p className="pb-0.5 text-[11px] text-muted-foreground">{tracking ? `on screen · ${usage?.apps.length ?? 0} apps` : "Turn on app tracking in Settings"}</p>
@@ -65,6 +80,7 @@ export function PetCard({ className, style, napping = false, onNap }: { classNam
         </ul>
       )}
       <div className="border-t pt-2.5">
+        <QuickAdd />
         {top.length === 0 ? (
           <p className="text-[12px] text-muted-foreground">No tasks for today.</p>
         ) : (
@@ -96,11 +112,7 @@ export function PetCard({ className, style, napping = false, onNap }: { classNam
         <p className="flex items-center gap-1.5"><CheckCircle2 className="size-3" />{done} done today · {tasks.length} still open</p>
       </div>
       <div className="mt-auto grid grid-cols-3 gap-1.5 border-t pt-2.5" role="group" aria-label="Shortcuts">
-        {focus.session ? (
-          <CardButton icon={<Timer />} label="Stop focus" onClick={() => void focus.stop()} />
-        ) : (
-          <CardButton icon={<Timer />} label="Focus" onClick={() => void ipc.petCommand("focus")} />
-        )}
+        <CardButton icon={<Timer />} label="Focus" onClick={() => void ipc.petCommand("focus")} />
         <CardButton icon={<NotebookPen />} label="Add note" onClick={() => void ipc.petCommand("new-note")} />
         {napping ? (
           <CardButton icon={<Sun />} label="Wake" onClick={() => onNap?.(false)} />
@@ -118,5 +130,52 @@ function CardButton({ icon, label, onClick }: { icon: React.ReactNode; label: st
       className="flex h-8 items-center justify-center gap-1.5 rounded-md border bg-card text-[11.5px] font-medium outline-none hover:border-primary/50 hover:text-primary focus-visible:ring-2 focus-visible:ring-ring [&_svg]:size-3.5">
       {icon}{label}
     </button>
+  );
+}
+
+function MiniButton({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button type="button" aria-label={label} title={label} onClick={onClick} onPointerUp={(e) => e.stopPropagation()}
+      className="grid h-6 min-w-6 place-items-center rounded-md border bg-card px-1 text-[11px] font-semibold outline-none hover:border-primary/50 hover:text-primary focus-visible:ring-2 focus-visible:ring-ring [&_svg]:size-3">
+      {children}
+    </button>
+  );
+}
+
+/** "+" beside Tasks: one line, Enter adds it for today, Escape closes. No editor (owner 2026-10-27). */
+function QuickAdd() {
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [busy, setBusy] = useState(false);
+  const close = () => { setOpen(false); setTitle(""); };
+  const add = async () => {
+    const t = title.trim();
+    if (!t || busy) return;
+    setBusy(true);
+    try {
+      await ipc.taskQuickAdd(t);
+      close();
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="mb-1.5 flex h-6 items-center gap-1.5">
+      {open ? (
+        <input
+          autoFocus aria-label="New task for today" placeholder="New task for today…" value={title} maxLength={200} disabled={busy}
+          onChange={(e) => setTitle(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") void add(); else if (e.key === "Escape") close(); }}
+          onBlur={() => !title.trim() && close()}
+          onPointerUp={(e) => e.stopPropagation()}
+          className="h-6 min-w-0 flex-1 rounded-md border bg-card px-2 text-[12px] outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        />
+      ) : (
+        <>
+          <span className="flex-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Tasks</span>
+          <MiniButton label="Add a task" onClick={() => setOpen(true)}><Plus /></MiniButton>
+        </>
+      )}
+    </div>
   );
 }

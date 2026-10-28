@@ -129,9 +129,47 @@ describe("desktop pet", () => {
     const row = within(card).queryAllByRole("button", { name: /^Open task:/ })[0];
     if (row) { fireEvent.click(row); expect(cmd).toHaveBeenCalledWith("tasks"); }
     await ipc.focusStart({ kind: "FOCUS", minutes: 25 } as never);
-    expect(await within(shortcuts).findByRole("button", { name: "Stop focus" }, { timeout: 2000 })).toBeTruthy();
-    fireEvent.click(within(shortcuts).getByRole("button", { name: "Stop focus" }));
+    // While a session runs the card has its controls: pause, +5 min, stop (owner 2026-10-27).
+    const controls = await within(card).findByRole("group", { name: "Focus controls" }, { timeout: 2000 });
+    fireEvent.click(within(controls).getByRole("button", { name: "Pause focus" }));
+    expect(await within(controls).findByRole("button", { name: "Resume focus" })).toBeTruthy();
+    const before = (await ipc.focusCurrent())?.planned_ms ?? 0;
+    fireEvent.click(within(controls).getByRole("button", { name: "Add 5 minutes" }));
+    await waitFor(async () => expect((await ipc.focusCurrent())?.planned_ms).toBe(before + 5 * 60_000));
+    fireEvent.click(within(controls).getByRole("button", { name: "Stop focus" }));
     await waitFor(async () => expect(await ipc.focusCurrent()).toBeNull());
+  });
+
+  it("adds a task for today from the card's +, without opening the editor (owner 2026-10-27)", async () => {
+    const add = vi.spyOn(ipc, "taskQuickAdd");
+    renderPet();
+    fireEvent.mouseEnter(bear().closest("div.flex") as HTMLElement);
+    const card = await screen.findByRole("status", { name: "Today at a glance" }, { timeout: 2000 });
+    fireEvent.click(within(card).getByRole("button", { name: "Add a task" }));
+    const box = within(card).getByRole("textbox", { name: "New task for today" });
+    fireEvent.change(box, { target: { value: "  Buy milk  " } });
+    fireEvent.keyDown(box, { key: "Enter" });
+    await waitFor(() => expect(add).toHaveBeenCalledWith("Buy milk"));
+    await waitFor(() => expect(within(card).queryByRole("textbox")).toBeNull());
+    // Escape closes without adding; an empty line adds nothing.
+    fireEvent.click(within(card).getByRole("button", { name: "Add a task" }));
+    fireEvent.keyDown(within(card).getByRole("textbox"), { key: "Enter" });
+    fireEvent.keyDown(within(card).getByRole("textbox"), { key: "Escape" });
+    expect(add).toHaveBeenCalledTimes(1);
+  });
+
+  it("the timer under the pet is as wide as the pet", async () => {
+    const hover = vi.spyOn(ipc, "petHover");
+    renderPet();
+    await screen.findByRole("button", { name: /^Loaf\./ });
+    await act(async () => { await ipc.focusStart({ kind: "FOCUS", minutes: 25, task_id: null }); });
+    try {
+      const timer = await screen.findByRole("timer", {}, { timeout: 2000 });
+      expect(timer.style.width).toBe("128px"); // size M
+      await waitFor(() => expect(hover).toHaveBeenCalledWith(true, 128, expect.any(Number), true));
+    } finally {
+      await act(async () => { await ipc.focusStop(); });
+    }
   });
 
   it("the focus timer asks for the strip below the pet (H1)", async () => {

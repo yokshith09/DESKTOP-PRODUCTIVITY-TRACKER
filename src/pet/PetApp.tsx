@@ -18,7 +18,7 @@ import { useTypingAlong } from "./typing";
 
 /** Card and bubble sizes in logical pixels; the shell grows the window by this much. */
 export const CARD_W = 300;
-export const CARD_H = 352; // measured: 291 px with 3 apps and 2 tasks, + task rows and the shortcuts row
+export const CARD_H = 404; // measured 2026-10-28 in a browser: 390 px of content, ~396 px with the focus controls row; the old 352 cut off the buttons
 export const BUBBLE_W = 220;
 export const BUBBLE_H = 52;
 /** Roughly how many characters fit on a bubble line at 220 px. */
@@ -34,7 +34,6 @@ export function bubbleHeight(text: string): number {
   return lines === 2 ? BUBBLE_H : 20 + lines * 16;
 }
 /** The focus timer above or below the pet (FR-110). */
-export const TIMER_W = 252;
 export const TIMER_H = 36;
 const SIZES = { S: 96, M: 128, L: 160 } as const;
 const DOUBLE_CLICK_MS = 260;
@@ -119,7 +118,7 @@ export function PetApp() {
       deferred.current = { kind: "expand", next, text };
       return;
     }
-    const [w, h] = next === "card" ? [CARD_W, CARD_H] : next === "timer" ? [TIMER_W, TIMER_H] : [BUBBLE_W, bubbleHeight(text)];
+    const [w, h] = next === "card" ? [CARD_W, CARD_H] : next === "timer" ? [size, TIMER_H] : [BUBBLE_W, bubbleHeight(text)];
     // The timer sits under the pet, in its own pixel area; the card and bubble keep above.
     const below = next === "timer";
     // Lay out for the grown window first (the pet in its corner, the panel clipped), then grow it:
@@ -361,7 +360,7 @@ export function PetApp() {
     : panel === "bubble" && playing
       ? <Bubble text={bubbleText(playing)} anchor={anchor} />
       : panel === "timer" && focus.session
-        ? <FocusChip label={focus.session.kind === "BREAK" ? "Break" : focus.session.label || "Focus"} left={clock(focus.remaining)} paused={focus.session.paused_at !== null} onPause={(p) => void focus.pause(p)} />
+        ? <FocusChip width={size} label={focus.session.kind === "BREAK" ? "Break" : focus.session.label || "Focus"} left={clock(focus.remaining)} paused={focus.session.paused_at !== null} onPause={(p) => void focus.pause(p)} />
         : null;
 
   return (
@@ -400,13 +399,13 @@ function Bubble({ text, anchor }: { text: string; anchor: Anchor | null }) {
 }
 
 /** The focus timer under the pet (FR-110, H1): pixel style, time left, and pause/resume. (Music buttons were taken out 2026-10-27 to be planned again.) */
-function FocusChip({ label, left, paused, onPause }: { label: string; left: string; paused: boolean; onPause: (paused: boolean) => void }) {
+function FocusChip({ width, label, left, paused, onPause }: { width: number; label: string; left: string; paused: boolean; onPause: (paused: boolean) => void }) {
   const btn = "grid size-6 shrink-0 place-items-center border-2 border-foreground/70 bg-background font-mono text-[10px] leading-none outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring";
+  // As wide as the pet (owner 2026-10-27): the time and pause only; the label is in the hover card.
   return (
-    <div className="flex shrink-0 items-center gap-1.5 border-2 border-foreground/70 bg-popover px-2 font-mono text-popover-foreground shadow-[3px_3px_0_0_var(--border)]" style={{ width: TIMER_W, height: TIMER_H, imageRendering: "pixelated" }} role="timer" aria-label={`${label}: ${left} left${paused ? ", paused" : ""}`}>
+    <div className="flex shrink-0 items-center justify-between gap-1 border-2 border-foreground/70 bg-popover px-1.5 font-mono text-popover-foreground shadow-[3px_3px_0_0_var(--border)]" style={{ width, height: TIMER_H, imageRendering: "pixelated" }} role="timer" title={label} aria-label={`${label}: ${left} left${paused ? ", paused" : ""}`}>
       <span className={cn("size-2 shrink-0", paused ? "bg-muted-foreground" : "bg-primary")} />
       <span className="text-[13px] font-bold tabular-nums">{left}</span>
-      <span className="min-w-0 flex-1 truncate text-[10.5px] text-muted-foreground">{label}</span>
       <button type="button" aria-label={paused ? "Resume focus" : "Pause focus"} onClick={() => onPause(!paused)} className={btn}>{paused ? "▶" : "❚❚"}</button>
     </div>
   );
