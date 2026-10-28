@@ -41,6 +41,8 @@ pub(crate) struct Core {
     pub(crate) db: Arc<Database>,
     pub(crate) bus: EventBus,
     pub(crate) clock: Arc<SystemClock>,
+    /// The diary key, in memory only while unlocked.
+    pub(crate) diary: loaf_core::diary::Diary,
 }
 
 /// Background tasks that live as long as the app. They park on the bus or a timer between
@@ -175,6 +177,14 @@ pub fn run() {
             ipc::note_set_course,
             ipc::course_links,
             ipc::weekly_report,
+            ipc::diary_status,
+            ipc::diary_setup,
+            ipc::diary_unlock,
+            ipc::diary_lock,
+            ipc::diary_days,
+            ipc::diary_get,
+            ipc::diary_save,
+            ipc::diary_erase,
             ipc::labels_list,
             ipc::label_create,
             ipc::label_rename,
@@ -304,6 +314,7 @@ pub fn run() {
                 db: db.clone(),
                 bus: bus.clone(),
                 clock: clock.clone(),
+                diary: loaf_core::diary::Diary::default(),
             });
 
             // Everything below subscribes to the bus before anything can publish to it.

@@ -8,6 +8,7 @@ use loaf_core::clock::Clock;
 use loaf_core::courses::{self, Course, CourseLinks, Exam, WeeklyReport};
 use loaf_core::daily_log::{self, DailyLog};
 use loaf_core::data;
+use loaf_core::diary::{self, DiaryStatus};
 use loaf_core::error::{AppError, Result};
 use loaf_core::events::Event;
 use loaf_core::focus::{self, FocusSession, FocusStart};
@@ -232,6 +233,48 @@ pub async fn reminder_star(id: String, starred: bool, core: State<'_, Core>) -> 
 #[tauri::command]
 pub async fn reminder_delete(id: String, core: State<'_, Core>) -> Result<()> {
     reminders::delete(&core.db, &*core.clock, &id).await
+}
+
+// ---- diary (FR-86) ---------------------------------------------------------------------------
+
+#[tauri::command]
+pub async fn diary_status(core: State<'_, Core>) -> Result<DiaryStatus> {
+    diary::status(&core.db, &core.diary).await
+}
+
+#[tauri::command]
+pub async fn diary_setup(password: String, core: State<'_, Core>) -> Result<()> {
+    diary::setup(&core.db, &core.diary, &*core.clock, &password).await
+}
+
+#[tauri::command]
+pub async fn diary_unlock(password: String, core: State<'_, Core>) -> Result<()> {
+    diary::unlock(&core.db, &core.diary, &password).await
+}
+
+#[tauri::command]
+pub fn diary_lock(core: State<'_, Core>) {
+    diary::lock(&core.diary);
+}
+
+#[tauri::command]
+pub async fn diary_days(core: State<'_, Core>) -> Result<Vec<String>> {
+    diary::days(&core.db, &core.diary).await
+}
+
+#[tauri::command]
+pub async fn diary_get(day: String, core: State<'_, Core>) -> Result<String> {
+    diary::day_get(&core.db, &core.diary, &day).await
+}
+
+#[tauri::command]
+pub async fn diary_save(day: String, text: String, core: State<'_, Core>) -> Result<()> {
+    diary::day_save(&core.db, &core.diary, &*core.clock, &day, &text).await
+}
+
+#[tauri::command]
+pub async fn diary_erase(core: State<'_, Core>) -> Result<()> {
+    diary::erase(&core.db, &core.diary).await
 }
 
 // ---- courses (student pack) -------------------------------------------------------------------

@@ -25,6 +25,7 @@ export function createMock() {
     { id: "l1", name: "product" }, { id: "l2", name: "ideas" }, { id: "l3", name: "work" },
     { id: "l4", name: "home" }, { id: "l5", name: "pet" },
   ];
+  const diary = { password: null as string | null, open: false, entries: new Map<string, string>() };
   const courses: { id: string; name: string }[] = [];
   const exams: { id: string; course_id: string | null; title: string; on_date: string }[] = [];
   const taskCourse = new Map<string, string>();
@@ -412,6 +413,28 @@ export function createMock() {
     },
     reminder_delete: (a) => { const i = reminders.findIndex((x) => x.id === a.id); if (i >= 0) reminders.splice(i, 1); emit("ReminderDeleted"); return null; },
 
+    diary_status: () => ({ configured: diary.password !== null, unlocked: diary.password !== null && diary.open }),
+    diary_setup: (a) => {
+      const p = String(a.password);
+      if (p.length < 6) fail("VALIDATION", "Use at least 6 characters.");
+      if (diary.password !== null) fail("CONFLICT", "The diary already has a password.");
+      diary.password = p; diary.open = true; return null;
+    },
+    diary_unlock: (a) => {
+      if (diary.password === null) fail("NOT_FOUND", "The diary has no password yet.");
+      if (diary.password !== a.password) fail("VALIDATION", "That is not the right password.");
+      diary.open = true; return null;
+    },
+    diary_lock: () => { diary.open = false; return null; },
+    diary_days: () => { if (!diary.open) fail("INVALID_TRANSITION", "The diary is locked."); return [...diary.entries.keys()].sort().reverse(); },
+    diary_get: (a) => { if (!diary.open) fail("INVALID_TRANSITION", "The diary is locked."); return diary.entries.get(String(a.day)) ?? ""; },
+    diary_save: (a) => {
+      if (!diary.open) fail("INVALID_TRANSITION", "The diary is locked.");
+      const t = String(a.text);
+      if (t.trim()) diary.entries.set(String(a.day), t); else diary.entries.delete(String(a.day));
+      return null;
+    },
+    diary_erase: () => { diary.password = null; diary.open = false; diary.entries.clear(); return null; },
     courses_list: () => [...courses].sort((x, y) => x.name.localeCompare(y.name)),
     course_create: (a) => {
       const name = String(a.name).trim();

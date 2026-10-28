@@ -3,7 +3,7 @@ import { call } from "./transport";
 import type {
   UsageSummary, TimeRange, TrackingStatus, OpenTab, PetPack, BinNote, DailyLog, Reminder, ReminderInput, ReminderPatch, Label, LabelCount, Note, NoteInput, NotePatch, NoteSort, NoteSummary, Task, TaskEdit, TaskEvent, TaskFilters, TaskRow,
   TaskStatus, TaskView, WorkUpdate, LinkInput, TaskPlan, RepeatDay, FocusSession, FocusStart, RetentionRules, RetentionCounts, Meeting, MeetingFilters, MeetingInput, MeetingSummary,
-  Course, CourseLinks, Exam, WeeklyReport,
+  Course, CourseLinks, DiaryStatus, Exam, WeeklyReport,
 } from "./types";
 import type { Settings, SettingsKey } from "./settings";
 
@@ -39,6 +39,14 @@ export const ipc = {
   reminderDelete: (id: string) => call<unknown>("reminder_delete", { id }),
   noteDiscardIfEmpty: (id: string) => call<boolean>("note_discard_if_empty", { id }),
 
+  diaryStatus: () => call<DiaryStatus>("diary_status"),
+  diarySetup: (password: string) => call<unknown>("diary_setup", { password }),
+  diaryUnlock: (password: string) => call<unknown>("diary_unlock", { password }),
+  diaryLock: () => call<unknown>("diary_lock"),
+  diaryDays: () => call<string[]>("diary_days"),
+  diaryGet: (day: string) => call<string>("diary_get", { day }),
+  diarySave: (day: string, text: string) => call<unknown>("diary_save", { day, text }),
+  diaryErase: () => call<unknown>("diary_erase"),
   coursesList: () => call<Course[]>("courses_list"),
   courseCreate: (name: string) => call<Course>("course_create", { name }),
   courseRename: (id: string, name: string) => call<Course>("course_rename", { id, name }),

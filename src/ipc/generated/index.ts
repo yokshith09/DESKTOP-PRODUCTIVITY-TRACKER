@@ -10,6 +10,7 @@ export type { CourseWeek } from "./CourseWeek";
 export type { DailyLog } from "./DailyLog";
 export type { Decision } from "./Decision";
 export type { DecisionInput } from "./DecisionInput";
+export type { DiaryStatus } from "./DiaryStatus";
 export type { DomainSetting } from "./DomainSetting";
 export type { DomainUsage } from "./DomainUsage";
 export type { ErrorCode } from "./ErrorCode";
