@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Plug } from "lucide-react";
 import { useRoutineReminder } from "@/features/routine/useRoutine";
 import { useDailyGreeting } from "@/features/companion/useCompanion";
+import { useWellbeingNudges } from "@/features/wellbeing/useWellbeing";
 import { useRepeatReminder } from "@/features/tasks/useRepeatReminder";
 import { Notices } from "@/components/Notices";
 import { useAutoDelete } from "@/features/settings/autoDelete";
@@ -48,6 +49,7 @@ function Screen() {
   useDailyGreeting();
   // FR-109: in the evening, repeating tasks still open today.
   useRepeatReminder();
+  useWellbeingNudges();
   // FR-46: auto-delete by the user's rules (never by default).
   useAutoDelete();
   // Messages go above the pet; while the pet is hidden they show here instead.

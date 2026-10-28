@@ -5,7 +5,10 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
-Owner's 2026-10-28 list (phase 1). Unverified on a real PC.
+Owner's 2026-10-28 list (phases 1 and 2). Unverified on a real PC.
+
+- Added: **stretch and water reminders** (Character → Pet notifications). Each has its own switch and its own gap — a break every 50 minutes, water every 1.5 hours by default. They repeat through the day, so they do **not** use up the daily nudge budget; they do keep quiet hours. When app tracking is on they count your time at the screen, so an hour away from the desk does not earn a break; otherwise they count the clock. The pet has no stretch or drink animation of its own yet, so each uses the nearest pose it has; real ones come with the per-character animations.
+- Changed (Character page): the two top panels are the same height, so the page no longer has a tall empty gap beside the preview; the 17 preview poses are a tidy grid instead of a ragged wall; the second size preview (three bears) is gone, since the Size row already says how big the pet is. **Accessories and outfits** are now even tiles with a clear picture above the name, and no name spills out of its tile at 1280, 1024 or 800 px wide. Settings rows keep their words when space is tight (Quiet hours used to squash its own label).
 
 - Fixed: **deleting a note no longer shakes.** The card's buttons were hidden the moment the cursor left the card, which pulled the confirmation away from the button it hangs from, so it jumped to the corner and flickered. The buttons now stay while a confirmation is open (notes, quotes, routine, shortcuts). Reproduced in a browser before and after.
 - Added: **a task straight from the hover card.** "+" beside Tasks takes one line and Enter adds it for today; Escape closes it. No editor.

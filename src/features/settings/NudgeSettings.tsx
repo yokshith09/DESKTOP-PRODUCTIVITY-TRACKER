@@ -3,6 +3,8 @@ import { Switch } from "@/components/ui/switch";
 import { ipc } from "@/ipc";
 import { GAP_CHOICES, MAX_PER_DAY_RANGE, parseNudges, type NudgeState } from "@/lib/nudges";
 import { useRepeatRemindPrefs } from "@/features/tasks/useRepeatReminder";
+import { useWellbeingPrefs } from "@/features/wellbeing/useWellbeing";
+import { EVERY_CHOICES, KINDS, type WellbeingKind } from "@/features/wellbeing/wellbeing";
 import { Row, Section } from "./parts";
 
 const KEY = ["prefs", "ui.nudges"] as const;
@@ -47,6 +49,7 @@ export function NudgeSettings() {
           <Switch checked={data.quiet.on} onCheckedChange={(on) => void save({ quiet: { ...data.quiet, on } })} aria-label="Quiet hours" />
         </div>
       </Row>
+      <WellbeingRows />
       <Row label="Repeating tasks still open" hint="Once in the evening the pet names the repeating tasks you haven't ticked today. Counts as one nudge.">
         <div className="flex items-center gap-2">
           {repeat.state.on && (
@@ -57,5 +60,37 @@ export function NudgeSettings() {
         </div>
       </Row>
     </Section>
+  );
+}
+
+const WELLBEING_LABEL: Record<WellbeingKind, { label: string; hint: string }> = {
+  break: { label: "Stretch break", hint: "The pet suggests a short break. Counted from your time at the screen when app tracking is on, otherwise from the clock." },
+  water: { label: "Drink of water", hint: "A friendly reminder to drink something." },
+};
+
+/** Break and water nudges (owner 2026-10-27). They repeat through the day, so they do not use up
+ * the budget above; they do keep quiet hours. */
+function WellbeingRows() {
+  const { state, save, loaded } = useWellbeingPrefs();
+  if (!loaded || !state) return null;
+  return (
+    <>
+      {KINDS.map((kind) => (
+        <Row key={kind} label={WELLBEING_LABEL[kind].label} hint={WELLBEING_LABEL[kind].hint}>
+          {state[kind].on && (
+            <select
+              aria-label={`${WELLBEING_LABEL[kind].label} every`} className={select} value={state[kind].everyMin}
+              onChange={(e) => void save({ ...state, [kind]: { ...state[kind], everyMin: Number(e.target.value), lastAt: Date.now() } })}
+            >
+              {EVERY_CHOICES.map((m) => <option key={m} value={m}>every {gapLabel(m)}</option>)}
+            </select>
+          )}
+          <Switch
+            checked={state[kind].on} aria-label={WELLBEING_LABEL[kind].label}
+            onCheckedChange={(on) => void save({ ...state, [kind]: { ...state[kind], on, lastAt: on ? Date.now() : null, lastScreenSec: null } })}
+          />
+        </Row>
+      ))}
+    </>
   );
 }

@@ -390,3 +390,4 @@ Still open: none of Q1-Q7 except the Q4 spike result.
 - **Nothing was taken out of the task editor.** The owner asked for fewer visible buttons, not fewer features, so the extras live in one "Advanced options" fold whose summary names what is set.
 - **The pet steps aside in full screen** (`pet.hide_fullscreen`, on). Only the window is hidden; the setting is left alone, so the pet returns by itself. Checked every 2 seconds while the pet is wanted, one cheap call per look.
 - **The right-click menu is a plain list** (`menu_spec`), decided from the settings alone, so what it offers is tested without a window.
+- **Break and water nudges sit outside the daily nudge budget (2026-10-28).** Four a day would swallow a reminder meant to repeat every 50 minutes. They keep quiet hours, and one is shown at a time. They count screen time when app tracking is on, and the clock when it is off, because time away from the desk is already a break.
