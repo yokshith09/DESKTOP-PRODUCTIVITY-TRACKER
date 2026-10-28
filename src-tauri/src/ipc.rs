@@ -5,6 +5,7 @@ use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use loaf_core::clock::Clock;
+use loaf_core::courses::{self, Course, CourseLinks, Exam, WeeklyReport};
 use loaf_core::daily_log::{self, DailyLog};
 use loaf_core::data;
 use loaf_core::error::{AppError, Result};
@@ -231,6 +232,76 @@ pub async fn reminder_star(id: String, starred: bool, core: State<'_, Core>) -> 
 #[tauri::command]
 pub async fn reminder_delete(id: String, core: State<'_, Core>) -> Result<()> {
     reminders::delete(&core.db, &*core.clock, &id).await
+}
+
+// ---- courses (student pack) -------------------------------------------------------------------
+
+#[tauri::command]
+pub async fn courses_list(core: State<'_, Core>) -> Result<Vec<Course>> {
+    courses::list(&core.db).await
+}
+
+#[tauri::command]
+pub async fn course_create(name: String, core: State<'_, Core>) -> Result<Course> {
+    courses::create(&core.db, &*core.clock, &name).await
+}
+
+#[tauri::command]
+pub async fn course_rename(id: String, name: String, core: State<'_, Core>) -> Result<Course> {
+    courses::rename(&core.db, &id, &name).await
+}
+
+#[tauri::command]
+pub async fn course_delete(id: String, core: State<'_, Core>) -> Result<()> {
+    courses::delete(&core.db, &id).await
+}
+
+#[tauri::command]
+pub async fn exams_from(from: String, core: State<'_, Core>) -> Result<Vec<Exam>> {
+    courses::exams_from(&core.db, &from).await
+}
+
+#[tauri::command]
+pub async fn exam_add(
+    course_id: Option<String>,
+    title: String,
+    on_date: String,
+    core: State<'_, Core>,
+) -> Result<Exam> {
+    courses::exam_add(&core.db, &*core.clock, course_id, &title, &on_date).await
+}
+
+#[tauri::command]
+pub async fn exam_delete(id: String, core: State<'_, Core>) -> Result<()> {
+    courses::exam_delete(&core.db, &id).await
+}
+
+#[tauri::command]
+pub async fn task_set_course(
+    task_id: String,
+    course_id: Option<String>,
+    core: State<'_, Core>,
+) -> Result<()> {
+    courses::set_task_course(&core.db, &task_id, course_id).await
+}
+
+#[tauri::command]
+pub async fn note_set_course(
+    note_id: String,
+    course_id: Option<String>,
+    core: State<'_, Core>,
+) -> Result<()> {
+    courses::set_note_course(&core.db, &note_id, course_id).await
+}
+
+#[tauri::command]
+pub async fn course_links(core: State<'_, Core>) -> Result<CourseLinks> {
+    courses::links(&core.db).await
+}
+
+#[tauri::command]
+pub async fn weekly_report(from: String, core: State<'_, Core>) -> Result<WeeklyReport> {
+    courses::weekly_report(&core.db, &*core.clock, &from).await
 }
 
 // ---- labels ---------------------------------------------------------------------------------
