@@ -43,6 +43,18 @@ describe("Accessories and outfits", () => {
     await waitFor(() => expect(m.get("ui.wardrobe")).toMatchObject({ worn: [], outfit: "" }));
   });
 
+  it("every tile is the same shape: picture above a name that never spills out (owner 2026-10-28)", async () => {
+    prefs({});
+    wrap(<WardrobePanel />);
+    const crown = await screen.findByRole("button", { name: /Crown/ });
+    expect(crown.querySelector("svg[data-icon='crown']")).toBeTruthy();
+    const name = crown.querySelector("span.truncate");
+    expect(name?.textContent).toBe("Crown");
+    // The outfits are built the same way, so the two lists line up.
+    const royal = screen.getByRole("button", { name: /Royal/ });
+    expect(royal.querySelector("span.truncate")?.textContent).toBe("Royal");
+  });
+
   it("the birthday hat can be turned off", async () => {
     const m = prefs({});
     vi.spyOn(api, "petSay").mockResolvedValue(undefined as never);

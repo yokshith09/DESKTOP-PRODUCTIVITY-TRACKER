@@ -35,7 +35,7 @@ export function CompanionPanel() {
     <section aria-label="About you and your pet" className="mt-6">
       <h2 className="text-[15px] font-semibold">About you and your pet</h2>
       <p className="mt-0.5 text-xs text-muted-foreground">So it can greet you by name and remember birthdays. Stays on this computer.</p>
-      <Panel className="mt-3 grid gap-4 p-4 sm:grid-cols-2">
+      <Panel className="mt-3 grid gap-4 p-4 xl:grid-cols-2">
         <div className="space-y-3">
           <label className="block text-xs font-medium text-muted-foreground" htmlFor="pet-name">Pet’s name</label>
           <Input

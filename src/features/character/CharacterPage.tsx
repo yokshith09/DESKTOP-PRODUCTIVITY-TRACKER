@@ -28,12 +28,12 @@ const POSE_LABELS: Record<BearPose, string> = {
 
 function Row({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-4 py-3.5">
-      <div className="min-w-0 flex-1">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3.5">
+      <div className="min-w-[10rem] flex-1">
         <p className="text-[13px] font-medium">{label}</p>
         {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
       </div>
-      {children}
+      <div className="ml-auto flex shrink-0 items-center gap-2">{children}</div>
     </div>
   );
 }
@@ -69,8 +69,8 @@ export function CharacterPage() {
   return (
     <div className="mx-auto max-w-5xl">
       <PageHeader title="Character" description="Your desktop companion. It sits on your screen and stays out of the way." />
-      <div className="grid items-start gap-4 lg:grid-cols-2 [&_section]:mt-0">
-        <Panel className="flex flex-col items-center justify-between gap-6 p-6">
+      <div className="grid items-stretch gap-4 lg:grid-cols-2 [&_section]:mt-0 [&>*]:min-w-0">
+        <Panel className="flex h-full flex-col items-center justify-between gap-5 p-6">
           {shownPack ? <PackPreview key={shownPack.id} pack={shownPack} /> : (
             <>
           <div className="grid min-h-72 w-full flex-1 place-items-center rounded-lg border bg-muted/40 [background-image:radial-gradient(circle_at_center,var(--border)_1px,transparent_1px)] [background-size:16px_16px]">
@@ -83,22 +83,22 @@ export function CharacterPage() {
             </div>
             <p className="text-xs text-muted-foreground">Pick a moment to preview it</p>
           </div>
-          <div className="flex w-full flex-wrap gap-1.5" role="group" aria-label="Preview pose">
+          <div className="grid w-full grid-cols-2 gap-1.5 xl:grid-cols-3" role="group" aria-label="Preview pose">
             {BEAR_POSES.map((p) => (
               <Button
-                key={p} size="sm" variant={p === pose ? "default" : "outline"} aria-pressed={p === pose}
+                key={p} size="sm" variant={p === pose ? "default" : "outline"} aria-pressed={p === pose} className="justify-start truncate"
                 onClick={() => { setPose(p); setReplay((n) => n + 1); }}
               >
                 {POSE_LABELS[p]}
               </Button>
             ))}
-            <Button size="sm" variant="secondary" onClick={playBackTurn}>Play back-turn shake</Button>
+            <Button size="sm" variant="secondary" className="justify-start truncate" onClick={playBackTurn}>Play back-turn shake</Button>
           </div>
             </>
           )}
         </Panel>
 
-        <Panel className="divide-y px-5">
+        <Panel className="h-full divide-y px-5">
           <Row label="Show on desktop" hint="Hide the companion without quitting Loaf.">
             <Switch checked={visible ?? true} onCheckedChange={(v) => void setVisible(v)} aria-label="Show on desktop" />
           </Row>
@@ -127,17 +127,6 @@ export function CharacterPage() {
           >
             <Switch checked={typing ?? false} onCheckedChange={(v) => void setTyping(v)} aria-label="Type along with me" />
           </Row>
-          <div className="py-4">
-            <p className="mb-3 text-xs font-medium text-muted-foreground">Preview at each size</p>
-            <div className="flex items-end gap-6">
-              {(Object.entries(SIZES) as [string, number][]).map(([k, v]) => (
-                <figure key={k} className="text-center" style={{ opacity: (opacity ?? 100) / 100 }}>
-                  <Bear className="mx-auto" style={{ width: v, height: v }} />
-                  <figcaption className="mt-1 text-[11px] text-muted-foreground">{k} · {v}px</figcaption>
-                </figure>
-              ))}
-            </div>
-          </div>
         </Panel>
 
         <div className="lg:col-span-2"><PetLibrary shown={shownPack ? shown : null} onShow={setPicked} /></div>

@@ -53,6 +53,15 @@ describe("Character page preview (F1/F2)", () => {
     expect(screen.queryByRole("switch", { name: "Music buttons under the pet" })).toBeNull();
   });
 
+  it("has no second size preview: the Size row already says how big it is (owner 2026-10-28)", async () => {
+    renderPage();
+    await screen.findByText("Show on desktop");
+    expect(screen.queryByText("Preview at each size")).toBeNull();
+    // The three bears left a hole under the shorter column; the two columns now match.
+    const panels = document.querySelectorAll("[class*='h-full']");
+    expect(panels.length).toBeGreaterThanOrEqual(2);
+  });
+
   it("can be told to get out of the way in full screen (owner 2026-10-28); it is on to begin with", async () => {
     const set = vi.spyOn(ipc, "settingSet");
     renderPage();

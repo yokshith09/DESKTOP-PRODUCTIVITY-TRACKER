@@ -8,8 +8,9 @@ import { AccessoryIcon } from "./Accessories";
 import { ITEMS, OUTFITS, toggleItem, toggleOutfit, type Wardrobe } from "./wardrobe";
 import { useWardrobe } from "./useWardrobe";
 
-const chip = (on: boolean) =>
-  cn("flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-left text-[13px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+/** Every tile is the same size, with the picture above the name, so the rows line up (owner 2026-10-28). */
+const tile = (on: boolean) =>
+  cn("flex flex-col items-center gap-1.5 rounded-lg border px-2 py-2.5 text-[12.5px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
     on ? "border-primary bg-primary/10 font-medium text-foreground" : "bg-card text-muted-foreground hover:border-foreground/25 hover:text-foreground");
 
 /** Accessories and outfits for any character. All free, none locked; one thing per place on the body. */
@@ -28,11 +29,13 @@ export function WardrobePanel() {
       <Panel className="mt-3 space-y-4 p-4">
         <div role="group" aria-label="Outfits">
           <p className="text-xs font-medium text-muted-foreground">Outfits</p>
-          <div className="mt-2 flex flex-wrap gap-1.5">
+          <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
             {OUTFITS.map((o) => (
-              <button key={o.id} type="button" aria-pressed={wardrobe.outfit === o.id} className={cn(chip(wardrobe.outfit === o.id), "py-2")} onClick={() => apply(toggleOutfit(wardrobe, o.id))}>
-                <span className="flex -space-x-1">{o.items.map((i) => <AccessoryIcon key={i} id={i} className="h-6 w-8" />)}</span>
-                {o.name}
+              <button key={o.id} type="button" aria-pressed={wardrobe.outfit === o.id} className={tile(wardrobe.outfit === o.id)} onClick={() => apply(toggleOutfit(wardrobe, o.id))}>
+                <span className="flex h-9 w-full items-center justify-center gap-0.5">
+                  {o.items.map((i) => <AccessoryIcon key={i} id={i} className="h-8 min-w-0 flex-1" />)}
+                </span>
+                <span className="w-full truncate text-center">{o.name}</span>
               </button>
             ))}
           </div>
@@ -43,9 +46,9 @@ export function WardrobePanel() {
             {ITEMS.map((i) => {
               const on = wardrobe.worn.includes(i.id);
               return (
-                <button key={i.id} type="button" aria-pressed={on} className={chip(on)} onClick={() => apply(toggleItem(wardrobe, i.id))}>
-                  <AccessoryIcon id={i.id} className="h-7 w-10 shrink-0" />
-                  {i.name}
+                <button key={i.id} type="button" aria-pressed={on} className={tile(on)} onClick={() => apply(toggleItem(wardrobe, i.id))}>
+                  <AccessoryIcon id={i.id} className="h-9 w-full" />
+                  <span className="w-full truncate text-center">{i.name}</span>
                 </button>
               );
             })}
