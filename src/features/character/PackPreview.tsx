@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ipc, type PetPack } from "@/ipc";
 import { useWorn } from "@/features/wardrobe/useWardrobe";
-import { SPRITE_ROWS, SpritePet, type SpriteRow } from "./SpritePet";
+import type { BearPose } from "@/features/shell/Bear";
+import { ROW_FOR_POSE, SPRITE_ROWS, SpritePet, type SpriteRow } from "./SpritePet";
 
 /** What each animation row of a pack is for, in words a person would use. */
 export const ROW_LABELS: Record<SpriteRow, string> = {
@@ -12,6 +13,22 @@ export const ROW_LABELS: Record<SpriteRow, string> = {
 };
 
 const SOURCE: Record<PetPack["source"], string> = { builtin: "Built in", codex: "From Codex / Petdex", loaf: "Imported" };
+
+const WHEN = {
+  click: (n: number) => `every ${n} clicks on the pet`,
+  tasks: (n: number) => `every ${n} tasks you finish`,
+  daily: () => "the first time you see it each day",
+} as const;
+
+/** The character's one special move: what it is called, what sets it off, and a way to watch it. */
+function SpecialLine({ special, onTry }: { special: NonNullable<PetPack["special"]>; onTry: (pose: string) => void }) {
+  return (
+    <div className="flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2">
+      <p className="min-w-0 text-xs"><span className="font-semibold">Special: {special.name}</span> <span className="text-muted-foreground">· {WHEN[special.trigger](special.every)}</span></p>
+      <Button size="sm" variant="outline" onClick={() => onTry(special.pose)}>Watch</Button>
+    </div>
+  );
+}
 
 /** The Character page preview for a chosen pack: the big pet and a button for each animation it has. */
 export function PackPreview({ pack }: { pack: PetPack }) {
@@ -33,6 +50,7 @@ export function PackPreview({ pack }: { pack: PetPack }) {
         </div>
         <p className="text-xs text-muted-foreground">{rows.length} animations</p>
       </div>
+      {pack.special && <SpecialLine special={pack.special} onTry={(pose) => { const r = ROW_FOR_POSE[pose as BearPose] ?? "waving"; if (rows.includes(r)) setRow(r); }} />}
       <div className="flex w-full flex-wrap gap-1.5" role="group" aria-label="Preview animation">
         {rows.map((r) => (
           <Button key={r} size="sm" variant={r === row ? "default" : "outline"} aria-pressed={r === row} onClick={() => setRow(r)}>

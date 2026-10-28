@@ -395,3 +395,7 @@ Still open: none of Q1-Q7 except the Q4 spike result.
 ## 2026-10-28 (later) — Every delete asks
 
 Owner: deleting a link did not ask; anything deleted should ask. Rule: every delete or remove goes through the shared `ConfirmAction` (Delete / Cancel, Cancel focused); no bespoke inline confirms. Reversible resets (wardrobe "Take everything off") are not deletes and do not ask.
+
+## 2026-10-28 (later) — Reactions per character, one special each (D-REACT, answered)
+
+Owner: each pack may have its own reactions, the events are common, the user can pick a specific animation per event; one special reaction per character; keep nine rows. Built as: `loaf.json` (pack default pose per common moment + one special: pose, line, trigger click / tasks / daily), layered Loaf default → pack → user. Because Codex and OpenPets only accept the nine-row sheet, a special reuses a row (pose, words and trigger are the character's own); truly new special art needs a tenth row, which the owner has ruled out for now. Research behind the skill rebuild: `docs/character/RESEARCH_PET_PIPELINES.md`.

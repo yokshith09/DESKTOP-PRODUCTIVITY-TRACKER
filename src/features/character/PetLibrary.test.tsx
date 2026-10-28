@@ -8,8 +8,8 @@ import { ROW_FOR_POSE, SPRITE_ROWS, SpritePet, frameAt } from "./SpritePet";
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
-const boba: PetPack = { id: "boba", display_name: "Boba", description: "", rows: 9, format: "webp", source: "codex" };
-const mine: PetPack = { id: "pip", display_name: "Pip", description: "", rows: 9, format: "webp", source: "loaf" };
+const boba: PetPack = { id: "boba", display_name: "Boba", description: "", rows: 9, format: "webp", source: "codex", reactions: {} };
+const mine: PetPack = { id: "pip", display_name: "Pip", description: "", rows: 9, format: "webp", source: "loaf", reactions: {} };
 
 function renderLibrary(settings: Record<string, unknown> = { "pet.pack": null }) {
   vi.spyOn(ipc, "settingsGetAll").mockResolvedValue(settings as never);

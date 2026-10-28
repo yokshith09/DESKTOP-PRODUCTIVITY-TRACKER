@@ -34,6 +34,14 @@ pub enum PetSource {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct PetPack {
+    /// The pack's own default pose for some moments (`loaf.json`), keyed by reaction key.
+    /// The user's choice on the Character page still wins over these.
+    #[serde(default)]
+    pub reactions: std::collections::BTreeMap<String, String>,
+    /// The pack's one special reaction (`loaf.json`), if it has one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "ts", ts(optional))]
+    pub special: Option<PetSpecial>,
     pub id: String,
     pub display_name: String,
     pub description: String,
@@ -42,6 +50,85 @@ pub struct PetPack {
     /// "webp" or "svg".
     pub format: String,
     pub source: PetSource,
+}
+
+/// What sets a pack's special reaction off.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "kebab-case")]
+pub enum SpecialTrigger {
+    /// Every few clicks on the pet.
+    Click,
+    /// Every `every` tasks finished.
+    Tasks,
+    /// The first time the pet is seen each day, in place of the plain hello.
+    Daily,
+}
+
+/// One signature move per character: a pose from the shared nine rows plus its own line.
+/// (The sheet stays at nine rows, so a special reuses a row; it is the pose, words and
+/// trigger that make it the character's own.)
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+pub struct PetSpecial {
+    pub name: String,
+    pub pose: String,
+    pub line: String,
+    pub trigger: SpecialTrigger,
+    /// For `click` and `tasks`: how many. 2 to 50.
+    pub every: u32,
+}
+
+/// The moments a pack may give its own pose to (the same keys as the Character page's Reactions).
+pub const REACTION_KEYS: [&str; 7] = [
+    "task-added",
+    "task-started",
+    "task-done",
+    "all-done",
+    "task-deleted",
+    "reminder",
+    "focus-done",
+];
+
+#[derive(Default, Deserialize)]
+struct LoafJson {
+    #[serde(default)]
+    reactions: std::collections::BTreeMap<String, String>,
+    #[serde(default)]
+    special: Option<PetSpecial>,
+}
+
+fn pose_ok(p: &str) -> bool {
+    (1..=24).contains(&p.len()) && p.chars().all(|c| c.is_ascii_lowercase() || c == '_')
+}
+
+/// Read `loaf.json` next to a pack's `pet.json`. It is optional and only ever trimmed, never
+/// trusted: an unreadable file or an odd entry is dropped and the pack still loads.
+pub fn read_extras(
+    dir: &Path,
+) -> (
+    std::collections::BTreeMap<String, String>,
+    Option<PetSpecial>,
+) {
+    let Ok(raw) = fs::read_to_string(dir.join("loaf.json")) else {
+        return Default::default();
+    };
+    if raw.len() > 64 * 1024 {
+        return Default::default();
+    }
+    let parsed: LoafJson = serde_json::from_str(&raw).unwrap_or_default();
+    let reactions = parsed
+        .reactions
+        .into_iter()
+        .filter(|(k, v)| REACTION_KEYS.contains(&k.as_str()) && pose_ok(v))
+        .collect();
+    let special = parsed.special.and_then(|mut sp| {
+        sp.name = sp.name.trim().chars().take(30).collect();
+        sp.line = sp.line.trim().chars().take(80).collect();
+        sp.every = sp.every.clamp(2, 50);
+        (pose_ok(&sp.pose) && !sp.name.is_empty()).then_some(sp)
+    });
+    (reactions, special)
 }
 
 #[derive(Deserialize)]
@@ -161,7 +248,10 @@ pub fn check(dir: &Path, source: PetSource) -> Result<(PetPack, PathBuf)> {
             "{name} is {w}x{h}; a pet sheet is 1536x1872 or 1536x2288"
         ))
     })?;
+    let (reactions, special) = read_extras(dir);
     let pack = PetPack {
+        reactions,
+        special,
         id: meta.id,
         display_name: meta.display_name.trim().to_string(),
         description: meta.description,
@@ -184,6 +274,11 @@ pub fn install(src: &Path, pets_dir: &Path) -> Result<PetPack> {
     fs::create_dir_all(&tmp).map_err(io)?;
     fs::copy(src.join("pet.json"), tmp.join("pet.json")).map_err(io)?;
     fs::copy(&sheet, tmp.join(sheet.file_name().unwrap_or_default())).map_err(io)?;
+    if !pack.reactions.is_empty() || pack.special.is_some() {
+        // Only the trimmed, checked entries are kept, never the file as it came.
+        let extras = serde_json::json!({ "reactions": pack.reactions, "special": pack.special });
+        fs::write(tmp.join("loaf.json"), extras.to_string()).map_err(io)?;
+    }
     let _ = fs::remove_dir_all(&dest);
     fs::rename(&tmp, &dest).map_err(io)?;
     Ok(pack)
@@ -194,7 +289,7 @@ pub const ZIP_MAX_BYTES: u64 = 25 * 1024 * 1024;
 const UNPACK_MAX_BYTES: u64 = 30 * 1024 * 1024;
 
 /// Install a pack from a ZIP file. The pack may sit at the top of the ZIP or inside one folder.
-/// Only `pet.json` and `spritesheet.webp|svg` are unpacked (to a temporary folder, then checked
+/// Only `pet.json`, `loaf.json` and `spritesheet.webp|svg` are unpacked (to a temporary folder, then checked
 /// and copied by [`install`]); paths that escape the folder, links and oversized files are
 /// refused, and nothing in the ZIP is ever run.
 pub fn install_zip(zip_path: &Path, pets_dir: &Path) -> Result<PetPack> {
@@ -236,7 +331,10 @@ pub fn install_zip(zip_path: &Path, pets_dir: &Path) -> Result<PetPack> {
         let Some(file) = name.strip_prefix(&root) else {
             continue;
         };
-        if !matches!(file, "pet.json" | "spritesheet.webp" | "spritesheet.svg") {
+        if !matches!(
+            file,
+            "pet.json" | "loaf.json" | "spritesheet.webp" | "spritesheet.svg"
+        ) {
             continue;
         }
         if f.is_symlink() || !f.is_file() {
@@ -443,6 +541,62 @@ mod tests {
         kept.sort();
         assert_eq!(kept, ["pet.json", "spritesheet.webp"]);
         assert!(!pets.join(".unzip.part").exists());
+    }
+
+    #[test]
+    fn a_pack_may_bring_its_own_reactions_and_one_special() {
+        let t = tempfile::tempdir().unwrap();
+        let src = t.path().join("fox");
+        pack(&src, "fox", &webp(1536, 1872));
+        fs::write(
+            src.join("loaf.json"),
+            r#"{"cell":{"width":192},"reactions":{"task-done":"jump","nonsense":"jump","reminder":"Bad Pose!"},
+               "special":{"name":" Pounce ","pose":"toss","line":"Pounce!","trigger":"click","every":1}}"#,
+        )
+        .unwrap();
+        let (got, _) = check(&src, PetSource::Loaf).unwrap();
+        // Unknown moments and odd poses are dropped; "every" is kept in range.
+        assert_eq!(got.reactions.len(), 1);
+        assert_eq!(got.reactions["task-done"], "jump");
+        let special = got.special.clone().unwrap();
+        assert_eq!((special.name.as_str(), special.every), ("Pounce", 2));
+        // Installing keeps them (rewritten from the checked values) and a reader sees the same.
+        let pets = t.path().join("pets");
+        install(&src, &pets).unwrap();
+        let (again, _) = check(&pets.join("fox"), PetSource::Loaf).unwrap();
+        assert_eq!(
+            (again.reactions, again.special),
+            (got.reactions, got.special)
+        );
+    }
+
+    #[test]
+    fn a_broken_or_missing_loaf_json_never_stops_a_pack_loading() {
+        let t = tempfile::tempdir().unwrap();
+        let src = t.path().join("fox");
+        pack(&src, "fox", &webp(1536, 1872));
+        let (plain, _) = check(&src, PetSource::Loaf).unwrap();
+        assert!(plain.reactions.is_empty() && plain.special.is_none());
+        fs::write(src.join("loaf.json"), "{ not json").unwrap();
+        let (broken, _) = check(&src, PetSource::Loaf).unwrap();
+        assert!(broken.reactions.is_empty() && broken.special.is_none());
+    }
+
+    #[test]
+    fn a_zip_carries_loaf_json_too() {
+        let t = tempfile::tempdir().unwrap();
+        let z = t.path().join("pack.zip");
+        let sheet = webp(1536, 1872);
+        zip_of(
+            &z,
+            &[
+                ("pet.json", &pet_json("kayadu-lohar")),
+                ("spritesheet.webp", &sheet),
+                ("loaf.json", br#"{"reactions":{"all-done":"party"}}"#),
+            ],
+        );
+        let got = install_zip(&z, &t.path().join("pets")).unwrap();
+        assert_eq!(got.reactions["all-done"], "party");
     }
 
     #[test]

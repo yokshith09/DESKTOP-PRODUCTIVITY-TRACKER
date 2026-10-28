@@ -80,6 +80,10 @@ export interface LoafPackInfo {
   cell: { width: number; height: number };
   columns: number;
   rows: { name: string; frames: number; pose: string; source: RowSource }[];
+  /** This character's own default pose for some moments (the user's choice still wins). */
+  reactions?: Record<string, string>;
+  /** The one signature move: a pose, a line and what sets it off. */
+  special?: { name: string; pose: string; line: string; trigger: "click" | "tasks" | "daily"; every: number };
   license: string;
   status: "Unverified";
 }
@@ -90,8 +94,18 @@ export function buildPetJson(id: string, displayName: string, description: strin
   return { id, displayName, description, spritesheetPath: "spritesheet.webp" };
 }
 
-export function buildLoafInfo(): LoafPackInfo {
+/** Each built-in character's own reactions and special (owner 2026-10-28: one special each). */
+export const PACK_EXTRAS: Record<string, Pick<LoafPackInfo, "reactions" | "special">> = {
+  bear: { reactions: { "all-done": "party" }, special: { name: "Loaf mode", pose: "sleep", line: "Five done. Loaf mode: on.", trigger: "tasks", every: 5 } },
+  mochi: { reactions: { "task-done": "jump", "task-deleted": "toss" }, special: { name: "Zoomies", pose: "jump", line: "Zoomies!", trigger: "click", every: 5 } },
+  pip: { reactions: { "task-added": "wave", "all-done": "party" }, special: { name: "Belly slide", pose: "toss", line: "Three done. Belly slide!", trigger: "tasks", every: 3 } },
+  bolt: { reactions: { "task-started": "type", reminder: "ring" }, special: { name: "Systems online", pose: "type", line: "Systems online. Ready when you are.", trigger: "daily", every: 2 } },
+  ghosty: { reactions: { "task-deleted": "worried", "focus-done": "cheer" }, special: { name: "Boo", pose: "worried", line: "Boo! …did I scare you?", trigger: "click", every: 7 } },
+};
+
+export function buildLoafInfo(key?: string): LoafPackInfo {
   return {
+    ...(key ? PACK_EXTRAS[key] : {}),
     cell: { width: CELL_W, height: CELL_H },
     columns: COLS,
     rows: ROWS.map((r) => ({ name: r.name, frames: r.frames, pose: r.pose, source: r.source })),

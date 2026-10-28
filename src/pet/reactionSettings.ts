@@ -79,14 +79,20 @@ export function momentOf(e: LoafEvent, ctx: ReactionContext): { key: ReactionKey
   }
 }
 
-/** The reaction for an event with the user's changes applied; null when it is turned off. */
-export function reactionWithSettings(e: LoafEvent, ctx: ReactionContext, settings: ReactionSettings): Reaction | null {
+/**
+ * The reaction for an event, in three layers: Loaf's default, then the pet's own pose for that
+ * moment (`loaf.json`), then the user's own choice on the Character page. Null when turned off.
+ */
+export function reactionWithSettings(e: LoafEvent, ctx: ReactionContext, settings: ReactionSettings, packPoses: Partial<Record<string, string>> = {}): Reaction | null {
   const base = reactionFor(e, ctx);
   if (!base) return null;
   const moment = momentOf(e, ctx);
-  const s = moment ? settings[moment.key] : undefined;
-  if (!moment || !s) return base;
-  if (!s.enabled) return null;
-  const text = s.text ? fillText(s.text, moment.vars) : "";
-  return { ...base, ...(s.pose ? { pose: s.pose } : {}), ...(text ? { bubble: text } : {}) };
+  if (!moment) return base;
+  const s = settings[moment.key];
+  if (s && !s.enabled) return null;
+  const own = packPoses[moment.key];
+  const packPose = own && (BEAR_POSES as readonly string[]).includes(own) ? (own as BearPose) : "";
+  const pose = s?.pose || packPose;
+  const text = s?.text ? fillText(s.text, moment.vars) : "";
+  return { ...base, ...(pose ? { pose } : {}), ...(text ? { bubble: text } : {}) };
 }

@@ -44,7 +44,7 @@ describe.skipIf(!process.env.EXPORT_PACKS)("export sprite packs", () => {
       });
       writeFileSync(resolve(dir, "atlas.svg"), `<svg xmlns="http://www.w3.org/2000/svg" width="${ATLAS_W}" height="${ATLAS_H}" viewBox="0 0 ${ATLAS_W} ${ATLAS_H}">${cells.join("")}</svg>`);
       writeFileSync(resolve(dir, "pet.json"), JSON.stringify(buildPetJson(c.key, c.name, `${c.name}, ${c.what}`), null, 2) + "\n");
-      writeFileSync(resolve(dir, "loaf.json"), JSON.stringify(buildLoafInfo(), null, 2) + "\n");
+      writeFileSync(resolve(dir, "loaf.json"), JSON.stringify(buildLoafInfo(c.key), null, 2) + "\n");
     });
   }
 });

@@ -49,3 +49,17 @@ describe("saved reaction settings", () => {
     expect(fillText("Hi {nobody} there", {})).toBe("Hi there");
   });
 });
+
+describe("a pet's own poses (loaf.json) sit between Loaf's defaults and the user's choice", () => {
+  it("uses the pet's pose when the user has not picked one", () => {
+    expect(reactionWithSettings(done, two, {}, { "task-done": "jump" })?.pose).toBe("jump");
+  });
+  it("lets the user's pose win over the pet's", () => {
+    const settings = { "task-done": { enabled: true, text: "", pose: "party" as const } };
+    expect(reactionWithSettings(done, two, settings, { "task-done": "jump" })?.pose).toBe("party");
+  });
+  it("ignores a pose Loaf does not know, and still honours 'off'", () => {
+    expect(reactionWithSettings(done, two, {}, { "task-done": "moonwalk" })?.pose).toBe("cheer");
+    expect(reactionWithSettings(done, two, { "task-done": { enabled: false, text: "", pose: "" } }, { "task-done": "jump" })).toBeNull();
+  });
+});

@@ -1,4 +1,14 @@
 {
+  "reactions": {
+    "all-done": "party"
+  },
+  "special": {
+    "name": "Loaf mode",
+    "pose": "sleep",
+    "line": "Five done. Loaf mode: on.",
+    "trigger": "tasks",
+    "every": 5
+  },
   "cell": {
     "width": 192,
     "height": 208

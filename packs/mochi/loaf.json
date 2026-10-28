@@ -1,4 +1,15 @@
 {
+  "reactions": {
+    "task-done": "jump",
+    "task-deleted": "toss"
+  },
+  "special": {
+    "name": "Zoomies",
+    "pose": "jump",
+    "line": "Zoomies!",
+    "trigger": "click",
+    "every": 5
+  },
   "cell": {
     "width": 192,
     "height": 208

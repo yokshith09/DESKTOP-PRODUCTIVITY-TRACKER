@@ -1,4 +1,15 @@
 {
+  "reactions": {
+    "task-added": "wave",
+    "all-done": "party"
+  },
+  "special": {
+    "name": "Belly slide",
+    "pose": "toss",
+    "line": "Three done. Belly slide!",
+    "trigger": "tasks",
+    "every": 3
+  },
   "cell": {
     "width": 192,
     "height": 208

@@ -77,3 +77,19 @@ Kind words only (no-guilt rule, FR-92): the `failed` row is a small sadness, nev
 Anyone, with any image tool they already have. Loaf never calls an image service and never pays for AI: the skill is a recipe for *your* tool (the Codex image tool, your own key, or a local model). Check the licence of any reference art you feed it.
 
 *Status: written 2026-10-26. The assembler/checker are tested with synthetic strips; no real AI-made character has been run through it yet, and the final animation is Unverified on a real OS.*
+
+## 4. `loaf.json` — a character's own reactions and special (optional, Loaf only)
+
+Beside `pet.json`, never inside it (strict importers must not see unknown keys). Codex and OpenPets ignore the file; a pack without it works everywhere. Loaf reads it, keeps only what is valid, and rewrites it on import.
+
+```json
+{
+  "reactions": { "task-done": "jump", "task-deleted": "toss" },
+  "special": { "name": "Zoomies", "pose": "jump", "line": "Zoomies!", "trigger": "click", "every": 5 }
+}
+```
+
+- **Moments are common to every character**: `task-added`, `task-started`, `task-done`, `all-done`, `task-deleted`, `reminder`, `focus-done`. A pack only chooses *which pose* it plays for a moment. Order of say: Loaf's default, then the pack's pose, then the user's own choice on Character → Reactions (the user always wins).
+- **Poses** are Loaf's pose names (`idle wave work cheer party catch worried ring toss jump sad review …`), each mapped to one of the nine rows. The sheet stays at nine rows (D-ROWS), so a special reuses a row; it is the pose, line and trigger that make it the character's own.
+- **One special per character**: `trigger` is `click` (every `every` clicks), `tasks` (every `every` finished tasks) or `daily` (first sight each day). `every` is kept between 2 and 50, `name` to 30 characters, `line` to 80. Counts live while the pet runs and start again after it plays.
+- Unknown moments, odd poses and broken JSON are dropped; the pack still loads.

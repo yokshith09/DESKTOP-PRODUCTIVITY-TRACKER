@@ -1,4 +1,15 @@
 {
+  "reactions": {
+    "task-deleted": "worried",
+    "focus-done": "cheer"
+  },
+  "special": {
+    "name": "Boo",
+    "pose": "worried",
+    "line": "Boo! …did I scare you?",
+    "trigger": "click",
+    "every": 7
+  },
   "cell": {
     "width": 192,
     "height": 208

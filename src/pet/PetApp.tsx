@@ -6,6 +6,7 @@ import { ROW_FOR_POSE, SpritePet } from "@/features/character/SpritePet";
 import { useReminders, useSettings, useTodayTasks } from "@/hooks/useLoaf";
 import { useFocus } from "@/hooks/useFocus";
 import { clock } from "@/lib/focus";
+import { ymd } from "@/lib/dates";
 import { useTheme } from "@/hooks/useTheme";
 import { ipc, onEvent, onPetMenu, onPetSay, petAction, type TaskRow } from "@/ipc";
 import { cn } from "@/lib/utils";
@@ -14,6 +15,7 @@ import { glanceText } from "./glance";
 import { WARDROBE_KEY, useWorn } from "@/features/wardrobe/useWardrobe";
 import { enqueue, isAsleep, reactionForSay, type Reaction } from "./reactions";
 import { parseReactionSettings, reactionWithSettings } from "./reactionSettings";
+import { NO_COUNTS, advance, reactionForSpecial, type SpecialSignal } from "./special";
 import { useTypingAlong } from "./typing";
 
 /** Card and bubble sizes in logical pixels; the shell grows the window by this much. */
@@ -71,6 +73,11 @@ export function PetApp() {
   // A pet pack from the library replaces the bear (FR-63); reactions map to its rows.
   const packId = settings?.["pet.pack"] ?? null;
   const { data: sheet } = useQuery({ queryKey: ["pets", "sheet", packId], queryFn: () => ipc.petsSheet(packId ?? ""), enabled: !!packId, staleTime: Infinity, retry: false });
+  // The pet's own details (`loaf.json`): its poses for some moments and its one special.
+  const { data: library = [] } = useQuery({ queryKey: ["pets", "library"], queryFn: ipc.petsList, staleTime: 60_000 });
+  const pack = packId ? library.find((p) => p.id === packId) : undefined;
+  const packRef = useRef(pack);
+  packRef.current = pack;
   const opacity = (settings?.["pet.opacity"] ?? 100) / 100;
   const hoverCard = settings?.["pet.hover_card"] ?? true;
   const hoverCardRef = useRef(hoverCard);
@@ -171,6 +178,27 @@ export function PetApp() {
     if (!hoverRef.current || !hoverCardRef.current) void expand("bubble", bubbleText(next));
     timers.current.play = window.setTimeout(playNext, next.ms);
   };
+  // The character's one special move, when its count comes round (see special.ts).
+  const counts = useRef(NO_COUNTS);
+  const special = (signal: SpecialSignal) => {
+    const sp = packRef.current?.special;
+    const next = advance(counts.current, signal, sp);
+    counts.current = next.counts;
+    if (next.fire && sp) reactRef.current(reactionForSpecial(sp));
+  };
+  const specialRef = useRef(special);
+  specialRef.current = special;
+  // A daily special plays the first time the pet is seen each day.
+  const specialPackId = pack?.special?.trigger === "daily" ? pack.id : null;
+  useEffect(() => {
+    if (!specialPackId) return;
+    const today = ymd(new Date());
+    void ipc.prefsGet<string>("ui.special_day").then((last) => {
+      if (last === today) return;
+      void ipc.prefsSet("ui.special_day", today);
+      specialRef.current("day-start");
+    }, () => undefined);
+  }, [specialPackId]);
   const reactRef = useRef((r: Reaction | null) => {
     if (!r) return;
     queue.current = enqueue(queue.current, r);
@@ -190,9 +218,10 @@ export function PetApp() {
     // The user's changes to what the pet does (Character page) are read fresh for each event.
     const ctx = { openToday: tasks.current };
     void ipc.prefsGet("ui.reactions").then(
-      (raw) => reactRef.current(reactionWithSettings(e, ctx, parseReactionSettings(raw))),
-      () => reactRef.current(reactionWithSettings(e, ctx, {})),
+      (raw) => reactRef.current(reactionWithSettings(e, ctx, parseReactionSettings(raw), packRef.current?.reactions)),
+      () => reactRef.current(reactionWithSettings(e, ctx, {}, packRef.current?.reactions)),
     );
+    if (e.type === "TaskStatusChanged" && (e as unknown as { to?: string }).to === "COMPLETED") special("task-done");
     void qc.invalidateQueries();
   }), [qc]);
 
@@ -245,6 +274,7 @@ export function PetApp() {
 
   const click = () => {
     setNapping(false);
+    special("click");
     // A bubble with an action (Undo…): a click runs it instead of opening the dashboard.
     const action = playingRef.current?.action;
     if (action) {

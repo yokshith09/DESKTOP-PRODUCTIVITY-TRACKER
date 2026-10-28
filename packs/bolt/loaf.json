@@ -1,4 +1,15 @@
 {
+  "reactions": {
+    "task-started": "type",
+    "reminder": "ring"
+  },
+  "special": {
+    "name": "Systems online",
+    "pose": "type",
+    "line": "Systems online. Ready when you are.",
+    "trigger": "daily",
+    "every": 2
+  },
   "cell": {
     "width": 192,
     "height": 208

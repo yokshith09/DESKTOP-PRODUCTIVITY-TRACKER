@@ -7,12 +7,13 @@ import { CharacterPage } from "./CharacterPage";
 window.ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} } as never;
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
-const boba: PetPack = { id: "boba", display_name: "Boba", description: "A boba tea", rows: 9, format: "webp", source: "codex" };
-const short: PetPack = { id: "mini", display_name: "Mini", description: "", rows: 3, format: "webp", source: "loaf" };
+const boba: PetPack = { id: "boba", display_name: "Boba", description: "A boba tea", rows: 9, format: "webp", source: "codex", reactions: {} };
+const pounce: PetPack = { ...boba, id: "fox", display_name: "Fox", special: { name: "Pounce", pose: "jump", line: "Pounce!", trigger: "tasks", every: 3 } };
+const short: PetPack = { id: "mini", display_name: "Mini", description: "", rows: 3, format: "webp", source: "loaf", reactions: {} };
 
 function renderPage() {
   vi.spyOn(ipc, "settingsGetAll").mockResolvedValue({ "pet.pack": null, "pet.media": false } as never);
-  vi.spyOn(ipc, "petsList").mockResolvedValue([boba, short]);
+  vi.spyOn(ipc, "petsList").mockResolvedValue([boba, short, pounce]);
   vi.spyOn(ipc, "petsSheet").mockResolvedValue("data:image/webp;base64,AA==");
   vi.spyOn(ipc, "prefsGet").mockResolvedValue(null as never);
   vi.spyOn(ipc, "prefsSet").mockResolvedValue(null as never);
@@ -36,6 +37,15 @@ describe("Character page preview (F1/F2)", () => {
     expect(screen.queryByRole("group", { name: "Preview pose" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Cheer" }));
     await waitFor(() => expect(screen.getByRole("img", { name: "Boba (Cheer)" }).getAttribute("data-row")).toBe("jumping"));
+  });
+
+  it("shows a character's special, what sets it off, and lets you watch it", async () => {
+    renderPage();
+    fireEvent.click(await screen.findByRole("button", { name: "Preview Fox" }));
+    expect(await screen.findByText(/Special: Pounce/)).toBeTruthy();
+    expect(screen.getByText(/every 3 tasks you finish/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Watch" }));
+    await waitFor(() => expect(screen.getByRole("img", { name: "Fox (Cheer)" }).getAttribute("data-row")).toBe("jumping"));
   });
 
   it("only offers the animations a pack really has, and the bear card goes back", async () => {
