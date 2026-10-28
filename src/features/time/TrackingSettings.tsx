@@ -24,7 +24,7 @@ export function TrackingSettings() {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => setOpen(true)} aria-label="Tracking and privacy settings">
+      <Button variant="outline" size="sm" onClick={() => setOpen(true)} aria-label="Tracking and privacy settings" data-tour="time-privacy">
         <span className={tracking ? "size-2 rounded-full bg-emerald-500" : "size-2 rounded-full bg-muted-foreground/50"} />
         {tracking ? "Tracking on" : "Tracking off"}
         <Settings2 />

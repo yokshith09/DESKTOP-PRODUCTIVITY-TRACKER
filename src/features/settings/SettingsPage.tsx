@@ -1,5 +1,6 @@
 import { PageHeader } from "@/features/shell/PageHeader";
 import { mod } from "@/lib/platform";
+import { YourProfile } from "@/features/guide/YourProfile";
 import { DataSection } from "./DataSection";
 import { AutoDeleteSettings } from "./AutoDeleteSettings";
 import { Row, Section } from "./parts";
@@ -52,6 +53,7 @@ export function SettingsPage() {
           <Switch checked={autostart ?? false} onCheckedChange={(v) => void setAutostart(v)} aria-label="Open Loaf at login" />
         </Row>
       </Section>
+      <YourProfile />
       <Section title="Keyboard shortcuts">
         {GLOBAL_SHORTCUTS.map((g) => (
           <ShortcutRow

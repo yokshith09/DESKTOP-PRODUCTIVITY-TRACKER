@@ -15,13 +15,14 @@ interface Props {
 }
 
 function Item({
-  active, onClick, icon, children, count,
-}: { active: boolean; onClick: () => void; icon: React.ReactNode; children: React.ReactNode; count?: number }) {
+  active, onClick, icon, children, count, tour,
+}: { active: boolean; onClick: () => void; icon: React.ReactNode; children: React.ReactNode; count?: number; tour?: string }) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-current={active ? "page" : undefined}
+      data-tour={tour}
       title={typeof children === "string" ? children : undefined}
       className={cn(
         "group relative flex h-8 w-full items-center justify-center gap-2.5 rounded-md px-0 text-left text-[13px] font-medium lg:justify-start lg:px-2.5 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring [&_svg]:size-4 [&_svg]:shrink-0",
@@ -62,13 +63,13 @@ export function Sidebar({ page, counts, onPage, isDark, onToggleTheme }: Props) 
       </div>
 
       <Group>
-        <Item active={page === "today"} onClick={go("today")} icon={<LayoutDashboard />} count={counts.today}>Today overview</Item>
-        <Item active={page === "tasks"} onClick={go("tasks")} icon={<CheckSquare />}>Tasks</Item>
-        <Item active={page === "time"} onClick={go("time")} icon={<Clock3 />}>Time</Item>
-        <Item active={page === "notes"} onClick={go("notes")} icon={<NotebookPen />} count={counts.notes}>Notes</Item>
-        <Item active={page === "projects"} onClick={go("projects")} icon={<FolderKanban />}>Projects</Item>
+        <Item active={page === "today"} onClick={go("today")} tour="nav-today" icon={<LayoutDashboard />} count={counts.today}>Today overview</Item>
+        <Item active={page === "tasks"} onClick={go("tasks")} tour="nav-tasks" icon={<CheckSquare />}>Tasks</Item>
+        <Item active={page === "time"} onClick={go("time")} tour="nav-time" icon={<Clock3 />}>Time</Item>
+        <Item active={page === "notes"} onClick={go("notes")} tour="nav-notes" icon={<NotebookPen />} count={counts.notes}>Notes</Item>
+        <Item active={page === "projects"} onClick={go("projects")} tour="nav-projects" icon={<FolderKanban />}>Projects</Item>
         <Item active={page === "meetings"} onClick={go("meetings")} icon={<Users />}>Meetings</Item>
-        <Item active={page === "character"} onClick={go("character")} icon={<PawPrint />}>Character</Item>
+        <Item active={page === "character"} onClick={go("character")} tour="nav-character" icon={<PawPrint />}>Character</Item>
         <Item active={page === "mcp"} onClick={go("mcp")} icon={<Plug />}>MCP</Item>
       </Group>
 
@@ -79,7 +80,7 @@ export function Sidebar({ page, counts, onPage, isDark, onToggleTheme }: Props) 
 
       <div className="mt-auto space-y-0.5 border-t pt-3">
         <div className="flex flex-col items-center gap-1 lg:flex-row">
-          <div className="min-w-0 flex-1"><Item active={page === "settings"} onClick={go("settings")} icon={<Settings />}>Settings</Item></div>
+          <div className="min-w-0 flex-1"><Item active={page === "settings"} onClick={go("settings")} tour="nav-settings" icon={<Settings />}>Settings</Item></div>
           <button
             type="button" onClick={onToggleTheme} aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"} title={isDark ? "Light theme" : "Dark theme"}
             className="grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground outline-none hover:bg-accent/60 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring [&_svg]:size-4"

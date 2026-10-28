@@ -28,6 +28,10 @@ import { MeetingsPage } from "@/features/meetings/MeetingsPage";
 import { ProjectsPage } from "@/features/projects/ProjectsPage";
 import type { TaskFocus } from "@/features/overview/YesterdayLine";
 import { Welcome, useFirstRun, type WelcomeNext } from "@/features/welcome/Welcome";
+import { Tour } from "@/features/guide/Tour";
+import { ROLE_PREF, parseRole } from "@/features/guide/roles";
+import { TOUR_PREF, parseTour, stepsFor } from "@/features/guide/tour";
+import { usePref } from "@/features/guide/usePref";
 
 const PAGES: readonly Page[] = ["today", "tasks", "time", "notes", "projects", "meetings", "archive", "bin", "character", "mcp", "settings"];
 
@@ -43,6 +47,8 @@ function Screen() {
   useBusSync();
   const theme = useTheme();
   const firstRun = useFirstRun();
+  const tour = usePref(TOUR_PREF, parseTour);
+  const role = usePref(ROLE_PREF, parseRole);
   // FR-85: "You have N daily routine tasks pending", once a day at the chosen time.
   useRoutineReminder();
   // FR-93/94: hello once a day, and birthdays.
@@ -164,7 +170,7 @@ function Screen() {
               />
             )}
             {page === "today" && (
-              <TodayOverviewPage onShowTasks={(focus) => { setPage("tasks"); setTaskFocus(focus); }} />
+              <TodayOverviewPage onShowTasks={(focus) => { setPage("tasks"); setTaskFocus(focus); }} onNavigate={setPage} />
             )}
             {page === "bin" && <BinPage />}
             {page === "character" && <CharacterPage />}
@@ -178,6 +184,9 @@ function Screen() {
         </main>
       </div>
       <NoteEditor noteId={editing} onClose={() => setEditing(null)} />
+      {tour.value === "pending" && role.value && (
+        <Tour steps={stepsFor(role.value)} onNavigate={setPage} onClose={() => void tour.set("done")} />
+      )}
       <Notices />
     </div>
   );

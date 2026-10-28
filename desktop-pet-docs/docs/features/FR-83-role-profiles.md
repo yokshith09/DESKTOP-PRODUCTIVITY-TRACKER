@@ -1,6 +1,6 @@
 # FR-83 — Role profiles: features on or off by default per role
 
-**1 Metadata** — Group: Shell / Onboarding · Status: Planned · Milestone: FM-GUIDE (built with the Guide, FR-51) · Effort: M · Origin: owner 2026-10-22.
+**1 Metadata** — Group: Shell / Onboarding · Status: Partly built 2026-10-28 (role question at first run, role-ordered tour and quiz, Settings → Your profile; feature defaults by role wait for the features) · Milestone: FM-GUIDE (built with the Guide, FR-51) · Effort: M · Origin: owner 2026-10-22.
 
 **2 Story** — As a new user I pick who I am (Student, Developer, or General) and Loaf turns on the features that matter to me, so I'm not buried in options. I can change any of it later.
 
