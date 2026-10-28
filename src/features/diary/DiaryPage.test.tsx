@@ -15,18 +15,42 @@ const wrap = () => <QueryClientProvider client={new QueryClient({ defaultOptions
 const type = (name: string, value: string) => fireEvent.change(screen.getByLabelText(name), { target: { value } });
 
 describe("the diary page", () => {
-  it("asks for a password first, warns that it cannot be recovered, and wants it typed twice", async () => {
+  it("asks for a password first, promises a recovery key, and wants the password typed twice", async () => {
     await ipc.diaryErase();
     render(wrap());
     expect(await screen.findByText("Set a password for your diary")).toBeTruthy();
-    expect(screen.getByText(/nobody can recover the entries/)).toBeTruthy();
+    expect(screen.getByText(/shows you a recovery key once/)).toBeTruthy();
     type("Password", "secret pass");
     type("Repeat the password", "other pass");
     fireEvent.click(screen.getByRole("button", { name: "Create diary" }));
     expect((await screen.findByRole("alert")).textContent).toContain("not the same");
     type("Repeat the password", "secret pass");
     fireEvent.click(screen.getByRole("button", { name: "Create diary" }));
+    // The recovery key is shown once and must be acknowledged before the diary opens.
+    expect(await screen.findByRole("region", { name: "Recovery key" })).toBeTruthy();
+    expect(screen.getByLabelText("Recovery key value").textContent).toMatch(/^[A-Z0-9]{4}(-[A-Z0-9]{4}){7}$/);
+    expect((screen.getByRole("button", { name: "Open my diary" }) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(screen.getByRole("button", { name: "Open my diary" }));
     expect(await screen.findByRole("textbox", { name: "Diary text" })).toBeTruthy();
+  });
+
+  it("a forgotten password is replaced with the recovery key", async () => {
+    await ipc.diaryErase();
+    const key = await ipc.diarySetup("secret pass");
+    await ipc.diaryLock();
+    render(wrap());
+    fireEvent.click(await screen.findByRole("button", { name: /Use the recovery key/ }));
+    type("Recovery key", "wrong-key");
+    type("New password", "fresh pass1");
+    type("Repeat the password", "fresh pass1");
+    fireEvent.click(screen.getByRole("button", { name: "Recover diary" }));
+    expect((await screen.findByRole("alert")).textContent).toContain("not the right recovery key");
+    type("Recovery key", key.toLowerCase());
+    fireEvent.click(screen.getByRole("button", { name: "Recover diary" }));
+    expect(await screen.findByRole("textbox", { name: "Diary text" })).toBeTruthy();
+    await ipc.diaryLock();
+    await ipc.diaryUnlock("fresh pass1");
   });
 
   it("saves what you write by itself, locks on request, and opens again only with the right password", async () => {

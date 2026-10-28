@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { BookHeart, Check, ChevronLeft, ChevronRight, Lock, ListPlus } from "lucide-react";
+import { BookHeart, Check, ChevronLeft, ChevronRight, Copy, KeyRound, Lock, ListPlus } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ConfirmAction } from "@/components/ConfirmAction";
 import { Button } from "@/components/ui/button";
@@ -16,38 +16,60 @@ export const IDLE_LOCK_MS = 5 * 60_000;
 export const PICKUP_PREF = "diary.pickup";
 const STATUS = ["diary", "status"] as const;
 
-function PasswordForm({ configured, onDone }: { configured: boolean; onDone: () => void }) {
+function PasswordForm({ configured, onDone }: { configured: boolean; onDone: (recoveryKey?: string) => void }) {
   const [pw, setPw] = useState("");
+  const [recovering, setRecovering] = useState(false);
+  const [key, setKey] = useState("");
   const [again, setAgain] = useState("");
   const [error, setError] = useState<string | null>(null);
   const qc = useQueryClient();
   const submit = async () => {
     setError(null);
-    if (!configured && pw !== again) return setError("The two passwords are not the same.");
+    if ((!configured || recovering) && pw !== again) return setError("The two passwords are not the same.");
     try {
-      await (configured ? ipc.diaryUnlock(pw) : ipc.diarySetup(pw));
-      setPw(""); setAgain("");
+      let made: string | undefined;
+      if (recovering) await ipc.diaryRecover(key, pw);
+      else if (configured) await ipc.diaryUnlock(pw);
+      else made = await ipc.diarySetup(pw);
+      setPw(""); setAgain(""); setKey("");
+      onDone(made);
       await qc.invalidateQueries({ queryKey: STATUS });
-      onDone();
     } catch (e) { setError(errorMessage(e)); }
   };
   return (
     <form className="mx-auto mt-10 max-w-sm space-y-3 rounded-xl border bg-card p-6" onSubmit={(e) => { e.preventDefault(); void submit(); }}>
-      <div className="flex items-center gap-2 text-sm font-semibold"><Lock aria-hidden className="size-4 text-primary" />{configured ? "Unlock your diary" : "Set a password for your diary"}</div>
-      {!configured && <p className="text-xs text-muted-foreground">Only you can read it. If you forget this password nobody can recover the entries, not even Loaf; the only way back in is to erase the diary.</p>}
-      <Input autoFocus type="password" value={pw} onChange={(e) => setPw(e.target.value)} aria-label="Password" autoComplete={configured ? "current-password" : "new-password"} />
-      {!configured && <Input type="password" value={again} onChange={(e) => setAgain(e.target.value)} aria-label="Repeat the password" autoComplete="new-password" />}
+      <div className="flex items-center gap-2 text-sm font-semibold"><Lock aria-hidden className="size-4 text-primary" />{recovering ? "Set a new password" : configured ? "Unlock your diary" : "Set a password for your diary"}</div>
+      {!configured && <p className="text-xs text-muted-foreground">Only you can read it. After you create it, Loaf shows you a recovery key once. Keep that key: it is the only way back in if you forget the password.</p>}
+      {recovering && <Input autoFocus value={key} onChange={(e) => setKey(e.target.value)} aria-label="Recovery key" placeholder="ABCD-EFGH-…" autoComplete="off" />}
+      <Input autoFocus={!recovering} type="password" value={pw} onChange={(e) => setPw(e.target.value)} aria-label={recovering ? "New password" : "Password"} autoComplete={configured && !recovering ? "current-password" : "new-password"} />
+      {(!configured || recovering) && <Input type="password" value={again} onChange={(e) => setAgain(e.target.value)} aria-label="Repeat the password" autoComplete="new-password" />}
       {error && <p role="alert" className="text-xs text-destructive">{error}</p>}
-      <Button type="submit" className="w-full" disabled={!pw}>{configured ? "Unlock" : "Create diary"}</Button>
+      <Button type="submit" className="w-full" disabled={!pw || (recovering && !key.trim())}>{recovering ? "Recover diary" : configured ? "Unlock" : "Create diary"}</Button>
       {configured && (
-        <p className="text-center text-xs text-muted-foreground">
-          Forgot it?{" "}
+        <p className="space-y-1 text-center text-xs text-muted-foreground">
+          <button type="button" className="block w-full rounded text-primary underline outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={() => { setRecovering(!recovering); setError(null); }}>{recovering ? "Back to unlock" : "Forgot the password? Use the recovery key"}</button>
+          Lost the recovery key too?{" "}
           <ConfirmAction message="Erase the whole diary? Every entry is deleted and cannot be brought back." verb="Erase" onConfirm={() => void ipc.diaryErase().then(() => qc.invalidateQueries({ queryKey: STATUS }))}>
             <button type="button" className="rounded text-primary underline outline-none focus-visible:ring-2 focus-visible:ring-ring">Erase the diary</button>
           </ConfirmAction>
         </p>
       )}
     </form>
+  );
+}
+
+function RecoveryKeyCard({ recoveryKey, onDone }: { recoveryKey: string; onDone: () => void }) {
+  const [saved, setSaved] = useState(false);
+  const copy = async () => { try { await navigator.clipboard.writeText(recoveryKey); notify.success("Recovery key copied"); } catch { notify.error("Could not copy"); } };
+  return (
+    <section aria-label="Recovery key" className="mx-auto mt-10 max-w-md space-y-3 rounded-xl border bg-card p-6">
+      <div className="flex items-center gap-2 text-sm font-semibold"><KeyRound aria-hidden className="size-4 text-primary" />Your recovery key</div>
+      <p className="text-xs text-muted-foreground">If you forget your password, this key lets you set a new one without losing anything. Loaf shows it only now and does not keep a readable copy. Write it down or save it somewhere safe.</p>
+      <p className="select-all rounded-md bg-muted px-3 py-2 text-center font-mono text-sm tracking-wider" aria-label="Recovery key value">{recoveryKey}</p>
+      <Button variant="outline" size="sm" className="w-full" onClick={() => void copy()}><Copy />Copy</Button>
+      <label className="flex items-center gap-2 text-xs"><input type="checkbox" className="size-4" checked={saved} onChange={(e) => setSaved(e.target.checked)} />I have saved my recovery key</label>
+      <Button className="w-full" disabled={!saved} onClick={onDone}>Open my diary</Button>
+    </section>
   );
 }
 
@@ -161,6 +183,7 @@ export function DiaryPage() {
   const status = useQuery({ queryKey: STATUS, queryFn: () => ipc.diaryStatus() });
   const lock = useCallback(async () => { await ipc.diaryLock(); await qc.invalidateQueries({ queryKey: STATUS }); }, [qc]);
   const unlocked = status.data?.unlocked === true;
+  const [newKey, setNewKey] = useState<string | null>(null);
 
   // Locks after five idle minutes, and when you leave the page.
   useEffect(() => {
@@ -175,7 +198,7 @@ export function DiaryPage() {
   return (
     <div>
       <PageHeader title="Diary" description="Private. Locked with your password." actions={<BookHeart aria-hidden className="size-5 text-primary" />} />
-      {status.data && (unlocked ? <Editor onLock={() => void lock()} /> : <PasswordForm configured={status.data.configured} onDone={() => undefined} />)}
+      {status.data && (newKey ? <RecoveryKeyCard recoveryKey={newKey} onDone={() => setNewKey(null)} /> : unlocked ? <Editor onLock={() => void lock()} /> : <PasswordForm configured={status.data.configured} onDone={(k) => k && setNewKey(k)} />)}
     </div>
   );
 }

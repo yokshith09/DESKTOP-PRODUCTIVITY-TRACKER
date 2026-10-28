@@ -180,6 +180,7 @@ pub fn run() {
             ipc::diary_status,
             ipc::diary_setup,
             ipc::diary_unlock,
+            ipc::diary_recover,
             ipc::diary_lock,
             ipc::diary_days,
             ipc::diary_get,

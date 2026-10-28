@@ -25,7 +25,7 @@ export function createMock() {
     { id: "l1", name: "product" }, { id: "l2", name: "ideas" }, { id: "l3", name: "work" },
     { id: "l4", name: "home" }, { id: "l5", name: "pet" },
   ];
-  const diary = { password: null as string | null, open: false, entries: new Map<string, string>() };
+  const diary = { password: null as string | null, recovery: "ABCD-EFGH-JKLM-NPQR-STUV-WXYZ-2345-6789", open: false, entries: new Map<string, string>() };
   const courses: { id: string; name: string }[] = [];
   const exams: { id: string; course_id: string | null; title: string; on_date: string }[] = [];
   const taskCourse = new Map<string, string>();
@@ -418,12 +418,18 @@ export function createMock() {
       const p = String(a.password);
       if (p.length < 6) fail("VALIDATION", "Use at least 6 characters.");
       if (diary.password !== null) fail("CONFLICT", "The diary already has a password.");
-      diary.password = p; diary.open = true; return null;
+      diary.password = p; diary.open = true; return diary.recovery;
     },
     diary_unlock: (a) => {
       if (diary.password === null) fail("NOT_FOUND", "The diary has no password yet.");
       if (diary.password !== a.password) fail("VALIDATION", "That is not the right password.");
       diary.open = true; return null;
+    },
+    diary_recover: (a) => {
+      if (diary.password === null) fail("NOT_FOUND", "The diary has no password yet.");
+      if (String(a.recoveryKey).replace(/[^A-Za-z0-9]/g, "").toUpperCase() !== diary.recovery.replace(/-/g, "")) fail("VALIDATION", "That is not the right recovery key.");
+      if (String(a.password).length < 6) fail("VALIDATION", "Use at least 6 characters.");
+      diary.password = String(a.password); diary.open = true; return null;
     },
     diary_lock: () => { diary.open = false; return null; },
     diary_days: () => { if (!diary.open) fail("INVALID_TRANSITION", "The diary is locked."); return [...diary.entries.keys()].sort().reverse(); },

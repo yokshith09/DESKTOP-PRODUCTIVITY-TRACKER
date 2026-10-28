@@ -243,13 +243,22 @@ pub async fn diary_status(core: State<'_, Core>) -> Result<DiaryStatus> {
 }
 
 #[tauri::command]
-pub async fn diary_setup(password: String, core: State<'_, Core>) -> Result<()> {
+pub async fn diary_setup(password: String, core: State<'_, Core>) -> Result<String> {
     diary::setup(&core.db, &core.diary, &*core.clock, &password).await
 }
 
 #[tauri::command]
 pub async fn diary_unlock(password: String, core: State<'_, Core>) -> Result<()> {
     diary::unlock(&core.db, &core.diary, &password).await
+}
+
+#[tauri::command]
+pub async fn diary_recover(
+    recovery_key: String,
+    password: String,
+    core: State<'_, Core>,
+) -> Result<()> {
+    diary::recover(&core.db, &core.diary, &recovery_key, &password).await
 }
 
 #[tauri::command]

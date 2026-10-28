@@ -1,6 +1,8 @@
 //! The private diary (FR-86). Entries are encrypted at rest with XChaCha20-Poly1305; the key is
 //! derived from the password with Argon2id and held in memory only while the diary is unlocked.
-//! A forgotten password cannot be recovered: the only way back in is to erase the diary.
+//! Entries are encrypted with a random data key. That key is stored twice, wrapped by the
+//! password-derived key and by a recovery key shown once at setup, so a forgotten password can be
+//! replaced with the recovery key. With neither, the diary cannot be opened (erase is the last resort).
 //!
 //! Each entry is bound to its day (the day is the associated data), so one day's ciphertext cannot
 //! be moved onto another. The database holds ciphertext, nonce and salt as hex text.
@@ -22,8 +24,8 @@ use crate::error::{AppError, Result};
 
 pub const PASSWORD_MIN: usize = 6;
 pub const TEXT_MAX: usize = 200_000;
-const CHECK_PHRASE: &[u8] = b"loaf-diary-v1";
-const CHECK_AAD: &[u8] = b"check";
+const WRAP_AAD: &[u8] = b"wrap";
+const RECOVERY_ALPHABET: &[u8; 32] = b"ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
 type Key = Zeroizing<[u8; 32]>;
 
@@ -124,6 +126,34 @@ fn open(key: &Key, aad: &[u8], nonce: &str, data: &str) -> Result<Vec<u8>> {
         .map_err(|_| AppError::internal("The diary data is damaged."))
 }
 
+/// 160 random bits as eight groups of four letters and digits, e.g. `ABCD-EFGH-…`.
+fn new_recovery_key() -> String {
+    let mut raw = [0u8; 20];
+    OsRng.fill_bytes(&mut raw);
+    let (mut acc, mut bits, mut out) = (0u32, 0u32, String::new());
+    for b in raw {
+        acc = (acc << 8) | u32::from(b);
+        bits += 8;
+        while bits >= 5 {
+            bits -= 5;
+            out.push(char::from(RECOVERY_ALPHABET[((acc >> bits) & 31) as usize]));
+        }
+    }
+    out.as_bytes()
+        .chunks(4)
+        .map(|c| String::from_utf8_lossy(c).into_owned())
+        .collect::<Vec<_>>()
+        .join("-")
+}
+
+/// Upper-case, with spaces and dashes dropped, so a key typed by hand matches.
+fn normalize_recovery(key: &str) -> String {
+    key.chars()
+        .filter(|c| c.is_ascii_alphanumeric())
+        .map(|c| c.to_ascii_uppercase())
+        .collect()
+}
+
 fn need_key(diary: &Diary) -> Result<Key> {
     diary
         .get()
@@ -151,23 +181,51 @@ pub async fn status(db: &Database, diary: &Diary) -> Result<DiaryStatus> {
     })
 }
 
-/// Set the first password. The diary is unlocked afterwards.
-pub async fn setup(db: &Database, diary: &Diary, clock: &dyn Clock, password: &str) -> Result<()> {
+fn wrap(kek: &Key, dek: &Key) -> Result<(String, String)> {
+    seal(kek, WRAP_AAD, &**dek)
+}
+
+fn unwrap_key(kek: &Key, nonce: &str, data: &str) -> Option<Key> {
+    let raw = open(kek, WRAP_AAD, nonce, data).ok()?;
+    let arr: [u8; 32] = raw.try_into().ok()?;
+    Some(Zeroizing::new(arr))
+}
+
+fn random_salt() -> [u8; 16] {
+    let mut salt = [0u8; 16];
+    OsRng.fill_bytes(&mut salt);
+    salt
+}
+
+/// Set the first password. The diary is unlocked afterwards. Returns the recovery key, which is
+/// shown once and never stored in readable form.
+pub async fn setup(
+    db: &Database,
+    diary: &Diary,
+    clock: &dyn Clock,
+    password: &str,
+) -> Result<String> {
     if password.chars().count() < PASSWORD_MIN {
         return Err(AppError::validation(
             "password",
             format!("Use at least {PASSWORD_MIN} characters."),
         ));
     }
-    let mut salt = [0u8; 16];
-    OsRng.fill_bytes(&mut salt);
-    let key = derive(password, salt.to_vec()).await?;
-    let (nonce, data) = seal(&key, CHECK_AAD, CHECK_PHRASE)?;
-    let (salt, now) = (hex(&salt), clock.now_ms());
+    let mut dek_raw = [0u8; 32];
+    OsRng.fill_bytes(&mut dek_raw);
+    let dek: Key = Zeroizing::new(dek_raw);
+    let recovery = new_recovery_key();
+    let (salt, rec_salt) = (random_salt(), random_salt());
+    let kek = derive(password, salt.to_vec()).await?;
+    let rkek = derive(&normalize_recovery(&recovery), rec_salt.to_vec()).await?;
+    let (wrap_nonce, wrapped) = wrap(&kek, &dek)?;
+    let (rec_nonce, rec_wrapped) = wrap(&rkek, &dek)?;
+    let (salt, rec_salt, now) = (hex(&salt), hex(&rec_salt), clock.now_ms());
     db.write(move |tx| {
         let made = tx.execute(
-            "INSERT OR IGNORE INTO diary_meta (id, salt, check_nonce, check_data, created_at) VALUES (1, ?1, ?2, ?3, ?4)",
-            params![salt, nonce, data, now],
+            "INSERT OR IGNORE INTO diary_meta (id, salt, wrap_nonce, wrapped, rec_salt, rec_nonce, rec_wrapped, created_at)
+             VALUES (1, ?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            params![salt, wrap_nonce, wrapped, rec_salt, rec_nonce, rec_wrapped, now],
         )?;
         if made == 0 {
             return Err(AppError::conflict("The diary already has a password."));
@@ -175,40 +233,74 @@ pub async fn setup(db: &Database, diary: &Diary, clock: &dyn Clock, password: &s
         Ok(((), vec![]))
     })
     .await?;
-    diary.set(Some(key));
-    Ok(())
+    diary.set(Some(dek));
+    Ok(recovery)
+}
+
+type MetaRow = (String, String, String, String, String, String);
+
+async fn meta(db: &Database) -> Result<MetaRow> {
+    db.read(|conn| {
+        Ok(conn
+            .query_row(
+                "SELECT salt, wrap_nonce, wrapped, rec_salt, rec_nonce, rec_wrapped FROM diary_meta WHERE id = 1",
+                [],
+                |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?, r.get(5)?)),
+            )
+            .optional()?)
+    })
+    .await?
+    .ok_or_else(|| AppError::not_found("The diary has no password yet."))
 }
 
 pub async fn unlock(db: &Database, diary: &Diary, password: &str) -> Result<()> {
-    let meta = db
-        .read(|conn| {
-            Ok(conn
-                .query_row(
-                    "SELECT salt, check_nonce, check_data FROM diary_meta WHERE id = 1",
-                    [],
-                    |r| {
-                        Ok((
-                            r.get::<_, String>(0)?,
-                            r.get::<_, String>(1)?,
-                            r.get::<_, String>(2)?,
-                        ))
-                    },
-                )
-                .optional()?)
-        })
-        .await?
-        .ok_or_else(|| AppError::not_found("The diary has no password yet."))?;
-    let key = derive(password, unhex(&meta.0)?).await?;
-    match open(&key, CHECK_AAD, &meta.1, &meta.2) {
-        Ok(p) if p == CHECK_PHRASE => {
-            diary.set(Some(key));
+    let m = meta(db).await?;
+    let kek = derive(password, unhex(&m.0)?).await?;
+    match unwrap_key(&kek, &m.1, &m.2) {
+        Some(dek) => {
+            diary.set(Some(dek));
             Ok(())
         }
-        _ => Err(AppError::validation(
+        None => Err(AppError::validation(
             "password",
             "That is not the right password.",
         )),
     }
+}
+
+/// Forgot the password: the recovery key opens the diary and a new password replaces the old one.
+/// The recovery key stays the same.
+pub async fn recover(
+    db: &Database,
+    diary: &Diary,
+    recovery_key: &str,
+    new_password: &str,
+) -> Result<()> {
+    if new_password.chars().count() < PASSWORD_MIN {
+        return Err(AppError::validation(
+            "password",
+            format!("Use at least {PASSWORD_MIN} characters."),
+        ));
+    }
+    let m = meta(db).await?;
+    let rkek = derive(&normalize_recovery(recovery_key), unhex(&m.3)?).await?;
+    let dek = unwrap_key(&rkek, &m.4, &m.5).ok_or_else(|| {
+        AppError::validation("recovery_key", "That is not the right recovery key.")
+    })?;
+    let salt = random_salt();
+    let kek = derive(new_password, salt.to_vec()).await?;
+    let (nonce, wrapped) = wrap(&kek, &dek)?;
+    let salt = hex(&salt);
+    db.write(move |tx| {
+        tx.execute(
+            "UPDATE diary_meta SET salt = ?1, wrap_nonce = ?2, wrapped = ?3 WHERE id = 1",
+            params![salt, nonce, wrapped],
+        )?;
+        Ok(((), vec![]))
+    })
+    .await?;
+    diary.set(Some(dek));
+    Ok(())
 }
 
 /// Forget the key. Nothing readable stays in memory from here on.
@@ -478,5 +570,59 @@ mod tests {
         );
         setup(&db, &diary, &clock, "new password").await.unwrap();
         assert!(days(&db, &diary).await.unwrap().is_empty());
+    }
+
+    #[test]
+    fn recovery_keys_are_long_grouped_and_typed_back_loosely() {
+        let k = new_recovery_key();
+        assert_eq!(k.len(), 32 + 7);
+        assert!(k.split('-').all(|g| g.len() == 4));
+        assert_ne!(k, new_recovery_key());
+        assert_eq!(
+            normalize_recovery(&k.to_lowercase().replace('-', " ")),
+            normalize_recovery(&k)
+        );
+    }
+
+    #[tokio::test]
+    async fn a_forgotten_password_is_replaced_with_the_recovery_key_and_no_entry_is_lost() {
+        let (_d, db, clock, diary) = setup_db();
+        let key = setup(&db, &diary, &clock, "old password").await.unwrap();
+        day_save(&db, &diary, &clock, "2026-10-28", "kept safe")
+            .await
+            .unwrap();
+        lock(&diary);
+
+        let wrong = recover(
+            &db,
+            &diary,
+            "AAAA-BBBB-CCCC-DDDD-EEEE-FFFF-GGGG-HHHH",
+            "new password",
+        )
+        .await;
+        assert_eq!(wrong.unwrap_err().code, ErrorCode::Validation);
+        assert!(!diary.is_unlocked());
+        assert_eq!(
+            recover(&db, &diary, &key, "abc").await.unwrap_err().code,
+            ErrorCode::Validation
+        );
+
+        recover(&db, &diary, &key.to_lowercase(), "new password")
+            .await
+            .unwrap();
+        assert_eq!(
+            day_get(&db, &diary, "2026-10-28").await.unwrap(),
+            "kept safe"
+        );
+        lock(&diary);
+        assert!(unlock(&db, &diary, "old password").await.is_err());
+        unlock(&db, &diary, "new password").await.unwrap();
+        // The recovery key still works after a recovery.
+        lock(&diary);
+        recover(&db, &diary, &key, "third password").await.unwrap();
+        assert_eq!(
+            day_get(&db, &diary, "2026-10-28").await.unwrap(),
+            "kept safe"
+        );
     }
 }

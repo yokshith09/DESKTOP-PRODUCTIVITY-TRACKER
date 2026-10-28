@@ -40,7 +40,8 @@ export const ipc = {
   noteDiscardIfEmpty: (id: string) => call<boolean>("note_discard_if_empty", { id }),
 
   diaryStatus: () => call<DiaryStatus>("diary_status"),
-  diarySetup: (password: string) => call<unknown>("diary_setup", { password }),
+  diarySetup: (password: string) => call<string>("diary_setup", { password }),
+  diaryRecover: (recoveryKey: string, password: string) => call<unknown>("diary_recover", { recoveryKey, password }),
   diaryUnlock: (password: string) => call<unknown>("diary_unlock", { password }),
   diaryLock: () => call<unknown>("diary_lock"),
   diaryDays: () => call<string[]>("diary_days"),
