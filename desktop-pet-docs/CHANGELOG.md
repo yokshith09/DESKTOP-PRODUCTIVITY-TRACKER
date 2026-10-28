@@ -7,6 +7,8 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 Owner's 2026-10-28 list (phases 1 and 2). Unverified on a real PC.
 
+- Changed: **the character skill is rebuilt.** Give it a name and one picture and it returns one ZIP that imports straight into Loaf (Character → Import). `pack.py prepare` writes the background colour, layout guides and ten finished prompts; `pack.py finish` cuts, aligns and zips, and writes a contact sheet. Research behind it: `docs/character/RESEARCH_PET_PIPELINES.md`. The first real run with the Codex image tool is still to be done by the owner.
+
 - Fixed: **character animations are aligned.** The new checker (`pack.py check`) found our own five characters failing it: waving and jumping frames were cut off at the cell edge, and the walking rows bobbed the feet up and down. The characters are now built through the same tool users' characters go through: one scale per character, feet on one baseline, body centred on one spot in every frame, jump clamped to what fits. Idle and work rows breathe, walking rows rock about their feet. Checked by script on all five (and by eye on the contact sheets); not yet seen playing on a real PC.
 
 - Added: **each character has its own reactions and one special** (`loaf.json`). Moments stay common to all characters; a character picks its own pose for them, and your choice on Character → Reactions still wins. Specials: Loaf mode (bear, every 5 tasks), Zoomies (Mochi, every 5 clicks), Belly slide (Pip, every 3 tasks), Systems online (Bolt, first sight each day), Boo (Ghosty, every 7 clicks). The Character page shows the special and a Watch button. The sheet stays at nine rows, so a special reuses a row's art. Unverified on a real PC.

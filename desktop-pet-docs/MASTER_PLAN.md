@@ -1,5 +1,7 @@
 # Loaf — Master plan (phases, milestones, features)
 
+> **Owner's 2026-10-28 list (progress):** phases 1-3 built, all Unverified on a real PC. Phase 1 (notes delete, quick add, calmer task editor, narrow focus timer, right-click menu), phase 2 (fullscreen hiding, Character page tiles, stretch and water reminders, every delete asks first), phase 3 (research, per-character reactions + one special each, alignment checker and our five characters rebuilt through it, `loaf-character` skill: name + picture in, one ZIP out). **Next:** T13 production-readiness audit, T14 trivia (waiting for the owner: tour, quiz or "Did you know?" tips), T15 character design briefs, then the student release (P2). Owner still to test and then say "push" / the next version.
+
 > **Active work (2026-10-23): FM-V2 fix pack + companion features + fixing the pet-visibility bugs (report: `docs/BUG_REPORT_2026-10-23_pet_visibility.md`).** M1-M3 are code-complete (owner: works in v2.0.0).
 
 > **Where we stand (2026-10-27):** P0 and P1 are built (Unverified, waiting for the owner's Windows results); P3 Characters is partly pulled forward (wardrobe, reactions, packs); P2 Student release has not started. Version 0.5.1 is the current draft. Details: `PROJECT_STATUS.md` §3.
