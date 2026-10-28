@@ -494,7 +494,10 @@ mod tests {
         let found = scan(&packs, PetSource::Loaf);
         let mut ids: Vec<_> = found.iter().map(|(p, _)| p.id.as_str()).collect();
         ids.sort_unstable();
-        assert_eq!(ids, ["bear", "bolt", "ghosty", "mochi", "pip"]);
+        assert_eq!(
+            ids,
+            ["bear", "bolt", "ghosty", "mira", "mochi", "pip", "raja"]
+        );
         assert!(found.iter().all(|(p, _)| p.rows == 9 && p.format == "webp"));
     }
 

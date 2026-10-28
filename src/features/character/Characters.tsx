@@ -1,6 +1,7 @@
 import { useId, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { BackLaptop, Pocket, isTypingPose } from "./Laptop";
+import { Mira, Raja } from "./People";
 import { Clipboard, SadBrows, Tear } from "./SpriteProps";
 
 /**
@@ -20,7 +21,7 @@ export type CharacterPose = (typeof CHARACTER_POSES)[number] | (typeof SPRITE_PO
 export interface CharacterProps { pose?: CharacterPose; animated?: boolean; className?: string }
 
 /** Poses where the default arms are replaced (laptop or clipboard in the paws). */
-const handsBusy = (pose: CharacterPose) => isTypingPose(pose) || pose === "review";
+export const handsBusy = (pose: CharacterPose) => isTypingPose(pose) || pose === "review";
 
 export type Url = (n: string) => string;
 
@@ -86,7 +87,7 @@ export function Shadow({ url, w = 56, y = 189 }: { url: Url; w?: number; y?: num
 }
 
 /** Glossy eyes with two highlights; happy arcs when cheering; closed lids when asleep. */
-function Eyes({ url, pose, l, r, y, size = 8, color = "#1a1210" }: { url: Url; pose: CharacterPose; l: number; r: number; y: number; size?: number; color?: string }) {
+export function Eyes({ url, pose, l, r, y, size = 8, color = "#1a1210" }: { url: Url; pose: CharacterPose; l: number; r: number; y: number; size?: number; color?: string }) {
   if (pose === "cheer") return <g fill="none" stroke={color} strokeWidth="3.6" strokeLinecap="round"><path d={`M${l - 9} ${y + 3} q9 -11 18 0`} /><path d={`M${r - 9} ${y + 3} q9 -11 18 0`} /></g>;
   if (pose === "sleep") return <g fill="none" stroke={color} strokeWidth="3.2" strokeLinecap="round"><path d={`M${l - 9} ${y} q9 8 18 0`} /><path d={`M${r - 9} ${y} q9 8 18 0`} /></g>;
   if (pose === "review") return (
@@ -132,16 +133,16 @@ export function Cheeks({ url, l, r, y, w = 10 }: { url: Url; l: number; r: numbe
   return <g><ellipse cx={l} cy={y} rx={w} ry={w * 0.6} fill={url("blush")} /><ellipse cx={r} cy={y} rx={w} ry={w * 0.6} fill={url("blush")} /></g>;
 }
 
-function Zzz({ on }: { on: boolean }) {
+export function Zzz({ on }: { on: boolean }) {
   if (!on) return null;
   return <g fill="#94A3B8" fontWeight="700" fontFamily="system-ui, sans-serif"><text x="150" y="40" fontSize="16" className="bear-zzz">z</text><text x="162" y="24" fontSize="12" className="bear-zzz bear-zzz-late">z</text></g>;
 }
 
-const bodyAnim = (pose: CharacterPose, animated: boolean) =>
+export const bodyAnim = (pose: CharacterPose, animated: boolean) =>
   !animated ? undefined : pose === "cheer" || pose === "jump" ? "bear-jump" : pose === "sleep" || pose === "sad" ? "bear-breathe-slow" : "bear-breathe";
 
 /** Review: both paws hold a clipboard in front of the belly, arms reaching from the shoulders. */
-function ReviewRig({ url, pose, y, shoulder, arm = 11 }: { url: Url; pose: CharacterPose; y: number; shoulder: [number, number]; arm?: number }) {
+export function ReviewRig({ url, pose, y, shoulder, arm = 11 }: { url: Url; pose: CharacterPose; y: number; shoulder: [number, number]; arm?: number }) {
   if (pose !== "review") return null;
   return (
     <g>
@@ -170,7 +171,7 @@ function ReviewRig({ url, pose, y, shoulder, arm = 11 }: { url: Url; pose: Chara
  * Typing along: the pocket, the arms reaching from the shoulders over the lid to the keys (paws
  * tap while typing, rest while waiting), and the laptop itself, nearest to you.
  */
-function TypingRig({ url, pose, animated, top, pocketY, shoulder, arm = 11, pocket = "#000" }: {
+export function TypingRig({ url, pose, animated, top, pocketY, shoulder, arm = 11, pocket = "#000" }: {
   url: Url; pose: CharacterPose; animated: boolean; top: number; pocketY: number; shoulder: [number, number]; arm?: number; pocket?: string;
 }) {
   if (!isTypingPose(pose)) return null;
@@ -380,9 +381,15 @@ export function Ghosty({ pose = "idle", animated = false, className }: Character
   );
 }
 
+// People.tsx imports this file, so these wrappers keep the cycle harmless (nothing runs at load).
+function MiraFront(p: CharacterProps) { return <Mira {...p} />; }
+function RajaFront(p: CharacterProps) { return <Raja {...p} />; }
+
 export const CHARACTERS = [
   { key: "mochi", name: "Mochi", what: "the cat", Component: Mochi },
   { key: "pip", name: "Pip", what: "the penguin", Component: Pip },
   { key: "bolt", name: "Bolt", what: "the robot", Component: Bolt },
   { key: "ghosty", name: "Ghosty", what: "the ghost", Component: Ghosty },
+  { key: "mira", name: "Mira", what: "the cheerful heroine", Component: MiraFront },
+  { key: "raja", name: "Raja", what: "the cool hero", Component: RajaFront },
 ] as const;
