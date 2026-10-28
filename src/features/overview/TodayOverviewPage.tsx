@@ -1,3 +1,4 @@
+import { ExamCountdown } from "@/features/student/ExamCountdown";
 import { LearnCard } from "@/features/guide/LearnCard";
 import type { Page } from "@/features/shell/Sidebar";
 import { LinksCard } from "@/features/links/Shortcuts";
@@ -40,6 +41,7 @@ export function TodayOverviewPage({ onShowTasks = () => {}, onNavigate = () => {
         </div>
         <QuoteOfTheDay className="w-full sm:w-auto sm:min-w-80 sm:flex-1 lg:flex-none lg:w-[30rem]" />
       </header>
+      <ExamCountdown onManage={() => onNavigate("study")} />
       <LearnCard onShow={onNavigate} />
       <MovableTiles tiles={tiles} />
     </div>

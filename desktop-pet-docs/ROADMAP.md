@@ -69,7 +69,7 @@ M-ids are unchanged; this is the order we build in. Specs for the new rows are i
 |-------|-----------|------|-------|
 | 1 | M1 / M2 gates | Windows verification of v2.0.0 | Owner-side; blocks nothing below but nothing is "Complete" without it |
 | 2 | **FM-V2** V2 fix pack | FR-41..FR-48, FR-52, FR-61, FR-49a: toasts, actionable links, pet pop-ups fixed, resizable Time tiles, date/time picker, auto-delete, remove Logs, pet shortcuts, rename links, browser tabs spike | All questions answered |
-| 3 | **FM-ST** Student pack | FR-58 plus FR-52: course label, focus linked to a task, weekly report, exam countdown, quick capture, meeting action items on Today | Quiz from notes waits for AI |
+| 3 | **FM-ST** Student pack (course label, exam countdown, weekly report built 2026-10-28, Unverified; diary, Guide next; now strip skipped) | FR-58 plus FR-52: course label, focus linked to a task, weekly report, exam countdown, quick capture, meeting action items on Today | Quiz from notes waits for AI |
 | 4 | **FM-GUIDE** Guide | FR-51: tour, Guide page, "Built by QUORBIT TECHNOLOGIES" | Skippable |
 | 5 | **FM-CS** Character Studio and sprite packs | FR-49, FR-50: accessories, pack format, Studio | Personal photos on HOLD |
 | 6 | M8 Focus and wellbeing | Timers, summaries, goals | Builds on the student pack |

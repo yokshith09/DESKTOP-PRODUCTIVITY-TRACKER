@@ -430,7 +430,7 @@ export function createMock() {
       if (i < 0) fail("NOT_FOUND", "That course no longer exists.");
       courses.splice(i, 1);
       for (const m of [taskCourse, noteCourse]) for (const [k, v] of m) if (v === a.id) m.delete(k);
-      for (let j = exams.length - 1; j >= 0; j--) if (exams[j]!.course_id === a.id) exams.splice(j, 1);
+      for (let j = exams.length - 1; j >= 0; j--) if (exams[j]?.course_id === a.id) exams.splice(j, 1);
       return null;
     },
     exams_from: (a) => exams.filter((e) => e.on_date >= String(a.from)).sort((x, y) => x.on_date.localeCompare(y.on_date) || x.title.localeCompare(y.title)),

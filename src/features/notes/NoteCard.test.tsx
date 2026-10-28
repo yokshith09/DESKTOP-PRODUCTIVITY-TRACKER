@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { NoteSummary } from "@/ipc";
@@ -13,7 +14,7 @@ describe("note card delete (owner 2026-10-27: the confirm shook and vanished)", 
   // stay while it is open or the box loses the button it hangs from and jumps to the corner.
   it.each([["card", NoteCard], ["row", NoteRow], ["pinned", PinnedCard]] as const)("the %s keeps its toolbar while the confirm is open", (_, View) => {
     const h = handlers();
-    render(<View note={note} {...h} />);
+    render(<QueryClientProvider client={new QueryClient()}><View note={note} {...h} /></QueryClientProvider>);
     const del = screen.getByRole("button", { name: "Delete" });
     const toolbar = del.closest("div.hidden") as HTMLElement;
     expect(toolbar.className).toContain("has-[[data-state=open]]:flex");
