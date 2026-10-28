@@ -668,6 +668,22 @@ describe("task upgrades (FR-106..FR-109)", () => {
     return screen.findByRole("dialog");
   };
 
+  it("the task editor opens calm: title, next step, when, priority and Save; the rest is folded away (owner 2026-10-27)", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const dialog = await openTask(user, "Clear design feedback");
+    const more = within(dialog).getByText("More options").closest("details") as HTMLDetailsElement;
+    expect(more.open).toBe(false);
+    // Only these sit outside the fold (plus the dialog's own close button).
+    for (const name of ["Title", "Priority"]) expect(within(dialog).getByLabelText(name)).toBeTruthy();
+    expect(within(within(dialog).getByRole("group", { name: "Status" })).getAllByRole("button")).toHaveLength(1);
+    for (const label of ["Deadline date", "Project name", "Linked note", "Description"]) expect(more.contains(within(dialog).getByLabelText(label))).toBe(true);
+    expect(more.contains(within(dialog).getByRole("button", { name: "Delete task" }))).toBe(true);
+    // Never wider or taller than the window.
+    expect(dialog.className).toContain("w-[min(48rem,calc(100vw-2rem))]");
+    expect(dialog.className).toContain("max-h-[calc(100vh-2rem)]");
+  });
+
   it("links added to a task show next to it in the list and open the page (FR-106)", async () => {
     const { ipc } = await import("@/ipc");
     const open = vi.spyOn(ipc, "openUrl").mockResolvedValue(null);
@@ -755,7 +771,7 @@ describe("task upgrades (FR-106..FR-109)", () => {
     const record = await within(dialog).findByRole("region", { name: "Repeat days" });
     expect(await within(record).findByText(/Done on/)).toBeTruthy();
     expect(within(record).getByRole("button", { name: /: ticked\./ }).getAttribute("aria-pressed")).toBe("true");
-    expect(within(dialog).getByText("Planned")).toBeTruthy();
+    expect(within(dialog).getAllByText("Planned").length).toBeGreaterThan(0); // in the header and the status track
   });
 });
 
