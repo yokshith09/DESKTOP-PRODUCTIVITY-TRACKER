@@ -20,14 +20,13 @@ export function parseRole(raw: unknown): Role {
   return typeof raw === "string" && (ROLES as readonly string[]).includes(raw) ? (raw as Role) : "general";
 }
 
-/** What each role is shown first. "available" = there for everyone, "stressed" = in the tour and quiz for this role first. */
-export type Level = "stressed" | "available" | "coming" | "none";
-export const DIFFERENCES: { feature: string; levels: Record<Role, Level>; note?: string }[] = [
-  { feature: "Today, Tasks, Notes, Meetings", levels: { student: "available", developer: "available", student_dev: "available", general: "available" } },
-  { feature: "Focus timer", levels: { student: "stressed", developer: "stressed", student_dev: "stressed", general: "available" } },
-  { feature: "Projects", levels: { student: "available", developer: "stressed", student_dev: "stressed", general: "available" } },
-  { feature: "Student pack: courses, exam countdown, weekly report", levels: { student: "coming", developer: "none", student_dev: "coming", general: "none" } },
-  { feature: "Developer reactions: git, builds", levels: { student: "none", developer: "coming", student_dev: "coming", general: "none" } },
-  { feature: "App and website time, privacy radar", levels: { student: "available", developer: "available", student_dev: "available", general: "available" }, note: "Off for every role until you switch it on." },
-];
-export const LEVEL_LABEL: Record<Level, string> = { stressed: "Shown first", available: "Available", coming: "Coming", none: "—" };
+/**
+ * The one thing that differs by role (owner 2026-10-28): the student pack (course label, exam
+ * countdown, weekly report). On for Student and Student who codes, off for the rest; everything
+ * else is on for everyone. `ui.studentPack` (true/false) overrides the role default.
+ */
+export const STUDENT_PACK_PREF = "ui.studentPack";
+export const STUDENT_PACK_FEATURES = ["Course label on tasks and notes", "Exam countdown on Today", "Weekly report"] as const;
+export const studentPackDefault = (role: Role): boolean => role === "student" || role === "student_dev";
+export const parseStudentPack = (raw: unknown): boolean | null => (typeof raw === "boolean" ? raw : null);
+export const studentPackOn = (role: Role, override: boolean | null | undefined): boolean => override ?? studentPackDefault(role);

@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ipc } from "@/ipc";
 import { BANK, QUIZ_ORDER, parseLearn, questionsFor } from "./learn";
 import { LearnCard } from "./LearnCard";
-import { DIFFERENCES, ROLES, parseRole } from "./roles";
+import { ROLES, parseRole, parseStudentPack, studentPackOn } from "./roles";
 import { Tour } from "./Tour";
 import { STEPS, TOUR_ORDER, stepsFor } from "./tour";
 import { YourProfile } from "./YourProfile";
@@ -42,9 +42,11 @@ describe("what each role is shown (data)", () => {
     // The right answer is not always the first button.
     expect(new Set(Object.values(BANK).map((q) => q.answer)).size).toBeGreaterThan(1);
   });
-  it("the 'what differs' table has a value for every role and promises nothing that is not there", () => {
-    for (const d of DIFFERENCES) for (const r of ROLES) expect(d.levels[r]).toBeTruthy();
-    expect(DIFFERENCES.find((d) => d.feature.startsWith("App and website time"))?.note).toContain("Off for every role");
+  it("only the student pack differs by role, and a saved choice overrides the role", () => {
+    expect(ROLES.filter((r) => studentPackOn(r, null))).toEqual(["student", "student_dev"]);
+    expect(studentPackOn("general", true)).toBe(true);
+    expect(studentPackOn("student", false)).toBe(false);
+    expect(parseStudentPack("yes")).toBeNull();
   });
   it("saved quiz answers drop anything unknown", () => {
     expect(parseLearn({ answers: { focus: 1, nope: 2, pet: 7 }, dismissed: true })).toEqual({ answers: { focus: 1 }, dismissed: true });
@@ -155,7 +157,7 @@ describe("the Learn Loaf card", () => {
 });
 
 describe("Settings → Your profile", () => {
-  it("changes the role, shows what differs, and replays the tour and the quiz", async () => {
+  it("changes the role, switches the student pack, and replays the tour and the quiz", async () => {
     const store: Record<string, unknown> = { "ui.role": "general", "ui.tour": "done", "ui.learn": { answers: { pet: 0 }, dismissed: true } };
     vi.spyOn(ipc, "prefsGet").mockImplementation(async (k: string) => (store[k] ?? null) as never);
     vi.spyOn(ipc, "prefsSet").mockImplementation(async (k: string, v: unknown) => { store[k] = v; return null as never; });
@@ -164,8 +166,12 @@ describe("Settings → Your profile", () => {
     expect(within(group).getByRole("radio", { name: /Something else/ }).getAttribute("aria-checked")).toBe("true");
     fireEvent.click(within(group).getByRole("radio", { name: /^Developer/ }));
     await waitFor(() => expect(store["ui.role"]).toBe("developer"));
-    expect(screen.getByRole("table", { name: "What differs by profile" })).toBeTruthy();
-    expect(screen.getByText("Off for every role until you switch it on.")).toBeTruthy();
+    const pack = screen.getByRole("checkbox", { name: /Student pack/ }) as HTMLInputElement;
+    expect(pack.checked).toBe(false);
+    fireEvent.click(pack);
+    await waitFor(() => expect(store["ui.studentPack"]).toBe(true));
+    fireEvent.click(within(group).getByRole("radio", { name: /^Student Tasks/ }));
+    await waitFor(() => expect(store["ui.role"]).toBe("student"));
     fireEvent.click(screen.getByRole("button", { name: "Replay the tour" }));
     await waitFor(() => expect(store["ui.tour"]).toBe("pending"));
     fireEvent.click(screen.getByRole("button", { name: "Restart the quiz" }));

@@ -403,3 +403,7 @@ Owner: each pack may have its own reactions, the events are common, the user can
 ## 2026-10-28 (later) — Tour, quiz and roles (FR-83 first step), owner answers
 
 Owner: a first-launch tour, then a short quiz-like walkthrough on the dashboard that also shows the features users miss (privacy tracking in Time), and what differs for student, developer and other users. Answers: ask the role with one tap; spotlight tour on the real screens; a "Learn Loaf" card on Today with five questions per role. Built: `ui.role`, `ui.tour`, `ui.learn` preferences (no schema change). The role changes order and emphasis only; privacy features stay off for every role. Feature defaults by role (FR-83 matrix: student pack, flashcards, developer reactions, resource badge) are **not** built because those features do not exist yet; each will add its row to `DIFFERENCES` in `src/features/guide/roles.ts` when it ships. Changing role later never overrides a choice (nothing is applied by role yet).
+
+## 2026-10-28 (later) — Roles: only the student pack differs (owner)
+
+Owner: course label, exam countdown and weekly report are on for Student and off for the rest; all other features are on for everyone. Built as `ui.studentPack` (true/false) overriding `studentPackDefault(role)` (student and student_dev on). Kept off for every role: app and website time (opt-in at Welcome), because switching it on by role would record without consent. "Student who codes" counts as a student; flag if that is wrong. Supersedes the FR-83 matrix.
