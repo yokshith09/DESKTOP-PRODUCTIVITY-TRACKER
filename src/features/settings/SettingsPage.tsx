@@ -1,6 +1,8 @@
 import { PageHeader } from "@/features/shell/PageHeader";
 import { mod } from "@/lib/platform";
 import { YourProfile } from "@/features/guide/YourProfile";
+import { GuideSection } from "@/features/guide/GuideSection";
+import { CREDIT } from "@/features/guide/content";
 import { DataSection } from "./DataSection";
 import { AutoDeleteSettings } from "./AutoDeleteSettings";
 import { Row, Section } from "./parts";
@@ -54,6 +56,7 @@ export function SettingsPage() {
         </Row>
       </Section>
       <YourProfile />
+      <GuideSection />
       <Section title="Keyboard shortcuts">
         {GLOBAL_SHORTCUTS.map((g) => (
           <ShortcutRow
@@ -87,6 +90,9 @@ export function SettingsPage() {
       </Section>
       <Section title="About">
         <Row label="Loaf" hint={`Version ${__APP_VERSION__} · Your notes, tasks and reminders are stored only on this computer.`}>
+          <span />
+        </Row>
+        <Row label={CREDIT} hint="Made with care for people who want a calm place to plan their day.">
           <span />
         </Row>
         <details className="py-3.5 text-[13px]">

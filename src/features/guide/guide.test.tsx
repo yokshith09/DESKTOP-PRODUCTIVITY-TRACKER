@@ -8,6 +8,8 @@ import { ROLES, parseRole, parseStudentPack, studentPackOn } from "./roles";
 import { Tour } from "./Tour";
 import { STEPS, TOUR_ORDER, stepsFor } from "./tour";
 import { YourProfile } from "./YourProfile";
+import { GuideSection } from "./GuideSection";
+import { CREDIT, GUIDE } from "./content";
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
@@ -176,5 +178,23 @@ describe("Settings → Your profile", () => {
     await waitFor(() => expect(store["ui.tour"]).toBe("pending"));
     fireEvent.click(screen.getByRole("button", { name: "Restart the quiz" }));
     await waitFor(() => expect(store["ui.learn"]).toEqual({ answers: {}, dismissed: false }));
+  });
+});
+
+describe("Settings → Guide", () => {
+  it("has a short answer per feature, covers tracking and privacy, and shows the student entries only with the pack", async () => {
+    expect(new Set(GUIDE.map((g) => g.id)).size).toBe(GUIDE.length);
+    expect(GUIDE.map((g) => g.id)).toEqual(expect.arrayContaining(["tracking", "privacy", "data"]));
+    expect(CREDIT).toBe("Built by QUORBIT TECHNOLOGIES");
+    vi.spyOn(ipc, "prefsGet").mockImplementation(async (k: string) => (k === "ui.role" ? "general" : null) as never);
+    render(wrap(<GuideSection />));
+    expect(await screen.findByText("Add a task")).toBeTruthy();
+    expect(screen.getByText("App and website time")).toBeTruthy();
+    expect(screen.queryByText("Courses and exams")).toBeNull();
+    cleanup();
+    vi.spyOn(ipc, "prefsGet").mockImplementation(async (k: string) => (k === "ui.role" ? "student" : null) as never);
+    render(wrap(<GuideSection />));
+    expect(await screen.findByText("Courses and exams")).toBeTruthy();
+    expect(screen.getByText("Weekly report")).toBeTruthy();
   });
 });
