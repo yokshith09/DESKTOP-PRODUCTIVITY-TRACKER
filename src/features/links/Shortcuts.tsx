@@ -118,14 +118,14 @@ export function LinksCard({ className }: { className?: string }) {
               </button>
               <button
                 type="button" onClick={() => setEditing(s.id)} aria-label={`Rename ${s.label}`}
-                className="grid size-7 shrink-0 place-items-center rounded text-muted-foreground opacity-0 outline-none hover:bg-accent hover:text-foreground focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring group-hover:opacity-100"
+                className="grid size-7 shrink-0 place-items-center rounded text-muted-foreground opacity-0 outline-none hover:bg-accent hover:text-foreground focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring group-hover:opacity-100 data-[state=open]:opacity-100"
               >
                 <Pencil className="size-3.5" />
               </button>
               <ConfirmAction message={`Remove “${s.label}”?`} verb="Remove" onConfirm={() => void remove(s.id)}>
               <button
                 type="button" aria-label={`Remove ${s.label}`}
-                className="grid size-7 shrink-0 place-items-center rounded text-muted-foreground opacity-0 outline-none hover:bg-destructive/15 hover:text-destructive focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring group-hover:opacity-100"
+                className="grid size-7 shrink-0 place-items-center rounded text-muted-foreground opacity-0 outline-none hover:bg-destructive/15 hover:text-destructive focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring group-hover:opacity-100 data-[state=open]:opacity-100"
               >
                 <X className="size-3.5" />
               </button>

@@ -37,7 +37,7 @@ export function QuoteOfTheDay({ className }: { className?: string }) {
           <blockquote className="text-xl font-semibold leading-snug tracking-tight">{quote.text}</blockquote>
           {quote.author && <figcaption className="mt-2 text-[13px] font-medium text-primary">— {quote.author}</figcaption>}
           <button type="button" aria-label="Edit quotes" onClick={() => setEditing(true)}
-            className="absolute right-2 top-2 grid size-7 place-items-center rounded-md text-muted-foreground opacity-0 outline-none hover:bg-accent hover:text-foreground focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring group-hover:opacity-100">
+            className="absolute right-2 top-2 grid size-7 place-items-center rounded-md text-muted-foreground opacity-0 outline-none hover:bg-accent hover:text-foreground focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring group-hover:opacity-100 data-[state=open]:opacity-100">
             <Pencil className="size-3.5" />
           </button>
         </figure>

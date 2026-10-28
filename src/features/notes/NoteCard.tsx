@@ -84,7 +84,7 @@ export function NoteCard({ note, ...h }: { note: NoteSummary } & NoteHandlers) {
         note.color === "default" ? "bg-card" : "note-tint",
       )}
     >
-      <div className="absolute right-2 top-2 hidden rounded-md border bg-popover/95 p-0.5 shadow-sm group-hover:flex group-focus-within:flex">
+      <div className="absolute right-2 top-2 hidden rounded-md border bg-popover/95 p-0.5 shadow-sm group-hover:flex group-focus-within:flex has-[[data-state=open]]:flex">
         <Actions note={note} {...h} />
       </div>
       {note.pinned && !note.archived && (
@@ -125,8 +125,8 @@ export function NoteRow({ note, ...h }: { note: NoteSummary } & NoteHandlers) {
         ))}
       </span>
       {note.pinned && !note.archived && <Pin aria-label="Pinned" className="size-3.5 rotate-45 fill-primary text-primary group-hover:hidden group-focus-within:hidden" />}
-      <span className="w-20 shrink-0 text-right text-[11px] text-muted-foreground group-hover:hidden group-focus-within:hidden">{timeAgo(note.edited_at)}</span>
-      <div className="hidden w-20 shrink-0 justify-end group-hover:flex group-focus-within:flex">
+      <span className="w-20 shrink-0 text-right text-[11px] text-muted-foreground group-hover:hidden group-focus-within:hidden group-has-[[data-state=open]]:hidden">{timeAgo(note.edited_at)}</span>
+      <div className="hidden w-20 shrink-0 justify-end group-hover:flex group-focus-within:flex has-[[data-state=open]]:flex">
         <Actions note={note} {...h} />
       </div>
     </article>
@@ -149,7 +149,7 @@ export function PinnedCard({ note, ...h }: { note: NoteSummary } & NoteHandlers)
       )}
     >
       <span aria-hidden className="absolute inset-x-0 top-0 h-[3px] bg-primary" />
-      <div className="absolute right-2 top-3 hidden rounded-md border bg-popover/95 p-0.5 shadow-sm group-hover:flex group-focus-within:flex">
+      <div className="absolute right-2 top-3 hidden rounded-md border bg-popover/95 p-0.5 shadow-sm group-hover:flex group-focus-within:flex has-[[data-state=open]]:flex">
         <Actions note={note} {...h} />
       </div>
       <Pin aria-label="Pinned" className="absolute right-3.5 top-4 size-3.5 rotate-45 fill-primary text-primary group-hover:hidden group-focus-within:hidden" />
