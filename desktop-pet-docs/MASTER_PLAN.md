@@ -131,44 +131,73 @@ Tour of each tab on first run, skippable at any step; Guide page in Settings; cr
 
 ---
 
-## P4 — Projects & developers
+## P4 — Projects & developers (next after P3)
 
-| Milestone | Contents |
-|---|---|
-| FM-PS (FR-53) | Project Spaces, opt-in, off by default: notes, tasks, links, files per project; sidebar item appears when on |
-| M4 Quick Actions | Keyboard command centre: new note/task, search, open link |
-| M12 Developer reactions | Pet reacts to git commits, local builds, CI status |
-| FR-72 Launch Buddy | Saved launch sets (apps, links, files) from pet/Quick Actions/Space (merges FR-09) |
-| FR-73 System resources badge | CPU/RAM/disk/battery, off by default |
+**In plain words:** make Loaf useful for people who work on projects: a student with a thesis or a developer with a repo. Everything here is opt-in and off by default, so nobody who does not want it sees it.
 
-**Release:** v0.5.0.
+| Milestone | What you would see | How it is built (short) | Done when |
+|---|---|---|---|
+| FM-PS (FR-53) Project Spaces | A "Projects" sidebar item appears only when you switch it on. Each project gets its own notes, tasks, links and files in one place. A project can have its own pet (FR-67). | A project is a row that notes, tasks and links point to (the same side-table idea as courses). Files are links to paths on your disk, never copied. | Turn it on, make a project, see only its things; turn it off, nothing is lost. |
+| M4 Quick Actions | One keyboard shortcut opens a command bar: new note, new task, search everything, open a saved link. | A small window over the existing search and create commands. No new data. | Shortcut works from any app (Windows tested by you, macOS only in CI). |
+| M12 Developer reactions | The pet reacts to a git commit, a local build finishing or failing, CI going red or green. | Watches the project folders you pick (git state), never reads code. CI status needs a token you add yourself; without it that part is off. | Reactions fire on a test repo; nothing is read or sent without your choice. |
+| FR-72 Launch Buddy | A saved "launch set" (apps, links, files) opens in one click from the pet, Quick Actions or a Project Space. | A list of things to open, run through the same safe link opener (http, https, mailto) plus app paths you add. | One click opens the whole set; a missing file is reported, not skipped silently. |
+| FR-73 System resources | A small badge for CPU, RAM, disk and battery. | Read from the OS on a timer only while visible. | Off by default; no visible slowdown. |
+
+**Order inside P4:** Project Spaces first (everything else hangs off it), then Quick Actions, Launch Buddy, developer reactions, resources badge last.
+**Release:** v0.5.0 line (next number is set when we get there). **Needs from you:** nothing before starting; a GitHub token only if you want CI reactions.
 
 ---
 
 ## P5 — Platform
 
-| Milestone | Contents | Notes |
+**In plain words:** reach more people and more situations: Linux, other apps talking to Loaf, your voice, your calendar, your language.
+
+| Milestone | What you would see | Honest risk |
 |---|---|---|
-| FM-LIN (FR-57) | Linux AppImage and .deb | Unverified until run on Linux |
-| FM-INT (FR-54) | Local MCP server | **Shape on hold** (D-MCP-SHAPE); OpenPets' status/react/say is the reference |
-| M9 Voice | Push-to-talk → task/note/search | STT engine choice later |
-| M11 Privacy radar report | Per-site evidence report | — |
-| FR-74 Calendar reminders | .ics import first, Google/Outlook later | With M10 connectors |
-| FR-79 Languages | Picker; **Hindi and Telugu first** (owner-approved), then the OpenPets 8 | — |
-| FR-78 LAN mode | Pet walks between your PCs | Last; off by default |
-| FR-81 Wayland | Part of Linux build | Unverified |
+| FM-LIN (FR-57) + FR-81 Wayland | Loaf installs on Linux (AppImage and .deb), including the Wayland desktop. | Some pet behaviours (always on top, transparent window) are weaker on Wayland. Stays Unverified until run on real Linux; CI can build it but not judge it. |
+| FM-INT (FR-54) local integrations | Other tools on your PC can tell the pet things (status, react, say) over a local-only door. | **On hold:** the shape of this door is an open decision (D-MCP-SHAPE). Never reachable from the network. |
+| M9 Voice | Hold a key, speak, and it becomes a task, a note or a search. | Needs a speech engine choice; it must run on your PC, not send audio away. |
+| M11 Privacy radar report | A page per site showing the evidence behind the privacy radar flag, exportable. | Builds on the radar already shipped. |
+| FR-74 Calendar Airmail | Import an .ics file and get reminders for events; Google and Outlook later. | The online connectors wait for the connector work (M10) and are not local-first, so each needs your explicit opt-in. |
+| FR-79 Languages | A language picker. **Hindi and Telugu first**, then the other six. | Every screen's text has to move into translation files; the largest hidden cost of P5. Needs a native reader to check wording. |
+| FR-78 LAN mode | The pet walks between your own PCs on the same network. | Last, off by default; it is the only item that opens a network door, so it needs its own privacy review first. |
 
-**Release:** v0.6.0.
+**Release:** v0.6.0. **Needs from you:** the D-MCP-SHAPE decision, and a Linux machine (or a friend) to test.
+
+---
+
+## P6 — AI (on hold: you pick the provider)
+
+**In plain words:** features that need a language model. Nothing here starts until you choose how the AI runs, because it decides cost and privacy.
+
+| Item | What you would see |
+|---|---|
+| FR-75 Talk to your pet | Chat or voice with the pet, which can add tasks and notes for you. |
+| M5 Writing and prompt helper | Rewrite or tighten text inside a note. |
+| M7 Meeting summaries | A summary and suggested actions from meeting notes. |
+| Quiz from notes | Questions generated from your own notes (a student pack extra). |
+| FR-12 Study companion, FR-16 Error translator | Explain a chapter step by step; turn an error message into plain words. |
+| FR-80 AI Pet Studio | Turn a photo or an idea into a new pet pack (also needs the personal-character rules decided first). |
+
+**The decision that unlocks it:** local model (private, free to you, uses your PC's power and about a day of spike work first), or your own key with a provider (better quality, text leaves the PC, you pay). The plan records "we never pay". **Needs from you:** that choice.
 
 ---
 
-## P6 — AI (on hold: AI provider)
-FR-75 talk to your pet (chat + voice, actions) · FR-80 AI Pet Studio (photo/idea → pet; also needs personal characters) · M5 writing & prompt assistant · M7 meeting summaries and suggested actions · quiz from notes · Study companion (FR-12) · error translator (FR-16).
+## P7 — Online (on hold: backend, privacy statement, plugin model, code signing)
 
-## P7 — Online (on hold: backend + privacy statement, plugin model, code signing)
-FM-BE accounts/uploads (FR-56) · FM-PLUG plugins (FR-55, FR-77 SDK) · FR-76 coding-agent integration (with FR-54, D-MCP-SHAPE) · sharing, referrals, leaderboards (FR-04, FR-10, FR-31).
+**In plain words:** the first features that live outside your PC. This is a big step for a local-first app, so it waits for explicit approval of a privacy statement.
 
----
+| Item | What you would see | What must be decided first |
+|---|---|---|
+| FM-BE (FR-56) accounts and uploads | Sign in and upload things you choose to share. | A backend (Supabase is chosen for the website, FR-84) and a written privacy statement. |
+| Gallery and community site (FR-84) | A website where people share pet packs. | Moderation rules, and who may upload (likeness of real people is not allowed). |
+| FM-PLUG / FR-77 Plugin SDK | Others write add-ons for Loaf. | Which parts a plugin may touch (no database, no network by default). |
+| FR-76 Coding-agent MCP | Coding assistants show their progress through the pet. | Depends on FM-INT's shape (P5). |
+| FR-97 Friends-only study groups | Share a study recap card with chosen friends; nothing public. | Accounts and privacy statement. |
+| Sharing, referrals, leaderboards (FR-04, FR-10, FR-31) | Optional social features. | Only after the above, off by default. |
+| Code signing | Windows and macOS stop warning when installing. | You buy the certificates; the build is already prepared for them. |
+
+**Needs from you:** approve backend plus privacy statement, and the certificates.
 
 ## Blockers — see docs/BLOCKERS_AND_OPTIONS.md
 

@@ -5,6 +5,7 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+- Fixed: **Rust dependency advisories**: `zip` 2.6.1 to 9.1.3 (three RUSTSEC advisories on archive extraction; Loaf never extracted archives that way, so it was not exploitable). Six non-vulnerability warnings remain, waiting on Tauri and tokio. Import of a data file is faster (one prepared statement; 5.4 s for 50,000 notes plus 250,000 app sessions in a release build, export 3.1 s). The audit pass 3 notes also record an open time-tracking gap (a killed app loses the open stretch); no time-tracking code changed.
 - Added: **diary search and tray lock** (FR-86 finished except mood faces, which are dropped as optional). "Search the diary" finds entries by their words, ignoring case, with a snippet; entries are decrypted one at a time in memory only while the diary is unlocked and nothing is indexed. **Putting the dashboard away locks the diary**: closing it to the tray, the pet's double click and the show/hide shortcut all lock it and the page drops what it showed. Autosave now waits 0.4 s, so very little can be lost when the window is closed. Unverified on a real PC.
 
 ## [0.5.2] — 2026-10-28 (draft for owner testing; Unverified)

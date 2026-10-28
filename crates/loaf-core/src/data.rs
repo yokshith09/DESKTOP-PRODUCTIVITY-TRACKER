@@ -242,7 +242,9 @@ fn import_in(tx: &Transaction, doc: &Value) -> Result<BTreeMap<String, u64>> {
                     .join(", "),
                 vec!["?"; names.len()].join(", ")
             );
-            tx.execute(&sql, params_from_iter(values))
+            // Rows of one table nearly always have the same columns, so the statement is reused.
+            tx.prepare_cached(&sql)
+                .and_then(|mut stmt| stmt.execute(params_from_iter(values)))
                 .map_err(|_| damaged())?;
         }
         counts.insert(table.clone(), rows.len() as u64);

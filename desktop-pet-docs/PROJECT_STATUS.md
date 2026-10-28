@@ -173,6 +173,8 @@ Not fixable without the other OS: Safari (private windows can't be told apart, k
 
 Known causes of "wrong time" found in this audit: (1) the app in front was not counted until you left it — **fixed 2026-10-26**; (2) up to ~6 minutes after you walk away showed as active — **fixed 2026-10-27** (live total stops at the last input); (3) all Microsoft Store apps shared one name, "Windows App" — **fixed 2026-10-27** (Windows type-checked and linted, not run); (4) on a Mac, clicking the desktop counted as Finder — **fixed 2026-10-27** (type-checked and linted for macOS, not run); (5) time in Loaf's own windows counted as "Loaf" — **no longer counted (decision 2026-10-27)**. All Unverified on a real machine.
 
+Audit pass 3 (2026-10-28): (6) **open, not fixed:** if Loaf is killed or the PC loses power, the stretch in progress (kept in memory until it ends) is lost; options in `AUDIT_2026-10-28.md`, owner decides. 0.5.2 itself changed no time-tracking code.
+
 ### 4.7 Deprecated
 
 | Item | Replaced by |
