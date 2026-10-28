@@ -17,3 +17,6 @@ packs/*/atlas.svg
 packs/*/spritesheet.png
 __pycache__/
 *.pyc
+packs/*/strips.svg
+packs/*/strips/
+packs/*/build/

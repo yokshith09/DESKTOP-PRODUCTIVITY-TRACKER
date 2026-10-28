@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """Loaf character pack tools: assemble row strips into a sheet, and check a finished pack.
 
-  python3 pack.py assemble <strips-dir> <out-dir> --id mochi --name Mochi --description "Mochi, the cat"
+  python3 pack.py build <strips-dir> <out-dir> --id mochi --name Mochi [--description ".."] [--extras loaf.json] [--mirror-left]
+      Loose strips from an image tool (any size, flat background or transparent) -> aligned pack,
+      checked, with <out-dir>/<id>.zip ready to import into Loaf, and a QA contact sheet.
+  python3 pack.py assemble <strips-dir> <out-dir> --id mochi --name Mochi   (strips already exactly 192*frames x 208)
   python3 pack.py check <pack-dir>
 
 Needs Pillow (pip install pillow). Nothing is uploaded anywhere.
@@ -11,9 +14,12 @@ import argparse
 import json
 import re
 import sys
+import zipfile
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageOps
+
+import align
 
 CELL_W, CELL_H, COLUMNS = 192, 208, 8
 ROWS = [  # name, frames
@@ -22,6 +28,37 @@ ROWS = [  # name, frames
 ]
 SHEET = (CELL_W * COLUMNS, CELL_H * len(ROWS))  # 1536 x 1872
 ID_RE = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
+
+
+FEET_JITTER, CENTRE_JITTER, SIZE_POP = 3, 8, 0.18
+POSES = ("idle wave sleep work type wait stow cheer party catch worried ring toss jump sad review turn back back_look").split()
+MOMENTS = ("task-added", "task-started", "task-done", "all-done", "task-deleted", "reminder", "focus-done")
+LOOPS_MS = {"idle": 5500, "running-right": 1060, "running-left": 1060, "waving": 700, "jumping": 840,
+            "failed": 1220, "waiting": 1200, "running": 820, "review": 1030}
+
+
+def _alignment(i: int, row: str, boxes: list[tuple[int, int, int, int]], alpha: Image.Image) -> list[str]:
+    """The rules that stop a row from jittering: one baseline, one centre, one size."""
+    out: list[str] = []
+    tag = f"row {i + 1} ({row})"
+    feet = [b[3] for b in boxes]
+    heights = [b[3] - b[1] for b in boxes]
+    if row != "jumping":
+        if max(feet) - min(feet) > FEET_JITTER:
+            out.append(f"{tag}: the feet move up and down ({min(feet)}-{max(feet)} px); every frame must stand on one baseline")
+    else:
+        if max(feet) - feet[0] > 6 or max(feet) - feet[-1] > 6:
+            out.append(f"{tag}: the first and last frame should stand on the ground (the lowest point of the jump row)")
+    if max(heights) > 0 and (max(heights) - min(heights)) / max(heights) > SIZE_POP and row not in ("jumping", "failed"):
+        out.append(f"{tag}: the character changes size from frame to frame ({min(heights)}-{max(heights)} px tall)")
+    centres = []
+    for col, b in enumerate(boxes):
+        cell = alpha.crop((col * CELL_W, i * CELL_H, (col + 1) * CELL_W, (i + 1) * CELL_H))
+        centres.append(align.base_centre(Image.merge("RGBA", (cell, cell, cell, cell))))
+    mid = sorted(centres)[len(centres) // 2]
+    if max(abs(c - mid) for c in centres) > CENTRE_JITTER:
+        out.append(f"{tag}: the character slides sideways between frames (its feet are not on one spot)")
+    return out
 
 
 def assemble(strips: Path, out: Path, pack_id: str, name: str, description: str) -> list[str]:
@@ -49,6 +86,113 @@ def assemble(strips: Path, out: Path, pack_id: str, name: str, description: str)
         "id": pack_id, "displayName": name, "description": description, "spritesheetPath": "spritesheet.webp",
     }, indent=2) + "\n", encoding="utf-8")
     return check(out)
+
+
+def read_extras(path: Path | None) -> tuple[dict, list[str]]:
+    """`loaf.json` content (reactions + special), checked against what Loaf accepts. Returns (clean, problems)."""
+    if path is None:
+        return {}, []
+    problems: list[str] = []
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}, [f"{path.name} is not valid JSON"]
+    clean: dict = {}
+    reactions = {k: v for k, v in (raw.get("reactions") or {}).items() if k in MOMENTS and v in POSES}
+    dropped = set(raw.get("reactions") or {}) - set(reactions)
+    if dropped:
+        problems.append(f"loaf.json: reactions {sorted(dropped)} are not a known moment/pose and were left out")
+    if reactions:
+        clean["reactions"] = reactions
+    sp = raw.get("special")
+    if sp:
+        ok = (isinstance(sp, dict) and str(sp.get("name", "")).strip() and sp.get("pose") in POSES
+              and sp.get("trigger") in ("click", "tasks", "daily") and str(sp.get("line", "")).strip())
+        if ok:
+            clean["special"] = {"name": str(sp["name"]).strip()[:30], "pose": sp["pose"], "line": str(sp["line"]).strip()[:80],
+                                "trigger": sp["trigger"], "every": max(2, min(int(sp.get("every", 5) or 5), 50))}
+        else:
+            problems.append("loaf.json: the special needs a name, a line, a known pose and a trigger (click, tasks or daily)")
+    return clean, problems
+
+
+def contact_sheet(sheet: Image.Image, out: Path) -> None:
+    """QA picture: the sheet on a mid-grey ground with the baseline and centre lines, half size."""
+    bg = Image.new("RGBA", sheet.size, (128, 132, 140, 255))
+    from PIL import ImageDraw
+    d = ImageDraw.Draw(bg)
+    for r in range(len(ROWS)):
+        y = r * CELL_H + align.BASELINE
+        d.line((0, y, sheet.width, y), fill=(255, 80, 80, 255))
+        for c in range(COLUMNS):
+            d.line((c * CELL_W + align.CENTRE_X, r * CELL_H, c * CELL_W + align.CENTRE_X, (r + 1) * CELL_H), fill=(80, 160, 255, 255))
+    bg.alpha_composite(sheet)
+    bg.resize((sheet.width // 2, sheet.height // 2), Image.LANCZOS).convert("RGB").save(out)
+
+
+def row_gifs(sheet: Image.Image, out: Path) -> None:
+    for i, (row, frames) in enumerate(ROWS):
+        imgs = []
+        for c in range(frames):
+            cell = sheet.crop((c * CELL_W, i * CELL_H, (c + 1) * CELL_W, (i + 1) * CELL_H))
+            bg = Image.new("RGBA", cell.size, (240, 240, 244, 255))
+            bg.alpha_composite(cell)
+            imgs.append(bg.convert("RGB"))
+        imgs[0].save(out / f"{row}.gif", save_all=True, append_images=imgs[1:], duration=LOOPS_MS[row] // frames, loop=0)
+
+
+def build(strips: Path, out: Path, pack_id: str, name: str, description: str, extras: Path | None = None, mirror_left: bool = False) -> list[str]:
+    """Loose strips -> aligned pack folder + ZIP + QA pictures. Returns problems (empty = good)."""
+    problems: list[str] = []
+    if not ID_RE.match(pack_id) or pack_id in (".", ".."):
+        return ["id must be 1-64 characters: letters, digits, - _ ."]
+    clean, extras_problems = read_extras(extras)
+    problems += extras_problems
+    rows: dict[str, list[align.Frame]] = {}
+    fatal: list[str] = []
+    for row, frames in ROWS:
+        if row == "running-left" and mirror_left:
+            continue
+        path = strips / f"{row}.png"
+        if not path.exists():
+            fatal.append(f"missing strip {path.name}")
+            continue
+        img = Image.open(path).convert("RGBA")
+        if not align.has_transparency(img):
+            img = align.remove_key(img, align.key_colour(img))
+        try:
+            rows[row] = align.frames_of(img, frames)
+        except ValueError as e:
+            fatal.append(f"{path.name}: {e}")
+    if fatal:
+        return problems + fatal
+    cells = align.align_rows(rows)
+    if mirror_left:
+        cells["running-left"] = [ImageOps.mirror(c) for c in cells["running-right"]]
+    sheet = Image.new("RGBA", SHEET, (0, 0, 0, 0))
+    for i, (row, frames) in enumerate(ROWS):
+        for c, cell in enumerate(cells[row]):
+            sheet.paste(cell, (c * CELL_W, i * CELL_H))
+    folder = out / pack_id
+    folder.mkdir(parents=True, exist_ok=True)
+    sheet.save(folder / "spritesheet.webp", "WEBP", lossless=True)
+    (folder / "pet.json").write_text(json.dumps({"id": pack_id, "displayName": name, "description": description,
+                                                  "spritesheetPath": "spritesheet.webp"}, indent=2) + "\n", encoding="utf-8")
+    if clean:
+        (folder / "loaf.json").write_text(json.dumps(clean, indent=2) + "\n", encoding="utf-8")
+    problems += check(folder)
+    qa = out / "qa"
+    qa.mkdir(exist_ok=True)
+    contact_sheet(sheet, qa / "contact-sheet.png")
+    row_gifs(sheet, qa)
+    zip_path = out / f"{pack_id}.zip"
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
+        for f in ("pet.json", "loaf.json", "spritesheet.webp"):
+            if (folder / f).exists():
+                z.write(folder / f, f)
+    if zip_path.stat().st_size > 25 * 1024 * 1024:
+        problems.append("the ZIP is larger than 25 MB, which Loaf will not open")
+    return problems
 
 
 def check(pack: Path) -> list[str]:
@@ -94,9 +238,7 @@ def check(pack: Path) -> list[str]:
             elif box is not None:
                 problems.append(f"row {i + 1} ({row}): column {col + 1} should be empty (the row has {frames} frames)")
         if boxes:
-            feet = [b[3] for b in boxes]
-            if row != "jumping" and max(feet) - min(feet) > 12:
-                problems.append(f"row {i + 1} ({row}): the feet move up and down ({min(feet)}-{max(feet)} px); keep one baseline")
+            problems += _alignment(i, row, boxes, alpha)
     return problems
 
 
@@ -109,16 +251,29 @@ def main() -> int:
     a.add_argument("--id", required=True)
     a.add_argument("--name", required=True)
     a.add_argument("--description", default="")
+    b = sub.add_parser("build")
+    b.add_argument("strips", type=Path)
+    b.add_argument("out", type=Path)
+    b.add_argument("--id", required=True)
+    b.add_argument("--name", required=True)
+    b.add_argument("--description", default="")
+    b.add_argument("--extras", type=Path, default=None, help="loaf.json with reactions and the special")
+    b.add_argument("--mirror-left", action="store_true", help="make running-left by flipping running-right (only for a symmetric pet)")
     c = sub.add_parser("check")
     c.add_argument("pack", type=Path)
     args = ap.parse_args()
-    problems = assemble(args.strips, args.out, args.id, args.name, args.description) if args.cmd == "assemble" else check(args.pack)
+    if args.cmd == "build":
+        problems = build(args.strips, args.out, args.id, args.name, args.description, args.extras, args.mirror_left)
+    elif args.cmd == "assemble":
+        problems = assemble(args.strips, args.out, args.id, args.name, args.description)
+    else:
+        problems = check(args.pack)
     if problems:
         print("Not ready:")
         for p in problems:
             print(f"  - {p}")
         return 1
-    print("OK: the pack passes. Drop the folder into Loaf > Character > Import pet folder, or copy it to ~/.codex/pets/<id>/.")
+    print("OK: the pack passes. In Loaf: Character > Import (choose the .zip, or the folder). For Codex copy the folder to ~/.codex/pets/<id>/.")
     return 0
 
 
