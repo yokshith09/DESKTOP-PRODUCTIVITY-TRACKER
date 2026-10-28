@@ -40,6 +40,10 @@ pub enum SettingsKey {
     /// come as a short bubble instead.
     #[serde(rename = "pet.hover_card")]
     PetHoverCard,
+    /// Get out of the way while another app is full screen: a game, a film, a presentation or a
+    /// shared screen (owner 2026-10-28). On by default.
+    #[serde(rename = "pet.hide_fullscreen")]
+    PetHideFullscreen,
     /// Play/pause/next buttons under the pet (owner 2026-10-26); off until the user turns them on.
     #[serde(rename = "pet.media")]
     PetMedia,
@@ -120,6 +124,7 @@ impl SettingsKey {
             Self::PetAlwaysOnTop => "pet.always_on_top",
             Self::PetTyping => "pet.typing",
             Self::PetHoverCard => "pet.hover_card",
+            Self::PetHideFullscreen => "pet.hide_fullscreen",
             Self::PetMedia => "pet.media",
             Self::PetPack => "pet.pack",
             Self::ShortcutsGlobalOpen => "shortcuts.global_open",
@@ -146,6 +151,7 @@ impl SettingsKey {
             "pet.always_on_top" => Some(Self::PetAlwaysOnTop),
             "pet.typing" => Some(Self::PetTyping),
             "pet.hover_card" => Some(Self::PetHoverCard),
+            "pet.hide_fullscreen" => Some(Self::PetHideFullscreen),
             "pet.media" => Some(Self::PetMedia),
             "pet.pack" => Some(Self::PetPack),
             "shortcuts.global_open" => Some(Self::ShortcutsGlobalOpen),
@@ -173,6 +179,7 @@ impl SettingsKey {
             Self::PetAlwaysOnTop => json!(true),
             Self::PetTyping => json!(false),
             Self::PetHoverCard => json!(true),
+            Self::PetHideFullscreen => json!(true),
             Self::PetMedia => json!(false),
             Self::PetPack => json!(null),
             Self::ShortcutsGlobalOpen => json!(null),
@@ -195,6 +202,7 @@ impl SettingsKey {
             | Self::PetAlwaysOnTop
             | Self::PetTyping
             | Self::PetHoverCard
+            | Self::PetHideFullscreen
             | Self::PetMedia
             | Self::TrackingApps
             | Self::TrackingSites
@@ -331,6 +339,7 @@ pub fn all_defaults() -> BTreeMap<String, Value> {
         SettingsKey::PetAlwaysOnTop,
         SettingsKey::PetTyping,
         SettingsKey::PetHoverCard,
+        SettingsKey::PetHideFullscreen,
         SettingsKey::PetMedia,
         SettingsKey::PetPack,
         SettingsKey::ShortcutsGlobalOpen,
@@ -389,7 +398,7 @@ mod tests {
     #[test]
     fn all_defaults_exist() {
         let defaults = all_defaults();
-        assert_eq!(defaults.len(), 20);
+        assert_eq!(defaults.len(), 21);
         assert_eq!(
             defaults["pet.hover_card"],
             json!(true),

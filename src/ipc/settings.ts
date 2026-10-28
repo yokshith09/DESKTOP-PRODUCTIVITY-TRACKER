@@ -15,6 +15,8 @@ export interface Settings {
   "pet.always_on_top": boolean;
   "pet.typing": boolean;
   "pet.hover_card": boolean;
+  /** Hide while another app fills the screen (a game, a film, a presentation). */
+  "pet.hide_fullscreen": boolean;
   /** Play/pause/next buttons under the pet (off until turned on). */
   "pet.media": boolean;
   /** Installed pet pack shown instead of the bear (FR-63); null = the bear. */

@@ -384,3 +384,9 @@ Still open: none of Q1-Q7 except the Q4 spike result.
 - **Idle:** the live total stops at the last input once a look finds the person away for a full interval (stored sessions already ended at the last input).
 - **Store apps / Mac desktop:** Windows looks inside `ApplicationFrameHost.exe` for the real process; macOS treats Finder with no on-screen window (layer 0) as the desktop. Neither has run on a real machine.
 - **Pet never moves by itself (2026-10-27).** Hover and reaction motions are in place (scale, tilt, shake); the window is moved and resized in one step where the OS allows it, and the page is laid out for the new window before it grows and after it shrinks.
+
+## 2026-10-28 — Phase 1 of the owner's polish list
+
+- **Nothing was taken out of the task editor.** The owner asked for fewer visible buttons, not fewer features, so the extras live in one "Advanced options" fold whose summary names what is set.
+- **The pet steps aside in full screen** (`pet.hide_fullscreen`, on). Only the window is hidden; the setting is left alone, so the pet returns by itself. Checked every 2 seconds while the pet is wanted, one cheap call per look.
+- **The right-click menu is a plain list** (`menu_spec`), decided from the settings alone, so what it offers is tested without a window.

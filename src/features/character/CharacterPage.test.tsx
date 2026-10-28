@@ -53,6 +53,15 @@ describe("Character page preview (F1/F2)", () => {
     expect(screen.queryByRole("switch", { name: "Music buttons under the pet" })).toBeNull();
   });
 
+  it("can be told to get out of the way in full screen (owner 2026-10-28); it is on to begin with", async () => {
+    const set = vi.spyOn(ipc, "settingSet");
+    renderPage();
+    const sw = await screen.findByRole("switch", { name: "Get out of the way in full screen" });
+    expect(sw.getAttribute("aria-checked")).toBe("true");
+    fireEvent.click(sw);
+    await waitFor(() => expect(set).toHaveBeenCalledWith("pet.hide_fullscreen", false));
+  });
+
   it("previews the character in use, not always the bear, and follows a new choice", async () => {
     vi.spyOn(ipc, "settingsGetAll").mockResolvedValue({ "pet.pack": "boba", "pet.media": false } as never);
     vi.spyOn(ipc, "petsList").mockResolvedValue([boba, short]);

@@ -18,6 +18,7 @@ use std::time::Duration;
 use loaf_core::bus::{EventBus, Recv};
 use loaf_core::error::{AppError, Result};
 use loaf_core::events::Event;
+use loaf_core::pet_screen::pet_on_screen;
 use loaf_core::settings_service::SettingsService;
 use serde::Serialize;
 use serde_json::{json, Value};
@@ -435,7 +436,7 @@ pub const PAGES: [(&str, &str, &str); 7] = [
 ];
 
 /// Settings worth one click from the pet, with their defaults.
-pub const QUICK_SETTINGS: [(&str, &str, &str, bool); 4] = [
+pub const QUICK_SETTINGS: [(&str, &str, &str, bool); 5] = [
     (
         "pet:set:tracking.apps",
         "Track app time",
@@ -452,6 +453,12 @@ pub const QUICK_SETTINGS: [(&str, &str, &str, bool); 4] = [
         "pet:set:pet.hover_card",
         "Card when I hover the pet",
         "pet.hover_card",
+        true,
+    ),
+    (
+        "pet:set:pet.hide_fullscreen",
+        "Get out of the way in full screen",
+        "pet.hide_fullscreen",
         true,
     ),
     (
@@ -796,10 +803,136 @@ async fn apply<R: Runtime>(app: &AppHandle<R>, settings: &SettingsService, reset
     if let Some((x, y)) = spot {
         warn_on("set_position", w.set_position(PhysicalPosition::new(x, y)));
     }
-    warn_on(
-        if visible { "show" } else { "hide" },
-        if visible { w.show() } else { w.hide() },
+    let on_screen = pet_on_screen(
+        visible,
+        hide_fullscreen(&all),
+        fullscreen::other_app_fills_a_screen(),
     );
+    warn_on(
+        if on_screen { "show" } else { "hide" },
+        if on_screen { w.show() } else { w.hide() },
+    );
+}
+
+/// `pet.hide_fullscreen` (on by default): step aside while a game, film or presentation is on.
+fn hide_fullscreen(all: &std::collections::BTreeMap<String, Value>) -> bool {
+    all.get("pet.hide_fullscreen")
+        .and_then(Value::as_bool)
+        .unwrap_or(true)
+}
+
+/// How often the screen is looked at while the pet is out. One cheap call per look; nothing runs
+/// while the pet is hidden by its setting (ADR-009).
+pub const FULLSCREEN_TICK: Duration = Duration::from_secs(2);
+
+/// Is another app filling a screen? Each platform answers in its own module; anywhere else the
+/// answer is "no" and the pet stays as it is.
+pub mod fullscreen {
+    /// Windows asks the shell the same question notifications do, so a game, an exclusive
+    /// full-screen app, a presentation and a shared screen all count.
+    #[cfg(windows)]
+    pub fn other_app_fills_a_screen() -> bool {
+        use windows_sys::Win32::UI::Shell::{
+            SHQueryUserNotificationState, QUNS_BUSY, QUNS_PRESENTATION_MODE,
+            QUNS_RUNNING_D3D_FULL_SCREEN,
+        };
+        let mut state = 0;
+        // SAFETY: plain FFI call with a valid out pointer; it only reads shell state.
+        if unsafe { SHQueryUserNotificationState(&mut state) } != 0 {
+            return false;
+        }
+        matches!(
+            state,
+            QUNS_BUSY | QUNS_RUNNING_D3D_FULL_SCREEN | QUNS_PRESENTATION_MODE
+        )
+    }
+
+    /// macOS has no such question, so look for an ordinary window that covers a whole screen.
+    /// Loaf's own windows are skipped, and window titles are never read.
+    #[cfg(target_os = "macos")]
+    pub fn other_app_fills_a_screen() -> bool {
+        use core_foundation::base::{CFType, TCFType};
+        use core_foundation::dictionary::{CFDictionary, CFDictionaryRef};
+        use core_foundation::number::CFNumber;
+        use core_foundation::string::CFString;
+        use core_graphics::display::CGDisplay;
+        use core_graphics::window::{
+            copy_window_info, kCGNullWindowID, kCGWindowBounds, kCGWindowLayer,
+            kCGWindowListExcludeDesktopElements, kCGWindowListOptionOnScreenOnly,
+            kCGWindowOwnerPID,
+        };
+        use loaf_core::pet_screen::covers_screen;
+
+        let Some(list) = copy_window_info(
+            kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements,
+            kCGNullWindowID,
+        ) else {
+            return false;
+        };
+        let screens: Vec<(i32, i32, i32, i32)> = CGDisplay::active_displays()
+            .unwrap_or_default()
+            .iter()
+            .map(|id| {
+                let b = CGDisplay::new(*id).bounds();
+                (
+                    b.origin.x as i32,
+                    b.origin.y as i32,
+                    b.size.width as i32,
+                    b.size.height as i32,
+                )
+            })
+            .collect();
+        if screens.is_empty() {
+            return false;
+        }
+        let me = std::process::id() as i32;
+        // SAFETY: these keys are constants exported by CoreGraphics for the whole process.
+        let (bounds_key, layer_key, pid_key) = unsafe {
+            (
+                CFString::wrap_under_get_rule(kCGWindowBounds),
+                CFString::wrap_under_get_rule(kCGWindowLayer),
+                CFString::wrap_under_get_rule(kCGWindowOwnerPID),
+            )
+        };
+        list.iter().any(|item| {
+            // SAFETY: every element of the window list is a CFDictionary owned by the array.
+            let dict = unsafe {
+                CFDictionary::<CFString, CFType>::wrap_under_get_rule(*item as CFDictionaryRef)
+            };
+            let number = |key: &CFString| {
+                dict.find(key)
+                    .and_then(|v| v.downcast::<CFNumber>())
+                    .and_then(|n| n.to_i32())
+            };
+            if number(&layer_key) != Some(0) || number(&pid_key) == Some(me) {
+                return false;
+            }
+            let Some(bounds) = dict.find(&bounds_key) else {
+                return false;
+            };
+            // CGRect arrives as a dictionary of X, Y, Width and Height.
+            // SAFETY: the value under kCGWindowBounds is that dictionary, owned by `dict`.
+            let bounds = unsafe {
+                CFDictionary::<CFString, CFType>::wrap_under_get_rule(
+                    bounds.as_CFTypeRef() as CFDictionaryRef
+                )
+            };
+            let part = |name: &str| {
+                bounds
+                    .find(CFString::new(name))
+                    .and_then(|v| v.downcast::<CFNumber>())
+                    .and_then(|n| n.to_f64())
+                    .unwrap_or(f64::NAN) as i32
+            };
+            let window = (part("X"), part("Y"), part("Width"), part("Height"));
+            screens.iter().any(|s| covers_screen(window, *s))
+        })
+    }
+
+    #[cfg(not(any(windows, target_os = "macos")))]
+    pub fn other_app_fills_a_screen() -> bool {
+        false
+    }
 }
 
 /// Window calls used to fail silently, which made "the pet is gone" impossible to diagnose (B5).
@@ -857,13 +990,48 @@ pub fn start<R: Runtime>(app: AppHandle<R>, settings: Arc<SettingsService>, bus:
             }
         });
     }
+    {
+        // Step aside while something else fills the screen, and come back when it stops
+        // (owner 2026-10-28). Only the window is shown or hidden; the setting is left alone, so
+        // the pet returns by itself.
+        let (app, settings) = (app.clone(), Arc::clone(&settings));
+        tauri::async_runtime::spawn(async move {
+            let mut was = false;
+            loop {
+                tokio::time::sleep(FULLSCREEN_TICK).await;
+                let Some(w) = window(&app) else { continue };
+                let all = settings.get_all().await.unwrap_or_default();
+                let wanted = all
+                    .get("pet.visible")
+                    .and_then(Value::as_bool)
+                    .unwrap_or(true);
+                if !wanted || !hide_fullscreen(&all) {
+                    was = false;
+                    continue;
+                }
+                let now = fullscreen::other_app_fills_a_screen();
+                if now == was {
+                    continue;
+                }
+                was = now;
+                tracing::debug!(fullscreen = now, "another app filled the screen");
+                warn_on(
+                    if now { "hide" } else { "show" },
+                    if now { w.hide() } else { w.show() },
+                );
+            }
+        });
+    }
     let mut events = bus.subscribe();
     tauri::async_runtime::spawn(async move {
         apply(&app, &settings, false).await;
         loop {
             match events.recv().await {
                 Recv::Event(Event::SettingChanged { key, .. })
-                    if key == "pet.visible" || key == "pet.size" || key == "pet.always_on_top" =>
+                    if key == "pet.visible"
+                        || key == "pet.size"
+                        || key == "pet.always_on_top"
+                        || key == "pet.hide_fullscreen" =>
                 {
                     apply(&app, &settings, false).await;
                 }

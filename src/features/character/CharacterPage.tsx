@@ -56,6 +56,7 @@ export function CharacterPage() {
   const [onTop, setOnTop] = useSetting("pet.always_on_top");
   const [typing, setTyping] = useSetting("pet.typing");
   const [hoverCard, setHoverCard] = useSetting("pet.hover_card");
+  const [hideFullscreen, setHideFullscreen] = useSetting("pet.hide_fullscreen");
   const px = SIZES[size ?? "M"];
   const emote = useRef<EmoteRun | null>(null);
   useEffect(() => () => emote.current?.cancel(), []);
@@ -113,6 +114,9 @@ export function CharacterPage() {
           </Row>
           <Row label="Card when I hover the pet" hint="Today at a glance when you hover the pet. Off: the same facts (focus time left, the next task, the next reminder) come as a short bubble instead.">
             <Switch checked={hoverCard ?? true} onCheckedChange={(v) => void setHoverCard(v)} aria-label="Card when I hover the pet" />
+          </Row>
+          <Row label="Get out of the way in full screen" hint="Hide while a game, a film, a presentation or a shared screen fills the display. The pet comes back by itself.">
+            <Switch checked={hideFullscreen ?? true} onCheckedChange={(v) => void setHideFullscreen(v)} aria-label="Get out of the way in full screen" />
           </Row>
           <Row label="Always on top" hint="Keep the companion above other windows.">
             <Switch checked={onTop ?? true} onCheckedChange={(v) => void setOnTop(v)} aria-label="Always on top" />
