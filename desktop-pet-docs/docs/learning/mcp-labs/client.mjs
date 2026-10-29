@@ -1,0 +1,10 @@
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+const client = new Client({ name: "lab-client", version: "0.0.1" });
+await client.connect(new StdioClientTransport({ command: "node", args: ["server.mjs"] }));
+console.log("server:", client.getServerVersion(), "caps:", Object.keys(client.getServerCapabilities()));
+console.log("tools:", (await client.listTools()).tools.map((t) => t.name));
+console.log("call:", JSON.stringify((await client.callTool({ name: "say", arguments: { text: "Hello!" } })).content));
+console.log("bad call:", JSON.stringify(await client.callTool({ name: "say", arguments: { text: "" } }).catch((e) => String(e.message).slice(0, 120))));
+console.log("resource:", JSON.stringify((await client.readResource({ uri: "pet://status" })).contents[0].text));
+await client.close();

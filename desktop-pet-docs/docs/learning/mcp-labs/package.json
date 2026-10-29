@@ -1,0 +1,10 @@
+{
+  "name": "mcp-labs",
+  "private": true,
+  "type": "module",
+  "description": "Hands-on labs for MCP_ENGINEER_COURSE.md. Not part of the Loaf app; install with npm in this folder only.",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "zod": "^3.25 || ^4.0"
+  }
+}
