@@ -2,6 +2,8 @@
 
 > **Owner's 2026-10-28 list (progress):** phases 1-3 built, all Unverified on a real PC. Phase 1 (notes delete, quick add, calmer task editor, narrow focus timer, right-click menu), phase 2 (fullscreen hiding, Character page tiles, stretch and water reminders, every delete asks first), phase 3 (research, per-character reactions + one special each, alignment checker and our five characters rebuilt through it, `loaf-character` skill: name + picture in, one ZIP out). **Next:** T13 production-readiness audit, trivia is built (first-launch tour + Learn Loaf quiz + roles, 2026-10-28), T15 character design briefs, then the student release (P2). Owner still to test and then say "push" / the next version.
 
+> **Re-planned 2026-10-29 (owner):** next milestone is **MCP** (P4 Developer & MCP); Voice is its own phase for a second developer (P6); the small features are one phase (P5); P3 Characters waits. See "Order from 2026-10-29" below. P2 Student release is complete in code (Unverified on a real PC; mood faces dropped as optional).
+
 > **Active work (2026-10-23): FM-V2 fix pack + companion features + fixing the pet-visibility bugs (report: `docs/BUG_REPORT_2026-10-23_pet_visibility.md`).** M1-M3 are code-complete (owner: works in v2.0.0).
 
 > **Where we stand (2026-10-27):** P0 and P1 are built (Unverified, waiting for the owner's Windows results); P3 Characters is partly pulled forward (wardrobe, reactions, packs); P2 Student release has not started. Version 0.5.1 is the current draft. Details: `PROJECT_STATUS.md` §3.
@@ -26,11 +28,12 @@ This is the one page that says **what we build, in what order, and when each thi
 | **P1 Fix & polish** | Everything the owner reported in V2 works | FM-V2 | All 16 V2 issues closed and run on Windows |
 | **P2 Student release** | A student can plan, study and track a semester | FM-ST, FM-GUIDE, M8 | Student pack + guide + focus shipped as v0.3.0 |
 | **P3 Characters** | Pets look alive, customisable, compatible with OpenPets packs | FM-CS, M6, M13 | Studio + packs + accessories + emotes shipped as v0.4.0 |
-| **P4 Projects & developers** | Students and developers organise project work | FM-PS, M4, M12 | Project Spaces + Quick Actions + developer reactions, v0.5.0 |
-| **P5 Platform** | Reach: Linux, local integrations, voice, privacy report | FM-LIN, FM-INT, M9, M11 | v0.6.0 on Windows + Linux |
-| **P6 AI** (on hold) | Writing help, meeting summaries, quiz from notes | M5, M7 | Owner picks an AI provider |
-| **P7 Online** (on hold) | Gallery, plugins, sharing | FM-BE, FM-PLUG | Owner approves backend + privacy statement; code signing |
-
+| **P4 Developer & MCP** (NEXT) | Loaf works with a developer's tools | MCP server (FM-INT) first, then FR-76, M12, FM-PS | MCP page live, pet reacts to a real coding assistant; v0.6.0 |
+| **P5 Small features pack** | Quick wins in one phase | M4, FR-72, FR-73, M11, FR-74 (.ics) | Five features shipped; v0.7.0 |
+| **P6 Voice** (second developer) | Speak a task or note | M9 | Held-key dictation works on-device; v0.8.0 |
+| **P7 Reach** | Linux, languages, LAN | FM-LIN, FR-81, FR-79, FR-78 | Linux build and Hindi + Telugu; v0.9.0 |
+| **P8 AI** (on hold) | Writing help, summaries, quiz, talk to the pet | M5, M7, FR-75, FR-80 | Owner picks an AI provider |
+| **P9 Online** (on hold) | Accounts, gallery, sharing | FM-BE, FR-84, FR-97 | Owner approves backend + privacy statement; code signing |
 ---
 
 ## P0 — Foundation (M0-M3) — code done, waiting for the owner's Windows test
@@ -131,82 +134,92 @@ Tour of each tab on first run, skippable at any step; Guide page in Settings; cr
 
 ---
 
-## P4 — Projects & developers (next after P3)
+## Order from 2026-10-29 (owner re-plan)
 
-**In plain words:** make Loaf useful for people who work on projects: a student with a thesis or a developer with a repo. Everything here is opt-in and off by default, so nobody who does not want it sees it.
+**P3 Characters is paused ("can be done later"). The next milestone is MCP.** Voice is its own phase and is built by a second developer in parallel. The small features of the old P4 and P5 are one phase of quick wins. Plugins are art packs only (closed 2026-10-22), so there is no code Plugin SDK anywhere in this plan.
 
-| Milestone | What you would see | How it is built (short) | Done when |
-|---|---|---|---|
-| FM-PS (FR-53) Project Spaces | A "Projects" sidebar item appears only when you switch it on. Each project gets its own notes, tasks, links and files in one place. A project can have its own pet (FR-67). | A project is a row that notes, tasks and links point to (the same side-table idea as courses). Files are links to paths on your disk, never copied. | Turn it on, make a project, see only its things; turn it off, nothing is lost. |
-| M4 Quick Actions | One keyboard shortcut opens a command bar: new note, new task, search everything, open a saved link. | A small window over the existing search and create commands. No new data. | Shortcut works from any app (Windows tested by you, macOS only in CI). |
-| M12 Developer reactions | The pet reacts to a git commit, a local build finishing or failing, CI going red or green. | Watches the project folders you pick (git state), never reads code. CI status needs a token you add yourself; without it that part is off. | Reactions fire on a test repo; nothing is read or sent without your choice. |
-| FR-72 Launch Buddy | A saved "launch set" (apps, links, files) opens in one click from the pet, Quick Actions or a Project Space. | A list of things to open, run through the same safe link opener (http, https, mailto) plus app paths you add. | One click opens the whole set; a missing file is reported, not skipped silently. |
-| FR-73 System resources | A small badge for CPU, RAM, disk and battery. | Read from the OS on a timer only while visible. | Off by default; no visible slowdown. |
-
-**Order inside P4:** Project Spaces first (everything else hangs off it), then Quick Actions, Launch Buddy, developer reactions, resources badge last.
-**Release:** v0.5.0 line (next number is set when we get there). **Needs from you:** nothing before starting; a GitHub token only if you want CI reactions.
+```
+NOW        P4 Developer & MCP  ─ MCP server ▶ coding-agent link ▶ developer reactions ▶ Project Spaces
+IN PARALLEL P6 Voice (second developer; only touches the voice module and the existing commands)
+AFTER P4   P5 Small features   ─ Quick Actions · Launch Buddy · System resources · Privacy report · Calendar import
+THEN       P7 Reach            ─ Linux + Wayland · Languages (Hindi, Telugu first) · LAN mode
+LATER      P3 Characters (rest) · P8 AI (on hold) · P9 Online (on hold)
+```
 
 ---
 
-## P5 — Platform
+## P4 — Developer & MCP (NEXT; release v0.6.0)
 
-**In plain words:** reach more people and more situations: Linux, other apps talking to Loaf, your voice, your calendar, your language.
+**In plain words:** Loaf stops being an island. Coding assistants and other tools on your PC can talk to your pet and your work, and developers get a project home. Everything is opt-in, off by default and local only: no network port is ever opened.
+
+| # | Milestone | What you would see | How it is built | Done when |
+|---|---|---|---|---|
+| 1 | **MCP server (FM-INT, FR-54), the next milestone** | The **MCP** page in the sidebar (today "coming soon") becomes real: one switch, a copy-paste config line for your tool, the current connection, and a log of what asked for what. | Approved shape (2026-10-22): **stdio plus a named pipe with a per-run token; no open port.** Tools: `status` (what Loaf is doing), `react` (make the pet play a reaction), `say` (a bubble). A later step adds read-only task and note lookups only if you ask. Core stays free of Tauri: the server logic lives in `loaf-core`, the pipe in the shell. | A real MCP client connects, lists the three tools, makes the pet react; a wrong token is refused; switching it off closes the pipe. Windows tested by you, macOS only in CI. |
+| 2 | **Coding-agent link (FR-76, moved here from the old P7)** | When Claude Code, Cursor and similar assistants start, think or finish, your pet shows it (working pose, "done" cheer, "needs you" bubble). | Small hook scripts that call the MCP `react`/`say` tools; one config line per assistant, generated for you. | Works with one real assistant end to end; nothing is sent anywhere. |
+| 3 | **Developer reactions (M12)** | The pet reacts to a git commit, a local build finishing or failing, and CI going red or green. | Watches the folders you choose (git state only, never source); CI needs a token you add yourself, without it that part is simply off. | Reactions fire on a test repository. |
+| 4 | **Project Spaces (FM-PS, FR-53)** | A **Projects** item (opt-in): each project has its own notes, tasks, links and files; a project can have its own pet (FR-67). | A project is a row that notes and tasks point to, like courses; files are links to paths on your disk, never copies. | Turn it on, make a project, see only its things; turn it off, nothing is lost. |
+
+**Order inside P4:** 1 → 2 → 3 → 4. **Needs from you:** nothing before starting 1; a GitHub token only if you want CI reactions.
+
+---
+
+## P5 — Small features pack (release v0.7.0)
+
+**In plain words:** five self-contained quick wins taken from the old P4 and P5. Each is one to three days, none depends on another, and each can ship on its own as a point release.
+
+| Feature | What you would see | Done when |
+|---|---|---|
+| **Quick Actions (M4)** | One shortcut opens a command bar: new note or task, search everything, open a saved link. | Works from any app; every action is also reachable without it. |
+| **Launch Buddy (FR-72)** | A saved set of apps, links and files opens in one click, from the pet or Quick Actions. | A missing file is reported, never silently skipped. |
+| **System resources (FR-73)** | A small CPU, RAM, disk and battery badge, off by default. | No visible slowdown; reads the OS only while shown. |
+| **Privacy radar report (M11)** | A per-site evidence page behind the radar flag, exportable. | Builds on the radar already shipped. |
+| **Calendar Airmail, first half (FR-74)** | Import an .ics file and get reminders for the events. Google and Outlook connectors are not in this phase (they are not local-first). | An imported event rings like a reminder. |
+
+---
+
+## P6 — Voice (own phase, **second developer**; release v0.8.0)
+
+**In plain words:** hold a key, speak, and it becomes a task, a note or a search. It is its own phase because it needs a speech engine and its own testing, and it is handed to another developer so it runs in parallel with P4.
+
+| Item | Detail |
+|---|---|
+| Milestone M9 | Push-to-talk → text → one of: add a task, add a note, search. A confirmation chip shows what was understood before it is saved. |
+| Privacy (non-negotiable) | The speech engine runs **on your PC**; audio is never sent anywhere and never stored. Off by default. The microphone is opened only while the key is held. |
+| Open choice | Which local speech engine (small, permissively licensed, works offline on Windows and macOS). The developer proposes two with a spike (size, accuracy, speed) and the owner picks. |
+| **Contract with the rest of Loaf** | Voice only calls commands that already exist (`task_quick_add`, `note_create`, search). It adds one Rust module, one UI folder (`src/features/voice`), one setting key and one shortcut. It does not change existing screens or tables, so it cannot collide with P4 or P5. |
+| Handoff rules for the second developer | Read `CLAUDE.md` and `PROJECT_STATUS.md` §9 first; work on a branch and open a pull request, never push to `main`; tests with every change; mark anything that needs a real PC **Unverified**; record choices as one line in `DECISIONS.md`; run `pnpm typecheck && pnpm lint && pnpm test` and the Rust checks before asking for review. |
+| Done when | Held-key dictation creates a task and a note on Windows (owner tested) and macOS builds in CI; microphone permission denied is handled with a clear message. |
+
+---
+
+## P7 — Reach: Linux, languages, LAN (release v0.9.0)
 
 | Milestone | What you would see | Honest risk |
 |---|---|---|
-| FM-LIN (FR-57) + FR-81 Wayland | Loaf installs on Linux (AppImage and .deb), including the Wayland desktop. | Some pet behaviours (always on top, transparent window) are weaker on Wayland. Stays Unverified until run on real Linux; CI can build it but not judge it. |
-| FM-INT (FR-54) local integrations | Other tools on your PC can tell the pet things (status, react, say) over a local-only door. | **On hold:** the shape of this door is an open decision (D-MCP-SHAPE). Never reachable from the network. |
-| M9 Voice | Hold a key, speak, and it becomes a task, a note or a search. | Needs a speech engine choice; it must run on your PC, not send audio away. |
-| M11 Privacy radar report | A page per site showing the evidence behind the privacy radar flag, exportable. | Builds on the radar already shipped. |
-| FR-74 Calendar Airmail | Import an .ics file and get reminders for events; Google and Outlook later. | The online connectors wait for the connector work (M10) and are not local-first, so each needs your explicit opt-in. |
-| FR-79 Languages | A language picker. **Hindi and Telugu first**, then the other six. | Every screen's text has to move into translation files; the largest hidden cost of P5. Needs a native reader to check wording. |
-| FR-78 LAN mode | The pet walks between your own PCs on the same network. | Last, off by default; it is the only item that opens a network door, so it needs its own privacy review first. |
-
-**Release:** v0.6.0. **Needs from you:** the D-MCP-SHAPE decision, and a Linux machine (or a friend) to test.
+| **FM-LIN (FR-57) + Wayland (FR-81)** | Loaf installs on Linux (AppImage and .deb), including Wayland. | Always-on-top and transparent windows are weaker on Wayland. Stays Unverified until run on real Linux. |
+| **Languages (FR-79)** | A language picker, **Hindi and Telugu first**, then the rest. | Every screen's text moves into translation files; a native reader must check the wording. |
+| **LAN mode (FR-78)** | The pet walks between your own PCs on the same network. | Last and off by default; the only item that opens a network door, so it needs its own privacy review first. |
 
 ---
 
-## P6 — AI (on hold: you pick the provider)
+## P8 — AI (on hold: you pick the provider)
 
-**In plain words:** features that need a language model. Nothing here starts until you choose how the AI runs, because it decides cost and privacy.
+FR-75 talk to your pet (chat, and voice by reusing P6) · M5 writing and prompt helper · M7 meeting summaries · quiz from notes · FR-12 study companion · FR-16 error translator · FR-80 AI Pet Studio (photo or idea to pet; also needs the personal-character rules decided).
+**The decision that unlocks it:** a local model (private, free to you, uses your PC; about a day of spike work first) or your own provider key (better quality, text leaves the PC). "We never pay" is recorded.
 
-| Item | What you would see |
-|---|---|
-| FR-75 Talk to your pet | Chat or voice with the pet, which can add tasks and notes for you. |
-| M5 Writing and prompt helper | Rewrite or tighten text inside a note. |
-| M7 Meeting summaries | A summary and suggested actions from meeting notes. |
-| Quiz from notes | Questions generated from your own notes (a student pack extra). |
-| FR-12 Study companion, FR-16 Error translator | Explain a chapter step by step; turn an error message into plain words. |
-| FR-80 AI Pet Studio | Turn a photo or an idea into a new pet pack (also needs the personal-character rules decided first). |
+## P9 — Online (on hold: backend, privacy statement, certificates)
 
-**The decision that unlocks it:** local model (private, free to you, uses your PC's power and about a day of spike work first), or your own key with a provider (better quality, text leaves the PC, you pay). The plan records "we never pay". **Needs from you:** that choice.
-
----
-
-## P7 — Online (on hold: backend, privacy statement, plugin model, code signing)
-
-**In plain words:** the first features that live outside your PC. This is a big step for a local-first app, so it waits for explicit approval of a privacy statement.
-
-| Item | What you would see | What must be decided first |
-|---|---|---|
-| FM-BE (FR-56) accounts and uploads | Sign in and upload things you choose to share. | A backend (Supabase is chosen for the website, FR-84) and a written privacy statement. |
-| Gallery and community site (FR-84) | A website where people share pet packs. | Moderation rules, and who may upload (likeness of real people is not allowed). |
-| FM-PLUG / FR-77 Plugin SDK | Others write add-ons for Loaf. | Which parts a plugin may touch (no database, no network by default). |
-| FR-76 Coding-agent MCP | Coding assistants show their progress through the pet. | Depends on FM-INT's shape (P5). |
-| FR-97 Friends-only study groups | Share a study recap card with chosen friends; nothing public. | Accounts and privacy statement. |
-| Sharing, referrals, leaderboards (FR-04, FR-10, FR-31) | Optional social features. | Only after the above, off by default. |
-| Code signing | Windows and macOS stop warning when installing. | You buy the certificates; the build is already prepared for them. |
-
-**Needs from you:** approve backend plus privacy statement, and the certificates.
+FM-BE (FR-56) accounts and uploads · gallery and community site (FR-84, Supabase chosen; the gallery may start on GitHub Pages) · FR-97 friends-only study groups · sharing, referrals, leaderboards (FR-04, FR-10, FR-31; optional, off by default) · code signing through SignPath Foundation (free for open source) once the repository is public.
+**Removed:** the Plugin SDK (FR-77). Plugins are art packs only (decision 2026-10-22), which need no SDK.
 
 ## Blockers — see docs/BLOCKERS_AND_OPTIONS.md
 
 | Open | Blocks | Recommended way out |
 |---|---|---|
 | Windows test of v2.0.0 | P0 → Complete | Owner runs RELEASE_0.2.0_TEST.md |
-| AI runtime | P6 | Local (llama.cpp sidecar + small Apache model, Ollama if present) + BYOK; we never pay; 1-day spike |
+| AI runtime | P8 | Local (llama.cpp sidecar + small Apache model, Ollama if present) + BYOK; we never pay; 1-day spike |
 | Code signing | installers | **Open source (decided)** → apply to SignPath Foundation once the repo is public |
-| Backend | P7 only | Closed for now (owner) |
+| Backend | P9 only | Closed for now (owner) |
 | Personal-photo characters | FR-80 | "Draw-your-own from parts" first; photos after AI |
 | Product name | FR-34 | Owner gives 5-10 names; we check domains/trademarks |
 | FR-62 tabs spike | FR-62 | Us, day 1 of build |
@@ -231,16 +244,16 @@ Closed 2026-10-22: open source (MIT) · plugins = art packs only · MCP shape ap
 | Anxiety Aid, Water, Mood, Routines | FR-69 | P2 |
 | Simple Timer, Quick Reminders | FR-70 | P2 |
 | Virtual Pet, Fortune Cookie, Magic 8-Ball | FR-71 | P3 |
-| Launch Buddy | FR-72 | P4 |
-| System Resources | FR-73 | P4 |
-| Calendar Airmail | FR-74 | P5 |
-| Talk to the pet (AI chat/voice) | FR-75 | P6 (on hold) |
-| Coding-agent MCP + hooks | FR-76 | P7 (on hold) |
-| Plugin SDK | FR-77 | P7 (on hold) |
-| LAN mode | FR-78 | P5 (last) |
-| 8 languages | FR-79 | P5 |
-| AI Pet Studio | FR-80 | P6 (on hold) |
-| Wayland | FR-81 | P5 |
+| Launch Buddy | FR-72 | P5 |
+| System Resources | FR-73 | P5 |
+| Calendar Airmail | FR-74 | P5 (.ics; connectors later) |
+| Talk to the pet (AI chat/voice) | FR-75 | P8 (on hold; voice input from P6) |
+| Coding-agent MCP + hooks | FR-76 | P4 (after the MCP server) |
+| Plugin SDK | FR-77 | Dropped (plugins are art packs only) |
+| LAN mode | FR-78 | P7 (last) |
+| 8 languages | FR-79 | P7 |
+| AI Pet Studio | FR-80 | P8 (on hold) |
+| Wayland | FR-81 | P7 |
 | Vocabulary drag & drop, Usage Buddy | FR-82 | P2 |
 | Spotify Buddy, Higgsfield Watch | — | Not copied (low value) |
 

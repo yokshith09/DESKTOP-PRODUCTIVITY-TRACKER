@@ -10,6 +10,12 @@
 //!   in front (also while idle, to see the person come back).
 //! * **Flush**, one [`FLUSH_INTERVAL`] after the first unsaved session, only while one is waiting.
 //!
+//! **Crash safety.** Every idle look also *checkpoints* the stretch in progress into the usage
+//! journal (see `usage::journal`) after writing any waiting sessions, and the journal is
+//! recovered when the collector starts. A kill, crash or power cut therefore loses at most the
+//! time since the last look, never a whole stretch. No extra timer is needed: the look already
+//! exists exactly when there is a stretch to remember.
+//!
 //! With tracking off, or nothing in front, the loop parks on the bus and the OS source.
 
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -101,6 +107,7 @@ impl Collector {
             pending: Vec::new(),
             flush_at: None,
             poll_at: None,
+            journaled: false,
         };
         Self {
             running,
@@ -142,6 +149,8 @@ struct Worker<P: Platform> {
     pending: Vec<UsageRecord>,
     flush_at: Option<Instant>,
     poll_at: Option<Instant>,
+    /// Whether the journal currently holds a row for the stretch in progress.
+    journaled: bool,
 }
 
 async fn sleep_until_opt(at: Option<Instant>) {
@@ -154,6 +163,7 @@ async fn sleep_until_opt(at: Option<Instant>) {
 impl<P: Platform> Worker<P> {
     async fn run(mut self) {
         let (tx, mut rx) = mpsc::unbounded_channel::<Option<String>>();
+        self.recover().await;
         self.reload_settings(&tx).await;
         loop {
             let (poll_at, flush_at) = (self.poll_at, self.flush_at);
@@ -175,9 +185,13 @@ impl<P: Platform> Worker<P> {
                         self.feed(TrackEvent::Focus { at, app });
                     }
                 }
-                () = sleep_until_opt(poll_at) => self.look(),
+                () = sleep_until_opt(poll_at) => {
+                    self.look();
+                    self.checkpoint().await;
+                }
                 () = sleep_until_opt(flush_at) => self.flush().await,
             }
+            self.tidy_journal().await;
             self.rearm();
             self.publish_live();
         }
@@ -240,6 +254,60 @@ impl<P: Platform> Worker<P> {
         if let Err(error) = self.usage.record_many(batch.clone()).await {
             tracing::warn!(code = ?error.code, "couldn't save app time; it will be retried");
             self.pending = batch;
+        }
+    }
+
+    /// Turn what a previous run left in the journal (a crash, a kill, a power cut) into sessions.
+    async fn recover(&self) {
+        match self.usage.recover_open().await {
+            Ok(0) => {}
+            Ok(n) => tracing::info!(sessions = n, "recovered time from before an unclean stop"),
+            Err(error) => {
+                tracing::warn!(code = ?error.code, "couldn't recover unsaved app time");
+            }
+        }
+    }
+
+    /// Write waiting sessions, then remember the stretch in progress. Sessions go first so the
+    /// journal never describes something that is only in memory.
+    async fn checkpoint(&mut self) {
+        self.flush().await;
+        if !self.pending.is_empty() {
+            return; // the database is failing; try again at the next look
+        }
+        let open = if self.running.load(Ordering::Relaxed) {
+            self.tracker.open_session(self.clock.now_ms())
+        } else {
+            None
+        };
+        if let Some(open) = open {
+            match self.usage.checkpoint_app(Some(&open)).await {
+                Ok(()) => self.journaled = true,
+                Err(error) => {
+                    tracing::warn!(code = ?error.code, "couldn't remember the open app stretch");
+                }
+            }
+        }
+    }
+
+    /// Drop the journal row once nothing is in progress and everything finished is saved.
+    async fn tidy_journal(&mut self) {
+        if !self.journaled || !self.pending.is_empty() {
+            return;
+        }
+        let in_progress = self.running.load(Ordering::Relaxed)
+            && self.tracker.open_session(self.clock.now_ms()).is_some();
+        if !in_progress {
+            self.clear_journal().await;
+        }
+    }
+
+    async fn clear_journal(&mut self) {
+        match self.usage.checkpoint_app(None).await {
+            Ok(()) => self.journaled = false,
+            Err(error) => {
+                tracing::warn!(code = ?error.code, "couldn't clear the open app stretch");
+            }
         }
     }
 
@@ -309,6 +377,7 @@ impl<P: Platform> Worker<P> {
         self.feed(TrackEvent::Shutdown { at });
         self.usage.set_live(None);
         self.flush().await;
+        self.tidy_journal().await;
     }
 }
 
@@ -627,6 +696,138 @@ mod tests {
         f.settings.set("tracking.apps", json!(false)).await.unwrap();
         f.settings.set("tracking.apps", json!(true)).await.unwrap();
         running(&c, true).await;
+    }
+
+    async fn journal_rows(f: &Fixture) -> Vec<(String, i64, i64)> {
+        f.db.read(|c| {
+            let mut stmt =
+                c.prepare("SELECT name, started_at, last_seen FROM usage_open ORDER BY kind")?;
+            let rows = stmt
+                .query_map([], |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)))?
+                .collect::<rusqlite::Result<Vec<_>>>()?;
+            Ok(rows)
+        })
+        .await
+        .unwrap()
+    }
+
+    /// Kill the collector the way a crash would: no shutdown event, no final write.
+    fn crash(c: &Collector) {
+        c.task.lock().unwrap().take().expect("running").abort();
+    }
+
+    #[tokio::test]
+    async fn a_crash_loses_at_most_the_last_minute_not_the_whole_stretch() {
+        let f = fixture();
+        let c = f.collector(quick());
+        f.settings.set("tracking.apps", json!(true)).await.unwrap();
+        running(&c, true).await;
+        f.platform.set_idle(0);
+        f.platform.focus(Some("Code.exe"));
+        settle().await;
+        // Twenty minutes of work, looked at every minute (a longer gap would read as sleep).
+        for _ in 0..20 {
+            f.clock.advance_ms(MIN);
+            settle().await;
+        }
+        eventually(|| async {
+            journal_rows(&f).await == vec![("VS Code".to_owned(), T0, T0 + 20 * MIN)]
+        })
+        .await;
+        assert!(f.spans("VS Code").await.is_empty(), "nothing is final yet");
+
+        // The power goes. Loaf starts again later and recovers the twenty minutes.
+        crash(&c);
+        f.clock.advance_ms(2 * 3_600_000);
+        let _again = f.collector(quick());
+        eventually(|| async { f.spans("VS Code").await.len() == 1 }).await;
+        assert_eq!(
+            f.spans("VS Code").await,
+            vec![TimeRange {
+                started_at: T0,
+                ended_at: T0 + 20 * MIN
+            }],
+            "ends when last seen, not when Loaf came back"
+        );
+        assert!(journal_rows(&f).await.is_empty());
+    }
+
+    #[tokio::test]
+    async fn a_clean_quit_leaves_nothing_in_the_journal_and_a_restart_adds_nothing() {
+        let f = fixture();
+        let c = f.collector(quick());
+        f.settings.set("tracking.apps", json!(true)).await.unwrap();
+        running(&c, true).await;
+        f.platform.set_idle(0);
+        f.platform.focus(Some("Slack.exe"));
+        settle().await;
+        for _ in 0..5 {
+            f.clock.advance_ms(MIN);
+            settle().await;
+        }
+        f.bus.publish(Event::AppShuttingDown {
+            at: f.clock.now_ms(),
+        });
+        c.finish().await;
+        assert!(journal_rows(&f).await.is_empty());
+        assert_eq!(f.spans("Slack").await.len(), 1);
+
+        let _again = f.collector(quick());
+        settle().await;
+        assert_eq!(f.spans("Slack").await.len(), 1, "counted once");
+    }
+
+    #[tokio::test]
+    async fn the_journal_follows_the_stretch_and_is_cleared_when_nothing_is_in_front() {
+        let f = fixture();
+        let c = f.collector(quick());
+        f.settings.set("tracking.apps", json!(true)).await.unwrap();
+        running(&c, true).await;
+        f.platform.set_idle(0);
+        f.platform.focus(Some("Code.exe"));
+        settle().await;
+        f.clock.advance_ms(2 * MIN);
+        eventually(|| async { journal_rows(&f).await.len() == 1 }).await;
+
+        // Another window comes to the front: the first stretch is saved, the new one journaled.
+        f.platform.focus(Some("chrome.exe"));
+        settle().await;
+        f.clock.advance_ms(2 * MIN);
+        eventually(|| async {
+            journal_rows(&f).await == vec![("Google Chrome".to_owned(), T0 + 2 * MIN, T0 + 4 * MIN)]
+        })
+        .await;
+        eventually(|| async { f.spans("VS Code").await.len() == 1 }).await;
+
+        // Nothing trackable in front: nothing left waiting.
+        f.platform.focus(None);
+        eventually(|| async {
+            journal_rows(&f).await.is_empty() && f.spans("Google Chrome").await.len() == 1
+        })
+        .await;
+    }
+
+    #[tokio::test]
+    async fn a_session_waiting_to_be_saved_is_never_dropped_from_the_journal_first() {
+        let f = fixture();
+        // Slow flush so the closed session is still in memory when the journal is checked.
+        let c = f.collector(Timing {
+            poll: Duration::from_millis(15),
+            flush: Duration::from_secs(3_600),
+        });
+        f.settings.set("tracking.apps", json!(true)).await.unwrap();
+        running(&c, true).await;
+        f.platform.set_idle(0);
+        f.platform.focus(Some("Code.exe"));
+        settle().await;
+        for _ in 0..3 {
+            f.clock.advance_ms(MIN);
+            settle().await;
+        }
+        // Each look writes waiting sessions first, so a crash right now still has the stretch.
+        crash(&c);
+        let _again = f.collector(quick());
+        eventually(|| async { f.spans("VS Code").await.len() == 1 }).await;
     }
 
     #[test]

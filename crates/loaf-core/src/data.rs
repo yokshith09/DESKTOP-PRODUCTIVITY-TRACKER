@@ -34,6 +34,9 @@ pub const FORMAT_VERSION: u32 = 1;
 pub const CONFIRM_WORD: &str = "DELETE";
 /// Preferences, not work. An import may replace these even though the workspace is "empty".
 const SETTINGS_TABLES: [&str; 2] = ["settings", "user_preferences"];
+/// Scratch state that is neither work nor a setting: the crash journal of the stretch in front
+/// (`usage_open`). Never exported, never blocks an import; "delete all" still clears it.
+const TRANSIENT_TABLES: [&str; 1] = ["usage_open"];
 
 fn user_tables(conn: &Connection) -> Result<Vec<String>> {
     let mut stmt = conn.prepare(
@@ -73,7 +76,10 @@ pub async fn export(db: &Database, clock: &dyn Clock, app_version: &str) -> Resu
     db.read(move |conn| {
         let snapshot = conn.unchecked_transaction()?; // a read transaction: one moment in time
         let mut tables = Map::new();
-        for table in user_tables(&snapshot)? {
+        for table in user_tables(&snapshot)?
+            .into_iter()
+            .filter(|t| !TRANSIENT_TABLES.contains(&t.as_str()))
+        {
             let cols = columns(&snapshot, &table)?;
             let mut stmt = snapshot.prepare(&format!("SELECT * FROM \"{table}\""))?;
             let mut rows = Vec::new();
@@ -159,10 +165,9 @@ fn import_in(tx: &Transaction, doc: &Value) -> Result<BTreeMap<String, u64>> {
 
     let known = user_tables(tx)?;
     // Only an empty Loaf can be restored into, so nothing is ever merged or overwritten.
-    for table in known
-        .iter()
-        .filter(|t| !SETTINGS_TABLES.contains(&t.as_str()))
-    {
+    for table in known.iter().filter(|t| {
+        !SETTINGS_TABLES.contains(&t.as_str()) && !TRANSIENT_TABLES.contains(&t.as_str())
+    }) {
         let n: i64 = tx.query_row(&format!("SELECT COUNT(*) FROM \"{table}\""), [], |r| {
             r.get(0)
         })?;
@@ -535,6 +540,46 @@ mod tests {
             import(&f.db, &f.clock, doc).await.unwrap_err().code,
             ErrorCode::Validation
         );
+    }
+
+    #[tokio::test]
+    async fn the_crash_journal_is_not_exported_and_does_not_block_an_import() {
+        let f = setup();
+        populate(&f).await;
+        f.db.write(|tx| {
+            tx.execute(
+                "INSERT INTO usage_open (kind, name, category, is_browser, browser, started_at, last_seen)
+                 VALUES ('app', 'VS Code', 'Coding', 0, '', 1000, 5000)",
+                [],
+            )?;
+            Ok(((), vec![]))
+        })
+        .await
+        .unwrap();
+        let doc = dump(&f).await;
+        assert!(
+            doc["tables"].get("usage_open").is_none(),
+            "scratch state is not part of a backup"
+        );
+        // Clearing everything empties it too, so an import into a fresh Loaf is allowed.
+        delete_all(&f.db, &f.clock, "DELETE").await.unwrap();
+        let n: i64 =
+            f.db.read(|c| Ok(c.query_row("SELECT COUNT(*) FROM usage_open", [], |r| r.get(0))?))
+                .await
+                .unwrap();
+        assert_eq!(n, 0);
+        // And a journal row in the target does not make it "not empty".
+        f.db.write(|tx| {
+            tx.execute(
+                "INSERT INTO usage_open (kind, name, category, is_browser, browser, started_at, last_seen)
+                 VALUES ('app', 'Other', 'Other', 0, '', 1, 2)",
+                [],
+            )?;
+            Ok(((), vec![]))
+        })
+        .await
+        .unwrap();
+        import(&f.db, &f.clock, doc).await.unwrap();
     }
 
     #[tokio::test]

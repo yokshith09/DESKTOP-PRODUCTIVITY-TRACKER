@@ -31,6 +31,8 @@ use crate::error::{AppError, Result};
 use crate::events::Event;
 use crate::ids::new_id;
 
+mod journal;
+
 /// Sessions shorter than this are noise (alt-tab flicker) and are dropped.
 pub const MIN_SESSION_MS: i64 = 2_000;
 /// A single session is never longer than this; anything longer was a forgotten machine.
@@ -941,6 +943,7 @@ impl UsageService {
                     "DELETE FROM domain_sessions WHERE started_at < ?2 AND ended_at > ?1",
                     params![from, to],
                 )?;
+                Self::clear_range(tx, from, to)?;
                 forget_unseen_domains(tx)?;
                 Ok((removed as u64, vec![Event::UsageUpdated { at: now }]))
             })
@@ -955,6 +958,7 @@ impl UsageService {
             .write(move |tx| {
                 let mut removed = tx.execute("DELETE FROM app_sessions", [])?;
                 removed += tx.execute("DELETE FROM domain_sessions", [])?;
+                tx.execute("DELETE FROM usage_open", [])?;
                 tx.execute("DELETE FROM domains WHERE tracked = 1", [])?;
                 Ok((removed as u64, vec![Event::UsageUpdated { at: now }]))
             })
@@ -975,6 +979,10 @@ impl UsageService {
                 )?;
                 if !tracked {
                     tx.execute("DELETE FROM domain_sessions WHERE domain = ?1", [&domain])?;
+                    tx.execute(
+                        "DELETE FROM usage_open WHERE kind = 'site' AND name = ?1",
+                        [&domain],
+                    )?;
                 }
                 Ok(((), vec![Event::UsageUpdated { at: now }]))
             })

@@ -14,6 +14,10 @@ use crate::usage::{normalize_host, DomainSession, IDLE_THRESHOLD_MS, SLEEP_GAP_M
 /// How often the shell looks at the address bar while a browser is in front.
 pub const LOOK_EVERY_MS: u64 = 2_000;
 
+/// How often the site in front is written to the usage journal (crash safety, see
+/// `usage::journal`): at most this much time on a site is lost to a crash or power cut.
+pub const CHECKPOINT_EVERY_MS: i64 = 30_000;
+
 /// One open tab, read live on request (owner decision 2026-10-13: no browser extension; the
 /// shell reads this with the same permission already granted for `tracking.sites`). Never
 /// stored — this is a live list, not a usage record.
@@ -133,6 +137,19 @@ impl SiteTracker {
         ended.or(closed)
     }
 
+    /// The stretch in progress, for the crash journal. It runs to the person's last input (not
+    /// to `now`), so time spent away is never credited. `None` when no site is in front.
+    pub fn open_session(&self, now: i64, idle_ms: u64) -> Option<DomainSession> {
+        let open = self.open.as_ref()?;
+        let last_input = now.saturating_sub(i64::try_from(idle_ms).unwrap_or(i64::MAX));
+        Some(DomainSession {
+            browser: open.browser.clone(),
+            domain: open.domain.clone(),
+            started_at: open.since,
+            ended_at: last_input.max(open.since),
+        })
+    }
+
     /// End the open session now (tracking switched off, or Loaf is quitting).
     pub fn stop(&mut self, now: i64) -> Option<DomainSession> {
         self.last_look = None;
@@ -242,5 +259,24 @@ mod tests {
             .look(2_000 + SLEEP_GAP_MS + 1, 0, site("github.com"))
             .unwrap();
         assert_eq!(s.ended_at, 2_000);
+    }
+
+    #[test]
+    fn the_open_site_for_the_journal_runs_to_the_last_input_not_to_now() {
+        let mut t = SiteTracker::default();
+        assert_eq!(t.open_session(10_000, 0), None, "nothing in front");
+        assert_eq!(t.look(1_000, 0, site("github.com")), None);
+        let open = t.open_session(61_000, 0).unwrap();
+        assert_eq!(
+            (open.domain.as_str(), open.started_at, open.ended_at),
+            ("github.com", 1_000, 61_000)
+        );
+        // The person walked away 40 s ago: they are credited only up to then.
+        assert_eq!(t.open_session(61_000, 40_000).unwrap().ended_at, 21_000);
+        // Never before it started, even for a huge idle value.
+        assert_eq!(t.open_session(61_000, u64::MAX).unwrap().ended_at, 1_000);
+        // After the site ends there is nothing to remember.
+        t.stop(70_000);
+        assert_eq!(t.open_session(80_000, 0), None);
     }
 }

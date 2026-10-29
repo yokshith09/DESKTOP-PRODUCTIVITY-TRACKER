@@ -419,3 +419,16 @@ Built: password-locked diary, Argon2id (19 MiB, 2 passes) + XChaCha20-Poly1305, 
 ## 2026-10-28 (later) — Roles: only the student pack differs (owner)
 
 Owner: course label, exam countdown and weekly report are on for Student and off for the rest; all other features are on for everyone. Built as `ui.studentPack` (true/false) overriding `studentPackDefault(role)` (student and student_dev on). Kept off for every role: app and website time (opt-in at Welcome), because switching it on by role would record without consent. "Student who codes" counts as a student; flag if that is wrong. Supersedes the FR-83 matrix.
+
+
+## 2026-10-29 — Re-plan, crash-safe time tracking (owner)
+
+| Decision | Detail |
+|---|---|
+| **Next milestone is MCP** | New P4 "Developer & MCP": MCP server first (shape already approved 2026-10-22: stdio + named pipe + per-run token; tools status / react / say), then the coding-agent link (FR-76, moved from the old P7), developer reactions (M12), Project Spaces (FM-PS). P3 Characters waits ("can be done later"). |
+| **Voice is its own phase, built by a second developer** | New P6; one Rust module, one UI folder, one setting key and one shortcut, calls only existing commands, so it cannot collide with P4 or P5. On-device speech only; engine chosen after a spike. Handoff rules are in `MASTER_PLAN.md` P6. |
+| **Small features are one phase** | New P5: Quick Actions, Launch Buddy, System resources, Privacy radar report, Calendar .ics import (excluding Voice and MCP). Linux, Wayland, languages and LAN mode form P7; AI is P8 and Online P9 (on hold). The Plugin SDK (FR-77) is dropped, consistent with "plugins are art packs only" (2026-10-22). |
+| **Time tracking must not lose data** | Journal of the stretch in front (`usage_open`, migration 011), written every look and recovered at start. Chosen over "close and reopen every 10 minutes" (inflates session counts) and over doing nothing (lost a whole stretch on a crash). Bound: at most one look (about a minute; 30 s for sites) can be lost. No schema change to sessions; not exported. |
+| Lists draw in steps | 100 rows, then 100 more near the end of the scroll, with a button as well, instead of virtual scrolling (no new dependency, every row stays reachable for screen readers and Find). Revisit if a real PC shows it is not enough. |
+| Note cards are not buttons | A card that holds buttons cannot be a button for a screen reader; the card is a box with a real open button laid over it. |
+| New dev dependency | `axe-core` (dev only, MPL-2.0), used by one test and by the scan recipe in the audit notes. |

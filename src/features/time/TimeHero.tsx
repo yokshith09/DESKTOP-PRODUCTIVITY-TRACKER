@@ -97,7 +97,7 @@ function UsageList({ label, items, empty, onOpen }: { label: string; items: Item
                 <Row it={it} max={max} onOpen={onOpen} />
                 {it.tabs && it.tabs.length > 0 && (
                   <ul aria-label={`Sites in ${it.name}`} className="mb-1 ml-5 border-l pl-2">
-                    {it.tabs.map((t) => <Row key={t.key} it={t} max={it.seconds} onOpen={onOpen} small />)}
+                    {it.tabs.map((t) => <li key={t.key}><Row it={t} max={it.seconds} onOpen={onOpen} small /></li>)}
                   </ul>
                 )}
               </li>

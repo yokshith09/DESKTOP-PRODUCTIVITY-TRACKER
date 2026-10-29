@@ -19,7 +19,9 @@ const overdueBreak = (): Wellbeing => ({
 describe("break and water nudges in the app", () => {
   let saved: Record<string, unknown>;
   beforeEach(() => {
-    saved = {};
+    // Quiet hours are on by default (night), so without this the tests would pass or fail with
+    // the hour they happen to run at. Tests about quiet hours set their own.
+    saved = { "ui.nudges": { quiet: { on: false, from: "22:00", to: "07:00" } } };
     vi.spyOn(api.ipc, "prefsGet").mockImplementation(async (k: string) => (saved[k] ?? null) as never);
     vi.spyOn(api.ipc, "prefsSet").mockImplementation(async (k: string, v: unknown) => { saved[k] = v; return null as never; });
     vi.spyOn(api.ipc, "trackingStatus").mockResolvedValue({ enabled: false, supported: true, running: false } as never);

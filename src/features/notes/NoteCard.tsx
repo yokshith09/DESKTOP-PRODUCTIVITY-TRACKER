@@ -1,5 +1,5 @@
 import { CourseTag } from "@/features/student/CoursePicker";
-import { forwardRef, type ComponentPropsWithoutRef, type KeyboardEvent, type MouseEvent } from "react";
+import { forwardRef, type ComponentPropsWithoutRef, type MouseEvent } from "react";
 import { ConfirmAction } from "@/components/ConfirmAction";
 import { Archive, ArchiveRestore, Pin, PinOff, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -59,33 +59,34 @@ function Actions({ note, onPin, onArchive, onDelete }: NoteHandlers & { note: No
   );
 }
 
-function useOpen(id: string, onOpen: (id: string) => void) {
-  return {
-    onClick: () => onOpen(id),
-    onKeyDown: (e: KeyboardEvent) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        onOpen(id);
-      }
-    },
-  };
+/**
+ * The whole card opens the note, but the card itself is not a button: it holds other buttons (pin,
+ * archive, delete), and controls inside a button cannot be reached by a screen reader. So the
+ * opening is a real button laid over the card (named after the note, with the focus ring), and
+ * the toolbar sits above it.
+ */
+function OpenNote({ note, onOpen }: { note: NoteSummary; onOpen: (id: string) => void }) {
+  return (
+    <button
+      type="button"
+      aria-label={note.title || "Untitled note"}
+      onClick={() => onOpen(note.id)}
+      className="absolute inset-0 z-[1] cursor-pointer rounded-[inherit] outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+    />
+  );
 }
 
 export function NoteCard({ note, ...h }: { note: NoteSummary } & NoteHandlers) {
-  const open = useOpen(note.id, h.onOpen);
   return (
-    <article
-      role="button"
-      tabIndex={0}
-      aria-label={note.title || "Untitled note"}
+    <div
       data-note-color={note.color}
-      {...open}
       className={cn(
-        "group relative mb-3 block cursor-pointer break-inside-avoid rounded-xl border p-4 text-left outline-none transition-colors hover:border-foreground/25 focus-visible:ring-2 focus-visible:ring-ring",
+        "group relative mb-3 block break-inside-avoid rounded-xl border p-4 text-left transition-colors hover:border-foreground/25",
         note.color === "default" ? "bg-card" : "note-tint",
       )}
     >
-      <div className="absolute right-2 top-2 hidden rounded-md border bg-popover/95 p-0.5 shadow-sm group-hover:flex group-focus-within:flex has-[[data-state=open]]:flex">
+      <OpenNote note={note} onOpen={h.onOpen} />
+      <div className="absolute right-2 top-2 z-[2] hidden rounded-md border bg-popover/95 p-0.5 shadow-sm group-hover:flex group-focus-within:flex has-[[data-state=open]]:flex">
         <Actions note={note} {...h} />
       </div>
       {note.pinned && !note.archived && (
@@ -102,21 +103,17 @@ export function NoteCard({ note, ...h }: { note: NoteSummary } & NoteHandlers) {
         {note.labels.length > 3 && <span className="text-[11px] text-muted-foreground">+{note.labels.length - 3}</span>}
         <span className="ml-auto text-[11px] text-muted-foreground">{timeAgo(note.edited_at)}</span>
       </div>
-    </article>
+    </div>
   );
 }
 
 export function NoteRow({ note, ...h }: { note: NoteSummary } & NoteHandlers) {
-  const open = useOpen(note.id, h.onOpen);
   return (
-    <article
-      role="button"
-      tabIndex={0}
-      aria-label={note.title || "Untitled note"}
+    <div
       data-note-color={note.color}
-      {...open}
-      className="group relative flex h-11 cursor-pointer items-center gap-3 px-4 outline-none transition-colors hover:bg-accent/50 focus-visible:bg-accent/60"
+      className="group relative flex h-11 items-center gap-3 px-4 transition-colors hover:bg-accent/50"
     >
+      <OpenNote note={note} onOpen={h.onOpen} />
       <span aria-hidden className={cn("size-2 shrink-0 rounded-full", note.color === "default" ? "bg-border" : "note-dot")} />
       <span className="w-56 shrink-0 truncate text-[13px] font-medium">{note.title || "Untitled"}</span>
       <span className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground">{note.excerpt.replace(/\s+/g, " ")}</span>
@@ -127,30 +124,26 @@ export function NoteRow({ note, ...h }: { note: NoteSummary } & NoteHandlers) {
       </span>
       {note.pinned && !note.archived && <Pin aria-label="Pinned" className="size-3.5 rotate-45 fill-primary text-primary group-hover:hidden group-focus-within:hidden" />}
       <span className="w-20 shrink-0 text-right text-[11px] text-muted-foreground group-hover:hidden group-focus-within:hidden group-has-[[data-state=open]]:hidden">{timeAgo(note.edited_at)}</span>
-      <div className="hidden w-20 shrink-0 justify-end group-hover:flex group-focus-within:flex has-[[data-state=open]]:flex">
+      <div className="relative z-[2] hidden w-20 shrink-0 justify-end group-hover:flex group-focus-within:flex has-[[data-state=open]]:flex">
         <Actions note={note} {...h} />
       </div>
-    </article>
+    </div>
   );
 }
 
 /** A pinned note: wider, taller, with an accent edge. Used only in the Pinned row. */
 export function PinnedCard({ note, ...h }: { note: NoteSummary } & NoteHandlers) {
-  const open = useOpen(note.id, h.onOpen);
   return (
-    <article
-      role="button"
-      tabIndex={0}
-      aria-label={note.title || "Untitled note"}
+    <div
       data-note-color={note.color}
-      {...open}
       className={cn(
-        "group relative flex min-h-36 cursor-pointer flex-col overflow-hidden rounded-xl border p-4 pt-5 text-left outline-none transition-colors hover:border-foreground/25 focus-visible:ring-2 focus-visible:ring-ring",
+        "group relative flex min-h-36 flex-col overflow-hidden rounded-xl border p-4 pt-5 text-left transition-colors hover:border-foreground/25",
         note.color === "default" ? "bg-card" : "note-tint",
       )}
     >
+      <OpenNote note={note} onOpen={h.onOpen} />
       <span aria-hidden className="absolute inset-x-0 top-0 h-[3px] bg-primary" />
-      <div className="absolute right-2 top-3 hidden rounded-md border bg-popover/95 p-0.5 shadow-sm group-hover:flex group-focus-within:flex has-[[data-state=open]]:flex">
+      <div className="absolute right-2 top-3 z-[2] hidden rounded-md border bg-popover/95 p-0.5 shadow-sm group-hover:flex group-focus-within:flex has-[[data-state=open]]:flex">
         <Actions note={note} {...h} />
       </div>
       <Pin aria-label="Pinned" className="absolute right-3.5 top-4 size-3.5 rotate-45 fill-primary text-primary group-hover:hidden group-focus-within:hidden" />
@@ -161,6 +154,6 @@ export function PinnedCard({ note, ...h }: { note: NoteSummary } & NoteHandlers)
         {note.labels.slice(0, 2).map((l) => <Badge key={l.id}>{l.name}</Badge>)}
         <span className="ml-auto text-[11px] text-muted-foreground">{timeAgo(note.edited_at)}</span>
       </div>
-    </article>
+    </div>
   );
 }

@@ -415,7 +415,8 @@ describe("Notes screen (against the in-memory shell)", () => {
     const user = userEvent.setup();
     render(<App />);
     await openNotes(user);
-    const card = await screen.findByRole("button", { name: "Shortcuts I want" });
+    // The card is not itself a button (it holds buttons); the button that opens it is inside it.
+    const card = (await screen.findByRole("button", { name: "Shortcuts I want" })).parentElement as HTMLElement;
     await user.click(within(card).getByRole("button", { name: "Unpin" }));
     await waitFor(() => {
       const pinned = screen.getByRole("region", { name: "Pinned" });
@@ -427,7 +428,7 @@ describe("Notes screen (against the in-memory shell)", () => {
     const user = userEvent.setup();
     render(<App />);
     await openNotes(user);
-    const card = await screen.findByRole("button", { name: "Groceries" });
+    const card = (await screen.findByRole("button", { name: "Groceries" })).parentElement as HTMLElement;
     await user.click(within(card).getByRole("button", { name: "Delete" }));
     // It asks first: Cancel keeps the note, Delete moves it to the Bin.
     await user.click(within(await screen.findByRole("alertdialog", { name: "Move this note to the Bin?" })).getByRole("button", { name: "Cancel" }));

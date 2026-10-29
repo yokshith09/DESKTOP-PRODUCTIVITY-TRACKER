@@ -1,0 +1,45 @@
+name: Dependency audit
+
+# Known-vulnerability check for both dependency trees. Runs when a lockfile changes and once a
+# week, because new advisories appear for versions that were fine yesterday.
+#
+# Only vulnerabilities fail the job. `cargo audit` prints "unmaintained" and "unsound" notices as
+# warnings (today: Tauri's Linux stack and tokio's AsyncFd, none used by Loaf); read them when
+# they change, they do not block a release.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Cargo.lock"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/audit.yml"
+  pull_request:
+    paths:
+      - "Cargo.lock"
+      - "pnpm-lock.yaml"
+  schedule:
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-audit
+      - name: Rust — known vulnerabilities (Cargo.lock)
+        run: cargo audit
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Frontend — known vulnerabilities in what ships (pnpm audit --prod)
+        run: pnpm audit --prod

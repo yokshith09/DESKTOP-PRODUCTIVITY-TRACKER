@@ -23,6 +23,7 @@ import { TaskDetail } from "./TaskDetail";
 import { CourseTag } from "@/features/student/CoursePicker";
 import { useCourses, useStudentPack } from "@/features/student/useStudent";
 import { WeekCalendar } from "@/features/calendar/WeekCalendar";
+import { ShowMore, useProgressive } from "@/lib/progressive";
 
 const VIEWS: { key: TaskView; label: string; empty: string }[] = [
   { key: "today", label: "Today", empty: "Nothing planned for today." },
@@ -141,6 +142,7 @@ export function TasksPage({ focus = null, onClearFocus = () => {} }: { focus?: T
     : rows;
   const inCourse = course ? base.filter(({ task }) => courseInfo.taskCourse(task.id)?.id === course) : base;
   const shown = q ? inCourse.filter(({ task }) => `${task.title} ${task.description} ${task.project ?? ""}`.toLowerCase().includes(q)) : base;
+  const page = useProgressive(shown);
   const filtered = !!(priority || project || course || status || from || to);
   const meta = VIEWS.find((v) => v.key === view);
 
@@ -201,7 +203,10 @@ export function TasksPage({ focus = null, onClearFocus = () => {} }: { focus?: T
         ) : shown.length === 0 ? (
           <div className="p-4"><Empty icon={<ListChecks />} title={q || filtered ? "No tasks match" : (meta?.empty ?? "No tasks")} hint={q || filtered ? "Try a different word or reset the filters." : "Add one above to get started."} /></div>
         ) : (
-          <ul>{shown.map((r) => <Row key={r.task.id} row={r} onOpen={setOpen} />)}</ul>
+          <>
+            <ul>{page.visible.map((r) => <Row key={r.task.id} row={r} onOpen={setOpen} />)}</ul>
+            <ShowMore more={page.more} onMore={page.showMore} noun="tasks" />
+          </>
         )}
       </section>
       <p className="px-1 text-xs text-muted-foreground">{shown.length} {shown.length === 1 ? "task" : "tasks"}</p>

@@ -31,7 +31,7 @@ use loaf_core::bus::{EventBus, Recv};
 use loaf_core::clock::Clock;
 use loaf_core::events::Event;
 use loaf_core::settings_service::SettingsService;
-use loaf_core::sites::{Seen, SiteTracker, LOOK_EVERY_MS};
+use loaf_core::sites::{Seen, SiteTracker, CHECKPOINT_EVERY_MS, LOOK_EVERY_MS};
 use loaf_core::usage::UsageService;
 use tokio::sync::mpsc;
 
@@ -82,6 +82,13 @@ pub fn start(
         note_safari(&all);
         ACTIVE.store(wanted(all), Ordering::Relaxed);
         let mut tracker = SiteTracker::default();
+        // Crash safety: the site in front is journaled every CHECKPOINT_EVERY_MS and recovered
+        // here, before anything new is timed.
+        if let Err(error) = usage.recover_open().await {
+            tracing::warn!(code = ?error.code, "couldn't recover unsaved website time");
+        }
+        let mut last_checkpoint = i64::MIN;
+        let mut journaled = false;
         let save = |session: Option<loaf_core::usage::DomainSession>| {
             let usage = usage.clone();
             async move {
@@ -99,7 +106,23 @@ pub fn start(
             tokio::select! {
                 Some(look) = looks.recv() => {
                     if ACTIVE.load(Ordering::Relaxed) {
-                        save(tracker.look(clock.now_ms(), look.idle_ms, look.seen)).await;
+                        let now = clock.now_ms();
+                        save(tracker.look(now, look.idle_ms, look.seen)).await;
+                        match tracker.open_session(now, look.idle_ms) {
+                            Some(open) if now.saturating_sub(last_checkpoint) >= CHECKPOINT_EVERY_MS => {
+                                match usage.checkpoint_site(Some(&open)).await {
+                                    Ok(()) => {
+                                        last_checkpoint = now;
+                                        journaled = true;
+                                    }
+                                    Err(error) => tracing::warn!(code = ?error.code, "couldn't remember the open website"),
+                                }
+                            }
+                            None if journaled && usage.checkpoint_site(None).await.is_ok() => {
+                                journaled = false;
+                            }
+                            _ => {}
+                        }
                     }
                 }
                 event = events.recv() => match event {
@@ -110,11 +133,17 @@ pub fn start(
                         ACTIVE.store(on, Ordering::Relaxed);
                         if !on {
                             save(tracker.stop(clock.now_ms())).await;
+                            if journaled && usage.checkpoint_site(None).await.is_ok() {
+                                journaled = false;
+                            }
                         }
                     }
                     Recv::Event(Event::AppShuttingDown { .. }) => {
                         ACTIVE.store(false, Ordering::Relaxed);
                         save(tracker.stop(clock.now_ms())).await;
+                        if journaled {
+                            let _ = usage.checkpoint_site(None).await;
+                        }
                     }
                     Recv::Event(Event::AllDataDeleted { .. }) | Recv::Resync { .. } => {
                         tracker = SiteTracker::default();
