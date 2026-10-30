@@ -1,4 +1,4 @@
-# Loaf
+# PLUTO
 
 A lightweight, local-first desktop companion for Windows and macOS: notes, tasks, meetings and an automatic daily work log, with a desktop pet.
 
