@@ -1,8 +1,8 @@
-# The Loaf character standard (v1) — one format for every pet
+# The Pluto character standard (v1) — one format for every pet
 
-Owner request J1 (2026-10-26): a standard character format, so anyone can build a character, and one character works everywhere. It is **not a new format**: it is the Codex / OpenPets V1 pet pack that Loaf already reads, plus the rules for how Loaf uses it and a default for every reaction. A pack that follows this works in Loaf, Codex and OpenPets.
+Owner request J1 (2026-10-26): a standard character format, so anyone can build a character, and one character works everywhere. It is **not a new format**: it is the Codex / OpenPets V1 pet pack that Pluto already reads, plus the rules for how Pluto uses it and a default for every reaction. A pack that follows this works in Pluto, Codex and OpenPets.
 
-Companion files: art details in [`PET_ART_SPEC.md`](PET_ART_SPEC.md); the build skill and one-prompt template in [`/skills/loaf-character`](../../../skills/loaf-character/SKILL.md); the importer in `crates/loaf-core/src/pets.rs`.
+Companion files: art details in [`PET_ART_SPEC.md`](PET_ART_SPEC.md); the build skill and one-prompt template in [`/skills/pluto-character`](../../../skills/pluto-character/SKILL.md); the importer in `crates/pluto-core/src/pets.rs`.
 
 ## 1. What a character is
 
@@ -32,9 +32,9 @@ A folder named by its `id`:
 
 Rules every frame follows: character centred, **feet on one baseline** about 8 px above the cell bottom, same size in every frame, ~10 px free margin (nothing cut off), one light from the top-left, last frame flows into the first, unused cells fully transparent. Original characters only; no text or logos on the sheet.
 
-## 3. How Loaf uses the rows (the reaction defaults)
+## 3. How Pluto uses the rows (the reaction defaults)
 
-Loaf never asks a pack for "a reaction". It plays a **pose**, and the pose maps to a row, so any pack reacts to everything. The map is `ROW_FOR_POSE` in `src/features/character/SpritePet.tsx`:
+Pluto never asks a pack for "a reaction". It plays a **pose**, and the pose maps to a row, so any pack reacts to everything. The map is `ROW_FOR_POSE` in `src/features/character/SpritePet.tsx`:
 
 | Pose | Row | Pose | Row |
 |---|---|---|---|
@@ -62,25 +62,25 @@ Kind words only (no-guilt rule, FR-92): the `failed` row is a small sadness, nev
 
 ## 4. Checking a pack
 
-1. `python3 skills/loaf-character/scripts/pack.py check <folder>` — size, transparency, frame counts, empty or cut-off frames, a moving baseline.
-2. Loaf → **Character → Import pet folder** — the real check; it refuses a bad pack with the reason.
+1. `python3 skills/pluto-character/scripts/pack.py check <folder>` — size, transparency, frame counts, empty or cut-off frames, a moving baseline.
+2. Pluto → **Character → Import pet folder** — the real check; it refuses a bad pack with the reason.
 3. Preview: pick the character on the Character page and play each row.
 
 ## 5. Versioning and limits
 
-- **v1** = 9 rows (this page). **v2** adds two gaze rows (FR-59, not read by Loaf yet).
+- **v1** = 9 rows (this page). **v2** adds two gaze rows (FR-59, not read by Pluto yet).
 - Sheet ≤ 25 MB. Lossless WebP or quality ≥ 90.
 - Outfits and activity strips (OpenPets) are planned (FR-64, FR-65); a v1 pack stays valid when they arrive.
 
 ## 6. Who can make one
 
-Anyone, with any image tool they already have. Loaf never calls an image service and never pays for AI: the skill is a recipe for *your* tool (the Codex image tool, your own key, or a local model). Check the licence of any reference art you feed it.
+Anyone, with any image tool they already have. Pluto never calls an image service and never pays for AI: the skill is a recipe for *your* tool (the Codex image tool, your own key, or a local model). Check the licence of any reference art you feed it.
 
 *Status: written 2026-10-26. The assembler/checker are tested with synthetic strips; no real AI-made character has been run through it yet, and the final animation is Unverified on a real OS.*
 
-## 4. `loaf.json` — a character's own reactions and special (optional, Loaf only)
+## 4. `pluto.json` — a character's own reactions and special (optional, Pluto only)
 
-Beside `pet.json`, never inside it (strict importers must not see unknown keys). Codex and OpenPets ignore the file; a pack without it works everywhere. Loaf reads it, keeps only what is valid, and rewrites it on import.
+Beside `pet.json`, never inside it (strict importers must not see unknown keys). Codex and OpenPets ignore the file; a pack without it works everywhere. Pluto reads it, keeps only what is valid, and rewrites it on import.
 
 ```json
 {
@@ -89,7 +89,7 @@ Beside `pet.json`, never inside it (strict importers must not see unknown keys).
 }
 ```
 
-- **Moments are common to every character**: `task-added`, `task-started`, `task-done`, `all-done`, `task-deleted`, `reminder`, `focus-done`. A pack only chooses *which pose* it plays for a moment. Order of say: Loaf's default, then the pack's pose, then the user's own choice on Character → Reactions (the user always wins).
-- **Poses** are Loaf's pose names (`idle wave work cheer party catch worried ring toss jump sad review …`), each mapped to one of the nine rows. The sheet stays at nine rows (D-ROWS), so a special reuses a row; it is the pose, line and trigger that make it the character's own.
+- **Moments are common to every character**: `task-added`, `task-started`, `task-done`, `all-done`, `task-deleted`, `reminder`, `focus-done`. A pack only chooses *which pose* it plays for a moment. Order of say: Pluto's default, then the pack's pose, then the user's own choice on Character → Reactions (the user always wins).
+- **Poses** are Pluto's pose names (`idle wave work cheer party catch worried ring toss jump sad review …`), each mapped to one of the nine rows. The sheet stays at nine rows (D-ROWS), so a special reuses a row; it is the pose, line and trigger that make it the character's own.
 - **One special per character**: `trigger` is `click` (every `every` clicks), `tasks` (every `every` finished tasks) or `daily` (first sight each day). `every` is kept between 2 and 50, `name` to 30 characters, `line` to 80. Counts live while the pet runs and start again after it plays.
 - Unknown moments, odd poses and broken JSON are dropped; the pack still loads.

@@ -1,13 +1,13 @@
 import { Radar } from "lucide-react";
 import { Tile } from "@/features/shell/PageHeader";
-import { useUsage } from "@/hooks/useLoaf";
+import { useUsage } from "@/hooks/usePluto";
 import { formatDuration } from "@/lib/time";
 import { categoryStyle } from "./categories";
 import { cn } from "@/lib/utils";
 
 /**
  * Which of the sites you visited are themselves well-known advertising or tracking companies.
- * Loaf reads only the site name in the address bar, so it cannot see what a page loads in the
+ * Pluto reads only the site name in the address bar, so it cannot see what a page loads in the
  * background. A site that is not on the list is "not flagged", never "clean" (DECISIONS U16).
  */
 export function PrivacyRadar({ from, to, enabled, className }: { from: number; to: number; enabled: boolean; className?: string }) {
@@ -67,7 +67,7 @@ export function PrivacyRadar({ from, to, enabled, className }: { from: number; t
             </ul>
           </div>
           <p className="text-[11px] leading-relaxed text-muted-foreground">
-            This only flags sites you opened that are themselves ad or tracking companies. Loaf does not see what a page loads in the background, so a site that isn’t flagged is not proven clean.
+            This only flags sites you opened that are themselves ad or tracking companies. Pluto does not see what a page loads in the background, so a site that isn’t flagged is not proven clean.
           </p>
         </div>
       )}

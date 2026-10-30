@@ -1,6 +1,6 @@
 import { Globe } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { useSettings } from "@/hooks/useLoaf";
+import { useSettings } from "@/hooks/usePluto";
 import { useSetting } from "@/hooks/useTheme";
 import { isMac } from "@/lib/platform";
 
@@ -27,7 +27,7 @@ export function SitesEmpty({ compact = false }: { compact?: boolean }) {
     <div className={compact ? "space-y-2.5" : "mx-auto flex max-w-sm flex-col items-center py-6 text-center"}>
       <span className="grid size-8 place-items-center rounded-lg bg-muted text-muted-foreground"><Globe className="size-4" /></span>
       <p className="text-xs leading-relaxed text-muted-foreground">
-        Website time is off. When it is on, Loaf reads only the site name (like github.com) from your browser, never the full address.
+        Website time is off. When it is on, Pluto reads only the site name (like github.com) from your browser, never the full address.
       </p>
       <label className="flex items-center gap-2 text-xs font-medium">
         <Switch checked={false} onCheckedChange={(v) => void setSites(v)} aria-label="Turn on website tracking" />

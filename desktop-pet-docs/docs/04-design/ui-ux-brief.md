@@ -1,4 +1,4 @@
-# Loaf — UI/UX Design Brief
+# Pluto — UI/UX Design Brief
 
 **Milestone:** D5 · **Version:** 1.2 · **Date:** 2026-10-03 · **Status:** 🔒 LOCKED (approved 2026-10-03)
 **Derives from:** PRD (D2 v1.4), App Flow (D4 v1.2) · **Feeds:** feature specs (`06-feature-definition.md`), frontend implementation
@@ -21,7 +21,7 @@ This brief gives enough direction to build Phase 1 UI without a separate Figma p
 
 ## 2. Personality & Tone
 
-Friendly and quiet — like a warm loaf of bread on the desk. Copy is short, plain, second person, never cute in error states.
+Friendly and quiet — like a warm pluto of bread on the desk. Copy is short, plain, second person, never cute in error states.
 
 | Context | ✅ Write | ❌ Avoid |
 |---------|---------|---------|
@@ -167,19 +167,19 @@ PLANNED TODAY (3)
 FOLLOW-UPS TODAY
  Standup — follow up on schema review                               Open →
 PINNED NOTES
- [ Hackathon ideas ]  [ Loaf v1 scope ]  [ Shortcuts ]
+ [ Hackathon ideas ]  [ Pluto v1 scope ]  [ Shortcuts ]
 ```
 
 ### S-10 Notes + S-11 Note editor
 ```
-Notes                          [Sort: Last edited ▾]  [+ New]   │ ◀  Loaf v1 scope            📌 🏷 🎨 🗄 🗑 │
+Notes                          [Sort: Last edited ▾]  [+ New]   │ ◀  Pluto v1 scope            📌 🏷 🎨 🗄 🗑 │
 Labels: All · work(12) · personal(4) · #hackathon(3)            │ ───────────────────────────────────────── │
 PINNED                                                          │ Edit | Preview                            │
 ┌────────────┐ ┌────────────┐                                   │ ## Must ship                               │
-│Loaf v1     │ │Shortcuts   │                                   │ - Notes, tasks, meetings                   │
+│Pluto v1     │ │Shortcuts   │                                   │ - Notes, tasks, meetings                   │
 │scope…      │ │Ctrl+N …    │                                   │ - Daily log                                │
 └────────────┘ └────────────┘                                   │                                            │
-OTHERS                                                          │ work  #loaf  +                             │
+OTHERS                                                          │ work  #pluto  +                             │
 ┌────────────┐ ┌────────────┐ ┌────────────┐                    │ Edited 2 min ago · Created 30 Sep          │
 ```
 
@@ -187,8 +187,8 @@ OTHERS                                                          │ work  #loaf 
 ```
 ◀  Write TRD                                              ⋯ (Defer, Delete)
 Status:  ◐ In progress     [Pause] [Complete] [Cancel]
-Planned  Today ▾    Due  Fri 2 Oct ▾    Priority  High ▾    Project  Loaf ▾
-Linked note  Loaf v1 scope →        From meeting  —
+Planned  Today ▾    Due  Fri 2 Oct ▾    Priority  High ▾    Project  Pluto ▾
+Linked note  Pluto v1 scope →        From meeting  —
 Description
  Cover event catalog and IPC.
 Work updates                                         [+ Add update]
@@ -224,7 +224,7 @@ COMPLETED   ● Write PRD · ● Fix schema · …
 PENDING     ⏸ Pet sprite brief
 CANCELLED   ⊘ Try Svelte spike
 OVERDUE     ! Submit assignment report
-(Reconstructed — Loaf wasn't running this day)   ← only if reconstructed
+(Reconstructed — Pluto wasn't running this day)   ← only if reconstructed
 ```
 
 ## 7. Empty, Loading & Error States
@@ -276,7 +276,7 @@ Loading: skeleton rows only if a load exceeds 150 ms (most won't). Errors: inlin
 
 | Item | Phase 1 | Phase 3+ |
 |------|---------|----------|
-| Character | One original character. Working concept: **a small round loaf-shaped creature with a tiny face** — fits the name, readable at 48 px, ownable | Animations and reactions (Phase 3); 18 characters and outfits (Phase 7) |
+| Character | One original character. Working concept: **a small round pluto-shaped creature with a tiny face** — fits the name, readable at 48 px, ownable | Animations and reactions (Phase 3); 18 characters and outfits (Phase 7) |
 | Asset | Single idle frame PNG/WebP with alpha; master at 512×512, exported at 64 / 96 / 128 px (S/M/L) @1x and @2x | Sprite sheets, ≤3 s per animation, 30 FPS cap |
 | Style | Flat shapes, 2–3 tones, thin outline so it reads on light and dark desktops | Same style system |
 | Behavior | Static. Hover shows a subtle 1 px lift via CSS transform (no loop). Click opens Today | State machine (TRD §5 `pet`) |

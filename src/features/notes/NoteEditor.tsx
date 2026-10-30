@@ -11,7 +11,7 @@ import { mod } from "@/lib/platform";
 import { cn } from "@/lib/utils";
 import { timeAgo } from "@/lib/time";
 import { ipc, NOTE_COLORS, type Note, type NoteColor } from "@/ipc";
-import { keys, useAllTasks, useLabels, useNoteActions, useNotes, useTasksQuery } from "@/hooks/useLoaf";
+import { keys, useAllTasks, useLabels, useNoteActions, useNotes, useTasksQuery } from "@/hooks/usePluto";
 import { TaskDetail } from "@/features/tasks/TaskDetail";
 import { STATUS_LABEL } from "@/lib/taskStatus";
 import { COLOR_NAMES } from "./colors";

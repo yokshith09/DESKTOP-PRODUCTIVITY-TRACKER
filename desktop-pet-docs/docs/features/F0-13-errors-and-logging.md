@@ -16,7 +16,7 @@ F0-01.
 None. The error toast and the blocking DB error screen (S-90) are built in F0-10.
 
 ## Acceptance Criteria
-- [ ] `AppError { code, message, field? }` in `loaf-core`; codes `VALIDATION`, `NOT_FOUND`, `INVALID_TRANSITION`, `CONFLICT`, `DB`, `IO`, `INTERNAL`; serializes to `{ code, message, field? }`
+- [ ] `AppError { code, message, field? }` in `pluto-core`; codes `VALIDATION`, `NOT_FOUND`, `INVALID_TRANSITION`, `CONFLICT`, `DB`, `IO`, `INTERNAL`; serializes to `{ code, message, field? }`
 - [ ] Every error `message` is user-readable and follows the tone rules in UI brief §2 (what happened, what is still safe)
 - [ ] `tracing` writes to a rolling file in the OS app-data `logs/` directory: **5 files × 2 MB**. `tracing-appender` rotates by time only, so size-based rotation is a small in-house writer (under the dependency rule's 2-hour threshold)
 - [ ] No log line at `info` or above contains note, task or meeting content (TRD §6.9); a test enforces it on the logging macros wrapper

@@ -98,7 +98,7 @@ Common to every spec: **12 Docs** = spec + checklist, FEATURE_ROADMAP, ROADMAP, 
 **1 Metadata** — Group: Privacy · Status: Planned · Milestone: FM-V2 · Effort: M · Decision: Q3 open · Origin: V2-06.
 **2 Story** — I choose how long my data is kept; older data is removed automatically.
 **3 Behaviour** — Settings → Privacy → "Keep data for": per type (Activity/time history, Meetings, Completed tasks, Bin). Options Never delete, 30 days, 90 days, 6 months, 1 year. Shows "N items would be removed" before enabling. Runs daily at startup; items go to the Bin first (except Bin and activity, which are removed). Notes are excluded unless the owner asks.
-**4 Plain language** — Tell Loaf how long to keep things; it cleans up for you.
+**4 Plain language** — Tell Pluto how long to keep things; it cleans up for you.
 **5 Technical** — Core job in the db writer using the clock module; settings keys `retention.<type>`; a dry-run count query; a summary event to show in a toast. Backup rule: nothing is deleted before the preview has been shown once.
 **6 Choices** — Delete vs Bin-first: Bin-first for user content. Run at startup vs timer: startup plus midnight rollover (already exists).
 **7 Tasks** — 1 settings keys and validation · 2 dry-run queries · 3 purge job · 4 UI · 5 tests with fake clock.
@@ -234,12 +234,12 @@ Common to every spec: **12 Docs** = spec + checklist, FEATURE_ROADMAP, ROADMAP, 
 ## FR-54 — Local MCP server and agent integration
 
 **1 Metadata** — Group: Integrations · Status: Planned · Milestone: FM-INT · Effort: XL · Decisions: D-MCP-SHAPE open · Origin: owner 2026-10-22.
-**2 Story** — My local AI tools (Claude Code, editors) can talk to Loaf on my PC, and nothing else can.
-**3 Behaviour** — Loaf can run a local MCP server (off by default) that offers tools: `loaf_status`, `loaf_react` (thinking, editing, testing, success, error), `loaf_say` (toast, not a bubble), `loaf_add_task`, `loaf_search_notes` (read tools off unless allowed). Each tool needs a user-approved permission per client.
+**2 Story** — My local AI tools (Claude Code, editors) can talk to Pluto on my PC, and nothing else can.
+**3 Behaviour** — Pluto can run a local MCP server (off by default) that offers tools: `pluto_status`, `pluto_react` (thinking, editing, testing, success, error), `pluto_say` (toast, not a bubble), `pluto_add_task`, `pluto_search_notes` (read tools off unless allowed). Each tool needs a user-approved permission per client.
 **4 Plain language** — Your coding assistant can make the pet react, and ask your permission to add a task.
-**5 Technical** — Two options: stdio (the client launches `loaf-mcp`, which talks to the app over a local socket) or local HTTP on 127.0.0.1 with a random token. Recommended: stdio client + named pipe/Unix socket: no open port. Loopback-only, token or OS-user check, no remote binding. Rust crate with an MCP SDK (check licence) or a thin implementation.
+**5 Technical** — Two options: stdio (the client launches `pluto-mcp`, which talks to the app over a local socket) or local HTTP on 127.0.0.1 with a random token. Recommended: stdio client + named pipe/Unix socket: no open port. Loopback-only, token or OS-user check, no remote binding. Rust crate with an MCP SDK (check licence) or a thin implementation.
 **6 Choices** — HTTP loopback (easy for clients, port exposed to other local processes, browsers could reach it) vs stdio + socket (safer, slightly more setup). OpenPets uses MCP the same way ([Likely]).
-**7 Tasks** — 1 decision (D-MCP-SHAPE) · 2 socket server · 3 tool set · 4 permission prompts · 5 `loaf-mcp` bin · 6 docs for client config.
+**7 Tasks** — 1 decision (D-MCP-SHAPE) · 2 socket server · 3 tool set · 4 permission prompts · 5 `pluto-mcp` bin · 6 docs for client config.
 **8 Tests** — T-54-01 Rust: refuses non-local · T-54-02 Rust: unpermitted tool denied · T-54-03 Rust: add_task through the writer · T-54-04 Manual-Win: Claude Code connects.
 **9 Edge cases** — Two clients; app closed; DNS rebinding if HTTP; prompt injection from tool text (tool output is data).
 **10 Acceptance** — Cannot be reached from the network; every write needs approval.
@@ -251,8 +251,8 @@ Common to every spec: **12 Docs** = spec + checklist, FEATURE_ROADMAP, ROADMAP, 
 ## FR-55 — Plugins from the website
 
 **1 Metadata** — Group: Platform · Status: Planned · Milestone: FM-PLUG · Effort: XL · Decisions: D-PLUGIN-MODEL, signing on hold · Origin: owner 2026-10-22.
-**2 Story** — I can download a plugin from the Loaf website and install it.
-**3 Behaviour** — Plugin = `.loafplugin` archive: `plugin.json` (id, version, name, permissions, pages), code and assets. Install by double-click or drag into Plugins settings. A permission sheet lists what it asks for; the user approves. Plugins can add a sidebar page, a pet reaction, a scheduled job, storage. They cannot run scripts in the pet window or reach the network except declared hosts.
+**2 Story** — I can download a plugin from the Pluto website and install it.
+**3 Behaviour** — Plugin = `.plutoplugin` archive: `plugin.json` (id, version, name, permissions, pages), code and assets. Install by double-click or drag into Plugins settings. A permission sheet lists what it asks for; the user approves. Plugins can add a sidebar page, a pet reaction, a scheduled job, storage. They cannot run scripts in the pet window or reach the network except declared hosts.
 **4 Plain language** — Add-ons you download and approve.
 **5 Technical** — Model like OpenPets (sandboxed window per plugin, declared permissions, host-limited network, no raw HTML in the pet window) [Likely]. Our approach: sandboxed iframe or separate webview with a message-passing API; manifest validated in Rust; archive size limit, path traversal guard, hash shown at install. **Code signing is on hold**: until it exists, installs show an "unverified publisher" warning and the website lists a SHA-256.
 **6 Choices** — WebView sandbox (fast to build, JS-only) vs WASM (stronger isolation, much more work). Start with WebView sandbox and a tiny permission set.
@@ -286,9 +286,9 @@ Common to every spec: **12 Docs** = spec + checklist, FEATURE_ROADMAP, ROADMAP, 
 ## FR-57 — Linux build
 
 **1 Metadata** — Group: Release · Status: Planned · Milestone: FM-LIN · Effort: M · Origin: owner 2026-10-22.
-**2 Story** — I can install Loaf on Linux.
+**2 Story** — I can install Pluto on Linux.
 **3 Behaviour** — AppImage and .deb from CI. Tray, autostart and global shortcuts depend on the desktop (Wayland limits global shortcuts and always-on-top).
-**4 Plain language** — Loaf for Linux, with some pet features limited on Wayland.
+**4 Plain language** — Pluto for Linux, with some pet features limited on Wayland.
 **5 Technical** — Add an ubuntu job to the build matrix; Tauri bundles AppImage/deb; test tray (libayatana-appindicator); document Wayland caveats; the activity collector needs an X11 path first, Wayland later.
 **6 Choices** — AppImage (portable) first, .deb second, Flatpak later.
 **7 Tasks** — 1 CI job · 2 bundle config · 3 collector stub for Linux · 4 caveats doc.

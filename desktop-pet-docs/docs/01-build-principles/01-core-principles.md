@@ -48,7 +48,7 @@ on_event(NoteEdited) → update_ui()
 - Deciding on refresh rate (30 FPS not 60)
 - Caching strategy (lazy-load not preload)
 
-**Test:** Launch Loaf, let it sit idle for 1 hour. Check Activity Monitor / Task Manager. If idle CPU is >1%, investigate.
+**Test:** Launch Pluto, let it sit idle for 1 hour. Check Activity Monitor / Task Manager. If idle CPU is >1%, investigate.
 
 ## Principle 3: Local-First Data
 

@@ -6,7 +6,7 @@
 
 ## Problem
 
-Loaf targets <100 MB RAM budget. Windows hello-world measurement showed:
+Pluto targets <100 MB RAM budget. Windows hello-world measurement showed:
 - **Private bytes:** 105 MB (exceeds budget)
 - **Private working set:** 32 MB (within budget)
 - **macOS:** 47.5 MB (within budget)

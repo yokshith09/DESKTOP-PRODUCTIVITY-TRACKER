@@ -9,7 +9,7 @@ import { Notices } from "@/components/Notices";
 import { useAutoDelete } from "@/features/settings/autoDelete";
 import { setPetShown } from "@/lib/notify";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useBin, useBusSync, useLabels, useNoteActions, useNotes, useSettings } from "@/hooks/useLoaf";
+import { useBin, useBusSync, useLabels, useNoteActions, useNotes, useSettings } from "@/hooks/usePluto";
 import { useAgenda } from "@/features/overview/TodayAgenda";
 import { useTheme } from "@/hooks/useTheme";
 import { ipc, onCommand, type NoteSort } from "@/ipc";
@@ -183,7 +183,7 @@ function Screen() {
             {page === "study" && <StudyPage />}
             {page === "diary" && <DiaryPage />}
             {page === "time" && <TimePage />}
-            {page === "mcp" && <ComingSoon icon={<Plug />} title="MCP" description="Connect external tools and services to Loaf through the Model Context Protocol. This arrives in a later release." />}
+            {page === "mcp" && <ComingSoon icon={<Plug />} title="MCP" description="Connect external tools and services to Pluto through the Model Context Protocol. This arrives in a later release." />}
           </div>
         </main>
       </div>

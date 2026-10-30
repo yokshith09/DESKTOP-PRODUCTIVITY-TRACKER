@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "pet",
-  "description": "Pet window: listens to bus events and can be dragged. Everything else goes through Loaf's own commands.",
+  "description": "Pet window: listens to bus events and can be dragged. Everything else goes through Pluto's own commands.",
   "windows": ["pet"],
   "permissions": [
     "core:event:default",

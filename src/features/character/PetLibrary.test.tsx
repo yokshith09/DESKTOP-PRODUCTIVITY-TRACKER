@@ -9,7 +9,7 @@ import { ROW_FOR_POSE, SPRITE_ROWS, SpritePet, frameAt } from "./SpritePet";
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 const boba: PetPack = { id: "boba", display_name: "Boba", description: "", rows: 9, format: "webp", source: "codex", reactions: {} };
-const mine: PetPack = { id: "pip", display_name: "Pip", description: "", rows: 9, format: "webp", source: "loaf", reactions: {} };
+const mine: PetPack = { id: "pip", display_name: "Pip", description: "", rows: 9, format: "webp", source: "pluto", reactions: {} };
 
 function renderLibrary(settings: Record<string, unknown> = { "pet.pack": null }) {
   vi.spyOn(ipc, "settingsGetAll").mockResolvedValue(settings as never);
@@ -44,7 +44,7 @@ describe("pet library", () => {
     renderLibrary();
     expect(await screen.findByText("Boba")).toBeTruthy();
     expect(screen.getByText(/From Codex \/ Petdex/)).toBeTruthy();
-    // Codex's own packs can't be removed from Loaf; imported ones can.
+    // Codex's own packs can't be removed from Pluto; imported ones can.
     expect(screen.queryByRole("button", { name: "Remove Boba" })).toBeNull();
     expect(screen.getByRole("button", { name: "Remove Pip" })).toBeTruthy();
     fireEvent.click(screen.getAllByRole("button", { name: "Use" })[0] as HTMLElement);

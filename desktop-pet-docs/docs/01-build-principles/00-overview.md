@@ -2,9 +2,9 @@
 
 > **Status: 🔒 LOCKED** — v1.0, 2026-10-02. Changes require a written amendment at the bottom of this file.
 
-**Loaf is built one small feature at a time. Never ship big features. Ship small, complete, tested, usable pieces.**
+**Pluto is built one small feature at a time. Never ship big features. Ship small, complete, tested, usable pieces.**
 
-This document set provides the operational playbook for building Loaf from foundation through full product.
+This document set provides the operational playbook for building Pluto from foundation through full product.
 
 ## Core Philosophy
 

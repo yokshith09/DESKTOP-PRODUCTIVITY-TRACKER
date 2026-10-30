@@ -10,7 +10,7 @@ describe("messages in the dashboard while the pet is hidden", () => {
     vi.useFakeTimers();
     const said: unknown[] = [];
     const listen = (e: Event) => said.push((e as CustomEvent).detail);
-    window.addEventListener("loaf-pet-say", listen);
+    window.addEventListener("pluto-pet-say", listen);
     render(<Notices />);
     act(() => notify.success("Task saved"));
     expect(said).toHaveLength(1);
@@ -28,6 +28,6 @@ describe("messages in the dashboard while the pet is hidden", () => {
     expect(screen.getAllByRole("status")).toHaveLength(3);
     act(() => { vi.advanceTimersByTime(6000); });
     expect(screen.queryAllByRole("status")).toHaveLength(0);
-    window.removeEventListener("loaf-pet-say", listen);
+    window.removeEventListener("pluto-pet-say", listen);
   });
 });

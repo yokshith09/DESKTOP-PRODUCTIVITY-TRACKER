@@ -1,6 +1,6 @@
-# Loaf — Master plan (phases, milestones, features)
+# Pluto — Master plan (phases, milestones, features)
 
-> **Owner's 2026-10-28 list (progress):** phases 1-3 built, all Unverified on a real PC. Phase 1 (notes delete, quick add, calmer task editor, narrow focus timer, right-click menu), phase 2 (fullscreen hiding, Character page tiles, stretch and water reminders, every delete asks first), phase 3 (research, per-character reactions + one special each, alignment checker and our five characters rebuilt through it, `loaf-character` skill: name + picture in, one ZIP out). **Next:** T13 production-readiness audit, trivia is built (first-launch tour + Learn Loaf quiz + roles, 2026-10-28), T15 character design briefs, then the student release (P2). Owner still to test and then say "push" / the next version.
+> **Owner's 2026-10-28 list (progress):** phases 1-3 built, all Unverified on a real PC. Phase 1 (notes delete, quick add, calmer task editor, narrow focus timer, right-click menu), phase 2 (fullscreen hiding, Character page tiles, stretch and water reminders, every delete asks first), phase 3 (research, per-character reactions + one special each, alignment checker and our five characters rebuilt through it, `pluto-character` skill: name + picture in, one ZIP out). **Next:** T13 production-readiness audit, trivia is built (first-launch tour + Learn Pluto quiz + roles, 2026-10-28), T15 character design briefs, then the student release (P2). Owner still to test and then say "push" / the next version.
 
 > **Re-planned 2026-10-29 (owner):** next milestone is **MCP** (P4 Developer & MCP); Voice is its own phase for a second developer (P6); the small features are one phase (P5); P3 Characters waits. See "Order from 2026-10-29" below. P2 Student release is complete in code (Unverified on a real PC; mood faces dropped as optional).
 
@@ -28,7 +28,7 @@ This is the one page that says **what we build, in what order, and when each thi
 | **P1 Fix & polish** | Everything the owner reported in V2 works | FM-V2 | All 16 V2 issues closed and run on Windows |
 | **P2 Student release** | A student can plan, study and track a semester | FM-ST, FM-GUIDE, M8 | Student pack + guide + focus shipped as v0.3.0 |
 | **P3 Characters** | Pets look alive, customisable, compatible with OpenPets packs | FM-CS, M6, M13 | Studio + packs + accessories + emotes shipped as v0.4.0 |
-| **P4 Developer & MCP** (NEXT) | Loaf works with a developer's tools | MCP server (FM-INT) first, then FR-76, M12, FM-PS | MCP page live, pet reacts to a real coding assistant; v0.6.0 |
+| **P4 Developer & MCP** (NEXT) | Pluto works with a developer's tools | MCP server (FM-INT) first, then FR-76, M12, FM-PS | MCP page live, pet reacts to a real coding assistant; v0.6.0 |
 | **P5 Small features pack** | Quick wins in one phase | M4, FR-72, FR-73, M11, FR-74 (.ics) | Five features shipped; v0.7.0 |
 | **P6 Voice** (second developer) | Speak a task or note | M9 | Held-key dictation works on-device; v0.8.0 |
 | **P7 Reach** | Linux, languages, LAN | FM-LIN, FR-81, FR-79, FR-78 | Linux build and Hindi + Telugu; v0.9.0 |
@@ -111,11 +111,11 @@ Tour of each tab on first run, skippable at any step; Guide page in Settings; cr
 | Feature | Defined as | Done when | Status |
 |---|---|---|---|
 | Sprite packs (FR-50) | OpenPets/Codex V1 format: `pet.json` + `spritesheet.webp`, 8×9 cells of 192×208, rows idle…review | 5 packs load in OpenPet/OpenPets on Windows | **Built, Unverified** (all rows drawn) |
-| Pack import | Import any Codex/OpenPets pack (ZIP or folder), validate, preview | A downloaded pack runs as the Loaf pet | Planned |
+| Pack import | Import any Codex/OpenPets pack (ZIP or folder), validate, preview | A downloaded pack runs as the Pluto pet | Planned |
 | Studio preview | Row picker plays each row at its real timing | All 9 rows play | Planned |
 | Accessories as **wardrobe outfits** (FR-49) | Hat, glasses, scarf, bow, headphones drawn per character; saved as OpenPets `wardrobe` outfits with optional schedule (e.g. scarf in winter) | Outfit switches live and by schedule | Planned |
 | Cursor gaze (FR-59) | V2 format: 2 extra rows, 16 look directions | Pet eyes follow the cursor | Planned |
-| Import any OpenPets/Codex pack (FR-63) | ZIP/folder/drag-drop, validated, preview, Codex folder scan | A real OpenPets pack runs in Loaf | **Partial, Unverified**: folder import, `~/.codex/pets` scan, preview, use as pet built; ZIP and drag-drop to do |
+| Import any OpenPets/Codex pack (FR-63) | ZIP/folder/drag-drop, validated, preview, Codex folder scan | A real OpenPets pack runs in Pluto | **Partial, Unverified**: folder import, `~/.codex/pets` scan, preview, use as pet built; ZIP and drag-drop to do |
 | Wardrobe with schedules (FR-64) | Outfits incl. graduation cap, pajamas; time/day/date rules | Outfit changes on schedule; loads in OpenPets | Planned |
 | Pet gallery (FR-66) | Static catalog on **GitHub Pages** (owner-approved), install with one click, hash-checked | Install works; no request until opened | Planned |
 | Export pack | Export the current character (+ outfits) as a pack ZIP | ZIP passes OpenPets validation | Planned |
@@ -150,11 +150,11 @@ LATER      P3 Characters (rest) · P8 AI (on hold) · P9 Online (on hold)
 
 ## P4 — Developer & MCP (NEXT; release v0.6.0)
 
-**In plain words:** Loaf stops being an island. Coding assistants and other tools on your PC can talk to your pet and your work, and developers get a project home. Everything is opt-in, off by default and local only: no network port is ever opened.
+**In plain words:** Pluto stops being an island. Coding assistants and other tools on your PC can talk to your pet and your work, and developers get a project home. Everything is opt-in, off by default and local only: no network port is ever opened.
 
 | # | Milestone | What you would see | How it is built | Done when |
 |---|---|---|---|---|
-| 1 | **MCP server (FM-INT, FR-54), the next milestone** | The **MCP** page in the sidebar (today "coming soon") becomes real: one switch, a copy-paste config line for your tool, the current connection, and a log of what asked for what. | Approved shape (2026-10-22): **stdio plus a named pipe with a per-run token; no open port.** Tools: `status` (what Loaf is doing), `react` (make the pet play a reaction), `say` (a bubble). A later step adds read-only task and note lookups only if you ask. Core stays free of Tauri: the server logic lives in `loaf-core`, the pipe in the shell. | A real MCP client connects, lists the three tools, makes the pet react; a wrong token is refused; switching it off closes the pipe. Windows tested by you, macOS only in CI. |
+| 1 | **MCP server (FM-INT, FR-54), the next milestone** | The **MCP** page in the sidebar (today "coming soon") becomes real: one switch, a copy-paste config line for your tool, the current connection, and a log of what asked for what. | Approved shape (2026-10-22): **stdio plus a named pipe with a per-run token; no open port.** Tools: `status` (what Pluto is doing), `react` (make the pet play a reaction), `say` (a bubble). A later step adds read-only task and note lookups only if you ask. Core stays free of Tauri: the server logic lives in `pluto-core`, the pipe in the shell. | A real MCP client connects, lists the three tools, makes the pet react; a wrong token is refused; switching it off closes the pipe. Windows tested by you, macOS only in CI. |
 | 2 | **Coding-agent link (FR-76, moved here from the old P7)** | When Claude Code, Cursor and similar assistants start, think or finish, your pet shows it (working pose, "done" cheer, "needs you" bubble). | Small hook scripts that call the MCP `react`/`say` tools; one config line per assistant, generated for you. | Works with one real assistant end to end; nothing is sent anywhere. |
 | 3 | **Developer reactions (M12)** | The pet reacts to a git commit, a local build finishing or failing, and CI going red or green. | Watches the folders you choose (git state only, never source); CI needs a token you add yourself, without it that part is simply off. | Reactions fire on a test repository. |
 | 4 | **Project Spaces (FM-PS, FR-53)** | A **Projects** item (opt-in): each project has its own notes, tasks, links and files; a project can have its own pet (FR-67). | A project is a row that notes and tasks point to, like courses; files are links to paths on your disk, never copies. | Turn it on, make a project, see only its things; turn it off, nothing is lost. |
@@ -186,7 +186,7 @@ LATER      P3 Characters (rest) · P8 AI (on hold) · P9 Online (on hold)
 | Milestone M9 | Push-to-talk → text → one of: add a task, add a note, search. A confirmation chip shows what was understood before it is saved. |
 | Privacy (non-negotiable) | The speech engine runs **on your PC**; audio is never sent anywhere and never stored. Off by default. The microphone is opened only while the key is held. |
 | Open choice | Which local speech engine (small, permissively licensed, works offline on Windows and macOS). The developer proposes two with a spike (size, accuracy, speed) and the owner picks. |
-| **Contract with the rest of Loaf** | Voice only calls commands that already exist (`task_quick_add`, `note_create`, search). It adds one Rust module, one UI folder (`src/features/voice`), one setting key and one shortcut. It does not change existing screens or tables, so it cannot collide with P4 or P5. |
+| **Contract with the rest of Pluto** | Voice only calls commands that already exist (`task_quick_add`, `note_create`, search). It adds one Rust module, one UI folder (`src/features/voice`), one setting key and one shortcut. It does not change existing screens or tables, so it cannot collide with P4 or P5. |
 | Handoff rules for the second developer | Read `CLAUDE.md` and `PROJECT_STATUS.md` §9 first; work on a branch and open a pull request, never push to `main`; tests with every change; mark anything that needs a real PC **Unverified**; record choices as one line in `DECISIONS.md`; run `pnpm typecheck && pnpm lint && pnpm test` and the Rust checks before asking for review. |
 | Done when | Held-key dictation creates a task and a note on Windows (owner tested) and macOS builds in CI; microphone permission denied is handled with a clear message. |
 
@@ -196,7 +196,7 @@ LATER      P3 Characters (rest) · P8 AI (on hold) · P9 Online (on hold)
 
 | Milestone | What you would see | Honest risk |
 |---|---|---|
-| **FM-LIN (FR-57) + Wayland (FR-81)** | Loaf installs on Linux (AppImage and .deb), including Wayland. | Always-on-top and transparent windows are weaker on Wayland. Stays Unverified until run on real Linux. |
+| **FM-LIN (FR-57) + Wayland (FR-81)** | Pluto installs on Linux (AppImage and .deb), including Wayland. | Always-on-top and transparent windows are weaker on Wayland. Stays Unverified until run on real Linux. |
 | **Languages (FR-79)** | A language picker, **Hindi and Telugu first**, then the rest. | Every screen's text moves into translation files; a native reader must check the wording. |
 | **LAN mode (FR-78)** | The pet walks between your own PCs on the same network. | Last and off by default; the only item that opens a network door, so it needs its own privacy review first. |
 
@@ -230,7 +230,7 @@ Closed 2026-10-22: open source (MIT) · plugins = art packs only · MCP shape ap
 
 ## OpenPets parity — every feature they have, where it lands
 
-| OpenPets feature | Loaf ID | Phase |
+| OpenPets feature | Pluto ID | Phase |
 |---|---|---|
 | Sprite packs (V1) | FR-50 | P3 (built, Unverified) |
 | Cursor gaze (V2) | FR-59 | P3 |
@@ -257,7 +257,7 @@ Closed 2026-10-22: open source (MIT) · plugins = art packs only · MCP shape ap
 | Vocabulary drag & drop, Usage Buddy | FR-82 | P2 |
 | Spotify Buddy, Higgsfield Watch | — | Not copied (low value) |
 
-**What Loaf has that OpenPets does not:** notes, tasks, meetings, daily progress, app/website time tracking, privacy radar, student pack, Project Spaces, typing-along pet, hand-drawn built-in characters (5 vs their 1), Tauri (lighter than Electron).
+**What Pluto has that OpenPets does not:** notes, tasks, meetings, daily progress, app/website time tracking, privacy radar, student pack, Project Spaces, typing-along pet, hand-drawn built-in characters (5 vs their 1), Tauri (lighter than Electron).
 
 ---
 

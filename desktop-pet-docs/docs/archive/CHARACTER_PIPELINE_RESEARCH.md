@@ -53,7 +53,7 @@ Nothing here has been run on Windows or macOS. Anything about the pet window on 
 - **[Fact]** Idle CPU target < 1 %, RAM < 100 MB (`CLAUDE.md`, PROJECT_STATUS). Sprite playback must pause when the pet is hidden or asleep.
 - **[Fact]** Transparent, always-on-top window. Transparency and layering are the parts most likely to differ between Windows and macOS. **Unverified** on both.
 - **[Fact]** Local-first, no network by default. A personalised pipeline must not upload a photo unless the user opts in (PRD / decisions).
-- **[Fact]** Core crate has no Tauri dependency (`pnpm check:core-deps`). Any package parser belongs in `loaf-core`; file access belongs in the shell.
+- **[Fact]** Core crate has no Tauri dependency (`pnpm check:core-deps`). Any package parser belongs in `pluto-core`; file access belongs in the shell.
 
 ### 1.4 Supported animation states today
 
@@ -102,7 +102,7 @@ Verified on **2026-10-21** from cloned repos (shallow clones in the session scra
 
 **[Recommendation]** Keep the **app runtime** small and fixed: a package loader plus a player in the webview. Use external tools only **offline, at build or import time**, and write their outputs into our package format (§6).
 
-- Frame extraction, atlas checks and contact-sheet QA: borrow the **logic** of hatch-pet's Python scripts (Apache-2.0, keep the NOTICE and licence). Reimplement in `loaf-core` if we want no Python dependency; that is an assumption, not measured.
+- Frame extraction, atlas checks and contact-sheet QA: borrow the **logic** of hatch-pet's Python scripts (Apache-2.0, keep the NOTICE and licence). Reimplement in `pluto-core` if we want no Python dependency; that is an assumption, not measured.
 - Rive files: authored in the Rive Editor by a person, shipped as `.riv` assets. The runtime reads them; no generation needed.
 - Generation models: **not chosen**. Owner decision (§10, D-GEN).
 
@@ -223,7 +223,7 @@ Frame rate for all sprite states: **12 fps** (8 fps allowed for sleep). Loops an
 
 ## 6. Reusable asset format (proposal)
 
-**[Recommendation]** A versioned folder, zipped as `.loafpack` for sharing (FR-03). Independent of any generator.
+**[Recommendation]** A versioned folder, zipped as `.plutopack` for sharing (FR-03). Independent of any generator.
 
 ```text
 my-character/
@@ -240,10 +240,10 @@ my-character/
 
 ```json
 {
-  "format": "loaf-character",
+  "format": "pluto-character",
   "schema_version": 1,
-  "id": "loaf.bear",
-  "name": "Loaf the bear",
+  "id": "pluto.bear",
+  "name": "Pluto the bear",
   "version": "1.0.0",
   "canvas": { "width": 256, "height": 256 },
   "anchor": { "x": 128, "y": 240 },
@@ -263,7 +263,7 @@ my-character/
 }
 ```
 
-**Validation rules (enforced in `loaf-core`, tested):**
+**Validation rules (enforced in `pluto-core`, tested):**
 
 - `schema_version` supported; unknown major = refuse with a clear message.
 - Every referenced file exists; every file's `sha256` matches; no path escapes the folder (no `..`, no absolute paths, no symlinks).
@@ -290,20 +290,20 @@ my-character/
 
 ### 7.1 Scope
 
-- Characters: **(1)** the existing Loaf bear, exported from its SVG poses to frames (tests the pipeline on known art); **(2)** and **(3)** two new characters designed by the owner or built with an approved generator (D-GEN).
+- Characters: **(1)** the existing Pluto bear, exported from its SVG poses to frames (tests the pipeline on known art); **(2)** and **(3)** two new characters designed by the owner or built with an approved generator (D-GEN).
 - Animations per character: idle, blink, sleep, one reaction, one focus state (§5).
 - **Not in scope:** public generation service, upload UI, Rive production path, 3D.
 
 ### 7.2 Tools and setup
 
-- Node/pnpm (existing), `loaf-core` (existing), a small PNG validator in Rust (`image` crate **[Assumption]** license MIT/Apache-2.0; to be checked), Pillow (Python, only if we borrow hatch-pet scripts; not a runtime dependency).
+- Node/pnpm (existing), `pluto-core` (existing), a small PNG validator in Rust (`image` crate **[Assumption]** license MIT/Apache-2.0; to be checked), Pillow (Python, only if we borrow hatch-pet scripts; not a runtime dependency).
 - Rive trial (§3.3) on character (1) only, separate branch of work.
 
 ### 7.3 Generation and rendering workflow
 
 1. Source art (SVG poses or generated sheets) → PNG frames at the canvas size.
 2. Build `manifest.json` (script) and checksums.
-3. `loaf-core` validates the package (§6).
+3. `pluto-core` validates the package (§6).
 4. Shell loads the package through a Tauri command that returns frames via the asset protocol (**Unverified** on Windows and macOS).
 5. Webview sprite player (timer, pause rules, §5) renders into the pet window.
 6. Character page shows the same package for preview.
@@ -311,13 +311,13 @@ my-character/
 ### 7.4 Input and output formats
 
 - In: SVG poses or PNG sheets (RGBA), JSON state map.
-- Out: `loaf-character` folder or `.loafpack`; validation report (JSON); contact sheet PNG per character (for QA).
+- Out: `pluto-character` folder or `.plutopack`; validation report (JSON); contact sheet PNG per character (for QA).
 
 ### 7.5 Implementation tasks and effort
 
 | # | Task | Effort | Notes |
 |---|---|---|---|
-| T1 | Freeze manifest v1 and validation rules; tests | M | `loaf-core` |
+| T1 | Freeze manifest v1 and validation rules; tests | M | `pluto-core` |
 | T2 | Export bear poses to frames (script) | S | Tests against SVG render |
 | T3 | Package loader in shell + asset protocol | M | Windows + macOS check |
 | T4 | Sprite player in pet window (pause rules) | M | Replaces SVG only behind a flag |
@@ -338,7 +338,7 @@ my-character/
 
 | Level | Test | Command / place |
 |---|---|---|
-| Unit | Manifest parse; unsupported `schema_version` refused | `cargo test --workspace` (`loaf-core`) |
+| Unit | Manifest parse; unsupported `schema_version` refused | `cargo test --workspace` (`pluto-core`) |
 | Unit | Path traversal, absolute path, symlink refused | `cargo test` |
 | Unit | Checksum mismatch refused | `cargo test` |
 | Unit | Frame dimension mismatch refused; missing `idle` refused | `cargo test` |
@@ -404,7 +404,7 @@ Non-square images; transparent-background failures; very small or very large sou
 
 - **Personalised characters (FR-02/FR-03):** the same package and states; a new source adapter and a generation or deformation step behind an opt-in flag.
 - **3D:** not in scope. Sprite packs do not carry 3D data; a 3D character would need a separate format and a renderer (large effort, not recommended before 2D is in use).
-- **Packs and sharing:** `.loafpack` as the sharing format; online gallery needs a backend (FR-31, blocked).
+- **Packs and sharing:** `.plutopack` as the sharing format; online gallery needs a backend (FR-31, blocked).
 
 ---
 
@@ -523,7 +523,7 @@ Spec: [EMOTE_FEATURE_SPECS.md](EMOTE_FEATURE_SPECS.md). This section answers: ca
 
 **Finding 1 [Certain, from reading `src/features/shell/Bear.tsx`]:** the bear is one front-facing inline SVG (`viewBox 0 0 200 200`) with 13 poses (`idle, wave, sleep, work, type, wait, stow, cheer, party, catch, worried, ring, toss`). Arms have a `side: "l"|"r"` helper only. There is **no back view, profile or three-quarter view.** A CSS horizontal flip shows the *front* mirrored, so it must not be used to imitate a turn.
 
-**Finding 2 [Certain, from CH-01]:** the proposed `loaf-character` package can hold any frames per state, so it *can* carry back and three-quarter frames, but needs a manifest `pose_tags` field (not yet defined) and the frames must be drawn. The format does not generate them.
+**Finding 2 [Certain, from CH-01]:** the proposed `pluto-character` package can hold any frames per state, so it *can* carry back and three-quarter frames, but needs a manifest `pose_tags` field (not yet defined) and the frames must be drawn. The format does not generate them.
 
 **Finding 3 [Likely]:** a personal character from one photo (CH-05) shows one view; it has no back and no three-quarter pose, so `back_turn_shake` is permanently unavailable there. Do not invent a back from a front photo without a generative model, and generative models are out (no GPU, owner 2026-10-22).
 

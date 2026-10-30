@@ -1,4 +1,4 @@
-# Loaf — Implementation Plan (Phase 0 + Phase 1)
+# Pluto — Implementation Plan (Phase 0 + Phase 1)
 
 **Milestone:** D7 · **Version:** 1.2 · **Date:** 2026-10-03 · **Status:** 🔒 LOCKED (approved 2026-10-03)
 **Derives from:** PRD (D2 v1.4), TRD (D3 v1.2), App Flow (D4 v1.2), UI/UX Brief (D5 v1.2), Schema (D6 v1.2), Build Principles (D1)
@@ -53,7 +53,7 @@ Order matters: each feature depends only on those above it.
 | ID | Feature | Days | Depends | Acceptance (summary) |
 |----|---------|-----:|---------|----------------------|
 | F0-01 | Tauri v2 + React/TS/Vite scaffold; builds on Win + macOS; **V-1** | 1.5 | — | Signed-off dev build runs on both OSes; oldest macOS result recorded |
-| F0-02 | CI matrix (fmt, clippy, tests, coverage, build) **+ preliminary V-2 RAM job** (ADR-018) | 1.5 | F0-01 | PR runs green on `windows-latest` + `macos-latest`; `v2-ram` job reports the summed RAM of all Loaf processes (incl. webview children) per OS in the run summary and as an artifact |
+| F0-02 | CI matrix (fmt, clippy, tests, coverage, build) **+ preliminary V-2 RAM job** (ADR-018) | 1.5 | F0-01 | PR runs green on `windows-latest` + `macos-latest`; `v2-ram` job reports the summed RAM of all Pluto processes (incl. webview children) per OS in the run summary and as an artifact |
 | F0-13 | Error model (`AppError`), `tracing` logs, panic hook | 1.0 | F0-01 | Errors serialize to `{code,message}`; crash file written locally |
 | F0-03 | Event enum + broadcast bus + lag handling | 1.5 | F0-13 | Unit tests: publish/subscribe, lag → resync path |
 | F0-04 | DB open, PRAGMAs, migration runner, backup-before-migrate, `quick_check`, migration 001 | 1.5 | F0-13 | Fresh DB at OS path; **runner owns the transaction and sets `user_version=1`**; lint rejects a migration file that opens its own transaction or writes `user_version` (Schema §5 regex — must not false-positive on `CREATE TRIGGER … BEGIN … END`); failed migration leaves original intact (test) |

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { fromLocalInput, toLocalInput } from "@/lib/time";
-import { useReminderActions } from "@/hooks/useLoaf";
+import { useReminderActions } from "@/hooks/usePluto";
 
 function atHour(daysAhead: number, hour: number): number {
   const d = new Date();

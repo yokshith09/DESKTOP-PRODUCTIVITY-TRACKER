@@ -1,5 +1,5 @@
-//! Loaf desktop shell. Thin by design: windows, tray and OS integration live
-//! here; logic lives in `loaf-core` (ADR-002).
+//! Pluto desktop shell. Thin by design: windows, tray and OS integration live
+//! here; logic lives in `pluto-core` (ADR-002).
 
 mod autostart;
 mod ipc;
@@ -18,20 +18,20 @@ mod typing;
 
 use std::sync::Arc;
 
-use loaf_core::bus::{EventBus, Recv};
-use loaf_core::clock::{Clock, SystemClock};
-use loaf_core::db::Database;
-use loaf_core::events::Event;
-use loaf_core::notes;
-use loaf_core::reminders::{self, ReminderScheduler};
-use loaf_core::scheduler::{DbLastSeen, Scheduler};
-use loaf_core::settings_service::SettingsService;
-use loaf_core::usage::{self, UsageService};
+use pluto_core::bus::{EventBus, Recv};
+use pluto_core::clock::{Clock, SystemClock};
+use pluto_core::db::Database;
+use pluto_core::events::Event;
+use pluto_core::notes;
+use pluto_core::reminders::{self, ReminderScheduler};
+use pluto_core::scheduler::{DbLastSeen, Scheduler};
+use pluto_core::settings_service::SettingsService;
+use pluto_core::usage::{self, UsageService};
 use tauri::{AppHandle, Emitter, Manager, RunEvent, WindowEvent};
 use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 /// What the dashboard window remembers between runs: size, place, maximized. Not whether it was
-/// showing (Loaf decides that at startup: hidden for `--hidden`, shown otherwise).
+/// showing (Pluto decides that at startup: hidden for `--hidden`, shown otherwise).
 fn window_state_flags() -> StateFlags {
     StateFlags::all() - StateFlags::VISIBLE
 }
@@ -40,9 +40,9 @@ fn window_state_flags() -> StateFlags {
 /// and tells the page so it drops what it shows. The text never stays readable behind a hidden window.
 pub(crate) fn lock_diary<R: tauri::Runtime>(app: &AppHandle<R>) {
     if let Some(core) = app.try_state::<Core>() {
-        loaf_core::diary::lock(&core.diary);
+        pluto_core::diary::lock(&core.diary);
     }
-    let _ = app.emit_to("main", "loaf://command", "diary-locked");
+    let _ = app.emit_to("main", "pluto://command", "diary-locked");
 }
 
 /// What the shell needs at shutdown.
@@ -51,7 +51,7 @@ pub(crate) struct Core {
     pub(crate) bus: EventBus,
     pub(crate) clock: Arc<SystemClock>,
     /// The diary key, in memory only while unlocked.
-    pub(crate) diary: loaf_core::diary::Diary,
+    pub(crate) diary: pluto_core::diary::Diary,
 }
 
 /// Background tasks that live as long as the app. They park on the bus or a timer between
@@ -89,11 +89,11 @@ fn forward_events(app: AppHandle, bus: &EventBus) {
                     if let Event::ReminderDue { reminder, .. } = &event {
                         notify::reminder(&app, reminder);
                     }
-                    let _ = app.emit("loaf://event", &event);
+                    let _ = app.emit("pluto://event", &event);
                 }
                 Recv::Resync { .. } => {
                     let at = SystemClock::new().now_ms();
-                    let _ = app.emit("loaf://event", &Event::ResyncRequired { at });
+                    let _ = app.emit("pluto://event", &Event::ResyncRequired { at });
                 }
                 Recv::Closed => break,
             }
@@ -132,7 +132,7 @@ pub fn run() {
                 tray::show_main(app);
             }
         }))
-        // F0-09: the login item starts Loaf with `--hidden` (quiet start in the tray).
+        // F0-09: the login item starts Pluto with `--hidden` (quiet start in the tray).
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec![autostart::HIDDEN_FLAG]),
@@ -295,27 +295,45 @@ pub fn run() {
             }
         })
         .setup(|app| {
-            // `LOAF_DATA_DIR` keeps data and logs in one folder of your choice: the end-to-end
+            // `PLUTO_DATA_DIR` keeps data and logs in one folder of your choice: the end-to-end
             // tests use it so they never touch the real data. Unset, the OS's usual folders.
-            let (data_dir, log_dir) = match std::env::var_os("LOAF_DATA_DIR") {
+            let (data_dir, log_dir, own_folder) = match std::env::var_os("PLUTO_DATA_DIR") {
                 Some(dir) if !dir.is_empty() => {
                     let dir = std::path::PathBuf::from(dir);
-                    (dir.clone(), dir.join("logs"))
+                    (dir.clone(), dir.join("logs"), false)
                 }
-                _ => (app.path().app_data_dir()?, app.path().app_log_dir()?),
+                _ => (app.path().app_data_dir()?, app.path().app_log_dir()?, true),
             };
             // Logs first, so everything after (including a failed start) is recorded.
             let logs = logs::init(&log_dir).map(Arc::new);
+            // An earlier build kept its data in a folder named after its old identifier; copy it
+            // across once (never moved, never overwritten) so an update doesn't open empty.
+            if own_folder {
+                if let Some(old_dir) = pluto_core::legacy_data::old_dir_beside(&data_dir) {
+                    match pluto_core::legacy_data::carry_over(&old_dir, &data_dir) {
+                        Ok(done) if done.database_files > 0 => tracing::info!(
+                            files = done.database_files,
+                            characters = done.pet_packs,
+                            "carried data over from the earlier folder"
+                        ),
+                        Ok(_) => {}
+                        Err(error) => tracing::warn!(
+                            %error,
+                            "couldn't carry data over from the earlier folder; it is untouched"
+                        ),
+                    }
+                }
+            }
             std::fs::create_dir_all(&data_dir)?;
             app.manage(ipc::AppPaths {
                 data_dir: data_dir.clone(),
-                database: data_dir.join("loaf.db"),
+                database: data_dir.join("pluto.db"),
                 logs: log_dir,
             });
 
             let bus = EventBus::default();
             let clock = Arc::new(SystemClock::new());
-            let db = Arc::new(Database::open(&data_dir.join("loaf.db"), bus.clone())?);
+            let db = Arc::new(Database::open(&data_dir.join("pluto.db"), bus.clone())?);
 
             let settings = Arc::new(SettingsService::new(db.clone(), clock.clone()));
             app.manage(settings.clone());
@@ -326,7 +344,7 @@ pub fn run() {
                 db: db.clone(),
                 bus: bus.clone(),
                 clock: clock.clone(),
-                diary: loaf_core::diary::Diary::default(),
+                diary: pluto_core::diary::Diary::default(),
             });
 
             // Everything below subscribes to the bus before anything can publish to it.
@@ -340,7 +358,7 @@ pub fn run() {
                         tracing::warn!(code = ?error.code, "couldn't clear old notes out of the Bin at startup");
                     }
                 });
-                // Reminders missed while Loaf was closed fire once, right after start.
+                // Reminders missed while Pluto was closed fire once, right after start.
                 let reminders = reminders::spawn_scheduler(db.clone(), dyn_clock.clone(), &bus);
                 // Old usage is purged the same way: at startup and on every day rollover.
                 usage::spawn_janitor(usage_service.clone(), &bus);
@@ -379,7 +397,7 @@ pub fn run() {
             Ok(())
         })
         .build(context)
-        .expect("failed to build Loaf");
+        .expect("failed to build Pluto");
 
     app.run(|_app, event| {
         // The last window closing must not end the process; only `quit` does (code is Some).

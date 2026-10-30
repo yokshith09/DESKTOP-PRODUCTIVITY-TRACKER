@@ -19,9 +19,9 @@ let said: Said[] = [];
 const onSay = (e: Event) => said.push((e as CustomEvent<Said>).detail);
 beforeEach(() => {
   said = [];
-  window.addEventListener("loaf-pet-say", onSay);
+  window.addEventListener("pluto-pet-say", onSay);
 });
-afterEach(() => window.removeEventListener("loaf-pet-say", onSay));
+afterEach(() => window.removeEventListener("pluto-pet-say", onSay));
 /** Wait until the pet says a bubble matching `text`. */
 const petSays = (text: string | RegExp) =>
   waitFor(() => {
@@ -30,7 +30,7 @@ const petSays = (text: string | RegExp) =>
     return hit as Said;
   });
 /** Click the pet while it offers `label` (like Undo) in its bubble. */
-const clickPetAction = (s: Said) => window.dispatchEvent(new CustomEvent("loaf-pet-action", { detail: s.actionId ?? "" }));
+const clickPetAction = (s: Said) => window.dispatchEvent(new CustomEvent("pluto-pet-action", { detail: s.actionId ?? "" }));
 
 // A fresh in-memory shell (and so fresh preferences) for every test.
 let App: typeof import("./App").App;
@@ -309,7 +309,7 @@ describe("Notes screen (against the in-memory shell)", () => {
     expect((await screen.findAllByText("Reminder alerts")).length).toBeGreaterThan(0);
   });
 
-  it("Settings › Your data: export, refused import into a non-empty Loaf, delete all with the word DELETE", async () => {
+  it("Settings › Your data: export, refused import into a non-empty Pluto, delete all with the word DELETE", async () => {
     const user = userEvent.setup();
     render(<App />);
     await goTo(user, /^Settings/);
@@ -318,7 +318,7 @@ describe("Notes screen (against the in-memory shell)", () => {
 
     await user.click(screen.getByRole("button", { name: "Import…" }));
     await user.click(await screen.findByRole("button", { name: "Choose file…" }));
-    await petSays(/Import only works into an empty Loaf/);
+    await petSays(/Import only works into an empty Pluto/);
 
     await user.click(screen.getByRole("button", { name: "Delete all…" }));
     const dialog = await screen.findByRole("dialog");
@@ -330,7 +330,7 @@ describe("Notes screen (against the in-memory shell)", () => {
     await user.type(within(dialog).getByRole("textbox", { name: "Type DELETE to confirm" }), "DELETE");
     await user.click(confirm);
     await petSays(/^Everything was deleted/);
-    // An empty Loaf starts over at the welcome screen; past it, Notes is empty.
+    // An empty Pluto starts over at the welcome screen; past it, Notes is empty.
     await user.click(await screen.findByRole("button", { name: "Start" }, { timeout: 3000 }));
     await user.click(await screen.findByRole("button", { name: "Skip" }));
     await user.click(await screen.findByRole("button", { name: "Skip tour" }));
@@ -500,19 +500,19 @@ describe("first run (F1-26)", () => {
   it("never shows the welcome to someone who already has notes or tasks", async () => {
     render(<App />);
     expect(await screen.findByRole("region", { name: "Today’s agenda" })).toBeTruthy();
-    expect(screen.queryByRole("heading", { name: "Welcome to Loaf" })).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Welcome to Pluto" })).toBeNull();
   });
 
-  it("welcomes a fresh Loaf (after Delete all), then gets out of the way for good", async () => {
+  it("welcomes a fresh Pluto (after Delete all), then gets out of the way for good", async () => {
     const { ipc } = await import("@/ipc");
     const user = userEvent.setup();
     render(<App />);
     // Wait for data: by then the page is listening for events (effects ran), so it hears Delete all.
     await screen.findByText("Review the sync PR");
     await ipc.dataDeleteAll("DELETE");
-    expect(await screen.findByRole("heading", { name: "Welcome to Loaf" }, { timeout: 3000 })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Welcome to Pluto" }, { timeout: 3000 })).toBeTruthy();
     // The three choices, with the pet on and the rest off.
-    expect(screen.getByRole("switch", { name: "Show Loaf the bear on your desktop" }).getAttribute("aria-checked")).toBe("true");
+    expect(screen.getByRole("switch", { name: "Show Pluto the bear on your desktop" }).getAttribute("aria-checked")).toBe("true");
     expect(screen.getByRole("switch", { name: "Track app time" }).getAttribute("aria-checked")).toBe("false");
     await user.click(screen.getByRole("button", { name: "Start" }));
     // One tap on who you are; it only orders the tour and the quiz.
@@ -522,10 +522,10 @@ describe("first run (F1-26)", () => {
     expect(await ipc.prefsGet("ui.onboarded")).toBe(true);
     expect(await ipc.prefsGet("ui.role")).toBe("student_dev");
     // The spotlight tour starts by itself on Today, in this role's order, and Skip ends it for good.
-    const tour = await screen.findByRole("dialog", { name: "Loaf tour" });
+    const tour = await screen.findByRole("dialog", { name: "Pluto tour" });
     expect(within(tour).getByText("Step 1 of 9")).toBeTruthy();
     await user.click(within(tour).getByRole("button", { name: "Skip tour" }));
-    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Loaf tour" })).toBeNull());
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Pluto tour" })).toBeNull());
     expect(await ipc.prefsGet("ui.tour")).toBe("done");
   });
 
@@ -538,9 +538,9 @@ describe("first run (F1-26)", () => {
     await ipc.dataDeleteAll("DELETE");
     await user.click(await screen.findByRole("button", { name: /Write a note/ }, { timeout: 3000 }));
     await user.click(await screen.findByRole("button", { name: "Skip" }));
-    await waitFor(() => expect(screen.queryByRole("heading", { name: "Welcome to Loaf" })).toBeNull());
+    await waitFor(() => expect(screen.queryByRole("heading", { name: "Welcome to Pluto" })).toBeNull());
     // Not on Today, so the tour waits (Settings → Your profile) instead of jumping you away from the note.
-    expect(screen.queryByRole("dialog", { name: "Loaf tour" })).toBeNull();
+    expect(screen.queryByRole("dialog", { name: "Pluto tour" })).toBeNull();
     expect((await ipc.notesList(false, null, "last_edited")).length).toBe(1);
   });
 });
@@ -647,17 +647,17 @@ describe("settings (F1-25)", () => {
     const user = userEvent.setup();
     render(<App />);
     await goTo(user, /^Settings/);
-    await user.click(await screen.findByRole("button", { name: "Change shortcut: Open or hide Loaf, from any app" }));
+    await user.click(await screen.findByRole("button", { name: "Change shortcut: Open or hide Pluto, from any app" }));
     expect(screen.getByText(/Press the new keys/)).toBeTruthy();
     await user.keyboard("{Alt>}{F9}{/Alt}");
     await waitFor(async () => expect((await ipc.settingsGetAll())["shortcuts.global_open"]).toBe("Alt+F9"));
     // Alt+F9 is now taken by "Open or hide": nothing changes.
     await user.click(screen.getByRole("button", { name: "Change shortcut: New note, from any app" }));
     await user.keyboard("{Alt>}{F9}{/Alt}");
-    await petSays(/already used by another Loaf shortcut/);
+    await petSays(/already used by another Pluto shortcut/);
     expect((await ipc.settingsGetAll())["shortcuts.global_new_note"]).toBeNull();
     // Back to the default.
-    await user.click(screen.getByRole("button", { name: "Reset shortcut: Open or hide Loaf, from any app" }));
+    await user.click(screen.getByRole("button", { name: "Reset shortcut: Open or hide Pluto, from any app" }));
     await waitFor(async () => expect((await ipc.settingsGetAll())["shortcuts.global_open"]).toBeNull());
   });
 
@@ -667,7 +667,7 @@ describe("settings (F1-25)", () => {
     render(<App />);
     await ipc.settingSet("pet.size", "L");
     await goTo(user, /^Settings/);
-    expect(await screen.findByText(/loaf\.db$/)).toBeTruthy();
+    expect(await screen.findByText(/pluto\.db$/)).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Open logs folder" })).toBeNull();
     expect(screen.queryByRole("group", { name: "Log detail" })).toBeNull();
     await user.click(screen.getByRole("button", { name: "Reset settings…" }));
@@ -687,9 +687,9 @@ describe("task upgrades (FR-106..FR-109)", () => {
   it("the pet's menu opens a page straight away, and ignores one that does not exist (owner 2026-10-27)", async () => {
     render(<App />);
     await screen.findByRole("heading", { name: "Today" });
-    act(() => { window.dispatchEvent(new CustomEvent("loaf-command", { detail: "page:time" })); });
+    act(() => { window.dispatchEvent(new CustomEvent("pluto-command", { detail: "page:time" })); });
     expect(await screen.findByRole("heading", { name: "Time" })).toBeTruthy();
-    act(() => { window.dispatchEvent(new CustomEvent("loaf-command", { detail: "page:nonsense" })); });
+    act(() => { window.dispatchEvent(new CustomEvent("pluto-command", { detail: "page:nonsense" })); });
     expect(screen.getByRole("heading", { name: "Time" })).toBeTruthy();
   });
 
@@ -716,7 +716,7 @@ describe("task upgrades (FR-106..FR-109)", () => {
     render(<App />);
     const dialog = await openTask(user, "Refactor the tray menu");
     const paste = async (name: string, text: string) => { await user.click(within(dialog).getByRole("textbox", { name })); await user.paste(text); };
-    await paste("New link", "github.com/loaf/tray");
+    await paste("New link", "github.com/pluto/tray");
     await paste("Link name", "Tray PR");
     await user.click(within(dialog).getByRole("button", { name: "Add link" }));
     await paste("New link", "https://docs.rs/tauri");
@@ -730,7 +730,7 @@ describe("task upgrades (FR-106..FR-109)", () => {
 
     const row = (await screen.findByRole("button", { name: "Open Refactor the tray menu" })).closest("li") as HTMLElement;
     await user.click(within(row).getByRole("button", { name: "Open link Tray PR" }));
-    expect(open).toHaveBeenCalledWith("https://github.com/loaf/tray");
+    expect(open).toHaveBeenCalledWith("https://github.com/pluto/tray");
     expect(within(row).getByRole("button", { name: "Open link docs.rs/tauri" })).toBeTruthy();
   });
 
@@ -975,14 +975,14 @@ describe("owner's UI reset, batch 1 (2026-10-25)", () => {
     const user = userEvent.setup();
     render(<App />);
     await goTo(user, /^Projects/);
-    const project = await screen.findByRole("region", { name: "Project Loaf v1" });
+    const project = await screen.findByRole("region", { name: "Project Pluto v1" });
     const tasks = within(project).getByRole("region", { name: "Tasks" });
     expect(within(tasks).getByText("1.")).toBeTruthy();
-    expect(within(project).getByRole("button", { name: "Open note Loaf v1 scope" })).toBeTruthy();
+    expect(within(project).getByRole("button", { name: "Open note Pluto v1 scope" })).toBeTruthy();
     await user.type(within(tasks).getByRole("textbox", { name: "New project task" }), "Write the release post{Enter}");
     await waitFor(async () => {
       const all = await ipc.tasksQuery("all");
-      expect(all.find((r) => r.task.title === "Write the release post")?.task.project).toBe("Loaf v1");
+      expect(all.find((r) => r.task.title === "Write the release post")?.task.project).toBe("Pluto v1");
     });
     // A new project starts empty and fills from here.
     await user.type(screen.getByRole("textbox", { name: "New project name" }), "Thesis{Enter}");
@@ -994,16 +994,16 @@ describe("owner's UI reset, batch 1 (2026-10-25)", () => {
     const user = userEvent.setup();
     render(<App />);
     await goTo(user, /^Projects/);
-    await screen.findByRole("region", { name: "Project Loaf v1" });
-    await user.click(screen.getByRole("button", { name: "Rename Loaf v1" }));
+    await screen.findByRole("region", { name: "Project Pluto v1" });
+    await user.click(screen.getByRole("button", { name: "Rename Pluto v1" }));
     const box = screen.getByRole("textbox", { name: "Project name" });
     await user.clear(box);
-    await user.type(box, "Loaf v2{Enter}");
-    expect(await screen.findByRole("region", { name: "Project Loaf v2" })).toBeTruthy();
+    await user.type(box, "Pluto v2{Enter}");
+    expect(await screen.findByRole("region", { name: "Project Pluto v2" })).toBeTruthy();
     await waitFor(async () => {
       const all = await ipc.tasksQuery("all");
-      expect(all.some((r) => r.task.project === "Loaf v1")).toBe(false);
-      expect(all.some((r) => r.task.project === "Loaf v2")).toBe(true);
+      expect(all.some((r) => r.task.project === "Pluto v1")).toBe(false);
+      expect(all.some((r) => r.task.project === "Pluto v2")).toBe(true);
     });
   });
 

@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Loaf",
+  "productName": "Pluto",
   "version": "0.5.3",
-  "identifier": "app.loaf.desktop",
+  "identifier": "app.pluto.desktop",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://localhost:1420",
@@ -14,7 +14,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Loaf",
+        "title": "Pluto",
         "url": "main.html",
         "width": 1180,
         "height": 760,
@@ -25,7 +25,7 @@
       },
       {
         "label": "pet",
-        "title": "Loaf pet",
+        "title": "Pluto pet",
         "url": "pet.html",
         "width": 128,
         "height": 128,
@@ -50,6 +50,8 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "shortDescription": "Pluto: small companion, big universe",
+    "longDescription": "Pluto is a local-first desktop companion for Windows and macOS: notes, tasks, meetings, a daily work log and a pet that lives alongside your work. Small companion. Big universe.",
     "windows": {
       "webviewInstallMode": {
         "type": "embedBootstrapper"

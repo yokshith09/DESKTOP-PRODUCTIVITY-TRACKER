@@ -101,7 +101,7 @@ export function BearTurned({ pose, animated = false, className, style }: { pose:
   const label = pose === "turn" ? "three-quarter view" : pose === "back" ? "back view" : "looking back over the shoulder";
 
   return (
-    <svg viewBox="0 0 200 200" role="img" aria-label={`Loaf the bear (${label})`} data-view={pose === "turn" ? "three_quarter" : "back"} className={cn("overflow-visible", className)} style={style}>
+    <svg viewBox="0 0 200 200" role="img" aria-label={`Pluto the bear (${label})`} data-view={pose === "turn" ? "three_quarter" : "back"} className={cn("overflow-visible", className)} style={style}>
       <BearDefs g={g} />
       <ellipse cx="100" cy="188" rx="38" ry="3.5" fill="#000" opacity=".3" filter={url("soft")} />
       <ellipse cx="100" cy="189" rx="58" ry="7" fill="#000" opacity=".22" filter={url("soft")} />

@@ -3,7 +3,7 @@ import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
- * No-guilt rule (FR-92): words Loaf must never show the user. Shaming copy is the top reason
+ * No-guilt rule (FR-92): words Pluto must never show the user. Shaming copy is the top reason
  * people quit habit and pet apps (social research 2026-10-23). Code comments are allowed to
  * mention these words; only string literals in the UI are checked.
  */

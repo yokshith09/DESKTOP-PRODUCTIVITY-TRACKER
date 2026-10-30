@@ -106,7 +106,7 @@ Every feature has the same 13 sections: 1 metadata · 2 user story · 3 behaviou
 
 **2 User story** — As a user I want to install a character pack and have it react to my project.
 
-**3 Behaviour / workflow** — Install from a local `.loafpack` file; manifest lists art, animations, optional reaction rules; project-aware = pet reacts to active Project Space type.
+**3 Behaviour / workflow** — Install from a local `.plutopack` file; manifest lists art, animations, optional reaction rules; project-aware = pet reacts to active Project Space type.
 
 **4 Plain language** — Add new characters from a file; they can react to what you're working on.
 
@@ -152,11 +152,11 @@ Every feature has the same 13 sections: 1 metadata · 2 user story · 3 behaviou
 
 **1 Metadata** — Group: Companion · Status: **Blocked** · Milestone: FM-10 · Effort: XL · Decision state: Blocked: backend (U-new-3) · Origin: explicitly requested by owner · Evidence: No network code, no server. `reqwest`/HTTP client absent from both Cargo.toml files.
 
-**2 User story** — As a user I want to invite friends and unlock rewards when 3 of them install and really use Loaf.
+**2 User story** — As a user I want to invite friends and unlock rewards when 3 of them install and really use Pluto.
 
 **3 Behaviour / workflow** — Each install has a referral code; a referral counts only after install + first-use + N active days; at 3 qualifying, a reward unlocks.
 
-**4 Plain language** — Invite three friends who actually use Loaf and unlock a reward.
+**4 Plain language** — Invite three friends who actually use Pluto and unlock a reward.
 
 **5 Technical design** — Server-side ledger (code, install id, events); client sends signed, consented events; reward unlocked by signed token verified offline.
 
@@ -200,7 +200,7 @@ Every feature has the same 13 sections: 1 metadata · 2 user story · 3 behaviou
 
 ## FR-05 — Focus Sessions with Pomodoro
 
-**1 Metadata** — Group: Productivity · Status: **Planned** · Milestone: FM-4 · Effort: M · Decision state: ROADMAP M8; U-none · Origin: explicitly requested by owner · Evidence: `src/features` has no focus module; scheduler exists (`loaf-core/src/scheduler.rs`).
+**1 Metadata** — Group: Productivity · Status: **Planned** · Milestone: FM-4 · Effort: M · Decision state: ROADMAP M8; U-none · Origin: explicitly requested by owner · Evidence: `src/features` has no focus module; scheduler exists (`pluto-core/src/scheduler.rs`).
 
 **2 User story** — As a student I want timed focus/break cycles with my pet.
 
@@ -572,7 +572,7 @@ Every feature has the same 13 sections: 1 metadata · 2 user story · 3 behaviou
 
 **3 Behaviour / workflow** — Project stores references (label, purpose, service); secret value lives in Windows Credential Manager / macOS Keychain; copy-to-clipboard auto-clears; env-var template renders names only; rotation reminders.
 
-**4 Plain language** — Your keys stay in the system keychain; Loaf only remembers which key is for what.
+**4 Plain language** — Your keys stay in the system keychain; Pluto only remembers which key is for what.
 
 **5 Technical design** — `keyring` crate behind a trait in the shell (core stays tauri/OS-free); SQLite stores label+service+key id only; clipboard cleared after 30 s; rotation uses reminders.
 
@@ -798,11 +798,11 @@ Every feature has the same 13 sections: 1 metadata · 2 user story · 3 behaviou
 
 **2 User story** — As a user I want fewer, prioritised interruptions.
 
-**3 Behaviour / workflow** — Loaf groups its own notifications by priority and quiet hours; reading other apps' notifications only if OS allows and user opts in.
+**3 Behaviour / workflow** — Pluto groups its own notifications by priority and quiet hours; reading other apps' notifications only if OS allows and user opts in.
 
 **4 Plain language** — Calmer, prioritised notifications.
 
-**5 Technical design** — Phase 1 = Loaf's own notices (AN-xx). Reading other apps needs per-OS APIs (Windows listener, macOS none stable).
+**5 Technical design** — Phase 1 = Pluto's own notices (AN-xx). Reading other apps needs per-OS APIs (Windows listener, macOS none stable).
 
 **6 Choices and trade-offs** — Scope to own notices first; cross-app is research.
 
@@ -838,7 +838,7 @@ Every feature has the same 13 sections: 1 metadata · 2 user story · 3 behaviou
 
 ## FR-19 — Website and app activity tracking
 
-**1 Metadata** — Group: Utilities · Status: **Unverified** · Milestone: FM-0 · Effort: S (verify) · Decision state: U16 option d decided · Origin: explicitly requested by owner · Evidence: `loaf-core/src/usage*`, `src-tauri/src/tracking.rs`, `sites.rs`; migration 003; core tests pass.
+**1 Metadata** — Group: Utilities · Status: **Unverified** · Milestone: FM-0 · Effort: S (verify) · Decision state: U16 option d decided · Origin: explicitly requested by owner · Evidence: `pluto-core/src/usage*`, `src-tauri/src/tracking.rs`, `sites.rs`; migration 003; core tests pass.
 
 **2 User story** — As a user I want to see where my time goes.
 
@@ -1614,15 +1614,15 @@ Every feature has the same 13 sections: 1 metadata · 2 user story · 3 behaviou
 
 ## FR-37 — Keyboard-shortcut master switch (off by default)
 
-**1 Metadata** — Group: Utilities · Status: **Planned** · Milestone: FM-1 · Effort: S · Decision state: owner decided, 2026-10-19: off by default "in the coming versions"; upgrade detail open (D-SHORTCUT-DEFAULT) · Origin: explicitly requested by owner (2026-10-19) · Evidence: `src-tauri/src/shortcuts.rs` registers global shortcuts at startup with no master switch; only `shortcuts.global_open` and `shortcuts.global_new_note` are settable (`crates/loaf-core/src/settings.rs`).
+**1 Metadata** — Group: Utilities · Status: **Planned** · Milestone: FM-1 · Effort: S · Decision state: owner decided, 2026-10-19: off by default "in the coming versions"; upgrade detail open (D-SHORTCUT-DEFAULT) · Origin: explicitly requested by owner (2026-10-19) · Evidence: `src-tauri/src/shortcuts.rs` registers global shortcuts at startup with no master switch; only `shortcuts.global_open` and `shortcuts.global_new_note` are settable (`crates/pluto-core/src/settings.rs`).
 
-**2 User story** — As a user I want no system-wide keys taken by Loaf until I choose to turn them on.
+**2 User story** — As a user I want no system-wide keys taken by Pluto until I choose to turn them on.
 
 **3 Behaviour / workflow** — One setting, `shortcuts.enabled`, default `false`. Settings › Shortcuts shows an Enable / Disable button and a status line. When off, no global shortcut is registered and in-app shortcuts are inactive. When on, the configured keys register immediately; a key another app owns is skipped with the existing log warning.
 
 **4 Plain language** — Shortcuts are off until you turn them on.
 
-**5 Technical design** — New key in `loaf-core` settings (`shortcuts.enabled`, bool, default false, validated). `shortcuts::start` registers nothing when it is false and re-registers on change (the existing `register_all` path). In-app shortcuts (`src/hooks/useShortcuts.ts`) read the same flag through `src/ipc/settings.ts`. Mock shell (`src/ipc/mock.ts`) mirrors the default.
+**5 Technical design** — New key in `pluto-core` settings (`shortcuts.enabled`, bool, default false, validated). `shortcuts::start` registers nothing when it is false and re-registers on change (the existing `register_all` path). In-app shortcuts (`src/hooks/useShortcuts.ts`) read the same flag through `src/ipc/settings.ts`. Mock shell (`src/ipc/mock.ts`) mirrors the default.
 
 **6 Choices and trade-offs** — A single master switch versus per-key switches. Chosen: one master switch, because the owner asked for one button; per-key rebinding stays as it is. Changing the default alters current behaviour, so the upgrade path needs owner confirmation (D-SHORTCUT-DEFAULT).
 
@@ -1660,7 +1660,7 @@ Every feature has the same 13 sections: 1 metadata · 2 user story · 3 behaviou
 
 ## FR-38 — Meetings redesign (deferred to a later phase)
 
-**1 Metadata** — Group: Utilities · Status: **Planned (deferred by owner)** · Milestone: FM-13 · Effort: M (unknown until described) · Decision state: Blocked on D-MEETINGS. Owner will define it and asked to be asked about it next time Meetings comes up · Origin: owner feedback (2026-10-19): "The Meetings feature does not make sense to me and needs fixing, but this can be addressed in a later phase." · Evidence: built as F1-17…19 (`src/features/meetings/MeetingsPage.tsx`, `MeetingEditor.tsx`, `crates/loaf-core/src/meetings.rs`).
+**1 Metadata** — Group: Utilities · Status: **Planned (deferred by owner)** · Milestone: FM-13 · Effort: M (unknown until described) · Decision state: Blocked on D-MEETINGS. Owner will define it and asked to be asked about it next time Meetings comes up · Origin: owner feedback (2026-10-19): "The Meetings feature does not make sense to me and needs fixing, but this can be addressed in a later phase." · Evidence: built as F1-17…19 (`src/features/meetings/MeetingsPage.tsx`, `MeetingEditor.tsx`, `crates/pluto-core/src/meetings.rs`).
 
 **2 User story** — As a user I want meetings to be quick to record and useful afterwards. The owner has not yet said which part fails.
 

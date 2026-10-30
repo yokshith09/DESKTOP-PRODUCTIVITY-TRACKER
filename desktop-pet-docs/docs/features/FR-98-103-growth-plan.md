@@ -32,7 +32,7 @@ All follow the companion principles (no guilt, attention ladder, notification bu
 - **Done when:** gallery shows "This month" with installable pets. **Phase:** P7 (needs FR-84). **Effort:** S once the gallery exists.
 
 ## FR-103 — Photo to pet (later)
-- **What:** upload a photo of your pet (or describe one) → generated character in the Loaf style → all 9 rows → pack.
+- **What:** upload a photo of your pet (or describe one) → generated character in the Pluto style → all 9 rows → pack.
 - **Rules:** opt-in, consent screen, photo deleted after generation, no pay-per-draw paywall for the first pets (OpenPets charges credits); **photos of real people need their consent** and stay on hold (personal characters on hold).
 - **Needs:** an image model (no GPU locally → cloud provider, owner to choose), AI provider decision (on hold).
 - **Phase:** P6. **Effort:** XL.

@@ -4,7 +4,7 @@ import { ConfirmAction } from "@/components/ConfirmAction";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { useNoteActions } from "@/hooks/useLoaf";
+import { useNoteActions } from "@/hooks/usePluto";
 import type { LabelCount } from "@/ipc";
 
 function Row({ item, onDeleted }: { item: LabelCount; onDeleted: (id: string) => void }) {

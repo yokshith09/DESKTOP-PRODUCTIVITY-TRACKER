@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Task } from "@/ipc";
 
 const removeAny = vi.fn(() => Promise.resolve());
-vi.mock("@/hooks/useLoaf", () => ({ useTaskActions: () => ({ removeAny }) }));
+vi.mock("@/hooks/usePluto", () => ({ useTaskActions: () => ({ removeAny }) }));
 
 import { DeleteTaskButton } from "./DeleteTaskButton";
 

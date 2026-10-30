@@ -1,7 +1,7 @@
 import { ymd } from "@/lib/dates";
 
 /**
- * Notification budget (FR-96): every nudge Loaf shows without being asked (routine reminder,
+ * Notification budget (FR-96): every nudge Pluto shows without being asked (routine reminder,
  * greeting, birthday…) goes through here so the user is never spammed. Reminders the user set
  * for a time do not. Stored in preferences under `ui.nudges`.
  */
@@ -48,7 +48,7 @@ export function inQuietHours(s: NudgeState, now: Date): boolean {
   return from <= to ? t >= from && t < to : t >= from || t < to;
 }
 
-/** May Loaf show a nudge of this kind now? */
+/** May Pluto show a nudge of this kind now? */
 export function canNudge(s: NudgeState, kind: string, now: Date): boolean {
   const today = s.days[ymd(now)] ?? [];
   if (today.includes(kind) || today.length >= (s.maxPerDay ?? DAILY_MAX)) return false;

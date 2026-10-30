@@ -1,4 +1,4 @@
-// Wire types come from Rust (ts-rs): run `pnpm gen:types` after changing a type in loaf-core.
+// Wire types come from Rust (ts-rs): run `pnpm gen:types` after changing a type in pluto-core.
 import type { NoteColor, NoteInput as GeneratedNoteInput, NotePatch as GeneratedNotePatch, ReminderInput as GeneratedReminderInput, ReminderPatch as GeneratedReminderPatch } from "./generated";
 
 export type {
@@ -19,6 +19,6 @@ export type ReminderInput = GeneratedReminderInput;
 export type ReminderPatch = Partial<GeneratedReminderPatch>;
 
 /** One bus event as forwarded by the shell; only the tag matters to the UI. */
-export interface LoafEvent { type: string; at: number; [field: string]: unknown }
+export interface PlutoEvent { type: string; at: number; [field: string]: unknown }
 
 export interface Shortcut { id: string; url: string; label: string }

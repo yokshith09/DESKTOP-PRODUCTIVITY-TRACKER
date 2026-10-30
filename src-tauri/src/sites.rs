@@ -1,7 +1,7 @@
 //! Website time from the browser's address bar (`tracking.sites`, needs `tracking.apps` too).
 //!
 //! The decisions (what counts as a site, when a session starts and ends) live in
-//! `loaf_core::sites` and are tested there. This file only supplies one look at the browser in
+//! `pluto_core::sites` and are tested there. This file only supplies one look at the browser in
 //! front, every [`LOOK_EVERY_MS`] while both switches are on:
 //!
 //! * **Windows**: UI Automation. The browser window in front is matched by its executable
@@ -12,11 +12,11 @@
 //!   button (English names only for now). A window that can't be classified is skipped too.
 //! * **macOS**: AppleScript, asked of the browser in front: Chrome, Edge, Brave and Vivaldi
 //!   report the active tab's address and whether the window is incognito; **Arc** reports its
-//!   window's `incognito` flag the same way. macOS asks once per browser ("Loaf wants to control
+//!   window's `incognito` flag the same way. macOS asks once per browser ("Pluto wants to control
 //!   Google Chrome"); if you say no, nothing is recorded for it. **Safari** can't say whether a
 //!   window is private, so it is read only with the extra `tracking.safari` switch (off by
 //!   default). **Firefox** has no AppleScript: its own session file is read instead
-//!   (`loaf_core::firefox`; private windows are never in it), so its site can lag ~15 s.
+//!   (`pluto_core::firefox`; private windows are never in it), so its site can lag ~15 s.
 //! * Elsewhere: nothing is recorded.
 //!
 //! Polling is the exception to ADR-009 here: no OS event fires when the address bar changes.
@@ -27,12 +27,12 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
-use loaf_core::bus::{EventBus, Recv};
-use loaf_core::clock::Clock;
-use loaf_core::events::Event;
-use loaf_core::settings_service::SettingsService;
-use loaf_core::sites::{Seen, SiteTracker, CHECKPOINT_EVERY_MS, LOOK_EVERY_MS};
-use loaf_core::usage::UsageService;
+use pluto_core::bus::{EventBus, Recv};
+use pluto_core::clock::Clock;
+use pluto_core::events::Event;
+use pluto_core::settings_service::SettingsService;
+use pluto_core::sites::{Seen, SiteTracker, CHECKPOINT_EVERY_MS, LOOK_EVERY_MS};
+use pluto_core::usage::UsageService;
 use tokio::sync::mpsc;
 
 /// Whether the looking thread should look at all (both switches on).
@@ -89,7 +89,7 @@ pub fn start(
         }
         let mut last_checkpoint = i64::MIN;
         let mut journaled = false;
-        let save = |session: Option<loaf_core::usage::DomainSession>| {
+        let save = |session: Option<pluto_core::usage::DomainSession>| {
             let usage = usage.clone();
             async move {
                 if let Some(s) = session {
@@ -167,8 +167,8 @@ mod os {
     use std::collections::HashMap;
     use std::sync::atomic::Ordering;
 
-    use loaf_core::sites::{domain_from_address, Seen};
-    use loaf_core::usage::{display_name, is_browser};
+    use pluto_core::sites::{domain_from_address, Seen};
+    use pluto_core::usage::{display_name, is_browser};
     use tokio::sync::mpsc::UnboundedSender;
     use windows::core::BSTR;
     use windows::Win32::Foundation::HWND;
@@ -193,7 +193,7 @@ mod os {
 
     pub fn spawn(tx: UnboundedSender<Look>) -> bool {
         std::thread::Builder::new()
-            .name("loaf-sites".into())
+            .name("pluto-sites".into())
             .spawn(move || run(&tx))
             .is_ok()
     }
@@ -221,7 +221,7 @@ mod os {
                 continue;
             }
             let seen = look(&uia, &mut windows);
-            let idle_ms = loaf_core::usage::effective_idle_ms(
+            let idle_ms = pluto_core::usage::effective_idle_ms(
                 crate::tracking::win::idle_ms().unwrap_or(0),
                 crate::tracking::win::display_required(),
             );
@@ -327,8 +327,8 @@ mod os {
     use std::process::Command;
     use std::sync::atomic::Ordering;
 
-    use loaf_core::sites::{domain_from_address, Seen};
-    use loaf_core::usage::{display_name, is_browser};
+    use pluto_core::sites::{domain_from_address, Seen};
+    use pluto_core::usage::{display_name, is_browser};
     use tokio::sync::mpsc::UnboundedSender;
 
     use super::{Look, ACTIVE, SAFARI};
@@ -343,14 +343,14 @@ mod os {
 
     pub fn spawn(tx: UnboundedSender<Look>) -> bool {
         std::thread::Builder::new()
-            .name("loaf-sites".into())
+            .name("pluto-sites".into())
             .spawn(move || loop {
                 std::thread::sleep(super::interval());
                 if !ACTIVE.load(Ordering::Relaxed) {
                     continue;
                 }
                 let seen = look();
-                let idle_ms = loaf_core::usage::effective_idle_ms(
+                let idle_ms = pluto_core::usage::effective_idle_ms(
                     crate::tracking::mac::idle_ms().unwrap_or(0),
                     crate::tracking::mac::display_held(),
                 );
@@ -419,9 +419,9 @@ mod os {
         };
         let profiles =
             std::path::Path::new(&home).join("Library/Application Support/Firefox/Profiles");
-        let domain = loaf_core::firefox::newest_session_file(&profiles)
-            .and_then(|f| loaf_core::firefox::read_session(&f).ok())
-            .and_then(|json| loaf_core::firefox::active_domain(&json).ok().flatten());
+        let domain = pluto_core::firefox::newest_session_file(&profiles)
+            .and_then(|f| pluto_core::firefox::read_session(&f).ok())
+            .and_then(|json| pluto_core::firefox::active_domain(&json).ok().flatten());
         match domain {
             Some(domain) => Seen::Site {
                 browser: display_name(app),

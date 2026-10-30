@@ -58,9 +58,9 @@ jobs:
           test -z "$(git status --porcelain -- src/ipc/generated)" || { echo "::error::generated types are stale - untracked files in src/ipc/generated"; exit 1; }
       - name: Rust — coverage report (whole workspace, informational)
         run: cargo llvm-cov --workspace --locked --summary-only
-      - name: Rust — loaf-core coverage floor (G6)
+      - name: Rust — pluto-core coverage floor (G6)
         # Measured 2026-10-11: 97% of lines. The floor is below that on purpose; raise it, never lower it.
-        run: cargo llvm-cov -p loaf-core --locked --summary-only --fail-under-lines 90
+        run: cargo llvm-cov -p pluto-core --locked --summary-only --fail-under-lines 90
 
       - name: Frontend — typecheck
         run: pnpm typecheck
@@ -70,7 +70,7 @@ jobs:
         run: pnpm test:coverage
       - name: Tooling — script tests
         run: pnpm test:scripts
-      - name: Guard — loaf-core must not depend on tauri (ADR-002)
+      - name: Guard — pluto-core must not depend on tauri (ADR-002)
         run: pnpm check:core-deps
 
       - name: Build the app (no installer; bundling is CP5)

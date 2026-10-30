@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { isTauri } from "@tauri-apps/api/core";
 import { BEAR_POSES, Bear, type BearPose } from "@/features/shell/Bear";
 import { ROW_FOR_POSE, SpritePet } from "@/features/character/SpritePet";
-import { useReminders, useSettings, useTodayTasks } from "@/hooks/useLoaf";
+import { useReminders, useSettings, useTodayTasks } from "@/hooks/usePluto";
 import { useFocus } from "@/hooks/useFocus";
 import { clock } from "@/lib/focus";
 import { ymd } from "@/lib/dates";
@@ -73,7 +73,7 @@ export function PetApp() {
   // A pet pack from the library replaces the bear (FR-63); reactions map to its rows.
   const packId = settings?.["pet.pack"] ?? null;
   const { data: sheet } = useQuery({ queryKey: ["pets", "sheet", packId], queryFn: () => ipc.petsSheet(packId ?? ""), enabled: !!packId, staleTime: Infinity, retry: false });
-  // The pet's own details (`loaf.json`): its poses for some moments and its one special.
+  // The pet's own details (`pluto.json`): its poses for some moments and its one special.
   const { data: library = [] } = useQuery({ queryKey: ["pets", "library"], queryFn: ipc.petsList, staleTime: 60_000 });
   const pack = packId ? library.find((p) => p.id === packId) : undefined;
   const packRef = useRef(pack);
@@ -98,7 +98,7 @@ export function PetApp() {
   const press = useRef<{ x: number; y: number } | null>(null);
   const queue = useRef<Reaction[]>([]);
   const tasks = useRef<TaskRow[]>(openToday);
-  // Anything happening (hover, click, an event from Loaf, tracked app time) keeps the bear awake.
+  // Anything happening (hover, click, an event from Pluto, tracked app time) keeps the bear awake.
   const lastActive = useRef(Date.now());
   const [asleep, setAsleep] = useState(false);
   // "Sleep" on the card: a nap that lasts until Wake (or a click on the pet), not ended by hovering.
@@ -205,7 +205,7 @@ export function PetApp() {
     if (!playingRef.current) playNext();
   });
 
-  // Keep the card fresh, and react to what happens in Loaf.
+  // Keep the card fresh, and react to what happens in Pluto.
   // Messages from the dashboard, e.g. the daily routine reminder (FR-85), shown above the pet.
   useEffect(() => onPetSay((say) => {
     // A say can follow a change of look made in the dashboard (a separate window): look again.
@@ -370,7 +370,7 @@ export function PetApp() {
   const pose: BearPose = playing?.pose ?? (napping ? "sleep" : typing !== "off" ? typing : hovering ? "wave" : asleep ? "sleep" : working ? "work" : "idle");
   const bear = (
     <button
-      type="button" data-pet-bear aria-label="Loaf. Click to open, double-click to hide, right-click for options"
+      type="button" data-pet-bear aria-label="Pluto. Click to open, double-click to hide, right-click for options"
       onPointerUp={onBearPointerUp}
       onContextMenu={(e) => { e.preventDefault(); void ipc.petMenu(); }}
       onAnimationEnd={(e) => e.target === e.currentTarget && setHop(false)}

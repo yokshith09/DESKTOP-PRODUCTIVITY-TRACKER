@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import type { LoafEvent, TaskRow } from "@/ipc";
+import type { PlutoEvent, TaskRow } from "@/ipc";
 import { REACTION_INFO, REACTION_KEYS, fillText, momentOf, parseReactionSettings, reactionWithSettings } from "./reactionSettings";
 
 const row = (id: string, title = id): TaskRow => ({ overdue: false, done_today: false, task: { id, title } } as unknown as TaskRow);
-const ev = (type: string, fields: Record<string, unknown> = {}) => ({ type, at: 0, ...fields }) as LoafEvent;
+const ev = (type: string, fields: Record<string, unknown> = {}) => ({ type, at: 0, ...fields }) as PlutoEvent;
 const two = { openToday: [row("a"), row("b")] };
 const done = ev("TaskStatusChanged", { id: "a", from: "PLANNED", to: "COMPLETED" });
 
@@ -50,7 +50,7 @@ describe("saved reaction settings", () => {
   });
 });
 
-describe("a pet's own poses (loaf.json) sit between Loaf's defaults and the user's choice", () => {
+describe("a pet's own poses (pluto.json) sit between Pluto's defaults and the user's choice", () => {
   it("uses the pet's pose when the user has not picked one", () => {
     expect(reactionWithSettings(done, two, {}, { "task-done": "jump" })?.pose).toBe("jump");
   });
@@ -58,7 +58,7 @@ describe("a pet's own poses (loaf.json) sit between Loaf's defaults and the user
     const settings = { "task-done": { enabled: true, text: "", pose: "party" as const } };
     expect(reactionWithSettings(done, two, settings, { "task-done": "jump" })?.pose).toBe("party");
   });
-  it("ignores a pose Loaf does not know, and still honours 'off'", () => {
+  it("ignores a pose Pluto does not know, and still honours 'off'", () => {
     expect(reactionWithSettings(done, two, {}, { "task-done": "moonwalk" })?.pose).toBe("cheer");
     expect(reactionWithSettings(done, two, { "task-done": { enabled: false, text: "", pose: "" } }, { "task-done": "jump" })).toBeNull();
   });

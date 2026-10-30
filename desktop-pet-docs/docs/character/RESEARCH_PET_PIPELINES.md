@@ -17,12 +17,12 @@ Sources: openpets.dev/alternatives (updated 2026-08-20), the Codex `hatch-pet` s
 6. Style rule: small pixel-art-adjacent mascot, chunky silhouette, thick dark 1-2 px outline, flat cel shading, limited palette, simple face. No gradients, glow, shadows, motion lines, text.
 7. Image generation is delegated to the built-in image tool; code never draws art. Row jobs run in parallel as subagents; the parent owns the manifest and packaging.
 
-## What this means for Loaf
-| OpenPets / Codex does | Loaf does |
+## What this means for Pluto
+| OpenPets / Codex does | Pluto does |
 |---|---|
 | Needs the Codex app, many jobs, subagents | One prompt in Codex; the user gives a name and one reference image and gets one ZIP |
 | Geometry QA only (cell fits, non-empty) | **Alignment is enforced by code**: one baseline, one centre per row, one scale per pet, so frames cannot jitter; the checker rejects what the script cannot fix |
-| No pet-specific details | `loaf.json` beside `pet.json`: reactions, special, licence (strict importers never see our keys) |
+| No pet-specific details | `pluto.json` beside `pet.json`: reactions, special, licence (strict importers never see our keys) |
 | Reactions fixed by the app | Events are common to all pets; each pack may offer its own animation per event and the user can choose one (D-REACT) |
 
 Open question for the owner: the Codex skill needs the Codex app; our prompt assumes the owner (or any user) has it. If not, any image tool works but they must give it the same prompts and put the strips in one folder.

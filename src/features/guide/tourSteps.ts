@@ -12,7 +12,7 @@ export const STEPS: Record<StepId, TourStep> = {
   projects: { id: "projects", target: "nav-projects", page: "projects", title: "Projects", body: "Group tasks and notes by project, so one piece of work has one home." },
   time: { id: "time", target: "nav-time", page: "time", title: "Time: where your day went", body: "Time per app and per site, by day, week or month. Nothing is recorded until you switch it on." },
   privacy: { id: "privacy", target: "time-privacy", page: "time", title: "Tracking and privacy", body: "This is where you switch app time and website time on or off, leave out apps, and delete what was recorded. Under Sites, the Privacy radar shows which visited sites are known ad or tracking companies. It only ever stores the site name, never page titles, and it all stays on this computer." },
-  pet: { id: "pet", page: "today", title: "Your pet", body: "It lives on your desktop. Hover for today at a glance, click to open Loaf, right-click for shortcuts, and press + on its card to add a task in one line." },
+  pet: { id: "pet", page: "today", title: "Your pet", body: "It lives on your desktop. Hover for today at a glance, click to open Pluto, right-click for shortcuts, and press + on its card to add a task in one line." },
   character: { id: "character", target: "nav-character", page: "character", title: "Character", body: "Pick another pet, dress it up, choose how it reacts, and switch reminders to stretch or drink water on or off." },
   settings: { id: "settings", target: "nav-settings", page: "settings", title: "That's the tour", body: "You can replay it, or change what describes you, any time under Settings → Your profile. A short quiz on Today will show you the rest." },
 };

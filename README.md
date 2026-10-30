@@ -1,5 +1,7 @@
 # PLUTO
 
+**Small companion. Big universe.**
+
 A lightweight, local-first desktop companion for Windows and macOS: notes, tasks, meetings and an automatic daily work log, with a desktop pet.
 
 **Progress:** [Project status](desktop-pet-docs/PROJECT_STATUS.md) · [Roadmap](desktop-pet-docs/ROADMAP.md) · [Decisions](desktop-pet-docs/DECISIONS.md) · [Changelog](desktop-pet-docs/CHANGELOG.md).
@@ -10,7 +12,7 @@ A lightweight, local-first desktop companion for Windows and macOS: notes, tasks
 
 | Path | What |
 |------|------|
-| `crates/loaf-core/` | All business logic. **Never depends on `tauri`** (ADR-002); enforced by `pnpm check:core-deps` |
+| `crates/pluto-core/` | All business logic. **Never depends on `tauri`** (ADR-002); enforced by `pnpm check:core-deps` |
 | `src-tauri/` | Thin Tauri v2 shell: windows, tray, OS integration |
 | `src/` | React + TypeScript frontend (`main.html`; `pet.html` is reserved for F1-22) |
 | `desktop-pet-docs/` | Product, architecture, schema and plan documents |

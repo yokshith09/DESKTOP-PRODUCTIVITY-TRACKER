@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Bell, CalendarDays } from "lucide-react";
 import { Tile } from "@/features/shell/PageHeader";
-import { useAllTasks, useReminders } from "@/hooks/useLoaf";
+import { useAllTasks, useReminders } from "@/hooks/usePluto";
 import { parseYmd, ymd } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 

@@ -12,7 +12,7 @@ export const ROW_LABELS: Record<SpriteRow, string> = {
   failed: "Sad", waiting: "Waiting", running: "Working", review: "Reviewing",
 };
 
-const SOURCE: Record<PetPack["source"], string> = { builtin: "Built in", codex: "From Codex / Petdex", loaf: "Imported" };
+const SOURCE: Record<PetPack["source"], string> = { builtin: "Built in", codex: "From Codex / Petdex", pluto: "Imported" };
 
 const WHEN = {
   click: (n: number) => `every ${n} clicks on the pet`,

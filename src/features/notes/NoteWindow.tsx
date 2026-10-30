@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useBusSync } from "@/hooks/useLoaf";
+import { useBusSync } from "@/hooks/usePluto";
 import { useTheme } from "@/hooks/useTheme";
 import { isTauri } from "@tauri-apps/api/core";
 import { NoteEditor } from "./NoteEditor";
 
 /** The id of the note this window shows, if it is a note window (set by the shell, or `?note=` in a browser). */
 export function noteWindowId(): string | null {
-  const fromShell = (window as unknown as { __LOAF_NOTE__?: unknown }).__LOAF_NOTE__;
+  const fromShell = (window as unknown as { __PLUTO_NOTE__?: unknown }).__PLUTO_NOTE__;
   if (typeof fromShell === "string" && fromShell) return fromShell;
   return new URLSearchParams(window.location.search).get("note");
 }

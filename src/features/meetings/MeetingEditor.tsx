@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MarkdownView } from "@/features/notes/MarkdownView";
-import { useMeeting, useMeetingActions, useParticipantSuggestions } from "@/hooks/useLoaf";
+import { useMeeting, useMeetingActions, useParticipantSuggestions } from "@/hooks/usePluto";
 import { errorMessage, type ActionItemInput, type DecisionInput, type MeetingInput, type TaskStatus } from "@/ipc";
 import { STATUS_LABEL } from "@/lib/taskStatus";
 import { fromLocalInput, toLocalInput } from "@/lib/time";

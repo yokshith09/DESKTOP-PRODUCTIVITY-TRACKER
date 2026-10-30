@@ -15,10 +15,10 @@
 As a student I open the Character page, pick a character, put a hat and glasses on it, see every animation row, and save it. Later I install a pack someone shared.
 
 ## 3. Behaviour
-1. **Library:** built-in characters (Loaf, Mochi, Pip, Bolt, Ghosty) plus installed packs, shown as cards.
+1. **Library:** built-in characters (Pluto, Mochi, Pip, Bolt, Ghosty) plus installed packs, shown as cards.
 2. **Preview:** a row picker (idle, running-right, running-left, waving, jumping, failed, waiting, running, review) plays the row at 8 fps. Rows marked `derived` show a "needs art" badge.
 3. **Accessories (FR-49):** slots hat, glasses, scarf, bow, headphones; one item per slot; saved per character in settings. Drawn as SVG layers over the character, anchored per character.
-4. **Reaction mapping (like OpenPets):** each Loaf event (task done, reminder, focus end, idle) maps to a pack row. Defaults shipped; user can change. Off-by-default contextual reactions stay off.
+4. **Reaction mapping (like OpenPets):** each Pluto event (task done, reminder, focus end, idle) maps to a pack row. Defaults shipped; user can change. Off-by-default contextual reactions stay off.
 5. **Import / export:** export a character as a pack folder or `.zip`; import validates before installing.
 6. **Describe/upload to animate (OpenPets "Studio"):** **not now.** Needs the image-generation decision; personal characters are on HOLD.
 

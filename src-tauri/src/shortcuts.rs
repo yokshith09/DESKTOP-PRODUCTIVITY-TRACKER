@@ -1,4 +1,4 @@
-//! System-wide keyboard shortcuts (UI brief §8). They work while Loaf is in the tray or behind
+//! System-wide keyboard shortcuts (UI brief §8). They work while Pluto is in the tray or behind
 //! other windows. Two can be changed in Settings (`shortcuts.global_open`,
 //! `shortcuts.global_new_note`; `null` means the default); they are registered again whenever
 //! those settings change. A shortcut another app already owns is skipped with a warning in the
@@ -10,9 +10,9 @@
 use std::str::FromStr;
 use std::sync::Arc;
 
-use loaf_core::bus::{EventBus, Recv};
-use loaf_core::events::Event;
-use loaf_core::settings_service::SettingsService;
+use pluto_core::bus::{EventBus, Recv};
+use pluto_core::events::Event;
+use pluto_core::settings_service::SettingsService;
 use serde_json::Value;
 use tauri::{AppHandle, Manager, Runtime};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
@@ -134,7 +134,7 @@ mod tests {
         keys.dedup();
         assert_eq!(keys.len(), ACTIONS.len() - 1, "the pet's is off by default");
         for (_, c) in &all {
-            assert!(loaf_core::settings::shortcut_is_valid(c), "{c}");
+            assert!(pluto_core::settings::shortcut_is_valid(c), "{c}");
             assert!(Shortcut::from_str(c).is_ok(), "{c}");
             assert!(!c.ends_with("+T"));
         }

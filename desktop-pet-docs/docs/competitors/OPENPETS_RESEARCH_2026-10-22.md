@@ -65,11 +65,11 @@ Atlas: cells **192×208**, 8 columns.
 
 Rules: pets contain **art only, never code**; ZIPs checked for unsafe paths and symlinks; 25 MB download cap; install links always ask first.
 
-## 5. What this means for Loaf
+## 5. What this means for Pluto
 
 | Finding | Effect on our plan |
 |---|---|
-| Our packs match V1 exactly (cell size, rows, order, frame counts) | D-SIZE closed: 192×208. Packs ship `spritesheet.webp`; `pet.json` now holds only their 4 required fields, our extras moved to `loaf.json` |
+| Our packs match V1 exactly (cell size, rows, order, frame counts) | D-SIZE closed: 192×208. Packs ship `spritesheet.webp`; `pet.json` now holds only their 4 required fields, our extras moved to `pluto.json` |
 | V2 adds cursor-gaze rows | New item FR-59: add the 2 gaze rows (16 look directions) to our packs |
 | Wardrobe = outfits with schedules | Our FR-49 accessories should be built as **wardrobe outfits** in the same format, so packs stay compatible both ways |
 | Activities = one-shot animations | Our emotes (FR-40) export as **activities** strips |

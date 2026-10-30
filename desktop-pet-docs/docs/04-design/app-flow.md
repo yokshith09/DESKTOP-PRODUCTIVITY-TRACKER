@@ -1,4 +1,4 @@
-# Loaf — App Flow: Surfaces, Screens & Navigation
+# Pluto — App Flow: Surfaces, Screens & Navigation
 
 **Milestone:** D4 · **Version:** 1.2 · **Date:** 2026-10-03 · **Status:** 🔒 LOCKED (approved 2026-10-03)
 **Derives from:** PRD (D2 v1.4) · **Feeds:** UI/UX Brief (D5), Implementation Plan (D7)
@@ -10,12 +10,12 @@ Scope: Phase 0 + Phase 1. Every screen has an ID (`S-xx`); every transition is l
 
 ## 1. Surfaces
 
-Loaf has three surfaces. Only one of them is a "normal" window.
+Pluto has three surfaces. Only one of them is a "normal" window.
 
 | ID | Surface | Always running? | Purpose |
 |----|---------|-----------------|---------|
 | **SF-1** | Tray / menu bar | Yes | Control surface while the main window is hidden |
-| **SF-2** | Pet window | Yes, unless hidden | Presence; click to open Loaf |
+| **SF-2** | Pet window | Yes, unless hidden | Presence; click to open Pluto |
 | **SF-3** | Main window | Shown/hidden | The workspace (all screens below) |
 | SF-4 | Quick-add popup | On global shortcut | Capture a task or note without opening the main window |
 
@@ -48,7 +48,7 @@ Loaf has three surfaces. Only one of them is a "normal" window.
 ```mermaid
 flowchart TB
     subgraph SF1[Tray / Menu bar]
-        T_OPEN[Open Loaf]
+        T_OPEN[Open Pluto]
         T_NOTE[New Note]
         T_TASK[New Task]
         T_PET[Show/Hide Pet]
@@ -102,13 +102,13 @@ flowchart TB
 ## 4. Core Flows
 
 ### F-A · Morning start (D0 §7.1)
-1. Login → Loaf autostarts hidden; pet appears (static)
+1. Login → Pluto autostarts hidden; pet appears (static)
 2. If a day passed: rollover freezes yesterday's log
 3. User clicks pet → main window opens on **Today**
 4. Today shows yesterday summary card, planned tasks, overdue, in progress, pinned notes
 5. User starts a task: row action **Start** → status IN_PROGRESS
 
-### F-B · Capture a task without opening Loaf
+### F-B · Capture a task without opening Pluto
 1. Global shortcut `Ctrl/Cmd+Shift+T` → Quick-add popup (SF-4), focused
 2. Type title, optional `!high` / `@tomorrow` tokens are **not** parsed in v1 (plain title only)
 3. Enter → task created (planned today) → popup closes → toast-less (pet stays still in Phase 1)
@@ -137,21 +137,21 @@ There is no global search. To find something, open its sidebar view and use that
 Sidebar › Daily Logs → pick date → log detail (sections + stats + Δ vs previous day) → Export as Markdown.
 
 ### F-H · Leave
-Close button → window hides (first time only: one-time hint "Loaf keeps running in the tray"). Quit only from tray or `Ctrl/Cmd+Q`.
+Close button → window hides (first time only: one-time hint "Pluto keeps running in the tray"). Quit only from tray or `Ctrl/Cmd+Q`.
 
 ## 5. Tray Menu (SF-1)
 
 ```
-Open Loaf                 
+Open Pluto                 
 New Note           ⇧⌘N / Ctrl+Shift+N
 New Task           ⇧⌘T / Ctrl+Shift+T
 ───────────────
 Hide Pet / Show Pet  ⇧⌘P / Ctrl+Shift+P
 ───────────────
 Settings…
-Quit Loaf          ⌘Q / Ctrl+Q
+Quit Pluto          ⌘Q / Ctrl+Q
 ```
-Windows: left-click tray icon = Open Loaf; right-click = menu. macOS: click = menu (platform convention).
+Windows: left-click tray icon = Open Pluto; right-click = menu. macOS: click = menu (platform convention).
 
 ## 6. State Rules
 
@@ -183,4 +183,4 @@ Sidebar order is designed now so later items slot in without reshuffling muscle 
 ## 8. Amendments
 
 ### Amendment D4-A2 (2026-10-03) — search removed
-S-50 (Search overlay), flow F-F, the tray "Search" item and the sidebar search box are withdrawn (ADR-017). IDs are retired, not reused. The `Ctrl/Cmd+Shift+K` and `Ctrl/Cmd+K` shortcuts are freed. Tray menu: Open Loaf · New Note · New Task · — · Hide/Show Pet · — · Settings · Quit.
+S-50 (Search overlay), flow F-F, the tray "Search" item and the sidebar search box are withdrawn (ADR-017). IDs are retired, not reused. The `Ctrl/Cmd+Shift+K` and `Ctrl/Cmd+K` shortcuts are freed. Tray menu: Open Pluto · New Note · New Task · — · Hide/Show Pet · — · Settings · Quit.

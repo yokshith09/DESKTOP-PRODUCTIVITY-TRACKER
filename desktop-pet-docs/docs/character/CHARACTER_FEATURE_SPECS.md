@@ -10,7 +10,7 @@
 
 | ID | Feature | Phase |
 |---|---|---|
-| CH-01 | Character package format (`loaf-character`) | A |
+| CH-01 | Character package format (`pluto-character`) | A |
 | CH-02 | Sprite player and state engine in the pet window | A |
 | CH-03 | Built-in character set (three characters) | A |
 | CH-04 | Character library and selection (appearance, FR-01) | B |
@@ -23,17 +23,17 @@ Phase A = prototype (built-in only). Phase B = personal characters that need no 
 
 ---
 
-## CH-01 — Character package format (`loaf-character`)
+## CH-01 — Character package format (`pluto-character`)
 
 **1 Metadata** — Group: Companion · Status: **Planned** · Milestone: FM-8 · Effort: M · Decision: format approved as starting point, trial-and-error [Decision] · Origin: owner request (FR-39) · Evidence: no format exists in code (research §1.1).
 
 **2 User story** — As a user, I want a character to be a single self-contained package that the app can check, install and remove without knowing which tool made the art.
 
-**3 Behaviour** — A package is a folder or a `.loafpack` zip with `manifest.json`, PNG frames and a licence file. The app validates it before installing. Invalid packages are refused with the reason. A valid package appears in the character library (CH-04).
+**3 Behaviour** — A package is a folder or a `.plutopack` zip with `manifest.json`, PNG frames and a licence file. The app validates it before installing. Invalid packages are refused with the reason. A valid package appears in the character library (CH-04).
 
 **4 Plain summary** — A character is a folder of pictures plus a short description of what each action looks like. Any tool can make one.
 
-**5 Technical design** — Manifest `schema_version = 1` (see research §6 for the fields). Parsing and validation live in `loaf-core` (no Tauri dependency, per `pnpm check:core-deps`). The shell unpacks zips with path checks and size limits. Frames are RGBA PNG with identical dimensions per package. Files are checked with SHA-256 from the manifest.
+**5 Technical design** — Manifest `schema_version = 1` (see research §6 for the fields). Parsing and validation live in `pluto-core` (no Tauri dependency, per `pnpm check:core-deps`). The shell unpacks zips with path checks and size limits. Frames are RGBA PNG with identical dimensions per package. Files are checked with SHA-256 from the manifest.
 
 **6 Choices and trade-offs** — *Frames as PNG* (simple, debuggable, larger files) versus *one atlas per package* (fewer files, harder to edit). Chosen: per-state folders for trial and error; an atlas can be added later as an optimisation without changing the manifest's meaning. *JSON manifest* versus *TOML*: JSON, because the webview reads it directly. *Trial and error* means `schema_version` stays `1` only while we iterate inside the prototype; it becomes stable at the end of Phase A.
 
@@ -109,7 +109,7 @@ Phase A = prototype (built-in only). Phase B = personal characters that need no 
 
 **2 User story** — As a user, I can pick from several characters so the pet suits my taste.
 
-**3 Behaviour** — Three packs ship with the app: (1) the existing Loaf bear, exported from its SVG poses; (2) and (3) new characters designed from the owner's reference images. Each has the states in research §5. The default stays the bear.
+**3 Behaviour** — Three packs ship with the app: (1) the existing Pluto bear, exported from its SVG poses; (2) and (3) new characters designed from the owner's reference images. Each has the states in research §5. The default stays the bear.
 
 **4 Plain summary** — Three ready-made pets to choose from.
 
@@ -274,7 +274,7 @@ Phase A = prototype (built-in only). Phase B = personal characters that need no 
 
 **4 Plain summary** — A check that tells you if a character is complete and sized right, with a picture of every frame.
 
-**5 Technical design** — Core validator (`loaf-core`, CH-01 rules) returns structured results. A dev-only script (`scripts/`) renders contact sheets with Pillow or the Rust `image` crate (licence to verify). Hatch-pet's `make_contact_sheet.py` logic is Apache-2.0; if reused, keep the licence and notice.
+**5 Technical design** — Core validator (`pluto-core`, CH-01 rules) returns structured results. A dev-only script (`scripts/`) renders contact sheets with Pillow or the Rust `image` crate (licence to verify). Hatch-pet's `make_contact_sheet.py` logic is Apache-2.0; if reused, keep the licence and notice.
 
 **6 Choices and trade-offs** — *Python script* (quick, uses Pillow, a second runtime for developers) versus *Rust tool* (one runtime, more work). Chosen: Rust for runtime validation; Python allowed only as a dev-only contact-sheet script until the Rust version exists.
 

@@ -25,7 +25,7 @@
 - **Character compatibility:** a character package (CH-01) lists the emotes it implements under `emotes`. The registry resolves "available" = in the character's manifest AND all `requires` present in its `pose_map`. Else **unavailable** (menu entry hidden or disabled with a reason, never faked).
 - **IDs (reserved):** `back_turn_shake`, `chaotic_dance`, `tiny_tantrum`, `moonwalk_escape`, `dramatic_crying`, `smug_taunt`, `instant_sleep`, `over_the_top_celebration`.
 - **Dependencies:** CH-01 manifest extension (`emotes` map, `pose_tags`), CH-02 player.
-- **Tasks:** (1) schema for registry entry; (2) JSON Schema + validator in `loaf-core` (reuse CH-07); (3) loader that resolves availability per character; (4) generated TS type via `pnpm gen:types`; (5) docs in CH-01.
+- **Tasks:** (1) schema for registry entry; (2) JSON Schema + validator in `pluto-core` (reuse CH-07); (3) loader that resolves availability per character; (4) generated TS type via `pnpm gen:types`; (5) docs in CH-01.
 - **Tests:** unknown id rejected; duplicate id rejected; missing asset marks emote unavailable; `requires` unmet → unavailable; manifest with `blocked: true` hides it; schema round-trip.
 - **Edge cases:** character removed mid-playback; emote id renamed in a later package version; two packages define the same id.
 - **Risks:** registry drift from assets. Mitigation: validator runs on import.

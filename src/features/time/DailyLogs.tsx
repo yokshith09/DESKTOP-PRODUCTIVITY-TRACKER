@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ChevronRight, ClipboardCopy } from "lucide-react";
 import { notify } from "@/lib/notify";
 import { Tile } from "@/features/shell/PageHeader";
-import { useRecentLogs } from "@/hooks/useLoaf";
+import { useRecentLogs } from "@/hooks/usePluto";
 import { dayLabel } from "@/lib/dates";
 import { dailyLogMarkdown } from "@/lib/dailyLogMarkdown";
 import { cn } from "@/lib/utils";

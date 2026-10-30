@@ -11,7 +11,7 @@ import { PageHeader } from "@/features/shell/PageHeader";
 import { LinksCard } from "@/features/links/Shortcuts";
 import type { Page } from "@/features/shell/Sidebar";
 import { mod } from "@/lib/platform";
-import { useNoteActions, useNotes, useSearch } from "@/hooks/useLoaf";
+import { useNoteActions, useNotes, useSearch } from "@/hooks/usePluto";
 import type { LabelCount, NoteSort } from "@/ipc";
 import { LabelManager } from "./LabelManager";
 import { NoteComposer } from "./NoteComposer";

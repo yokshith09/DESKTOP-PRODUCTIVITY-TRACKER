@@ -4,7 +4,7 @@ import { CheckSquare, NotebookPen, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Bear } from "@/features/shell/Bear";
-import { useNotes, useTasksQuery } from "@/hooks/useLoaf";
+import { useNotes, useTasksQuery } from "@/hooks/usePluto";
 import { useSetting } from "@/hooks/useTheme";
 import { ipc } from "@/ipc";
 import { ROLES, ROLE_INFO, ROLE_PREF, parseRole, type Role } from "@/features/guide/roles";
@@ -15,7 +15,7 @@ const KEY = ["prefs", "ui.onboarded"] as const;
 
 /**
  * Whether to show the welcome screen (S-00, F1-26): never finished it, and there is nothing in
- * Loaf yet. After Delete all the preferences are gone too, so it shows again. Someone who
+ * Pluto yet. After Delete all the preferences are gone too, so it shows again. Someone who
  * already has notes or tasks (an upgrade) never sees it.
  */
 export function useFirstRun() {
@@ -46,7 +46,7 @@ function Choice({ label, hint, checked, onChange }: { label: string; hint: strin
   );
 }
 
-/** One tap: who is using Loaf. It only decides the order of the tour and the quiz (FR-83). */
+/** One tap: who is using Pluto. It only decides the order of the tour and the quiz (FR-83). */
 function RoleStep({ next, onDone }: { next: WelcomeNext; onDone: (next: WelcomeNext) => void }) {
   const role = usePref(ROLE_PREF, parseRole);
   const tour = usePref(TOUR_PREF, parseTour);
@@ -62,7 +62,7 @@ function RoleStep({ next, onDone }: { next: WelcomeNext; onDone: (next: WelcomeN
         <div className="flex flex-col items-center text-center">
           <Bear pose="wave" animated className="size-24" />
           <h1 className="mt-3 text-2xl font-semibold tracking-tight">What describes you best?</h1>
-          <p className="mt-1.5 text-[13.5px] text-muted-foreground">Loaf shows what matters to you first in the tour and the quiz. Nothing is hidden, and you can change this any time.</p>
+          <p className="mt-1.5 text-[13.5px] text-muted-foreground">Pluto shows what matters to you first in the tour and the quiz. Nothing is hidden, and you can change this any time.</p>
         </div>
         <div role="group" aria-label="What describes you best" className="mt-6 grid gap-3 sm:grid-cols-2">
           {ROLES.map((r) => (
@@ -100,7 +100,7 @@ function WelcomeChoices({ onDone }: { onDone: (next: WelcomeNext) => void }) {
       <div className="w-full max-w-xl">
         <div className="flex flex-col items-center text-center">
           <Bear pose="wave" animated className="size-28" />
-          <h1 className="mt-3 text-2xl font-semibold tracking-tight">Welcome to Loaf</h1>
+          <h1 className="mt-3 text-2xl font-semibold tracking-tight">Welcome to Pluto</h1>
           <p className="mt-1.5 text-[13.5px] text-muted-foreground">Your notes, tasks and time, kept on this computer. Start with one of these:</p>
         </div>
 
@@ -133,7 +133,7 @@ function WelcomeChoices({ onDone }: { onDone: (next: WelcomeNext) => void }) {
 
         <section aria-label="Your choices" className="mt-6 divide-y rounded-xl border bg-card px-4">
           <Choice
-            label="Show Loaf the bear on your desktop" hint="Hover for today at a glance; click to open Loaf."
+            label="Show Pluto the bear on your desktop" hint="Hover for today at a glance; click to open Pluto."
             checked={pet ?? true} onChange={(v) => void setPet(v)}
           />
           <Choice
@@ -141,7 +141,7 @@ function WelcomeChoices({ onDone }: { onDone: (next: WelcomeNext) => void }) {
             checked={tracking ?? false} onChange={(v) => void setTracking(v)}
           />
           <Choice
-            label="Open Loaf at login" hint="Starts quietly in the tray."
+            label="Open Pluto at login" hint="Starts quietly in the tray."
             checked={autostart ?? false} onChange={(v) => void setAutostart(v)}
           />
         </section>

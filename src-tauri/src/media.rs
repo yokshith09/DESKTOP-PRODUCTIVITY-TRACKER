@@ -15,7 +15,7 @@
 //! Unverified on a real OS: the key mapping and the script text are unit-tested, nobody has
 //! pressed the buttons on a Windows PC or a Mac yet.
 
-use loaf_core::error::{AppError, Result};
+use pluto_core::error::{AppError, Result};
 
 const VK_MEDIA_NEXT_TRACK: u16 = 0xB0;
 const VK_MEDIA_PREV_TRACK: u16 = 0xB1;
@@ -106,7 +106,7 @@ fn press(action: &str) -> Result<()> {
         Ok(())
     } else {
         Err(AppError::io(
-            "Couldn't send the media key. macOS may need the Accessibility permission for Loaf.",
+            "Couldn't send the media key. macOS may need the Accessibility permission for Pluto.",
         ))
     }
 }

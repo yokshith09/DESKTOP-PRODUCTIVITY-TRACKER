@@ -60,7 +60,7 @@ export function Sidebar({ page, counts, onPage, isDark, onToggleTheme }: Props) 
         <span className="grid size-7 place-items-center overflow-hidden rounded-md bg-primary/12 ring-1 ring-primary/25">
           <Bear className="mt-1 size-7" />
         </span>
-        <span className="hidden text-sm font-semibold tracking-tight lg:inline">Loaf</span>
+        <span className="hidden text-sm font-semibold tracking-tight lg:inline">Pluto</span>
         <span className="ml-auto hidden rounded bg-muted px-1.5 py-px text-[10px] font-medium text-muted-foreground lg:inline">Local</span>
       </div>
 

@@ -3,7 +3,7 @@ import { Bell, CheckCircle2, Circle, Moon, NotebookPen, Pause, Play, Plus, Squar
 import { ipc } from "@/ipc";
 import { PRIORITY } from "@/features/overview/TodayAgenda";
 import { rangeBounds } from "@/features/time/range";
-import { useDailyLog, useReminders, useTodayTasks, useTrackingStatus, useUsage } from "@/hooks/useLoaf";
+import { useDailyLog, useReminders, useTodayTasks, useTrackingStatus, useUsage } from "@/hooks/usePluto";
 import { ymd } from "@/lib/dates";
 import { clockTime, formatDuration } from "@/lib/time";
 import { cn } from "@/lib/utils";

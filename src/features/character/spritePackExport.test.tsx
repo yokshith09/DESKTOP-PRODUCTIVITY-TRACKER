@@ -7,11 +7,11 @@ import { describe, it } from "vitest";
 import { Bear } from "@/features/shell/Bear";
 import { TURNED_VIEWS } from "./CharacterViews";
 import { CHARACTERS } from "./Characters";
-import { ATLAS_H, ATLAS_W, BIG_H, BIG_W, COLS, ROWS, bigFrameTransform, buildLoafInfo, buildPetJson, frameTransform, relightForMirror } from "./spritePack";
+import { ATLAS_H, ATLAS_W, BIG_H, BIG_W, COLS, ROWS, bigFrameTransform, buildPlutoInfo, buildPetJson, frameTransform, relightForMirror } from "./spritePack";
 
 const TURNED = new Set(["turn", "back", "back_look"]);
 const all = [
-  { key: "bear", name: "Loaf", what: "the bear" },
+  { key: "bear", name: "Pluto", what: "the bear" },
   ...CHARACTERS.map((c) => ({ key: c.key, name: c.name, what: c.what })),
 ];
 
@@ -48,7 +48,7 @@ describe.skipIf(!process.env.EXPORT_PACKS)("export sprite packs", () => {
       writeFileSync(resolve(dir, "strips.svg"), `<svg xmlns="http://www.w3.org/2000/svg" width="${COLS * BIG_W}" height="${ROWS.length * BIG_H}" viewBox="0 0 ${COLS * BIG_W} ${ROWS.length * BIG_H}">${big.join("")}</svg>`);
       writeFileSync(resolve(dir, "atlas.svg"), `<svg xmlns="http://www.w3.org/2000/svg" width="${ATLAS_W}" height="${ATLAS_H}" viewBox="0 0 ${ATLAS_W} ${ATLAS_H}">${cells.join("")}</svg>`);
       writeFileSync(resolve(dir, "pet.json"), JSON.stringify(buildPetJson(c.key, c.name, `${c.name}, ${c.what}`), null, 2) + "\n");
-      writeFileSync(resolve(dir, "loaf.json"), JSON.stringify(buildLoafInfo(c.key), null, 2) + "\n");
+      writeFileSync(resolve(dir, "pluto.json"), JSON.stringify(buildPlutoInfo(c.key), null, 2) + "\n");
     });
   }
 });

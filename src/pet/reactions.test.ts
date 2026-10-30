@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import type { LoafEvent, TaskRow } from "@/ipc";
+import type { PlutoEvent, TaskRow } from "@/ipc";
 import { SLEEP_AFTER_MS, enqueue, isAsleep, reactionFor, reactionForSay, type Reaction } from "./reactions";
 
 const row = (id: string, title = id, overdue = false): TaskRow => ({
   overdue, done_today: false,
   task: { id, title, description: "", status: "PLANNED", priority: null, project: null, planned_date: null, due_date: null, note_id: null, source_action_item_id: null, created_at: 0, updated_at: 0, started_at: null, completed_at: null, cancelled_at: null, starred: false, repeat: null, repeat_until: null, days: [], links: [] },
 });
-const ev = (type: string, fields: Record<string, unknown> = {}) => ({ type, at: 0, ...fields }) as LoafEvent;
+const ev = (type: string, fields: Record<string, unknown> = {}) => ({ type, at: 0, ...fields }) as PlutoEvent;
 
 describe("pet reactions", () => {
   it("cheers when a task is done, and throws a party for the last one", () => {

@@ -36,7 +36,7 @@ export function useAutoDeleteRules() {
 
 const SIX_HOURS = 6 * 3_600_000;
 
-/** Run the rules when Loaf starts, every few hours, and after the computer wakes. */
+/** Run the rules when Pluto starts, every few hours, and after the computer wakes. */
 export function useAutoDelete() {
   const { rules, loaded } = useAutoDeleteRules();
   useEffect(() => {

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// ADR-002 / F0-01: `loaf-core` must never depend on tauri, directly or transitively,
+// ADR-002 / F0-01: `pluto-core` must never depend on tauri, directly or transitively,
 // so it compiles and its tests run on any machine. Fails CI if that ever changes.
 import { execFileSync } from "node:child_process";
 
@@ -12,9 +12,9 @@ const meta = JSON.parse(
 
 const byId = new Map(meta.packages.map((p) => [p.id, p]));
 const nodes = new Map(meta.resolve.nodes.map((n) => [n.id, n]));
-const root = meta.packages.find((p) => p.name === "loaf-core");
+const root = meta.packages.find((p) => p.name === "pluto-core");
 if (!root) {
-  console.error("loaf-core not found in the workspace");
+  console.error("pluto-core not found in the workspace");
   process.exit(2);
 }
 
@@ -31,7 +31,7 @@ while (stack.length) {
 }
 
 if (offenders.length) {
-  console.error(`loaf-core depends on tauri crates: ${[...new Set(offenders)].join(", ")}`);
+  console.error(`pluto-core depends on tauri crates: ${[...new Set(offenders)].join(", ")}`);
   process.exit(1);
 }
-console.log(`ok: loaf-core's ${seen.size - 1} transitive dependencies contain no tauri crates`);
+console.log(`ok: pluto-core's ${seen.size - 1} transitive dependencies contain no tauri crates`);

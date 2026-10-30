@@ -18,7 +18,7 @@ A minimal Settings › Data section (the rest of Settings is F1-25) with Export,
 ## Acceptance Criteria
 - [ ] **Export** takes one read snapshot (single read transaction) and streams the JSON in Schema §7 format to a user-chosen path via the OS dialog (R0-07); format has no search section
 - [ ] **Import** is allowed only into an empty workspace; it validates `format`, `format_version` and `schema_version ≤ current`, inserts everything in one transaction with foreign keys on, and is all-or-nothing (R0-08). `labels.name_folded` is recomputed from `name`, never trusted from the file
-- [ ] **Delete all** requires the exact string `DELETE`; it stops the writer, closes connections, deletes `loaf.db*`, recreates an empty database through the migrations, clears settings and preferences, and returns the app to its first-run state (R0-09)
+- [ ] **Delete all** requires the exact string `DELETE`; it stops the writer, closes connections, deletes `pluto.db*`, recreates an empty database through the migrations, clears settings and preferences, and returns the app to its first-run state (R0-09)
 - [ ] Export → delete → import produces data identical to the original (round trip)
 - [ ] `DataExported`, `DataImported`, `AllDataDeleted` are published after the operation succeeds and the UI refreshes fully on the last two
 - [ ] Paths come only from the OS dialog; no other file access

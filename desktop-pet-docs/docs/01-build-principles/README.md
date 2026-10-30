@@ -1,4 +1,4 @@
-# Loaf — Build Principles Index & Milestone Plan
+# Pluto — Build Principles Index & Milestone Plan
 
 Version 1.1 · 2026-10-03 · **D0–D7 all locked**
 

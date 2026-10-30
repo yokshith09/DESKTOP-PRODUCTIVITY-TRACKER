@@ -32,7 +32,7 @@ export function TrackingSettings() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-xl gap-1 p-5">
           <DialogTitle className="text-base font-semibold">Tracking and privacy</DialogTitle>
-          <DialogDescription className="text-xs text-muted-foreground">What Loaf records for the Time page. All of it stays on this computer.</DialogDescription>
+          <DialogDescription className="text-xs text-muted-foreground">What Pluto records for the Time page. All of it stays on this computer.</DialogDescription>
           <div className="mt-2 divide-y">
         <Row label="Track app usage" hint="Which app is in front, and for how long. Stays on this computer. Window titles are never stored.">
           <Switch checked={tracking ?? false} onCheckedChange={(v) => void setTracking(v)} aria-label="Track app usage" />

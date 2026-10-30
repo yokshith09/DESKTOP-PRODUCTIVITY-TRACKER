@@ -155,7 +155,7 @@ describe("NotesHome", () => {
 Manual E2E Test: Create Note
 
 Setup:
-- Launch Loaf
+- Launch Pluto
 - Notes home is visible
 
 Steps:

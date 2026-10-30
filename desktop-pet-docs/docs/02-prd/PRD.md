@@ -1,4 +1,4 @@
-# Loaf — Product Requirements Document (PRD)
+# Pluto — Product Requirements Document (PRD)
 
 **Milestone:** D2 · **Version:** 1.4 · **Date:** 2026-10-03 · **Status:** 🔒 LOCKED — §9 decisions D-1…D-10 approved 2026-10-03
 **Derives from:** `docs/00-product/product-document.md` (D0 v1.4), `docs/01-build-principles/` (D1)
@@ -34,7 +34,7 @@ This PRD turns the Product Document into **testable requirements**. Phase 0 and 
 | Performance | All budgets in `09-performance-budgets.md` pass on Win + macOS | Release profiling |
 | Stability | Zero data-loss bugs during 2-week beta | Bug tracker |
 
-[Certain] Loaf has no telemetry (ADR-012), so all metrics come from testers voluntarily, never from the app phoning home.
+[Certain] Pluto has no telemetry (ADR-012), so all metrics come from testers voluntarily, never from the app phoning home.
 
 ## 4. Scope Summary
 
@@ -57,14 +57,14 @@ Phase 0 is not user-facing as a release, but these behaviors are user-visible an
 
 | ID | Requirement | Acceptance criteria |
 |----|-------------|---------------------|
-| R0-01 | **Single instance** | Launching Loaf while running focuses the existing main window; no second process remains |
-| R0-02 | **Tray / menu bar presence** | Icon present on both OSes; menu: Open Loaf, New Note, New Task, Show/Hide Pet, Settings, Quit |
+| R0-01 | **Single instance** | Launching Pluto while running focuses the existing main window; no second process remains |
+| R0-02 | **Tray / menu bar presence** | Icon present on both OSes; menu: Open Pluto, New Note, New Task, Show/Hide Pet, Settings, Quit |
 | R0-03 | **Close hides, Quit quits** | Closing the main window hides it; app keeps running; Quit from tray exits all processes |
-| R0-04 | **Auto-start** | Toggle in Settings; when on, Loaf starts at login hidden to tray with pet visible |
+| R0-04 | **Auto-start** | Toggle in Settings; when on, Pluto starts at login hidden to tray with pet visible |
 | R0-05 | **Local database** | DB created at OS app-data path on first launch; survives restart and app update |
-| R0-06 | **Migrations safe** | Before applying a schema migration, a copy `loaf.db.bak-<version>` is written; failed migration leaves original DB untouched and shows an error |
+| R0-06 | **Migrations safe** | Before applying a schema migration, a copy `pluto.db.bak-<version>` is written; failed migration leaves original DB untouched and shows an error |
 | R0-07 | **Export** | Settings → Export writes a single JSON file of all user data to a user-chosen path |
-| R0-08 | **Import** | Settings → Import accepts a Loaf export **only into an empty workspace** (v1); validates schema version; all-or-nothing |
+| R0-08 | **Import** | Settings → Import accepts a Pluto export **only into an empty workspace** (v1); validates schema version; all-or-nothing |
 | R0-09 | **Delete all data** | Two-step confirmation (type `DELETE`); wipes DB, settings, pet position; app returns to first-run state |
 | R0-10 | **Day rollover** | At local midnight (or on first launch/wake on a new day), the previous day's log is frozen (see R1-40) |
 | R0-11 | **Theme** | Light / Dark / System; applies instantly to main and pet windows |
@@ -134,7 +134,7 @@ Requirement IDs map 1:1 to feature specs (`F1-xx`) in the Implementation Plan.
 | R1-40 | Freeze at rollover | At day rollover, a snapshot for the ended day is written once and never modified (DB-enforced) |
 | R1-41 | Today = live | Today's log is computed live from current data; it becomes a snapshot only at rollover |
 | R1-42 | Sections (Phase 1) | Planned, In Progress, Completed, Pending, Cancelled, Overdue, plus stats: completed/planned ratio, tasks created, notes created/edited, meetings held |
-| R1-43 | Missed days | If Loaf was not running on some days, logs for those days are reconstructed from task history on next launch; days with no task/note/meeting activity get no log |
+| R1-43 | Missed days | If Pluto was not running on some days, logs for those days are reconstructed from task history on next launch; days with no task/note/meeting activity get no log |
 | R1-44 | History | Calendar/list of past logs; open any day; compare with previous day (deltas on stats) |
 | R1-45 | Export day | Export a single day's log as Markdown |
 | R1-46 | Activity sections | ~~Hidden until Phase 2~~ **Superseded for tracking (v1.4):** shown once the user opts in; hidden while tracking is off |

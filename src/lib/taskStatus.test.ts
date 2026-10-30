@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { STATUSES, transitionsFrom } from "./taskStatus";
 
-// PRD §6.2.1, same layout as the table in loaf-core: rows = from, columns = to, in STATUSES order.
+// PRD §6.2.1, same layout as the table in pluto-core: rows = from, columns = to, in STATUSES order.
 const TABLE: Record<string, string> = {
   PLANNED: ". x . x x",
   IN_PROGRESS: ". . x x x",

@@ -1,4 +1,4 @@
-# Loaf — Roadmap
+# Pluto — Roadmap
 > **Start here: [`MASTER_PLAN.md`](MASTER_PLAN.md)** — phases, milestones, every feature with its "done when" (2026-10-22).
 >
 > Requested-feature inventory, extra milestones (FM-x), test matrix and release gates: [`FEATURE_ROADMAP.md`](FEATURE_ROADMAP.md). Delivery order for M0–M13 stays in this file.
@@ -167,7 +167,7 @@ Owner: "before changing the UI show me UI preview". Preview boards: Today (no fo
 | F1-23 | Today view (R1-70 rest) | ✅ 2026-10-12: one line "Yesterday: X of Y done · N still open" that opens those tasks (owner chose only this; follow-ups and pinned notes dropped) |
 | F1-24 | Global shortcuts + quick-add popup + keymap | ✅ 2026-10-12 (Unverified on Windows): `Mod+Shift+L/N` changeable in Settings, `Mod+Shift+P` fixed; quick-add popup and `Mod+Shift+T` dropped by the owner |
 | F1-25 | Settings screens (Pet, Shortcuts, Advanced) | ✅ 2026-10-12: Shortcuts (change/reset), Data (database location, open folder), Advanced (log detail live, open logs folder, reset settings), About (open-source licenses) |
-| F1-26 | First run + empty states | 🟡 Welcome screen built (2026-10-12): shown once on a fresh Loaf or after Delete all, never to someone with notes or tasks; three start actions (task, note, meeting); pet on, tracking and login off. |
+| F1-26 | First run + empty states | 🟡 Welcome screen built (2026-10-12): shown once on a fresh Pluto or after Delete all, never to someone with notes or tasks; three start actions (task, note, meeting); pet on, tracking and login off. |
 | F1-27 | Cross-OS E2E, signing, **v1.0.0** | 🟡 E2E built 2026-10-12: Windows WebDriver run (welcome, task, note, meeting → task, restart) and macOS launch smoke test in `.github/workflows/e2e.yml`; passes 3/3 locally on Linux. **Signing waits for the owner's certificates.** The release is after Phase 2 (owner) |
 
 F1-20 and F1-21 (search) are cancelled; their numbers are retired.
@@ -357,7 +357,7 @@ F1-20 and F1-21 (search) are cancelled; their numbers are retired.
 **Milestone 10.1 — Foundation**
 - MCP client scaffold
 - OAuth 2.0 + PKCE; tokens in the OS keychain (the same storage M5 needs for its API key — build it once, reuse it)
-- Per-integration toggle in Settings; MCP events routed into Loaf's own event bus
+- Per-integration toggle in Settings; MCP events routed into Pluto's own event bus
 
 **Milestone 10.2 — First connector, verified**
 - One service, end to end, used for real before adding a second. GitHub or Google Calendar are the two the owner has mentioned by name; the choice is the owner's (it decides what "verified" tests against)
@@ -378,7 +378,7 @@ F1-20 and F1-21 (search) are cancelled; their numbers are retired.
 
 *Owner's feature 9. Detection rides with M3 (same browser integration); this milestone is the person-facing report.*
 
-- Show what was detected — known third-party trackers, by domain, with the evidence (which site, which tracker, how many times) — never an unsupported claim about what data was collected, which the person's browser and Loaf cannot actually see
+- Show what was detected — known third-party trackers, by domain, with the evidence (which site, which tracker, how many times) — never an unsupported claim about what data was collected, which the person's browser and Pluto cannot actually see
 - Show uncertainty explicitly where it exists (a domain matching a known tracker list is not proof of what it does); the report reads like a researcher's note, not a verdict
 - One place to act: don't track, delete, or see detail — reusing the existing per-domain settings from `tracking.exclude_apps`'s pattern
 

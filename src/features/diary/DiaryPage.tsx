@@ -40,7 +40,7 @@ function PasswordForm({ configured, onDone }: { configured: boolean; onDone: (re
   return (
     <form className="mx-auto mt-10 max-w-sm space-y-3 rounded-xl border bg-card p-6" onSubmit={(e) => { e.preventDefault(); void submit(); }}>
       <div className="flex items-center gap-2 text-sm font-semibold"><Lock aria-hidden className="size-4 text-primary" />{recovering ? "Set a new password" : configured ? "Unlock your diary" : "Set a password for your diary"}</div>
-      {!configured && <p className="text-xs text-muted-foreground">Only you can read it. After you create it, Loaf shows you a recovery key once. Keep that key: it is the only way back in if you forget the password.</p>}
+      {!configured && <p className="text-xs text-muted-foreground">Only you can read it. After you create it, Pluto shows you a recovery key once. Keep that key: it is the only way back in if you forget the password.</p>}
       {recovering && <Input autoFocus value={key} onChange={(e) => setKey(e.target.value)} aria-label="Recovery key" placeholder="ABCD-EFGH-…" autoComplete="off" />}
       <Input autoFocus={!recovering} type="password" value={pw} onChange={(e) => setPw(e.target.value)} aria-label={recovering ? "New password" : "Password"} autoComplete={configured && !recovering ? "current-password" : "new-password"} />
       {(!configured || recovering) && <Input type="password" value={again} onChange={(e) => setAgain(e.target.value)} aria-label="Repeat the password" autoComplete="new-password" />}
@@ -65,7 +65,7 @@ function RecoveryKeyCard({ recoveryKey, onDone }: { recoveryKey: string; onDone:
   return (
     <section aria-label="Recovery key" className="mx-auto mt-10 max-w-md space-y-3 rounded-xl border bg-card p-6">
       <div className="flex items-center gap-2 text-sm font-semibold"><KeyRound aria-hidden className="size-4 text-primary" />Your recovery key</div>
-      <p className="text-xs text-muted-foreground">If you forget your password, this key lets you set a new one without losing anything. Loaf shows it only now and does not keep a readable copy. Write it down or save it somewhere safe.</p>
+      <p className="text-xs text-muted-foreground">If you forget your password, this key lets you set a new one without losing anything. Pluto shows it only now and does not keep a readable copy. Write it down or save it somewhere safe.</p>
       <p className="select-all rounded-md bg-muted px-3 py-2 text-center font-mono text-sm tracking-wider" aria-label="Recovery key value">{recoveryKey}</p>
       <Button variant="outline" size="sm" className="w-full" onClick={() => void copy()}><Copy />Copy</Button>
       <label className="flex items-center gap-2 text-xs"><input type="checkbox" className="size-4" checked={saved} onChange={(e) => setSaved(e.target.checked)} />I have saved my recovery key</label>

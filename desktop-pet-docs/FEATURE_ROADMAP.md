@@ -1,6 +1,6 @@
 # FEATURE_ROADMAP — canonical feature and release roadmap
 
-**Audited:** 2026-10-19 on `main` @ `8368daa`. Owner-reported release: **`v2.0.0`** (tag at `4bad6a2`, installed and tested by the owner); source version is still 0.2.0 (see §2 finding 10). Unsigned; **signing on hold** (owner, 2026-10-19) · **Product name:** undecided — "Loaf" is a working name in code and docs; nothing here renames it (see §13, D-NAME).
+**Audited:** 2026-10-19 on `main` @ `8368daa`. Owner-reported release: **`v2.0.0`** (tag at `4bad6a2`, installed and tested by the owner); source version is still 0.2.0 (see §2 finding 10). Unsigned; **signing on hold** (owner, 2026-10-19) · **Product name:** undecided — "Pluto" is a working name in code and docs; nothing here renames it (see §13, D-NAME).
 
 > **How this file relates to the others (no duplicate sources of truth).** Milestone M0–M13 *delivery order* stays in [`ROADMAP.md`](ROADMAP.md). *Current state* stays in [`PROJECT_STATUS.md`](PROJECT_STATUS.md). *Decisions* stay in [`DECISIONS.md`](DECISIONS.md). User-visible history stays in [`CHANGELOG.md`](CHANGELOG.md). This file adds what those do not hold: the **complete requested-feature inventory** (FR-01…FR-58), a milestone plan for the features ROADMAP.md does not cover (FM-0…FM-12), the test matrix, traceability, release gates and the documentation protocol. Per-feature 13-point specs live in [`docs/features/FR-requested-features.md`](docs/features/FR-requested-features.md); older specs: [`docs/features/README.md`](docs/features/README.md), [`AN-assistant-notifications.md`](docs/features/AN-assistant-notifications.md). Product/design sources: [PRD](docs/02-prd/PRD.md) · [TRD](docs/03-trd/TRD.md) · [UI/UX brief](docs/04-design/ui-ux-brief.md) · [App flow](docs/04-design/app-flow.md) · [Schema](docs/05-backend/backend-schema.md) · [Implementation plan](docs/06-plan/implementation-plan.md).
 
@@ -10,7 +10,7 @@
 
 **Owner instructions, 2026-10-19 (binding for this document):** (a) keep every existing feature and add the requested ones; (b) all application keyboard shortcuts are **off by default** and users enable them, with an enable/disable button (FR-37); (c) keep one Git branch (`main`) and remove the others; (d) code signing on hold; (e) the Meetings feature does not make sense to the owner and needs redesign, to be done in a later phase (FR-38); (f) for now, only the feature document and current-state documentation are in scope: **no feature code is built yet**.
 
-Loaf is a local-first Windows/macOS desktop pet and productivity companion (Tauri v2 shell, Rust core `crates/loaf-core`, React/TypeScript UI). Non-negotiables already locked: local-first SQLite, no browser extension, event-driven (idle CPU <1%, RAM <100 MB), one feature at a time, tests with every change. Features that need a server, secrets, cloud AI or OS control change those assumptions and are marked **Blocked** until the owner decides (§13).
+Pluto is a local-first Windows/macOS desktop pet and productivity companion (Tauri v2 shell, Rust core `crates/pluto-core`, React/TypeScript UI). Non-negotiables already locked: local-first SQLite, no browser extension, event-driven (idle CPU <1%, RAM <100 MB), one feature at a time, tests with every change. Features that need a server, secrets, cloud AI or OS control change those assumptions and are marked **Blocked** until the owner decides (§13).
 
 ## 2. Current-state audit (evidence, not documentation)
 
@@ -35,7 +35,7 @@ Audit findings (each tagged):
 8. **[Certain]** Documentation drift: PROJECT_STATUS §1/§4 counts, §3 "active milestone", §4.5 version; `CLAUDE.md` still says active milestone M1; R6 says F0 specs are DRAFT. Counts are corrected in this change; milestone wording needs the owner (D-ORDER).
 10. **[Certain]** Owner-reported `v2.0.0` tag points at `4bad6a2`, the same commit as `v0.2.0`, whose source version is 0.2.0. So the owner's installed build reports a version that differs from the tag name, unless the owner built with a different version. Decision needed (D-VERSION): bump source to 2.0.0 in one change, or keep 0.2.0 and treat the tag as a label.
 11. **[Certain]** Global shortcuts are registered at startup with no master switch (`src-tauri/src/shortcuts.rs`; only `shortcuts.global_open` and `shortcuts.global_new_note` are configurable). They are therefore **on by default**, which conflicts with the owner's instruction (FR-37).
-12. **[Certain]** Meetings is built (F1-17…19: `src/features/meetings`, `crates/loaf-core/src/meetings.rs`). The owner says the flow does not make sense; no defect list has been given yet (FR-38 needs one).
+12. **[Certain]** Meetings is built (F1-17…19: `src/features/meetings`, `crates/pluto-core/src/meetings.rs`). The owner says the flow does not make sense; no defect list has been given yet (FR-38 needs one).
 13. **[Likely]** About 18 of the 36 requested features have no precursor in the code at all; about 10 conflict with locked decisions or need a server/secrets (Blocked).
 
 ## 3. Feature inventory
@@ -137,7 +137,7 @@ Legend: **Requested** = in the owner's list; **Technical requirement (TR)** = de
 | FR-92 | No-guilt rule + automated copy check | All | Built (test) | — | S | Owner 2026-10-23 |
 | FR-93 | Pet age and birthdays (pet = day you met; user day+month) | Companion | Built, Unverified | M6 | S | Owner 2026-10-23 |
 | FR-94 | Greeting once a day, birthdays first | Companion | Built, Unverified | M6 | S | Owner 2026-10-23 |
-| FR-95 | Full backup (.loafbackup incl. pet packs), weekly auto-backup to a chosen folder | Data | Planned | M0 | M | Owner 2026-10-23 |
+| FR-95 | Full backup (.plutobackup incl. pet packs), weekly auto-backup to a chosen folder | Data | Planned | M0 | M | Owner 2026-10-23 |
 | FR-96 | Notification budget + quiet hours, user-adjustable in Settings | Shell | Built, Unverified | FM-V2 | S | Owner 2026-10-23 |
 | FR-97 | Friends/study groups, friends-only opt-in leaderboard, weekly recap card | Social | Planned | P7 | L | Backend (Supabase) |
 | FR-98 | Festival and seasonal outfits | Companion | Planned | P3 | M | FR-64 |

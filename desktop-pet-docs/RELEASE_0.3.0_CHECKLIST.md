@@ -1,4 +1,4 @@
-# Loaf 0.3.0 — test checklist (Windows first, then macOS)
+# Pluto 0.3.0 — test checklist (Windows first, then macOS)
 
 Tick each box on the installed draft. Anything that fails: note what you did and what happened, and send it. Detailed steps per feature are in `TESTS_NEW_FEATURES.md`.
 
@@ -8,7 +8,7 @@ Tick each box on the installed draft. Anything that fails: note what you did and
 - [ ] Data folder has a new backup file from before the update.
 
 ## 1. Pet basics
-- [ ] Pet appears bottom-right on first start; drag it; restart Loaf → same spot.
+- [ ] Pet appears bottom-right on first start; drag it; restart Pluto → same spot.
 - [ ] Click → dashboard opens; double-click → dashboard hides; right-click → menu.
 - [ ] Alt+F4 on the pet → hides; restart → pet is back.
 - [ ] Sleep the PC 5 min, wake → pet is on screen within a minute.
@@ -33,7 +33,7 @@ Tick each box on the installed draft. Anything that fails: note what you did and
 - [ ] Pause on the pet's timer and on Today; +5; Stop.
 - [ ] Let one finish → pet: "Nice: 15 min… Break 5 min?" → click → 5-min break starts → "Break's over".
 - [ ] Task → **Focus 25 min** → timer shows the task name.
-- [ ] Start focus, quit Loaf, reopen after it would have ended → no timer, no error.
+- [ ] Start focus, quit Pluto, reopen after it would have ended → no timer, no error.
 
 ## 5. Tasks
 - [ ] Task → add 2 links (one with a name) → chips appear **next to the task** on Today and Tasks → click opens the browser.

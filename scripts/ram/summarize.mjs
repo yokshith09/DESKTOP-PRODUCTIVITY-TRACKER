@@ -52,7 +52,7 @@ export function parsePs(text) {
     .map((m) => ({ pid: +m[1], ppid: +m[2], name: m[4], bytes: +m[3] * 1024 }));
 }
 
-/** First line of `footprint -p PID`, e.g. "loaf [123]: 64-bit  Footprint: 33 MB (...)". */
+/** First line of `footprint -p PID`, e.g. "pluto [123]: 64-bit  Footprint: 33 MB (...)". */
 export function parseFootprint(text) {
   const m = text.match(/Footprint:\s*([\d.]+)\s*(B|KB|MB|GB)\b/i);
   if (!m) return null;
@@ -64,7 +64,7 @@ const isWebview = (platform, name) =>
   platform === "win32" ? /msedgewebview2/i.test(name) : /com\.apple\.WebKit\./.test(name);
 
 /**
- * The processes that belong to Loaf. Windows: the app and all descendants (WebView2
+ * The processes that belong to Pluto. Windows: the app and all descendants (WebView2
  * children are real children). macOS: the app and descendants, plus WebKit helper
  * processes that appeared after launch — WKWebView helpers are started over XPC and
  * are NOT children of the app, so they are matched by name and absence from `baseline`.
@@ -130,7 +130,7 @@ export function renderMarkdown(report) {
     "",
     `**${s.verdict.level}** — ${s.verdict.text}.`,
     "",
-    `Sum across all Loaf processes: **max ${mb1(s.maxBytes)} MB**, mean ${mb1(s.meanBytes)} MB over ${samples.length} samples ` +
+    `Sum across all Pluto processes: **max ${mb1(s.maxBytes)} MB**, mean ${mb1(s.meanBytes)} MB over ${samples.length} samples ` +
       `(${settleSeconds}s settle, every ${intervalSeconds}s). Metric: ${metric}.`,
     environment ? `Environment: ${describeEnvironment(environment)}.` : "",
     "",

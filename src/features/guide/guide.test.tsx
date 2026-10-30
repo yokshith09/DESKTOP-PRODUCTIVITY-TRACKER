@@ -70,7 +70,7 @@ describe("the spotlight tour", () => {
     const onNavigate = vi.fn();
     const onClose = vi.fn();
     render(<Tour steps={steps} onNavigate={onNavigate} onClose={onClose} />);
-    expect(screen.getByRole("dialog", { name: "Loaf tour" })).toBeTruthy();
+    expect(screen.getByRole("dialog", { name: "Pluto tour" })).toBeTruthy();
     expect(screen.getByText("Step 1 of 3")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Next" }));
     expect(screen.getByText("Step 2 of 3")).toBeTruthy();
@@ -109,7 +109,7 @@ describe("the spotlight tour", () => {
   });
 });
 
-describe("the Learn Loaf card", () => {
+describe("the Learn Pluto card", () => {
   function prefs(initial: Record<string, unknown>) {
     const store = { ...initial };
     vi.spyOn(ipc, "prefsGet").mockImplementation(async (k: string) => (store[k] ?? null) as never);
@@ -135,7 +135,7 @@ describe("the Learn Loaf card", () => {
   it("teaches that tracking is off until you switch it on", async () => {
     prefs({ "ui.role": "student", "ui.tour": "done", "ui.learn": { answers: { "quick-add": 0, focus: 1 }, dismissed: false } });
     render(wrap(<LearnCard onShow={() => undefined} />));
-    expect(await screen.findByText(/first time you open Loaf, what does it track/)).toBeTruthy();
+    expect(await screen.findByText(/first time you open Pluto, what does it track/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /Nothing: tracking is off/ }));
     expect(screen.getByRole("status").textContent).toContain("Yes.");
     expect(screen.getByRole("status").textContent).toContain("off until you switch them on");
@@ -150,11 +150,11 @@ describe("the Learn Loaf card", () => {
 
     const store = prefs({ "ui.role": "student", "ui.tour": "done", "ui.learn": { answers: Object.fromEntries(QUIZ_ORDER.student.map((id) => [id, BANK[id]?.answer])), dismissed: false } });
     render(wrap(<LearnCard onShow={() => undefined} />));
-    const card = await screen.findByRole("region", { name: "Learn Loaf" });
+    const card = await screen.findByRole("region", { name: "Learn Pluto" });
     expect(within(card).getByText(/You answered 5 of 5/)).toBeTruthy();
-    fireEvent.click(within(card).getByRole("button", { name: "Hide Learn Loaf" }));
+    fireEvent.click(within(card).getByRole("button", { name: "Hide Learn Pluto" }));
     await waitFor(() => expect((store["ui.learn"] as { dismissed: boolean }).dismissed).toBe(true));
-    expect(screen.queryByRole("region", { name: "Learn Loaf" })).toBeNull();
+    expect(screen.queryByRole("region", { name: "Learn Pluto" })).toBeNull();
   });
 });
 

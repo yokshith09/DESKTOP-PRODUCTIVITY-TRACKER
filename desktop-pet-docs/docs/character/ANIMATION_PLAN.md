@@ -1,7 +1,7 @@
 # How characters really wave, jump and cry (FR-105) — 2026-10-23
 
 ## Why Kayadu doesn't wave yet
-A sprite sheet is a flip-book: every frame is a separate drawing. The Kayadu pack has 57 frames, but they are **the same picture** nudged a few pixels (its own README says so). Loaf can only play the drawings it is given, so moving, shifting or rotating one picture can make it bob or sway — never lift an arm, bend the knees or shed a tear. **Real motion needs new drawings per frame.**
+A sprite sheet is a flip-book: every frame is a separate drawing. The Kayadu pack has 57 frames, but they are **the same picture** nudged a few pixels (its own README says so). Pluto can only play the drawings it is given, so moving, shifting or rotating one picture can make it bob or sway — never lift an arm, bend the knees or shed a tear. **Real motion needs new drawings per frame.**
 
 ## Ways to get real frames
 
@@ -13,7 +13,7 @@ A sprite sheet is a flip-book: every frame is a separate drawing. The Kayadu pac
 | **4. Commission an artist** | Brief: our spec + reference | Best | ~US$300-1,000 per full character [Guessing] | 1-3 weeks |
 | **5. Simplify the style** | A chibi/rounded version of Kayadu (big head, short limbs) | Reads much better at 96-160 px | — | Redraw once |
 
-**Recommendation for Kayadu:** make a **chibi version** (option 5: big head ~45% of height, simple saree shapes, thick outline) and animate it as a **cut-out puppet** (option 3). That fixes both problems at once: it will be readable at pet size and every row gets real poses. Our existing SVG export pipeline can render a puppet character into the 1536×1872 sheet automatically — the same way Loaf, Mochi, Pip, Bolt and Ghosty were made.
+**Recommendation for Kayadu:** make a **chibi version** (option 5: big head ~45% of height, simple saree shapes, thick outline) and animate it as a **cut-out puppet** (option 3). That fixes both problems at once: it will be readable at pet size and every row gets real poses. Our existing SVG export pipeline can render a puppet character into the 1536×1872 sheet automatically — the same way Pluto, Mochi, Pip, Bolt and Ghosty were made.
 
 ## What each row needs (the poses to draw)
 
@@ -28,8 +28,8 @@ A sprite sheet is a flip-book: every frame is a separate drawing. The Kayadu pac
 | running / working (6) | typing on a small laptop: hands alternate down/up, eyes on screen |
 | review (6) | holding a page/phone, eyes move down the page, hand to chin on frames 4-6 |
 
-## What Loaf can add on its side (planned FR-105)
-1. **Pack quality badge:** Loaf detects rows whose frames are near-identical and shows "This pet has still poses for: waving, jumping…" in the library, so users know why.
+## What Pluto can add on its side (planned FR-105)
+1. **Pack quality badge:** Pluto detects rows whose frames are near-identical and shows "This pet has still poses for: waving, jumping…" in the library, so users know why.
 2. **Gentle motion fallback** for such rows: a hop for jumping, a sway for waving, a slump for failed — clearly marked as a fallback, not real animation.
 3. **Puppet template**: a ready parts template (SVG) + our exporter, so a character sheet split into parts becomes a full pack.
 4. **Row-by-row prompt helper** in the Studio: copies the exact prompt for each row and checks the uploaded frames line up (feet baseline, size).

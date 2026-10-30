@@ -9,7 +9,7 @@ A budget is the **maximum cost a feature is allowed to add**. If you can't measu
 | Metric | Budget | Measured as |
 |--------|--------|-------------|
 | Idle CPU | <1% average | 10-minute window, app idle in tray, main window closed, pet visible |
-| RAM (total) | <100 MB | **Sum of all Loaf processes** (core + every webview process + native messaging host) |
+| RAM (total) | <100 MB | **Sum of all Pluto processes** (core + every webview process + native messaging host) |
 | Disk writes when idle | ≤1 per minute | Count of DB transactions committed during idle window |
 | GPU | No sustained load | No WebGL/shaders; GPU usage indistinguishable from baseline when pet is still |
 | Cold startup | <2 s | Launch → main window interactive |
@@ -54,8 +54,8 @@ If Phase 0 measures a higher baseline, later allocations shrink — the total ne
 ## How to Measure
 
 ### Idle CPU & RAM
-- **Windows:** Performance Monitor (`perfmon`) counters for `% Processor Time` and `Private Bytes` on every Loaf process, or a scripted collector using the same counters. Task Manager is for spot-checks only.
-- **macOS:** `top -l` / Activity Monitor with all Loaf processes, or Instruments (Time Profiler, Allocations) for investigation.
+- **Windows:** Performance Monitor (`perfmon`) counters for `% Processor Time` and `Private Bytes` on every Pluto process, or a scripted collector using the same counters. Task Manager is for spot-checks only.
+- **macOS:** `top -l` / Activity Monitor with all Pluto processes, or Instruments (Time Profiler, Allocations) for investigation.
 - Procedure: launch → wait 2 minutes for startup settle → record 10 minutes → report average and max.
 
 ### Startup

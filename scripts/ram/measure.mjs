@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Collector for the preliminary V-2 measurement (F0-02, ADR-018).
-// Launches the built app, lets it settle, samples all Loaf processes, writes a report.
+// Launches the built app, lets it settle, samples all Pluto processes, writes a report.
 // Polling here is tooling, not product code; Principle 1 governs the app, not its test rig.
 import { execFileSync, spawn } from "node:child_process";
 import { appendFileSync, writeFileSync } from "node:fs";

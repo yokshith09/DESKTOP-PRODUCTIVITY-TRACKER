@@ -3,7 +3,7 @@
 > **Status: 🔒 LOCKED** — v1.0, 2026-10-02 · **amended A-1 … A-5 (2026-10-03)**. Changes require a written amendment at the bottom of this file.
 > This file is the **authority for phase numbering** (see Amendment A-2).
 
-This is the canonical sequence for building Loaf. Each phase is a complete, shippable increment.
+This is the canonical sequence for building Pluto. Each phase is a complete, shippable increment.
 
 ## Phase 0: Foundation
 
@@ -206,7 +206,7 @@ Privacy Radar
 - [ ] Test coverage >80%
 - [ ] No additional idle CPU
 
-**Ship:** Yes. Now Loaf is a workspace with a companion.
+**Ship:** Yes. Now Pluto is a workspace with a companion.
 
 ---
 
@@ -259,7 +259,7 @@ Privacy Radar
 - Notion integration (sync notes)
 - Integration settings UI
 - Per-integration enable/disable
-- MCP event routing to Loaf events
+- MCP event routing to Pluto events
 - All tests
 
 **What's NOT built:**
@@ -282,7 +282,7 @@ Privacy Radar
 - [ ] No data stored externally (cached locally only)
 - [ ] Test coverage >80%
 
-**Ship:** Yes. Loaf now connects to the tools developers use daily.
+**Ship:** Yes. Pluto now connects to the tools developers use daily.
 
 ---
 
@@ -382,7 +382,7 @@ Privacy Radar
 - [ ] Character choice is persistent
 - [ ] Test coverage >80%
 
-**Ship:** Yes. Loaf is now a full companion with personality.
+**Ship:** Yes. Pluto is now a full companion with personality.
 
 ---
 

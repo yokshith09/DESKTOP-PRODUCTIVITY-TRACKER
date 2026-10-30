@@ -8,7 +8,7 @@ Preview (clickable, board 4): https://claude.ai/artifact/BdkF54zvoFzUTnyd9P2Y9p 
 - **Focusing** — subject, time left with a ring, current task, next step; buttons Pause, +5 min.
 - **Break** — time left, a short break hint, what comes after; Back to work.
 - **Class soon** — from the Timetable (FR-58): "in 12 min", room, until when; the next free slot.
-- **Nothing planned** — "Free time · Rest counts. Loaf will wait." Next deadline; Focus 25 min, Pick a task.
+- **Nothing planned** — "Free time · Rest counts. Pluto will wait." Next deadline; Focus 25 min, Pick a task.
 - **Pill** — collapsed form ("● 13:12 Physics") after 10 s without the mouse nearby; hover opens it.
 **4 Plain language** — A little card next to your pet that tells you what you're doing now and what's next.
 **5 Technical** — Rendered in the existing pet window (no new window); the window grows to the strip side like the hover card (`expand`). Data from focus sessions, tasks planned today, reminders and the Timetable. Never takes focus; no sound.
@@ -28,6 +28,6 @@ Preview (clickable, board 4): https://claude.ai/artifact/BdkF54zvoFzUTnyd9P2Y9p 
 4. Show it when nothing is planned, or hide it then?
 
 ## Student pack preview, revised the same day (boards 1-3)
-- **Study**: subject chips pick what to focus on; hours per subject with a plan tick and "on plan ✓ / 1 h 06 m to go" (never "behind"); today's focus sessions on a timeline; exams with days left and topics ready; **Loaf noticed** suggestions worked out on this PC from the timetable and hours (no AI, at most one a day above the pet, never in quiet hours).
+- **Study**: subject chips pick what to focus on; hours per subject with a plan tick and "on plan ✓ / 1 h 06 m to go" (never "behind"); today's focus sessions on a timeline; exams with days left and topics ready; **Pluto noticed** suggestions worked out on this PC from the timetable and hours (no AI, at most one a day above the pet, never in quiet hours).
 - **Timetable**: time grid with a now line, free slots that fit a session ("fits Chemistry 45 min"), clash detection (exam during a lab), side panel for the selected block, .ics import button. Classes don't remind by default; study blocks and exams remind once, 10 min before, within the nudge budget.
 - **Study group**: leaderboard visibility defaults to **Nobody** (matches DECISIONS 2026-10-23 afternoon); group goal ring; "Studying right now" only for people who opt in; group day-by-day chart; shared vs never-shared list; cheers make the other pet wave once (no chat).

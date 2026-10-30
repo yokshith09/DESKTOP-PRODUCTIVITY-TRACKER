@@ -96,7 +96,7 @@ Any new exception requires a new ADR.
 
 ## ADR-010: Browser bridge via Native Messaging
 
-**Decision:** Each browser extension talks to a small native messaging host bundled with Loaf, which forwards messages to the Rust core over a local channel. Safari uses a Safari Web Extension packaged inside the macOS app.
+**Decision:** Each browser extension talks to a small native messaging host bundled with Pluto, which forwards messages to the Rust core over a local channel. Safari uses a Safari Web Extension packaged inside the macOS app.
 **Why:** The browser-sanctioned, permissioned path; no open localhost port.
 **Rejected:** Local WebSocket/HTTP server (any local process or webpage could probe it; firewall prompts).
 **Cost:** Per-browser host registration (Windows registry keys, macOS manifest locations); Safari needs Xcode packaging and signing.
@@ -186,7 +186,7 @@ Any new exception requires a new ADR.
 
 **Status:** Accepted (2026-10-03) · Refines the placement of V-2; ADR-001's decision stands.
 
-**Decision:** F0-02 (CI) includes a `v2-ram` job that builds the hello-world bundle from F0-01 on `windows-latest` and `macos-latest`, lets it settle for 2 minutes, samples for 5, and reports the **sum across all Loaf processes including webview children**. The final V-2 measurement stays in F0-12 on the real app. If the preliminary sum exceeds 100 MB on either OS, work stops before F0-13 and a new ADR is written (re-scope the budget, trim the webview, or reconsider the shell). Results within 20% of the budget (80–120 MB) must be confirmed on real hardware before that ADR.
+**Decision:** F0-02 (CI) includes a `v2-ram` job that builds the hello-world bundle from F0-01 on `windows-latest` and `macos-latest`, lets it settle for 2 minutes, samples for 5, and reports the **sum across all Pluto processes including webview children**. The final V-2 measurement stays in F0-12 on the real app. If the preliminary sum exceeds 100 MB on either OS, work stops before F0-13 and a new ADR is written (re-scope the budget, trim the webview, or reconsider the shell). Results within 20% of the budget (80–120 MB) must be confirmed on real hardware before that ADR.
 
 **Why:** V-2 is the largest risk in the project (09, plan §10). The locked plan measured it in F0-12, after about 17 of CP1's 20 days, so a failure would have invalidated the scaffold, bus, DB layer and shell. Measuring a hello-world in F0-02 costs about half a day.
 
@@ -214,7 +214,7 @@ Any new exception requires a new ADR.
 
 **Rejected:** On by default (violates the privacy promise). Storing URLs or titles "for later" (cannot be un-collected). Polling the foreground window (CPU and battery cost; ADR-009). Per-input hooks for idle (a keylogger-shaped API for one number).
 
-**Cost / Risk:** [Likely] Idle by input undercounts passive use (watching a video, reading) after 5 minutes; accepted for v1. A crash loses the open session (at most 12 h clamp applies to what is kept). Elevated apps are invisible unless Loaf runs elevated.
+**Cost / Risk:** [Likely] Idle by input undercounts passive use (watching a video, reading) after 5 minutes; accepted for v1. A crash loses the open session (at most 12 h clamp applies to what is kept). Elevated apps are invisible unless Pluto runs elevated.
 
 **Verification:** `usage` and `usage_collector` tests (tracker rules, batching, no timers while off); migration 003 test that no URL/title column exists; `UsageUpdated` coalesced to one per 30 s.
 

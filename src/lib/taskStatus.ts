@@ -10,7 +10,7 @@ export const STATUS_LABEL: Record<TaskStatus, string> = {
 
 export const STATUSES: readonly TaskStatus[] = ["PLANNED", "IN_PROGRESS", "PENDING", "COMPLETED", "CANCELLED"];
 
-/** PRD §6.2.1. `loaf-core` is the authority and rejects anything else; this only decides which buttons to show. */
+/** PRD §6.2.1. `pluto-core` is the authority and rejects anything else; this only decides which buttons to show. */
 const MOVES: Record<TaskStatus, readonly TaskStatus[]> = {
   PLANNED: ["IN_PROGRESS", "COMPLETED", "CANCELLED"],
   IN_PROGRESS: ["PENDING", "COMPLETED", "CANCELLED"],

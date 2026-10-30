@@ -4,7 +4,7 @@ import { repeatDays, taskOccurs } from "../lib/repeat";
 import { remainingMs } from "../lib/focus";
 import type {
   AppUsage, DomainUsage, TimeRange, UsageSummary,
-  AppError, BinNote, DailyLog, LogEntry, Meeting, MeetingInput, MeetingSummary, Reminder, Label, LoafEvent, Note, NoteColor, NoteSummary, Task, TaskEvent, TaskRow, TaskStatus, WorkUpdate, FocusSession,
+  AppError, BinNote, DailyLog, LogEntry, Meeting, MeetingInput, MeetingSummary, Reminder, Label, PlutoEvent, Note, NoteColor, NoteSummary, Task, TaskEvent, TaskRow, TaskStatus, WorkUpdate, FocusSession,
 } from "./types";
 
 type Args = Record<string, unknown> | undefined;
@@ -14,7 +14,7 @@ const HOUR = 3_600_000;
 export function createMock() {
   let seq = 100;
   const now = () => Date.now();
-  const listeners = new Set<(e: LoafEvent) => void>();
+  const listeners = new Set<(e: PlutoEvent) => void>();
   // Events carry the same fields as the real ones where the UI reads them (the pet does).
   const emit = (type: string, fields: Record<string, unknown> = {}) => listeners.forEach((l) => l({ ...fields, type, at: now() }));
   const fail = (code: AppError["code"], message: string): never => {
@@ -39,7 +39,7 @@ export function createMock() {
     created_at: now() - hoursAgo * HOUR, edited_at: now() - hoursAgo * HOUR,
   });
   const notes: Note[] = [
-    n("n1", "Loaf v1 scope", "Notes, tasks, meetings and daily logs.\nEverything stays on this computer — no account, no cloud.", "orange", 2, L("l1"), true),
+    n("n1", "Pluto v1 scope", "Notes, tasks, meetings and daily logs.\nEverything stays on this computer — no account, no cloud.", "orange", 2, L("l1"), true),
     n("n2", "Shortcuts I want", "Ctrl+N  new note\nCtrl+1…5  jump between views\nEsc  close the editor", "blue", 5, L("l2"), true),
     n("n3", "Bear animations", "Idle bob, a wave when a note is saved, sleepy after ten idle minutes. Keep every sprite under 64 KB.", "teal", 9, L("l5"), true),
     n("n4", "Groceries", "Oats\nPeanut butter\nBananas\nCoffee beans\nHoney", "yellow", 26, L("l4")),
@@ -47,7 +47,7 @@ export function createMock() {
     n("n6", "Reading list", "Designing Data-Intensive Applications\nThe Pragmatic Programmer\nA Philosophy of Software Design", "default", 50, []),
     n("n7", "Idea: weekly review", "A note that builds itself from the week's daily logs: what shipped, what slipped, what to carry over.", "green", 70, L("l2")),
     n("n8", "Release checklist", "☐ changelog\n☐ sign installer\n☐ smoke test on Windows\n☐ smoke test on macOS", "red", 96, L("l1", "l3")),
-    n("n9", "Poem for the bear", "Round as a loaf and warm as toast,\nthe quiet one who guards your most\nimportant thoughts.", "default", 120, [], false),
+    n("n9", "Poem for the bear", "Round as a pluto and warm as toast,\nthe quiet one who guards your most\nimportant thoughts.", "default", 120, [], false),
   ];
   const bin: BinNote[] = [
     { ...summary(n("b1", "Old grocery list", "Milk, eggs, bread", "default", 30, [])), deleted_at: now() - 26 * HOUR },
@@ -74,8 +74,8 @@ export function createMock() {
     t("t8", "Clear design feedback", "LOW", inDays(4), null, "PLANNED"),
   ];
   // A sample project (owner 2026-10-25: tasks and notes per project).
-  for (const id of ["t1", "t3", "t7"]) { const x = tasks.find((k) => k.id === id); if (x) x.project = "Loaf v1"; }
-  for (const id of ["n1", "n8"]) { const x = notes.find((k) => k.id === id); if (x) x.project = "Loaf v1"; }
+  for (const id of ["t1", "t3", "t7"]) { const x = tasks.find((k) => k.id === id); if (x) x.project = "Pluto v1"; }
+  for (const id of ["n1", "n8"]) { const x = notes.find((k) => k.id === id); if (x) x.project = "Pluto v1"; }
   // Meetings: stored without task status; `withStatus` reads it from the tasks, like the core.
   type StoredMeeting = Omit<Meeting, "action_items"> & { action_items: { id: string; body: string; assignee: string | null; task_id: string | null }[] };
   const meetings: StoredMeeting[] = [
@@ -172,7 +172,7 @@ export function createMock() {
   // Open tabs: a small fixed demo set, so the panel has something to show and close in the
   // mock shell. Real tabs are never stored; this is the design-preview stand-in only.
   let openTabs: { browser: string; window_index: number; tab_index: number; title: string | null; domain: string | null; active: boolean }[] = [
-    { browser: "Google Chrome", window_index: 0, tab_index: 0, title: "Loaf — Today", domain: "localhost", active: true },
+    { browser: "Google Chrome", window_index: 0, tab_index: 0, title: "Pluto — Today", domain: "localhost", active: true },
     { browser: "Google Chrome", window_index: 0, tab_index: 1, title: "GitHub", domain: "github.com", active: false },
     { browser: "Google Chrome", window_index: 0, tab_index: 2, title: "Stack Overflow", domain: "stackoverflow.com", active: false },
   ];
@@ -298,8 +298,8 @@ export function createMock() {
   const prefs = new Map<string, unknown>([[
     "ui.shortcuts",
     [
-      { id: "s1", url: "https://github.com/yokshith09/desktop-pet", label: "Loaf repo" },
-      { id: "s2", url: "https://notion.so/loaf", label: "Notion" },
+      { id: "s1", url: "https://github.com/yokshith09/desktop-pet", label: "Pluto repo" },
+      { id: "s2", url: "https://notion.so/pluto", label: "Notion" },
       { id: "s3", url: "https://mail.google.com", label: "Gmail" },
     ],
   ]]);
@@ -552,7 +552,7 @@ export function createMock() {
       const links = (a.links as { url: string; title: string }[]).map((l) => {
         const url = l.url.trim();
         const full = /^[a-z][a-z0-9+.-]*:/i.test(url) && !/^[^:]*\./.test(url.split(":")[0] ?? "") ? url : `https://${url}`;
-        if (!/^(https?:\/\/[^\s/?#@]+|mailto:[^\s/])/i.test(full)) fail("VALIDATION", "Loaf can open web links (http or https) and email links (mailto) only.");
+        if (!/^(https?:\/\/[^\s/?#@]+|mailto:[^\s/])/i.test(full)) fail("VALIDATION", "Pluto can open web links (http or https) and email links (mailto) only.");
         return { url: full, title: l.title.trim() };
       }).filter((l, i, all) => all.findIndex((o) => o.url === l.url) === i);
       if (links.length > 20) fail("VALIDATION", "A task can have up to 20 links.");
@@ -657,7 +657,7 @@ export function createMock() {
     pet_double_click: () => null,
     pet_menu: () => null,
     notification_test: () => null,
-    app_paths: () => ({ data_dir: "C:\\Users\\you\\AppData\\Roaming\\app.loaf.desktop", database: "C:\\Users\\you\\AppData\\Roaming\\app.loaf.desktop\\loaf.db", logs: "C:\\Users\\you\\AppData\\Local\\app.loaf.desktop\\logs" }),
+    app_paths: () => ({ data_dir: "C:\\Users\\you\\AppData\\Roaming\\app.pluto.desktop", database: "C:\\Users\\you\\AppData\\Roaming\\app.pluto.desktop\\pluto.db", logs: "C:\\Users\\you\\AppData\\Local\\app.pluto.desktop\\logs" }),
     folder_open: () => null,
     settings_reset: () => {
       const defaults = defaultSettings();
@@ -706,9 +706,9 @@ export function createMock() {
       return [...count.values()].sort((x, y) => y.n - x.n || x.name.localeCompare(y.name)).slice(0, 8).map((v) => v.name);
     },
     notification_settings_open: () => null,
-    data_export: () => ({ path: "C:\\Users\\you\\Documents\\loaf-export.json", bytes: 48_213 }),
+    data_export: () => ({ path: "C:\\Users\\you\\Documents\\pluto-export.json", bytes: 48_213 }),
     data_import: () => {
-      if (notes.length || tasks.length || reminders.length) fail("CONFLICT", "Import only works into an empty Loaf. Delete all data first, then import.");
+      if (notes.length || tasks.length || reminders.length) fail("CONFLICT", "Import only works into an empty Pluto. Delete all data first, then import.");
       emit("DataImported"); return { notes: 0 };
     },
     data_delete_all: (a) => {
@@ -745,6 +745,6 @@ export function createMock() {
       const h = handlers[cmd] ?? (() => fail("INTERNAL", `Unknown command ${cmd}`));
       return structuredClone(h(args ?? {}));
     },
-    subscribe: (cb: (e: LoafEvent) => void) => { listeners.add(cb); return () => void listeners.delete(cb); },
+    subscribe: (cb: (e: PlutoEvent) => void) => { listeners.add(cb); return () => void listeners.delete(cb); },
   };
 }

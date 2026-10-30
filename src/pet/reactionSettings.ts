@@ -1,9 +1,9 @@
 import { BEAR_POSES, type BearPose } from "@/features/shell/Bear";
-import type { LoafEvent } from "@/ipc";
+import type { PlutoEvent } from "@/ipc";
 import { reactionFor, type Reaction, type ReactionContext } from "./reactions";
 
 /**
- * What the pet does when something happens: Loaf's defaults, which the user can change (owner
+ * What the pet does when something happens: Pluto's defaults, which the user can change (owner
  * 2026-10-26, J3). Each moment can be turned off, play another pose, or say other words. The
  * words may use `{title}` (the task or reminder) and `{left}` (tasks left today).
  * Stored in preferences under `ui.reactions`, so it is part of the data export.
@@ -56,7 +56,7 @@ export function fillText(template: string, vars: Record<string, string>): string
 const short = (s: string, n = 26) => (s.length > n ? `${s.slice(0, n - 1).trimEnd()}…` : s);
 
 /** Which moment an event is, and the values its words can use. */
-export function momentOf(e: LoafEvent, ctx: ReactionContext): { key: ReactionKey; vars: Record<string, string> } | null {
+export function momentOf(e: PlutoEvent, ctx: ReactionContext): { key: ReactionKey; vars: Record<string, string> } | null {
   const ev = e as unknown as Record<string, unknown>;
   switch (e.type) {
     case "TaskCreated": return { key: "task-added", vars: { title: `“${short(String((ev.task as { title?: string } | undefined)?.title ?? ""))}”` } };
@@ -80,10 +80,10 @@ export function momentOf(e: LoafEvent, ctx: ReactionContext): { key: ReactionKey
 }
 
 /**
- * The reaction for an event, in three layers: Loaf's default, then the pet's own pose for that
- * moment (`loaf.json`), then the user's own choice on the Character page. Null when turned off.
+ * The reaction for an event, in three layers: Pluto's default, then the pet's own pose for that
+ * moment (`pluto.json`), then the user's own choice on the Character page. Null when turned off.
  */
-export function reactionWithSettings(e: LoafEvent, ctx: ReactionContext, settings: ReactionSettings, packPoses: Partial<Record<string, string>> = {}): Reaction | null {
+export function reactionWithSettings(e: PlutoEvent, ctx: ReactionContext, settings: ReactionSettings, packPoses: Partial<Record<string, string>> = {}): Reaction | null {
   const base = reactionFor(e, ctx);
   if (!base) return null;
   const moment = momentOf(e, ctx);

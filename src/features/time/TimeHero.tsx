@@ -3,7 +3,7 @@ import { Globe, LayoutGrid, ShieldCheck, TrendingDown, TrendingUp } from "lucide
 import { Bars } from "@/features/charts/Bars";
 import { Switch } from "@/components/ui/switch";
 import { Tile } from "@/features/shell/PageHeader";
-import { useTrackingStatus, useUsage } from "@/hooks/useLoaf";
+import { useTrackingStatus, useUsage } from "@/hooks/usePluto";
 import { useSetting } from "@/hooks/useTheme";
 import { formatDuration } from "@/lib/time";
 import { cn } from "@/lib/utils";

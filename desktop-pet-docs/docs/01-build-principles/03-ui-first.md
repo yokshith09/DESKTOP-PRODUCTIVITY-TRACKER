@@ -22,7 +22,7 @@ Create a simple wireframe or text description of the feature:
 Notes Home
 
 ┌──────────────────────────┐
-│ LOAF — Today             │
+│ PLUTO — Today             │
 ├──────────────────────────┤
 │                          │
 │ Search [___________]  +  │  ← Search input, create button

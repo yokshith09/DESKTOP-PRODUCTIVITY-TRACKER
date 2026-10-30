@@ -1,9 +1,9 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { emit, listen } from "@tauri-apps/api/event";
-import type { AppError, LoafEvent } from "./types";
+import type { AppError, PlutoEvent } from "./types";
 
 type Handler = (cmd: string, args: Record<string, unknown> | undefined) => Promise<unknown>;
-type Subscribe = (cb: (e: LoafEvent) => void) => () => void;
+type Subscribe = (cb: (e: PlutoEvent) => void) => () => void;
 
 type Mock = { call: Handler; subscribe: Subscribe };
 // One shared promise: concurrent first calls must get the same in-memory shell, not one each.
@@ -19,13 +19,13 @@ function loadMock(): Promise<Mock | null> {
 export async function call<T>(cmd: string, args?: Record<string, unknown>): Promise<T> {
   if (isTauri()) return (await invoke<T>(cmd, args)) as T;
   const m = await loadMock();
-  if (!m) throw new Error("Loaf's shell isn't available.");
+  if (!m) throw new Error("Pluto's shell isn't available.");
   return (await m.call(cmd, args)) as T;
 }
 
-export function onEvent(cb: (e: LoafEvent) => void): () => void {
+export function onEvent(cb: (e: PlutoEvent) => void): () => void {
   if (isTauri()) {
-    const pending = listen<LoafEvent>("loaf://event", (e) => cb(e.payload));
+    const pending = listen<PlutoEvent>("pluto://event", (e) => cb(e.payload));
     return () => void pending.then((off) => off());
   }
   let off: (() => void) | undefined;
@@ -47,21 +47,21 @@ export function errorMessage(e: unknown): string {
 /**
  * Requests from the shell to the dashboard (`new-note`, `new-task`, `focus`, `tasks`, `settings`,
  * `page:<name>`): global shortcuts and the pet's right-click menu. Outside the app a
- * `loaf-command` window event stands in, so the browser preview and tests can send one too.
+ * `pluto-command` window event stands in, so the browser preview and tests can send one too.
  */
 export function onCommand(cb: (command: string) => void): () => void {
   if (!isTauri()) {
     const on = (e: Event) => cb((e as CustomEvent<string>).detail);
-    window.addEventListener("loaf-command", on);
-    return () => window.removeEventListener("loaf-command", on);
+    window.addEventListener("pluto-command", on);
+    return () => window.removeEventListener("pluto-command", on);
   }
-  const pending = listen<string>("loaf://command", (e) => cb(e.payload));
+  const pending = listen<string>("pluto://command", (e) => cb(e.payload));
   return () => void pending.then((off) => off());
 }
 
 /**
  * Typing started (`true`) or stopped (`false`) anywhere on the computer; only sent to the pet
- * window while `pet.typing` is on. Outside the app (browser preview, tests) a `loaf-typing`
+ * window while `pet.typing` is on. Outside the app (browser preview, tests) a `pluto-typing`
  * window event with `detail: boolean` stands in for it.
  */
 export function onTyping(cb: (typing: boolean) => void): () => void {
@@ -70,14 +70,14 @@ export function onTyping(cb: (typing: boolean) => void): () => void {
     return () => void pending.then((off) => off());
   }
   const handler = (e: Event) => cb(Boolean((e as CustomEvent<boolean>).detail));
-  window.addEventListener("loaf-typing", handler);
-  return () => window.removeEventListener("loaf-typing", handler);
+  window.addEventListener("pluto-typing", handler);
+  return () => window.removeEventListener("pluto-typing", handler);
 }
 
 /**
  * Whether a text box has the focus in the app in front, while `pet.typing` is on. Sent only
  * when it changes and only where the OS can tell (never on macOS without Accessibility).
- * Outside the app a `loaf-textbox` window event with `detail: boolean` stands in for it.
+ * Outside the app a `pluto-textbox` window event with `detail: boolean` stands in for it.
  */
 export function onTextBox(cb: (focused: boolean) => void): () => void {
   if (isTauri()) {
@@ -85,8 +85,8 @@ export function onTextBox(cb: (focused: boolean) => void): () => void {
     return () => void pending.then((off) => off());
   }
   const handler = (e: Event) => cb(Boolean((e as CustomEvent<boolean>).detail));
-  window.addEventListener("loaf-textbox", handler);
-  return () => window.removeEventListener("loaf-textbox", handler);
+  window.addEventListener("pluto-textbox", handler);
+  return () => window.removeEventListener("pluto-textbox", handler);
 }
 
 /** Something the dashboard asks the pet to say above its head (FR-43), e.g. the routine reminder. */
@@ -94,11 +94,11 @@ export interface PetSay { text: string; pose?: string; ms?: number; actionId?: s
 
 /**
  * Dashboard → pet window message (FR-85/FR-43). In the app it is a Tauri event to every window;
- * outside it (browser preview, tests) a `loaf-pet-say` window event stands in for it.
+ * outside it (browser preview, tests) a `pluto-pet-say` window event stands in for it.
  */
 export async function petSay(say: PetSay): Promise<void> {
   if (isTauri()) return emit("pet://say", say);
-  window.dispatchEvent(new CustomEvent<PetSay>("loaf-pet-say", { detail: say }));
+  window.dispatchEvent(new CustomEvent<PetSay>("pluto-pet-say", { detail: say }));
 }
 
 export function onPetSay(cb: (say: PetSay) => void): () => void {
@@ -107,29 +107,29 @@ export function onPetSay(cb: (say: PetSay) => void): () => void {
     return () => void pending.then((off) => off());
   }
   const handler = (e: Event) => cb((e as CustomEvent<PetSay>).detail);
-  window.addEventListener("loaf-pet-say", handler);
-  return () => window.removeEventListener("loaf-pet-say", handler);
+  window.addEventListener("pluto-pet-say", handler);
+  return () => window.removeEventListener("pluto-pet-say", handler);
 }
 
 /**
  * The computer woke up (the shell noticed a long gap between its once-a-minute looks).
- * Reminders and the daily greeting re-check then (bug S1). Outside the app a `loaf-wake`
+ * Reminders and the daily greeting re-check then (bug S1). Outside the app a `pluto-wake`
  * window event stands in for it.
  */
 export function onWake(cb: () => void): () => void {
   if (isTauri()) {
-    const pending = listen("loaf://wake", () => cb());
+    const pending = listen("pluto://wake", () => cb());
     return () => void pending.then((off) => off());
   }
-  window.addEventListener("loaf-wake", cb);
-  return () => window.removeEventListener("loaf-wake", cb);
+  window.addEventListener("pluto-wake", cb);
+  return () => window.removeEventListener("pluto-wake", cb);
 }
 
 /** Pet → dashboard: the bubble's action (e.g. Undo) was clicked. Outside the app a
- *  `loaf-pet-action` window event stands in for it. */
+ *  `pluto-pet-action` window event stands in for it. */
 export async function petAction(id: string): Promise<void> {
   if (isTauri()) return emit("pet://action", id);
-  window.dispatchEvent(new CustomEvent<string>("loaf-pet-action", { detail: id }));
+  window.dispatchEvent(new CustomEvent<string>("pluto-pet-action", { detail: id }));
 }
 
 export function onPetAction(cb: (id: string) => void): () => void {
@@ -138,19 +138,19 @@ export function onPetAction(cb: (id: string) => void): () => void {
     return () => void pending.then((off) => off());
   }
   const handler = (e: Event) => cb((e as CustomEvent<string>).detail);
-  window.addEventListener("loaf-pet-action", handler);
-  return () => window.removeEventListener("loaf-pet-action", handler);
+  window.addEventListener("pluto-pet-action", handler);
+  return () => window.removeEventListener("pluto-pet-action", handler);
 }
 
 /**
  * The pet's right-click menu asking the pet window itself to do something (`nap`: sleep or wake).
- * Outside the app a `loaf-pet-menu` window event stands in.
+ * Outside the app a `pluto-pet-menu` window event stands in.
  */
 export function onPetMenu(cb: (what: string) => void): () => void {
   if (!isTauri()) {
     const on = (e: Event) => cb((e as CustomEvent<string>).detail);
-    window.addEventListener("loaf-pet-menu", on);
-    return () => window.removeEventListener("loaf-pet-menu", on);
+    window.addEventListener("pluto-pet-menu", on);
+    return () => window.removeEventListener("pluto-pet-menu", on);
   }
   const pending = listen<string>("pet://menu", (e) => cb(e.payload));
   return () => void pending.then((off) => off());

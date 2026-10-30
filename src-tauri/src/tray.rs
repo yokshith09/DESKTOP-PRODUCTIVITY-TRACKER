@@ -51,7 +51,7 @@ impl MenuRegistry {
         let mut r = Self::default();
         r.register(Entry {
             id: ID_OPEN,
-            label: "Open Loaf".into(),
+            label: "Open Pluto".into(),
             group: Group::Open,
             order: 0,
         });
@@ -69,7 +69,7 @@ impl MenuRegistry {
         });
         r.register(Entry {
             id: ID_QUIT,
-            label: "Quit Loaf".into(),
+            label: "Quit Pluto".into(),
             group: Group::Quit,
             order: 0,
         });
@@ -113,7 +113,7 @@ fn build_menu<R: Runtime>(app: &AppHandle<R>, registry: &MenuRegistry) -> tauri:
     Ok(menu)
 }
 
-/// Create the tray icon. Windows: left-click opens Loaf, right-click shows the menu.
+/// Create the tray icon. Windows: left-click opens Pluto, right-click shows the menu.
 /// macOS: click shows the menu.
 pub fn setup_tray<R: Runtime>(
     app: &AppHandle<R>,
@@ -122,7 +122,7 @@ pub fn setup_tray<R: Runtime>(
 ) -> tauri::Result<()> {
     let menu = build_menu(app, registry)?;
     let mut builder = TrayIconBuilder::with_id("main")
-        .tooltip("Loaf")
+        .tooltip("Pluto")
         .menu(&menu)
         .show_menu_on_left_click(cfg!(target_os = "macos"))
         .on_menu_event(move |app, event| match event.id.as_ref() {

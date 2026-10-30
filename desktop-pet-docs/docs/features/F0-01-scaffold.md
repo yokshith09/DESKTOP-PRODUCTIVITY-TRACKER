@@ -13,10 +13,10 @@ Phase 0 · P0 · 1.5 relative dev-days (plan D7)
 None (first feature).
 
 ## UI
-A single window titled "Loaf" showing a static placeholder ("Loaf — foundation build"). No design tokens, sidebar or router yet (F0-10). Wireframe: none needed.
+A single window titled "Pluto" showing a static placeholder ("Pluto — foundation build"). No design tokens, sidebar or router yet (F0-10). Wireframe: none needed.
 
 ## Acceptance Criteria
-- [x] Cargo workspace with two members: `src-tauri/` (Tauri v2 shell) and `crates/loaf-core/` (all business logic, **no `tauri` dependency**, so it compiles and tests anywhere — ADR-002)
+- [x] Cargo workspace with two members: `src-tauri/` (Tauri v2 shell) and `crates/pluto-core/` (all business logic, **no `tauri` dependency**, so it compiles and tests anywhere — ADR-002)
 - [x] `pnpm` + Vite + React 18 + TypeScript `strict`; entry `main.html`; `pet.html` exists as an empty page for F1-22
 - [ ] `pnpm tauri dev` opens the window; `pnpm tauri build` produces a release bundle on Windows and macOS (verified in F0-02 CI) — *Linux debug build verified: window opens and renders*
 - [x] Content-Security-Policy is `default-src 'self'`; Tauri capabilities grant only what the window uses
@@ -34,9 +34,9 @@ None. No tables touched; no migration.
 Bundle builds. Idle cost is measured in F0-02 (preliminary) and F0-12 (final), not here.
 
 ## Tests
-- Rust: `cargo test --workspace` runs one smoke test in `loaf-core` and passes
+- Rust: `cargo test --workspace` runs one smoke test in `pluto-core` and passes
 - Frontend: Vitest renders the placeholder and asserts its text
-- Script test: a check that fails the build if `loaf-core` ever gains a `tauri` dependency
+- Script test: a check that fails the build if `pluto-core` ever gains a `tauri` dependency
 - Manual: launch on each OS, record the macOS version for V-1
 
 ## Out of Scope

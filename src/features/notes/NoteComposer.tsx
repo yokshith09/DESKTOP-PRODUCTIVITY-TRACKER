@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Check, Pin } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNoteActions } from "@/hooks/useLoaf";
+import { useNoteActions } from "@/hooks/usePluto";
 import { cn } from "@/lib/utils";
 
 /** Quick capture, Keep style: one line to start, expands to a title and body. Ctrl/⌘ Enter saves, Esc discards. */

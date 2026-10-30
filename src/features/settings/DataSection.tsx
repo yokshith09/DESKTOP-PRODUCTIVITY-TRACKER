@@ -9,7 +9,7 @@ import { Row, Section } from "./parts";
 
 const kb = (bytes: number) => (bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`);
 
-/** Your data (R0-07…09): take it all out, put it back into an empty Loaf, or erase everything. */
+/** Your data (R0-07…09): take it all out, put it back into an empty Pluto, or erase everything. */
 export function DataSection() {
   const { data: paths } = useQuery({ queryKey: ["app-paths"], queryFn: ipc.appPaths });
   const [busy, setBusy] = useState(false);
@@ -43,7 +43,7 @@ export function DataSection() {
     await ipc.dataDeleteAll(word);
     setDeleting(false);
     setWord("");
-    notify.info("Everything was deleted", { description: "Loaf is back to how it was on the first day." });
+    notify.info("Everything was deleted", { description: "Pluto is back to how it was on the first day." });
   });
 
   return (
@@ -55,7 +55,7 @@ export function DataSection() {
         <Row label="Export everything" hint="Saves your notes, tasks, reminders, logs and settings to one file you keep.">
           <Button variant="outline" size="sm" disabled={busy} onClick={() => void doExport()}>Export…</Button>
         </Row>
-        <Row label="Import from a file" hint="Restores an export into an empty Loaf. It never mixes with data that is already here.">
+        <Row label="Import from a file" hint="Restores an export into an empty Pluto. It never mixes with data that is already here.">
           <Button variant="outline" size="sm" disabled={busy} onClick={() => setImporting(true)}>Import…</Button>
         </Row>
         <Row label="Delete all data" hint="Erases every note, task, reminder, log and setting on this computer. This can’t be undone.">
@@ -65,9 +65,9 @@ export function DataSection() {
 
       <Dialog open={importing} onOpenChange={setImporting}>
         <DialogContent className="max-w-sm gap-3 p-5">
-          <DialogTitle className="text-base font-semibold">Import into an empty Loaf?</DialogTitle>
+          <DialogTitle className="text-base font-semibold">Import into an empty Pluto?</DialogTitle>
           <DialogDescription className="text-[13px] text-muted-foreground">
-            Pick a file you exported from Loaf. If this Loaf already has notes, tasks or reminders, nothing is imported; delete all data first. If anything in the file is wrong, nothing is imported at all.
+            Pick a file you exported from Pluto. If this Pluto already has notes, tasks or reminders, nothing is imported; delete all data first. If anything in the file is wrong, nothing is imported at all.
           </DialogDescription>
           <div className="flex justify-end gap-2 pt-1">
             <Button variant="ghost" size="sm" onClick={() => setImporting(false)}>Cancel</Button>

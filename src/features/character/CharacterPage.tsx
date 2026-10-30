@@ -78,7 +78,7 @@ export function CharacterPage() {
           </div>
           <div className="flex w-full items-center justify-between">
             <div>
-              <p className="text-sm font-semibold">Loaf the bear</p>
+              <p className="text-sm font-semibold">Pluto the bear</p>
               <p className="text-xs text-muted-foreground">Default character</p>
             </div>
             <p className="text-xs text-muted-foreground">Pick a moment to preview it</p>
@@ -99,7 +99,7 @@ export function CharacterPage() {
         </Panel>
 
         <Panel className="h-full divide-y px-5">
-          <Row label="Show on desktop" hint="Hide the companion without quitting Loaf.">
+          <Row label="Show on desktop" hint="Hide the companion without quitting Pluto.">
             <Switch checked={visible ?? true} onCheckedChange={(v) => void setVisible(v)} aria-label="Show on desktop" />
           </Row>
           <Row label="Size" hint={`${px} px on screen`}>
@@ -123,7 +123,7 @@ export function CharacterPage() {
           </Row>
           <Row
             label="Type along with me"
-            hint="When you type in any app, it takes out a laptop and types too, and waits while a text box is open. Loaf only counts key presses (never which keys) and checks whether a text box is focused (never what is in it). Nothing is saved or sent. On macOS, allow Input Monitoring, and Accessibility for the text-box part."
+            hint="When you type in any app, it takes out a laptop and types too, and waits while a text box is open. Pluto only counts key presses (never which keys) and checks whether a text box is focused (never what is in it). Nothing is saved or sent. On macOS, allow Input Monitoring, and Accessibility for the text-box part."
           >
             <Switch checked={typing ?? false} onCheckedChange={(v) => void setTyping(v)} aria-label="Type along with me" />
           </Row>

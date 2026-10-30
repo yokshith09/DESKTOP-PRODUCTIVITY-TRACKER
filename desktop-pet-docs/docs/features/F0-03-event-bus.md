@@ -16,7 +16,7 @@ F0-13.
 None.
 
 ## Acceptance Criteria
-- [ ] One `Event` enum in `loaf-core/events`, past-tense names, `serde`-serializable, every variant carrying `at: i64` (ms UTC); only the variants Phase 0 needs exist now (app lifecycle, settings, pet visibility/position, data export/import/delete, day rollover) — later features add their own variants
+- [ ] One `Event` enum in `pluto-core/events`, past-tense names, `serde`-serializable, every variant carrying `at: i64` (ms UTC); only the variants Phase 0 needs exist now (app lifecycle, settings, pet visibility/position, data export/import/delete, day rollover) — later features add their own variants
 - [ ] `EventBus` wraps `tokio::sync::broadcast`: `publish`, `subscribe`; publishing with no subscribers is not an error
 - [ ] A subscriber helper converts `RecvError::Lagged(n)` into an explicit `Resync { missed: n }` result after logging a warning — lag is never silently ignored (ADR-004)
 - [ ] Subscribers park when idle; no interval loops anywhere in the module

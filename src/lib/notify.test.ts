@@ -7,10 +7,10 @@ let said: PetSay[] = [];
 const onSay = (e: Event) => said.push((e as CustomEvent<PetSay>).detail);
 beforeEach(() => {
   said = [];
-  window.addEventListener("loaf-pet-say", onSay);
+  window.addEventListener("pluto-pet-say", onSay);
 });
 afterEach(() => {
-  window.removeEventListener("loaf-pet-say", onSay);
+  window.removeEventListener("pluto-pet-say", onSay);
   vi.useRealTimers();
 });
 
@@ -44,9 +44,9 @@ describe("notify: bubbles above the pet only", () => {
     expect(say.actionId).toBeTruthy();
     expect(say.ms).toBeGreaterThan(TOAST_MS);
 
-    window.dispatchEvent(new CustomEvent("loaf-pet-action", { detail: say.actionId ?? "" }));
+    window.dispatchEvent(new CustomEvent("pluto-pet-action", { detail: say.actionId ?? "" }));
     expect(undo).toHaveBeenCalledTimes(1);
-    window.dispatchEvent(new CustomEvent("loaf-pet-action", { detail: say.actionId ?? "" }));
+    window.dispatchEvent(new CustomEvent("pluto-pet-action", { detail: say.actionId ?? "" }));
     expect(undo).toHaveBeenCalledTimes(1);
   });
 
@@ -55,12 +55,12 @@ describe("notify: bubbles above the pet only", () => {
     const undo = vi.fn();
     notify.info("Moved to Bin", { action: { label: "Undo", onClick: undo } });
     vi.advanceTimersByTime(TOAST_MS + 5000);
-    window.dispatchEvent(new CustomEvent("loaf-pet-action", { detail: said[0]?.actionId ?? "" }));
+    window.dispatchEvent(new CustomEvent("pluto-pet-action", { detail: said[0]?.actionId ?? "" }));
     expect(undo).not.toHaveBeenCalled();
   });
 
   it("ignores an unknown action id", () => {
-    expect(() => window.dispatchEvent(new CustomEvent("loaf-pet-action", { detail: "nope" }))).not.toThrow();
+    expect(() => window.dispatchEvent(new CustomEvent("pluto-pet-action", { detail: "nope" }))).not.toThrow();
   });
 
   it("a completion adds no bubble while the pet is on screen (its own reaction says it), and one when it is hidden", () => {

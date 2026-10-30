@@ -14,7 +14,7 @@ describe("break and water nudges", () => {
     expect(dueIn(w.break, Date.now(), null)).toBeNull();
   });
 
-  it("never nudge the moment Loaf opens: the gap starts now", () => {
+  it("never nudge the moment Pluto opens: the gap starts now", () => {
     const w = { ...emptyWellbeing().break, on: true };
     expect(dueIn(w, Date.now(), null)).toBe(50 * 60_000);
   });

@@ -3,7 +3,7 @@ import { CalendarClock, ListChecks, Plus, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/features/shell/PageHeader";
-import { useMeetings, useParticipantSuggestions } from "@/hooks/useLoaf";
+import { useMeetings, useParticipantSuggestions } from "@/hooks/usePluto";
 import { mod } from "@/lib/platform";
 import { cn } from "@/lib/utils";
 import type { MeetingFilters, MeetingSummary } from "@/ipc";

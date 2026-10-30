@@ -2,7 +2,7 @@ import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", "coverage", "src-tauri", "crates", "target", "node_modules", "spikes", "src/ipc/generated"] },
+  { ignores: ["dist", "coverage", "src-tauri", "crates", "target", "node_modules", "spikes", "src/ipc/generated", "desktop-pet-docs/docs/learning"] },
   js.configs.recommended,
   ...tseslint.configs.strict,
   {

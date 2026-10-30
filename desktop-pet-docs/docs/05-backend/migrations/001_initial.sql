@@ -1,4 +1,4 @@
--- Loaf · Migration 001 · Phase 0 + Phase 1 schema
+-- Pluto · Migration 001 · Phase 0 + Phase 1 schema
 -- Conventions:
 --   ids          TEXT  UUIDv7 (time-sortable), generated in Rust
 --   *_at         INTEGER Unix epoch milliseconds, UTC

@@ -1,5 +1,5 @@
 import type { BearPose } from "@/features/shell/Bear";
-import type { LoafEvent, TaskRow } from "@/ipc";
+import type { PlutoEvent, TaskRow } from "@/ipc";
 import type { Event } from "@/ipc/generated/Event";
 import { BREAK_MINUTES, endLine } from "@/lib/focus";
 
@@ -62,7 +62,7 @@ export function reactionForSay(say: { text: string; pose?: string; ms?: number; 
 }
 
 /** The reaction for an event, or null when the pet stays calm. */
-export function reactionFor(e: LoafEvent, ctx: ReactionContext): Reaction | null {
+export function reactionFor(e: PlutoEvent, ctx: ReactionContext): Reaction | null {
   // Events come from the core as generated `Event`s; the transport types them loosely.
   const rule = (RULES as Record<string, Rule<Signal> | undefined>)[e.type];
   return rule ? rule(e as Signal, ctx) : null;

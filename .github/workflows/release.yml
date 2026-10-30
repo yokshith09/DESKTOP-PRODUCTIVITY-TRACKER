@@ -89,7 +89,7 @@ jobs:
         #            APPLE_ID, APPLE_PASSWORD, APPLE_TEAM_ID
       - uses: actions/upload-artifact@v4
         with:
-          name: loaf-installers-${{ matrix.os }}
+          name: pluto-installers-${{ matrix.os }}
           path: |
             target/release/bundle/nsis/*.exe
             target/release/bundle/msi/*.msi
@@ -122,5 +122,5 @@ jobs:
           else
             flags=(--draft --generate-notes --target "$SHA")
             case "$TAG" in *-*) flags+=(--prerelease);; esac
-            gh release create "$TAG" "${files[@]}" --repo "$REPO" --title "Loaf $TAG" "${flags[@]}"
+            gh release create "$TAG" "${files[@]}" --repo "$REPO" --title "Pluto $TAG" "${flags[@]}"
           fi

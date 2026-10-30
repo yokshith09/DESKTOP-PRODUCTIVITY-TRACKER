@@ -1,5 +1,5 @@
 import { ArrowRight, CheckCircle2 } from "lucide-react";
-import { useAllTasks, useDailyLog } from "@/hooks/useLoaf";
+import { useAllTasks, useDailyLog } from "@/hooks/usePluto";
 import { daysAgo, ymd } from "@/lib/dates";
 import type { DailyLog, TaskRow } from "@/ipc";
 import { cn } from "@/lib/utils";

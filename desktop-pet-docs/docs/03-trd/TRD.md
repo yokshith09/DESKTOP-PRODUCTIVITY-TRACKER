@@ -1,4 +1,4 @@
-# Loaf — Technical Requirements Document (TRD)
+# Pluto — Technical Requirements Document (TRD)
 
 **Milestone:** D3 · **Version:** 1.3 · **Date:** 2026-10-03 · **Status:** 🔒 LOCKED (approved 2026-10-03)
 **Derives from:** PRD (D2 v1.4), ADR-001…017 (`01-build-principles/07-architecture-decisions.md`), budgets (`09-performance-budgets.md`)
@@ -32,7 +32,7 @@ flowchart LR
         FWD[UI forwarder]
     end
 
-    DB[(SQLite loaf.db<br/>WAL)]
+    DB[(SQLite pluto.db<br/>WAL)]
 
     subgraph UI["Webviews"]
         MAIN[Main window<br/>React + TS]
@@ -214,7 +214,7 @@ Frameless, transparent, `skipTaskbar`, `alwaysOnTop` per setting, `focus: false`
 ### 6.8 Export / import / delete-all
 - Export: take a read snapshot (single read transaction), stream JSON to file.
 - Import: validate JSON shape + `format_version` + `schema_version ≤ current`; refuse if workspace not empty; insert all in one transaction with FKs; publish `DataImported`.
-- Delete-all: stop writer, close connections, delete `loaf.db*` files, recreate empty DB via migrations, clear settings, publish `AllDataDeleted`, frontend routes to first-run.
+- Delete-all: stop writer, close connections, delete `pluto.db*` files, recreate empty DB via migrations, clear settings, publish `AllDataDeleted`, frontend routes to first-run.
 
 ### 6.9 Errors & logging
 - `AppError` codes: `VALIDATION`, `NOT_FOUND`, `INVALID_TRANSITION`, `CONFLICT`, `DB`, `IO`, `INTERNAL`.
@@ -225,7 +225,7 @@ Frameless, transparent, `skipTaskbar`, `alwaysOnTop` per setting, `focus: false`
 
 | Requirement | Implementation |
 |-------------|----------------|
-| Zero network in Phase 0–1 | No HTTP client crate *that Loaf adds* (Tauri itself links `reqwest`, see D3-A3); CSP `default-src 'self'`; Tauri capabilities allow only required plugins; verified by firewall test in release gate |
+| Zero network in Phase 0–1 | No HTTP client crate *that Pluto adds* (Tauri itself links `reqwest`, see D3-A3); CSP `default-src 'self'`; Tauri capabilities allow only required plugins; verified by firewall test in release gate |
 | Webview hardening | Tauri v2 capabilities per window: pet window gets only `pet_*`, `prefs_set`, `settings_get_all` |
 | Content safety | Markdown HTML disabled; no `dangerouslySetInnerHTML` except the sanitized Markdown renderer output |
 | File access | Only app-data dir + user-chosen export/import paths via OS dialog |
@@ -254,7 +254,7 @@ Frameless, transparent, `skipTaskbar`, `alwaysOnTop` per setting, `focus: false`
 | ID (from 07) | Implemented in | Method |
 |--------------|---------------|--------|
 | V-1 macOS minimum | F0-01 | Build hello-world; run on oldest available macOS VM/hardware; record result |
-| V-2 RAM total | **F0-02 (preliminary, CI runners)** then F0-12 (final) | Sum private bytes of all Loaf processes, both OSes. Preliminary: hello-world bundle on `windows-latest`/`macos-latest`, 2 min settle + 5 min sample. Final: the real app, 10 min idle |
+| V-2 RAM total | **F0-02 (preliminary, CI runners)** then F0-12 (final) | Sum private bytes of all Pluto processes, both OSes. Preliminary: hello-world bundle on `windows-latest`/`macos-latest`, 2 min settle + 5 min sample. Final: the real app, 10 min idle |
 | V-3 Pet idle CPU/GPU | F0-12 | Static pet window visible, 10 min idle profile |
 | ~~V-4 FTS5 at 5000 items~~ | withdrawn (ADR-017) | — |
 | V-5 Event bus burst | F0-12 | 10,000 events/s synthetic burst, assert no loss, UI frame time |
@@ -294,4 +294,4 @@ No architecture changed; three clarifications so the TRD can't be read against t
 - **V-2 moves earlier.** A preliminary RAM measurement of a hello-world bundle runs in the F0-02 CI on both OS runners; the final measurement stays in F0-12 (see plan D7-A1, ADR-018).
 
 ### Amendment D3-A3 (2026-10-03) — Tauri links an HTTP client
-F0-01's dependency audit found that `tauri` 2.12.1 depends on `reqwest` (and through it `hyper`, `tower`). [Certain] This cannot be removed, so §7's "no HTTP client crate in the dependency tree" is unsatisfiable as written. The requirement is restated as what the product actually promises: **zero outbound requests from Loaf in Phase 0–1**, verified at runtime by the firewall test, with CSP `default-src 'self'` as a second layer, and no HTTP crate *added* by Loaf. A hello-world run on Linux made 0 `AF_INET`/`AF_INET6` connections in 25 s (see `docs/learning/tauri-network-dependencies.md`); Windows and macOS are not yet measured. [Guessing] The WebView2 runtime may make its own requests that are not Loaf's, so the release firewall test must attribute traffic per process.
+F0-01's dependency audit found that `tauri` 2.12.1 depends on `reqwest` (and through it `hyper`, `tower`). [Certain] This cannot be removed, so §7's "no HTTP client crate in the dependency tree" is unsatisfiable as written. The requirement is restated as what the product actually promises: **zero outbound requests from Pluto in Phase 0–1**, verified at runtime by the firewall test, with CSP `default-src 'self'` as a second layer, and no HTTP crate *added* by Pluto. A hello-world run on Linux made 0 `AF_INET`/`AF_INET6` connections in 25 s (see `docs/learning/tauri-network-dependencies.md`); Windows and macOS are not yet measured. [Guessing] The WebView2 runtime may make its own requests that are not Pluto's, so the release firewall test must attribute traffic per process.

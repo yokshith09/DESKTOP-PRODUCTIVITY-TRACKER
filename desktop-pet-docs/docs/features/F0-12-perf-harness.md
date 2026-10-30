@@ -18,7 +18,7 @@ None. Dev-only diagnostics panel behind a build flag (`diagnostics_snapshot`) ex
 ## Acceptance Criteria
 - [ ] Deterministic 5000-item fixture generator: 3000 notes, 1500 tasks, 300 meetings, 200 daily logs; same seed → identical database
 - [ ] `criterion` benchmarks for the Phase 1 hot paths available at this point: create/update note, list notes, task queries, daily-log read; baselines recorded
-- [ ] Idle-profile scripts for Windows (perfmon counters) and macOS (`top`/Activity Monitor equivalents): launch → 2 min settle → 10 min record → average and max, summed across **all** Loaf processes
+- [ ] Idle-profile scripts for Windows (perfmon counters) and macOS (`top`/Activity Monitor equivalents): launch → 2 min settle → 10 min record → average and max, summed across **all** Pluto processes
 - [ ] **Final V-2** on the real app, both OSes, appended to `07` and `09` (the preliminary result from F0-02 is quoted next to it)
 - [ ] **V-3** idle CPU/GPU with a transparent static window: measured with a throwaway spike under `spikes/` that is never merged to `main` (05 learning rule); result recorded
 - [ ] **V-5** event-bus burst: 10,000 events/s synthetic burst, assert no loss, and record UI frame time with the Performance API

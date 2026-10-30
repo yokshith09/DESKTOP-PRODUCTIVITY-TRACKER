@@ -1,4 +1,4 @@
-# Loaf — Backend Schema
+# Pluto — Backend Schema
 
 **Milestone:** D6 · **Version:** 1.3 · **Date:** 2026-10-03 · **Status:** 🔒 LOCKED (approved 2026-10-03)
 **Executable source of truth:** [`migrations/001_initial.sql`](migrations/001_initial.sql) then [`migrations/002_bin_and_reminders.sql`](migrations/002_bin_and_reminders.sql) — applied against SQLite 3.45.1 inside a runner-owned transaction (STRICT tables, triggers, constraints exercised).
@@ -191,7 +191,7 @@ Rules carried forward: writes buffered and flushed ≤1/min (ADR-005); untracked
 - **The runner owns the transaction.** It issues `BEGIN`, executes the file, sets `PRAGMA user_version`, then `COMMIT`. A migration file must contain neither statement: [Certain] a `BEGIN` inside the runner's transaction fails with `cannot start a transaction within a transaction` (verified on SQLite 3.45.1), and a `user_version` written by the file can drift from the runner's bookkeeping.
 - **Lint rule (implemented in F0-04 as `validate_chain`).** Run the migration chain from scratch on a scratch database, each file inside an outer transaction, exactly as the runner does. Reject a file if it errors with "within a transaction" (it opened its own), if the transaction is gone afterwards (`COMMIT`/`END`/`ROLLBACK`), or if `user_version` is non-zero (it wrote the version); also reject version gaps. Executing the file is exact where a text search is not: `CREATE TRIGGER … BEGIN … END;` bodies contain the same keywords, including a bare `END;` line in a multi-line trigger, which the regex originally documented here would have wrongly flagged.
 - Version in `PRAGMA user_version`, set by the runner only
-- Before applying: copy DB to `loaf.db.bak-<from_version>`; keep last 3 backups
+- Before applying: copy DB to `pluto.db.bak-<from_version>`; keep last 3 backups
 - Forward-only; a broken migration is fixed by a new migration
 - Every migration has a test: build DB at previous version with fixture data → migrate → assert data intact
 
@@ -211,7 +211,7 @@ Phase 2 activity data is the real growth risk; its PRD addendum must define rete
 
 ```json
 {
-  "format": "loaf-export",
+  "format": "pluto-export",
   "format_version": 1,
   "schema_version": 1,
   "exported_at": 1759400000000,

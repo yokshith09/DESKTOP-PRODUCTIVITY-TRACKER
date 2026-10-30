@@ -4,7 +4,7 @@ import { RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { timeAgo } from "@/lib/time";
-import { useBin, useNoteActions } from "@/hooks/useLoaf";
+import { useBin, useNoteActions } from "@/hooks/usePluto";
 
 export const BIN_DAYS = 30;
 

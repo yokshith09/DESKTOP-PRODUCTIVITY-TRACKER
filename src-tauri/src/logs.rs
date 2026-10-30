@@ -6,10 +6,10 @@ use std::path::Path;
 use std::str::FromStr;
 use std::sync::Arc;
 
-use loaf_core::bus::{EventBus, Recv};
-use loaf_core::events::Event;
-use loaf_core::logging::{self, LevelHandle, LogGuard, LogLevel};
-use loaf_core::settings_service::SettingsService;
+use pluto_core::bus::{EventBus, Recv};
+use pluto_core::events::Event;
+use pluto_core::logging::{self, LevelHandle, LogGuard, LogLevel};
+use pluto_core::settings_service::SettingsService;
 use serde_json::Value;
 
 /// Keeps the log writer alive for the life of the app.
@@ -18,13 +18,13 @@ pub struct Logs {
     level: LevelHandle,
 }
 
-/// Start the log file and the crash-report hook. `None` if the folder can't be used (Loaf still
+/// Start the log file and the crash-report hook. `None` if the folder can't be used (Pluto still
 /// runs; it just can't write logs).
 pub fn init(dir: &Path) -> Option<Logs> {
     std::fs::create_dir_all(dir).ok()?;
     logging::install_panic_hook(dir.to_owned());
     let (guard, level) = logging::init_reloadable(dir, LogLevel::Info).ok()?;
-    tracing::info!(version = loaf_core::VERSION, "Loaf started");
+    tracing::info!(version = pluto_core::VERSION, "Pluto started");
     Some(Logs {
         _guard: guard,
         level,

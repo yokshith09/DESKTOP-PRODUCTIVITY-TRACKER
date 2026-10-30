@@ -1,6 +1,6 @@
 # OpenPets parity — feature specifications (FR-59 … FR-82)
 
-> Written 2026-10-22 after the owner asked for **every OpenPets feature** in Loaf. Source of each feature: [`../competitors/OPENPETS_RESEARCH_2026-10-22.md`](../competitors/OPENPETS_RESEARCH_2026-10-22.md) (OpenPetsHQ/openpets 4.1.0 source). Same 13 sections as `FR-v2-features.md`: 1 metadata · 2 story · 3 behaviour · 4 plain language · 5 technical · 6 choices · 7 tasks · 8 tests · 9 edge cases · 10 acceptance · 11 checklist · 12 docs · 13 dependencies/exclusions. **Nothing here is built.** Common **12 Docs** = this spec, MASTER_PLAN, FEATURE_ROADMAP, PROJECT_STATUS, CHANGELOG, DECISIONS, test results.
+> Written 2026-10-22 after the owner asked for **every OpenPets feature** in Pluto. Source of each feature: [`../competitors/OPENPETS_RESEARCH_2026-10-22.md`](../competitors/OPENPETS_RESEARCH_2026-10-22.md) (OpenPetsHQ/openpets 4.1.0 source). Same 13 sections as `FR-v2-features.md`: 1 metadata · 2 story · 3 behaviour · 4 plain language · 5 technical · 6 choices · 7 tasks · 8 tests · 9 edge cases · 10 acceptance · 11 checklist · 12 docs · 13 dependencies/exclusions. **Nothing here is built.** Common **12 Docs** = this spec, MASTER_PLAN, FEATURE_ROADMAP, PROJECT_STATUS, CHANGELOG, DECISIONS, test results.
 >
 > **Rules that still apply to every feature:** local-first; no browser extension; no GPU; nothing sent off the PC unless the user turns it on; everything that needs a real OS stays Unverified until run on Windows. Features that depend on an on-hold owner decision say so in **13 Deps** and cannot start until it is lifted.
 
@@ -13,7 +13,7 @@
 **3 Behaviour** — When idle, the pet's head and eyes turn toward the cursor in 16 directions (every 22.5°). Within 40 px of the pet it looks straight up at the user. Stops while the pet plays any other animation. Setting "Pet looks at the cursor" (on by default).
 **4 Plain language** — The pet watches your mouse.
 **5 Technical** — Draw 16 gaze frames per character (head turned, eyes shifted) into atlas rows 9-10 (OpenPets V2, 1536×2288). `pet.json` gets `spriteVersionNumber: 2` and `gazeAnchor {x,y}` (eye centre, 0-1). Pet window reads the cursor position from the shell on mouse-move events only (event-driven, no polling), throttled to 15 Hz, and picks the frame by angle.
-**6 Choices** — Draw 16 frames (matches OpenPets, works in their app) vs move pupils in code (only works in Loaf). Chosen: draw frames.
+**6 Choices** — Draw 16 frames (matches OpenPets, works in their app) vs move pupils in code (only works in Pluto). Chosen: draw frames.
 **7 Tasks** — 1 gaze pose with an angle parameter for all 5 characters · 2 rows 9-10 in the exporter, V2 manifest · 3 cursor events from Tauri · 4 angle → frame · 5 setting.
 **8 Tests** — T-59-01 unit: angle → frame index for 16 sectors · T-59-02 unit: V2 atlas is 1536×2288 · T-59-03 component: setting off = no gaze · T-59-04 Manual-Win: eyes follow on two monitors.
 **9 Edge cases** — Cursor on another monitor; pet hidden; full-screen app; reduced motion (gaze still allowed, no smoothing).
@@ -60,9 +60,9 @@
 ## FR-62 — Browser tabs on the dashboard (was FR-49a, owner Q4)
 
 **1 Metadata** — Group: Time · Status: Planned, spike first · Milestone: FM-V2 · Effort: L.
-**2 Story** — As a user I want to see the tabs open in my browsers, jump to one, and close ones I do not need, from Loaf's dashboard.
+**2 Story** — As a user I want to see the tabs open in my browsers, jump to one, and close ones I do not need, from Pluto's dashboard.
 **3 Behaviour** — Tile "Open tabs": grouped by browser window, shows title and site icon letter. Click = bring that browser forward on that tab. ✕ = close the tab. Off by default (Settings → Privacy → "Show browser tabs"). Titles are read live and **never stored**.
-**4 Plain language** — Your browser tabs, listed in Loaf; click to open, ✕ to close.
+**4 Plain language** — Your browser tabs, listed in Pluto; click to open, ✕ to close.
 **5 Technical** — No extension (locked). Windows UI Automation (`windows` crate, `IUIAutomation`): find Chrome/Edge/Firefox top-level windows, walk to the tab strip (`TabItem` controls), read `Name`; switch via `SelectionItemPattern.Select` + `SetForegroundWindow`; close via the tab's close button `InvokePattern`. Event-driven: UIA structure-changed events, not polling.
 **6 Choices** — UI Automation (no install, fragile when browsers change UI) vs extension (forbidden) vs browser debug port (needs browser flags, unsafe). Chosen: UIA, behind a spike.
 **7 Tasks** — 1 **spike (1 day): list tabs of Chrome and Edge on Windows** · 2 core trait `TabSource` · 3 switch/close · 4 tile · 5 setting + privacy text.
@@ -77,15 +77,15 @@
 ## FR-63 — Import any OpenPets / Codex pet pack
 
 **1 Metadata** — Group: Companion · Status: Planned · Milestone: FM-CS · Effort: L · OpenPets: install-pet, `openpets://install`.
-**2 Story** — As a user I want to use any pet made for OpenPets or Codex in Loaf.
-**3 Behaviour** — Character page → "Add pet": choose a ZIP or folder, or drop it on the window. Loaf checks it, shows a preview of every row, then installs it to the app data folder. Also lists pets already found in `~/.codex/pets/`. Optional link handler `loaf://install?url=…` (asks before downloading, 25 MB cap).
+**2 Story** — As a user I want to use any pet made for OpenPets or Codex in Pluto.
+**3 Behaviour** — Character page → "Add pet": choose a ZIP or folder, or drop it on the window. Pluto checks it, shows a preview of every row, then installs it to the app data folder. Also lists pets already found in `~/.codex/pets/`. Optional link handler `pluto://install?url=…` (asks before downloading, 25 MB cap).
 **4 Plain language** — Download a pet from anywhere, drop it in, it works.
 **5 Technical** — Rust validator in core: `pet.json` required fields; one `spritesheet.webp|svg`; size 1536×1872 (V1) or 1536×2288 (V2); outfits/activities folders exactly match the manifest; ZIP: stored/deflate only, no symlinks, no `..`, atomic extract. SVG sheets rendered as images only (never inline). Renderer plays rows by OpenPets frame counts and durations.
 **6 Choices** — Same rules as OpenPets so packs move both ways. Link handler: optional, off until code signing (unsigned apps registering URL schemes look suspicious).
 **7 Tasks** — 1 validator + tests with good/bad fixtures · 2 importer · 3 sprite player (frame timing table) · 4 Character page UI · 5 Codex folder scan · 6 link handler (later).
 **8 Tests** — T-63-01 unit: valid V1 and V2 accepted · T-63-02 unit: zip-slip, symlink, wrong size rejected · T-63-03 unit: frame timing table matches OpenPets · T-63-04 component: preview shows 9 rows · T-63-05 Manual-Win: import a real OpenPets pack.
 **9 Edge cases** — Huge files; corrupt WebP; duplicate id (rename or replace); pack with outfits but no schedule.
-**10 Acceptance** — A pack from the OpenPets catalog runs as the Loaf pet; bad packs are refused with a reason.
+**10 Acceptance** — A pack from the OpenPets catalog runs as the Pluto pet; bad packs are refused with a reason.
 **11 Checklist** — [ ] validator · [ ] importer · [ ] player · [ ] UI · [ ] tests
 **13 Deps** — FR-50. Excludes: running any code from a pack (packs are art only).
 
@@ -98,7 +98,7 @@
 **3 Behaviour** — Wardrobe panel: grid of outfits for the current pet; click to wear; "Always wear" or "Use schedule". Schedule rules: time range, days of week, date range; first match wins; no match = default. Built-in outfits for our 5 characters: hat, glasses, scarf, bow, headphones, pajamas, graduation cap (student theme).
 **4 Plain language** — Dress-up for your pet, and it can change clothes on a timetable.
 **5 Technical** — OpenPets `wardrobe` schema: up to 16 outfits `{id, displayName, spritesheetPath: outfits/<id>.webp}`; up to 32 rules `{outfit, when{time{from,to}, days[], dates{from,to}}, enabled}`. Our exporter draws each accessory on top of every frame and writes a full outfit sheet. Schedule check on a one-shot timer set to the next rule boundary (no polling). User choice stored in settings.
-**6 Choices** — Full outfit sheets (OpenPets-compatible, bigger files) vs live layered accessories (smaller, Loaf-only). Chosen: full sheets for export, layered drawing internally to generate them.
+**6 Choices** — Full outfit sheets (OpenPets-compatible, bigger files) vs live layered accessories (smaller, Pluto-only). Chosen: full sheets for export, layered drawing internally to generate them.
 **7 Tasks** — 1 accessory art per character · 2 outfit sheet export · 3 schedule evaluator · 4 Wardrobe UI · 5 settings.
 **8 Tests** — T-64-01 unit: schedule rules incl. past-midnight and new-year wrap · T-64-02 unit: manifest limits (16 outfits, 32 rules, id regex) · T-64-03 component: wear/always/schedule · T-64-04 Manual-Win: outfit changes at the set time.
 **9 Edge cases** — Clock change/DST; PC asleep through a boundary (re-check on wake); imported pet with no outfits (panel shows "none").
@@ -241,7 +241,7 @@
 **2 Story** — As a developer I want to glance at CPU, RAM, disk and battery near my pet.
 **3 Behaviour** — Off by default; small badge next to the pet; pet looks tired above 90% CPU for 1 minute.
 **5 Technical** — `sysinfo` crate (MIT), sampled every 5 s **only while the badge is visible**. GPU and disk meters optional, off by default, like OpenPets (showing GPU use does not break the no-GPU rule, which is about not *needing* a GPU).
-**7/8** — T-73-01 unit: threshold logic · T-73-02 Manual-Win: idle CPU of Loaf stays <1% with badge on.
+**7/8** — T-73-01 unit: threshold logic · T-73-02 Manual-Win: idle CPU of Pluto stays <1% with badge on.
 **4/6/9/10/11** — Plain: "how busy your PC is". Acceptance: off by default, budget kept. **13 Deps** — none.
 
 ---
@@ -275,7 +275,7 @@
 **1 Metadata** — Group: Developers · Status: **On hold (D-MCP-SHAPE)** · Milestone: M12/FM-INT · Effort: L · OpenPets: MCP `status/react/say`, hooks, per-session pets.
 **2 Story** — As a developer I want my pet to show what my coding agent is doing (thinking, editing, tests failed, done).
 **3 Behaviour** — Agent events map to rows: thinking→review, editing/running→running, testing/waiting→waiting, success→jumping, error→failed; short safe bubbles ("Tests passed"). One pet per agent session (FR-67).
-**5 Technical** — Local MCP server (stdio), tools `loaf_status`, `loaf_react`, `loaf_say` (refuses code, paths, URLs, secrets, multi-line); hook installers for Claude Code, Cursor, OpenCode. Local socket with per-run token.
+**5 Technical** — Local MCP server (stdio), tools `pluto_status`, `pluto_react`, `pluto_say` (refuses code, paths, URLs, secrets, multi-line); hook installers for Claude Code, Cursor, OpenCode. Local socket with per-run token.
 **6/7/8** — Written in full when D-MCP-SHAPE is lifted; OpenPets is the reference design.
 **13 Deps** — FR-54, D-MCP-SHAPE.
 

@@ -1,4 +1,4 @@
-# Loaf 0.2.0 — owner test checklist
+# Pluto 0.2.0 — owner test checklist
 
 Unsigned test build. Nothing below has been run on a real Windows PC or Mac by the developer. Mark each line pass / fail and report failures.
 

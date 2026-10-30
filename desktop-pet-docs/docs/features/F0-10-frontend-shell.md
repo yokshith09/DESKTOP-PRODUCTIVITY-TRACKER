@@ -21,7 +21,7 @@ UI brief §3 layout: sidebar 232 px · list/view · detail panel, minimum window
 - [ ] Theme Light / Dark / System applies instantly to the main window now and to the pet window later, driven by `SettingChanged` (R0-11); font size S/M/L scales the root 0.9 / 1.0 / 1.15
 - [ ] `prefers-reduced-motion` sets transitions to 0 ms; the focus ring is 2 px accent, always visible on keyboard focus
 - [ ] **Automated contrast test** computes the WCAG ratio for every text/background token pair in both themes. UI brief §4.1 marks the palette as unverified; any pair below 4.5:1 body / 3:1 large-and-UI is adjusted and the brief amended
-- [ ] Toast primitive (info, success, error, with an Undo action) and the one-time "Loaf keeps running in the tray" hint on first close, remembered in `ui.close_hint_shown`
+- [ ] Toast primitive (info, success, error, with an Undo action) and the one-time "Pluto keeps running in the tray" hint on first close, remembered in `ui.close_hint_shown`
 - [ ] S-90 blocking screen for a failed database check
 - [ ] Sidebar and views are fully keyboard-operable; icon buttons have accessible names
 

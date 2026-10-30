@@ -6,7 +6,7 @@ name: End-to-end
 #    to prove everything was saved.
 #  - macOS: Apple offers no WebDriver for the app's webview, so e2e/smoke.mjs only checks that
 #    the app starts, opens its database, logs, and stays up.
-# Every run uses a fresh temporary data folder (LOAF_DATA_DIR), never real data.
+# Every run uses a fresh temporary data folder (PLUTO_DATA_DIR), never real data.
 
 on:
   push:
@@ -44,7 +44,7 @@ jobs:
       - name: Exclude the build output from Windows Defender's real-time scan
         # Without this, Defender scanning a freshly-built debug .exe on first launch can take
         # longer than chromedriver/msedgedriver's internal wait for the DevToolsActivePort file,
-        # which then reports "session not created" even though Loaf does start (R11).
+        # which then reports "session not created" even though Pluto does start (R11).
         shell: pwsh
         run: Add-MpPreference -ExclusionPath "${{ github.workspace }}"
       - run: pnpm install --frozen-lockfile
@@ -57,9 +57,9 @@ jobs:
         # ignores the new launch's flags, including the debugging port the driver needs.
         shell: pwsh
         run: |
-          Get-Process msedgewebview2, loaf -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+          Get-Process msedgewebview2, pluto -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
           Start-Sleep -Seconds 2
-          Get-Process msedgewebview2, loaf -ErrorAction SilentlyContinue | Format-Table Id, ProcessName
+          Get-Process msedgewebview2, pluto -ErrorAction SilentlyContinue | Format-Table Id, ProcessName
       - name: Probe WebView2 debugging (diagnostic for R11; never fails the job)
         continue-on-error: true
         run: node e2e/probe-webview.mjs
@@ -90,11 +90,11 @@ jobs:
           Write-Host "--- DevToolsActivePort files anywhere under LOCALAPPDATA / TEMP ---"
           Get-ChildItem -Path $env:LOCALAPPDATA, $env:TEMP -Recurse -Filter DevToolsActivePort -Force -ErrorAction SilentlyContinue |
             ForEach-Object { "$($_.FullName)  ($($_.Length) bytes, $($_.LastWriteTime))" }
-          Write-Host "--- WebView2 user-data folders for Loaf ---"
+          Write-Host "--- WebView2 user-data folders for Pluto ---"
           Get-ChildItem -Path $env:LOCALAPPDATA -Directory -Force -ErrorAction SilentlyContinue |
-            Where-Object { $_.Name -match 'loaf|Loaf|EBWebView' } | ForEach-Object { $_.FullName }
-          Write-Host "--- running Loaf / WebView2 processes ---"
-          Get-CimInstance Win32_Process -Filter "Name='loaf.exe' OR Name='msedgewebview2.exe' OR Name='msedgedriver.exe'" |
+            Where-Object { $_.Name -match 'pluto|Pluto|EBWebView' } | ForEach-Object { $_.FullName }
+          Write-Host "--- running Pluto / WebView2 processes ---"
+          Get-CimInstance Win32_Process -Filter "Name='pluto.exe' OR Name='msedgewebview2.exe' OR Name='msedgedriver.exe'" |
             Select-Object ProcessId, Name, @{n='Cmd';e={ $_.CommandLine.Substring(0, [Math]::Min(300, $_.CommandLine.Length)) }} | Format-List
 
   macos:

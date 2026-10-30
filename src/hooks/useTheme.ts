@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ipc, type Settings, type SettingsKey } from "@/ipc";
-import { keys, useSettings } from "./useLoaf";
+import { keys, useSettings } from "./usePluto";
 
 const FONT_SCALE = { S: 0.9, M: 1, L: 1.15 } as const;
 

@@ -1,6 +1,6 @@
 # Feature parity across operating systems (2026-10-23)
 
-Loaf ships **Windows and macOS** installers (release workflow matrix: `windows-latest`, `macos-latest`). **Linux has no build yet** (FR-57 planned). Everything is **Unverified on a real PC** except what the owner has tested on Windows (v2.0.0).
+Pluto ships **Windows and macOS** installers (release workflow matrix: `windows-latest`, `macos-latest`). **Linux has no build yet** (FR-57 planned). Everything is **Unverified on a real PC** except what the owner has tested on Windows (v2.0.0).
 
 | Feature | Windows | macOS | Linux |
 |---|---|---|---|

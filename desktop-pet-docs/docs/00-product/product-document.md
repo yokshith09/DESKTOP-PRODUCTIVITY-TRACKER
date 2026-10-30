@@ -1,4 +1,4 @@
-# LOAF — Product Document
+# PLUTO — Product Document
 **Version 1.4** · **Status: 🔒 LOCKED (D0) · amended D0-A1 … D0-A4**  
 **Last updated:** October 3, 2026 (see §15 Amendments)
 
@@ -6,7 +6,7 @@
 
 ## 1. Product Overview
 
-**Loaf** is a lightweight desktop companion application for Windows and macOS that helps users organize, track, and understand their daily work through an integrated workspace combined with a persistent, event-reactive pet interface.
+**Pluto** is a lightweight desktop companion application for Windows and macOS that helps users organize, track, and understand their daily work through an integrated workspace combined with a persistent, event-reactive pet interface.
 
 **Core identity:**
 - A personal workspace (notes, tasks, meetings, daily progress tracking)
@@ -37,10 +37,10 @@ A knowledge worker or student who:
 
 **UC1: Daily Work Organization**
 - User starts their workday
-- Opens Loaf to see planned tasks, pending items, and daily context
+- Opens Pluto to see planned tasks, pending items, and daily context
 - Creates or updates notes as work progresses
 - Marks tasks complete as they finish
-- Closes Loaf or lets it run in background while working
+- Closes Pluto or lets it run in background while working
 
 **UC2: Task Lifecycle Management**
 - User plans tasks for today, tomorrow, or a specific date
@@ -57,14 +57,14 @@ A knowledge worker or student who:
 
 **UC4: Browser Activity Awareness**
 - User opens browser and works across multiple tabs
-- Loaf tracks which domains consume time
+- Pluto tracks which domains consume time
 - User sees aggregate time per app, domain, and tab
-- User can close tabs directly from Loaf dashboard
+- User can close tabs directly from Pluto dashboard
 - Privacy controls allow excluding sensitive domains (banking, healthcare)
 
 **UC5: Historical Context**
 - User starts system after a break (overnight, between days)
-- Loaf shows what was planned, what was completed, what remains
+- Pluto shows what was planned, what was completed, what remains
 - User can quickly understand where they left off
 - Previous-day history is available for reference
 
@@ -516,7 +516,7 @@ Safari Extension ──┘
 
 | Category | Options |
 |----------|---------|
-| **Startup** | Auto-start Loaf on system boot (yes/no) |
+| **Startup** | Auto-start Pluto on system boot (yes/no) |
 | **Pet** | Always on top (yes/no), Pet size (small/medium/large), Pet opacity (0–100%) |
 | **Tracking** | Track apps (yes/no), Track browser (yes/no), Do not track list (domains) |
 | **Privacy** | Data export (all data as JSON), Data delete (confirm & wipe all), Encryption at rest (yes/no) |
@@ -756,8 +756,8 @@ user_preferences
 
 - **Database:** SQLite (local, single-file)
 - **File location:** OS-standard app data directory
-  - Windows: `%APPDATA%\Loaf\loaf.db`
-  - macOS: `~/Library/Application Support/Loaf/loaf.db`
+  - Windows: `%APPDATA%\Pluto\pluto.db`
+  - macOS: `~/Library/Application Support/Pluto/pluto.db`
 - **Backup:** User can export all data as JSON
 - **Deletion:** User can permanently delete all data
 - **Encryption:** Optional (planned for later phase)
@@ -813,7 +813,7 @@ Each extension communicates with Rust core via local bridge (IPC or HTTP).
 ```
 User starts computer
    ↓
-Loaf auto-starts (if enabled)
+Pluto auto-starts (if enabled)
    ↓
 Pet appears with greeting animation
    ↓
@@ -1036,7 +1036,7 @@ The following are explicitly **not** part of the initial release but may be adde
 ## 13. Appendix: Architecture Diagram
 
 ```
-                           LOAF ECOSYSTEM
+                           PLUTO ECOSYSTEM
                                 │
                     ┌───────────┼───────────┐
                     │           │           │
@@ -1076,7 +1076,7 @@ The following are explicitly **not** part of the initial release but may be adde
 
 ---
 
-**This Product Document is the single source of truth for Loaf. All subsequent documents (PRD, TRD, Design Brief, Implementation Plan) derive from this definition.**
+**This Product Document is the single source of truth for Pluto. All subsequent documents (PRD, TRD, Design Brief, Implementation Plan) derive from this definition.**
 
 ---
 

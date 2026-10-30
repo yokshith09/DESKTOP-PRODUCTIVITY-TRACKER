@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenu
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Bars, type Bar } from "@/features/charts/Bars";
 import { PageHeader, Tile } from "@/features/shell/PageHeader";
-import { useRecentLogs, useSettings, useTrackingStatus, useUsage } from "@/hooks/useLoaf";
+import { useRecentLogs, useSettings, useTrackingStatus, useUsage } from "@/hooks/usePluto";
 import { dayLabel, weekdayNarrow, ymd } from "@/lib/dates";
 import { formatDuration } from "@/lib/time";
 import { cn } from "@/lib/utils";

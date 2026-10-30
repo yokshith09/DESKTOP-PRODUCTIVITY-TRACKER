@@ -49,7 +49,7 @@ export async function tryNudge(kind: string, now: Date, show: () => void | Promi
 let checking: Promise<void> | null = null;
 
 /**
- * Says hello once a day (FR-94) the first time Loaf is open on a new day, or the user's or the
+ * Says hello once a day (FR-94) the first time Pluto is open on a new day, or the user's or the
  * pet's birthday (FR-93). Checked when the dashboard starts and when it comes back into view
  * (the PC woke up), plus one timer to the end of quiet hours; no polling.
  */

@@ -1,6 +1,6 @@
 // The everyday path through the real app, on a fresh data folder (see e2e/run.mjs).
 // One file, run in order: later steps rely on what earlier ones created, and the last step
-// restarts Loaf to prove it was all saved.
+// restarts Pluto to prove it was all saved.
 import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { Builder, By, Key, until } from "selenium-webdriver";
@@ -28,20 +28,20 @@ async function open() {
   driver = await new Builder()
     .usingServer("http://127.0.0.1:4444/")
     // `webviewOptions` tells Microsoft's Edge driver (Windows) that this is a WebView2 app, so
-    // it passes its debugging flags to the web view instead of to Loaf's own command line.
+    // it passes its debugging flags to the web view instead of to Pluto's own command line.
     // Other systems ignore it.
-    .withCapabilities({ browserName: "wry", "tauri:options": { application: process.env.LOAF_BINARY, webviewOptions: {} } })
+    .withCapabilities({ browserName: "wry", "tauri:options": { application: process.env.PLUTO_BINARY, webviewOptions: {} } })
     .build();
-  // Loaf has two windows (the dashboard and the pet). Work in the dashboard.
+  // Pluto has two windows (the dashboard and the pet). Work in the dashboard.
   const deadline = Date.now() + WAIT;
   while (Date.now() < deadline) {
     for (const handle of await driver.getAllWindowHandles()) {
       await driver.switchTo().window(handle);
-      if ((await driver.getTitle()) === "Loaf") return;
+      if ((await driver.getTitle()) === "Pluto") return;
     }
     await driver.sleep(250);
   }
-  throw new Error("The Loaf dashboard window never appeared");
+  throw new Error("The Pluto dashboard window never appeared");
 }
 
 const q = (s) => `"${s}"`;
@@ -69,9 +69,9 @@ const gone = async (xpath) => driver.wait(async () => (await driver.findElements
 before(start);
 after(async () => { await driver?.quit(); });
 
-describe("Loaf, end to end", () => {
+describe("Pluto, end to end", () => {
   it("welcomes a fresh install, then opens on Today", async () => {
-    await visible(`//h1[normalize-space(.)="Welcome to Loaf"]`);
+    await visible(`//h1[normalize-space(.)="Welcome to Pluto"]`);
     await click(xButton("Start"));
     await byLabel("Today’s agenda");
   });
@@ -111,9 +111,9 @@ describe("Loaf, end to end", () => {
     driver = undefined;
     await new Promise((r) => setTimeout(r, 2000)); // let the old process finish closing
     await start();
-    // Loaf reopens on the last page used; any page means it got past the welcome screen.
+    // Pluto reopens on the last page used; any page means it got past the welcome screen.
     await visible(xSidebar("Tasks"));
-    await gone(`//h1[normalize-space(.)="Welcome to Loaf"]`);
+    await gone(`//h1[normalize-space(.)="Welcome to Pluto"]`);
     await click(xSidebar("Tasks"));
     await click(xButton("All"));
     await text("E2E: write the report");

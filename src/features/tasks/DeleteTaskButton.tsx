@@ -1,7 +1,7 @@
 import { Trash2 } from "lucide-react";
 import { ConfirmAction } from "@/components/ConfirmAction";
 import { notify } from "@/lib/notify";
-import { useTaskActions } from "@/hooks/useLoaf";
+import { useTaskActions } from "@/hooks/usePluto";
 import { cn } from "@/lib/utils";
 import type { Task } from "@/ipc";
 

@@ -9,7 +9,7 @@ afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 const boba: PetPack = { id: "boba", display_name: "Boba", description: "A boba tea", rows: 9, format: "webp", source: "codex", reactions: {} };
 const pounce: PetPack = { ...boba, id: "fox", display_name: "Fox", special: { name: "Pounce", pose: "jump", line: "Pounce!", trigger: "tasks", every: 3 } };
-const short: PetPack = { id: "mini", display_name: "Mini", description: "", rows: 3, format: "webp", source: "loaf", reactions: {} };
+const short: PetPack = { id: "mini", display_name: "Mini", description: "", rows: 3, format: "webp", source: "pluto", reactions: {} };
 
 function renderPage() {
   vi.spyOn(ipc, "settingsGetAll").mockResolvedValue({ "pet.pack": null, "pet.media": false } as never);
@@ -53,7 +53,7 @@ describe("Character page preview (F1/F2)", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Preview Mini" }));
     const group = await screen.findByRole("group", { name: "Preview animation" });
     expect(group.querySelectorAll("button")).toHaveLength(3);
-    fireEvent.click(screen.getByRole("button", { name: "Preview Loaf the bear" }));
+    fireEvent.click(screen.getByRole("button", { name: "Preview Pluto the bear" }));
     expect(await screen.findByRole("group", { name: "Preview pose" })).toBeTruthy();
   });
 

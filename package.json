@@ -1,5 +1,5 @@
 {
-  "name": "loaf",
+  "name": "pluto",
   "private": true,
   "version": "0.5.3",
   "type": "module",
@@ -18,7 +18,7 @@
     "check:core-deps": "node scripts/check-core-no-tauri.mjs",
     "tauri": "tauri",
     "test:scripts": "node --test \"scripts/**/*.test.mjs\"",
-    "gen:types": "node scripts/gen-ts-index.mjs clean && cargo test -p loaf-core export_bindings && node scripts/gen-ts-index.mjs",
+    "gen:types": "node scripts/gen-ts-index.mjs clean && cargo test -p pluto-core export_bindings && node scripts/gen-ts-index.mjs",
     "e2e": "node e2e/run.mjs",
     "e2e:smoke": "node e2e/smoke.mjs"
   },

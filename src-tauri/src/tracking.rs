@@ -1,6 +1,6 @@
 //! The operating-system side of app tracking (opt-in, `tracking.apps`).
 //!
-//! Everything that decides anything lives in `loaf-core` (`usage`, `usage_collector`) and is
+//! Everything that decides anything lives in `pluto-core` (`usage`, `usage_collector`) and is
 //! tested there. This file only supplies the two things an OS has to: *which window is in front*
 //! and *how long since the last input*.
 //!
@@ -22,11 +22,11 @@
 
 use std::sync::Arc;
 
-use loaf_core::bus::EventBus;
-use loaf_core::clock::Clock;
-use loaf_core::settings_service::SettingsService;
-use loaf_core::usage::UsageService;
-use loaf_core::usage_collector::Collector;
+use pluto_core::bus::EventBus;
+use pluto_core::clock::Clock;
+use pluto_core::settings_service::SettingsService;
+use pluto_core::usage::UsageService;
+use pluto_core::usage_collector::Collector;
 
 /// This operating system has no collector yet. (Never built on Windows or macOS.)
 #[cfg_attr(any(windows, target_os = "macos"), allow(dead_code))]
@@ -96,8 +96,8 @@ pub(crate) mod win {
     use std::thread::JoinHandle;
     use std::time::Duration;
 
-    use loaf_core::error::{AppError, Result};
-    use loaf_core::usage_collector::Platform;
+    use pluto_core::error::{AppError, Result};
+    use pluto_core::usage_collector::Platform;
     use tokio::sync::mpsc::UnboundedSender;
     use windows_sys::Win32::Foundation::{CloseHandle, HWND, LPARAM};
     use windows_sys::Win32::System::Power::{
@@ -141,10 +141,10 @@ pub(crate) mod win {
                 return Ok(());
             }
             *lock(&SINK) = Some(sink);
-            let failed = || AppError::internal("Loaf couldn't watch which app is in front.");
+            let failed = || AppError::internal("Pluto couldn't watch which app is in front.");
             let (ready_tx, ready_rx) = std_mpsc::channel::<Option<u32>>();
             let join = std::thread::Builder::new()
-                .name("loaf-winevent".into())
+                .name("pluto-winevent".into())
                 .spawn(move || hook_thread(&ready_tx))
                 .map_err(|_| {
                     *lock(&SINK) = None;
@@ -291,7 +291,7 @@ pub(crate) mod win {
     /// explorer.exe too: they record nothing.
     fn foreground_app(hwnd: HWND) -> Option<String> {
         executable_name(hwnd)
-            .filter(|exe| !loaf_core::usage::is_shell_surface(exe, &class_name(hwnd)))
+            .filter(|exe| !pluto_core::usage::is_shell_surface(exe, &class_name(hwnd)))
     }
 
     /// The window's class name (e.g. `CabinetWClass` for a File Explorer folder window); empty if
@@ -311,7 +311,7 @@ pub(crate) mod win {
     /// frame it runs in.
     pub(crate) fn executable_name(hwnd: HWND) -> Option<String> {
         let frame = executable_of(process_id(hwnd)?)?;
-        if loaf_core::usage::is_store_frame(&frame) {
+        if pluto_core::usage::is_store_frame(&frame) {
             if let Some(app) = store_app_process(hwnd).and_then(executable_of) {
                 return Some(app);
             }
@@ -404,9 +404,9 @@ pub(crate) mod mac {
         copy_window_info, kCGNullWindowID, kCGWindowLayer, kCGWindowListExcludeDesktopElements,
         kCGWindowListOptionOnScreenOnly, kCGWindowOwnerPID,
     };
-    use loaf_core::error::{AppError, Result};
-    use loaf_core::usage_collector::Platform;
     use objc2_app_kit::NSWorkspace;
+    use pluto_core::error::{AppError, Result};
+    use pluto_core::usage_collector::Platform;
     use tokio::sync::mpsc::UnboundedSender;
 
     #[link(name = "CoreGraphics", kind = "framework")]
@@ -432,11 +432,11 @@ pub(crate) mod mac {
             return None;
         }
         // Only Finder is asked (a window list is not free), and once a second at most.
-        if !loaf_core::usage::is_bare_finder(&name, false) {
+        if !pluto_core::usage::is_bare_finder(&name, false) {
             return Some(name);
         }
         let has_window = has_normal_window(app.processIdentifier());
-        (!loaf_core::usage::is_bare_finder(&name, has_window)).then_some(name)
+        (!pluto_core::usage::is_bare_finder(&name, has_window)).then_some(name)
     }
 
     /// Whether the process owns an ordinary window (layer 0) on screen. Window titles are never
@@ -489,7 +489,7 @@ pub(crate) mod mac {
             let stop = Arc::new(AtomicBool::new(false));
             let flag = stop.clone();
             let join = std::thread::Builder::new()
-                .name("loaf-frontmost".into())
+                .name("pluto-frontmost".into())
                 .spawn(move || {
                     let mut last: Option<Option<String>> = None;
                     while !flag.load(Ordering::Relaxed) {
@@ -503,7 +503,7 @@ pub(crate) mod mac {
                         std::thread::sleep(LOOK_EVERY);
                     }
                 })
-                .map_err(|_| AppError::internal("Loaf couldn't watch which app is in front."))?;
+                .map_err(|_| AppError::internal("Pluto couldn't watch which app is in front."))?;
             *slot = Some(Watcher { stop, join });
             Ok(())
         }

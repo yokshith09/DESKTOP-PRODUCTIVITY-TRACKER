@@ -39,7 +39,7 @@ Nothing can be called Complete without it (project rule).
 |---|---|---|---|---|
 | **llama.cpp server** (`llama-server`) | [Likely] ~5-20 MB binary | Bundled as a Tauri sidecar, started only while AI is used | MIT | Same engine Ollama uses, without Ollama's service; OpenAI-compatible API |
 | llamafile | model + runtime in one file | Download on demand | Apache-2.0 | Easiest for users; big single file |
-| mistral.rs | Rust crate, in-process | Compiled into Loaf | MIT | No second process; adds build time and binary size |
+| mistral.rs | Rust crate, in-process | Compiled into Pluto | MIT | No second process; adds build time and binary size |
 | Candle (Hugging Face) | Rust crate | Compiled in | MIT/Apache | Lowest level, most work |
 | Ollama | separate app, [Likely] hundreds of MB | User installs | MIT | Detect it if already installed |
 
@@ -60,7 +60,7 @@ Nothing can be called Complete without it (project rule).
 | E. Stay unsigned | Free | — | SmartScreen "unknown publisher" warning on every install |
 | macOS | US$99/yr Apple Developer | Apple ID | Needed for notarization; without it Mac users must right-click → Open |
 
-**Recommendation:** decide whether Loaf will be open source. If yes → **A (free)**. If no → **C** through QUORBIT TECHNOLOGIES. **Unblock:** your yes/no on open source (licence suggestion: MIT or Apache-2.0, same family as OpenPets).
+**Recommendation:** decide whether Pluto will be open source. If yes → **A (free)**. If no → **C** through QUORBIT TECHNOLOGIES. **Unblock:** your yes/no on open source (licence suggestion: MIT or Apache-2.0, same family as OpenPets).
 
 ## 4. Plugin model
 | Option | Safety | Needs signing? | Power |
@@ -74,9 +74,9 @@ Nothing can be called Complete without it (project rule).
 
 ## 5. Local MCP shape
 **Proposal (copy what works in OpenPets):**
-- Transport: **stdio** (`loaf mcp` command started by the agent) → talks to the running app over a **named pipe** with a per-run token. No network port opened.
-- Tools: `loaf_status`, `loaf_react` (thinking / working / testing / success / error), `loaf_say` (short text; code, paths, URLs, secrets refused).
-- Later, read tools for your data (`loaf_tasks_list`, `loaf_note_search`) — **off by default**, user approves each.
+- Transport: **stdio** (`pluto mcp` command started by the agent) → talks to the running app over a **named pipe** with a per-run token. No network port opened.
+- Tools: `pluto_status`, `pluto_react` (thinking / working / testing / success / error), `pluto_say` (short text; code, paths, URLs, secrets refused).
+- Later, read tools for your data (`pluto_tasks_list`, `pluto_note_search`) — **off by default**, user approves each.
 **Unblock:** approve this shape.
 
 ## 6. Backend and privacy statement
@@ -93,7 +93,7 @@ Checks still needed before choosing: domain, Microsoft Store, GitHub org, tradem
 
 | Name | Why |
 |---|---|
-| **Loaf** (keep) | Short, friendly, already in the code; the bear is a "loaf" |
+| **Pluto** (keep) | Short, friendly, already in the code; the bear is a "pluto" |
 | **Studdy** | Study buddy; student-first; pet-like |
 | **Desko** | Desk companion; easy to say in any language |
 | **Pebble Pal** | Small, cute, companion |
@@ -105,7 +105,7 @@ Checks still needed before choosing: domain, Microsoft Store, GitHub org, tradem
 | **Chotu** | Hindi/Telugu-friendly "little one"; home-market feel |
 
 Old text: 
-**Way:** you give 5-10 candidates → we check: domain (.app/.com), Microsoft Store and app-store names, GitHub org, existing trademarks (India IP office, USPTO, EUIPO search). [Certain] "Loaf" is the working name only.
+**Way:** you give 5-10 candidates → we check: domain (.app/.com), Microsoft Store and app-store names, GitHub org, existing trademarks (India IP office, USPTO, EUIPO search). [Certain] "Pluto" is the working name only.
 
 ## 9. Browser tabs spike (ours)
 Day 1 of FM-V2 build: list Chrome/Edge tabs via Windows UI Automation. Result recorded in PROJECT_STATUS; if it fails, the fallback is showing **browser windows** (not tabs) with switch/close, which always works.

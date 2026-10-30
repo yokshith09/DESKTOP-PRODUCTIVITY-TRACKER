@@ -96,7 +96,7 @@ export function Tour({ steps, onNavigate, onClose }: { steps: TourStep[]; onNavi
         <div aria-hidden className="absolute inset-0 bg-black/55" />
       )}
       <div
-        ref={card} role="dialog" aria-modal="true" aria-label="Loaf tour" aria-describedby="tour-body"
+        ref={card} role="dialog" aria-modal="true" aria-label="Pluto tour" aria-describedby="tour-body"
         className="absolute w-[340px] max-w-[calc(100vw-32px)] rounded-xl border bg-popover p-4 text-popover-foreground shadow-xl"
         style={{ left: pos.left, top: pos.top }}
       >

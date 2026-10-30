@@ -78,7 +78,7 @@ Positioning line: **"Your study buddy that lives on your desktop — works offli
 
 [Likely] Open source and money are not opposites here; most successful tools in this space use **open core + optional paid extras**. Recommended (never paywall study features):
 
-| Model | Example | For Loaf | Estimate |
+| Model | Example | For Pluto | Estimate |
 |---|---|---|---|
 | **One-time supporter licence** | Obsidian Catalyst $25 | Supporter badge, early builds, exclusive pet | ₹299-499 India, $9-15 elsewhere |
 | **Paid art packs** with artist revenue share | Desktop Mate DLC, Bongo Cat items | Seasonal/premium characters; 50-70% to the artist | ₹49-199 per pack |

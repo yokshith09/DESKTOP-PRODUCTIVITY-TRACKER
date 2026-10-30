@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { useReminders } from "@/hooks/useLoaf";
+import { useReminders } from "@/hooks/usePluto";
 import { errorMessage, ipc, type Task } from "@/ipc";
 import { notify } from "@/lib/notify";
 import { fromLocalInput, toLocalInput } from "@/lib/time";

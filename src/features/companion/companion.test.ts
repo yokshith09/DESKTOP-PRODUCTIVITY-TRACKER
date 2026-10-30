@@ -63,8 +63,8 @@ describe("the hello as a text bubble (J3)", () => {
     expect(helloLine(c, at, { open: 0, overdue: 0, quote: { text: "Begin anywhere.", author: "John Cage" } })).toBe("Good morning, Asha! I'm Mochi, your assistant. “Begin anywhere.” — John Cage");
     expect(helloLine(c, at, { open: 0, overdue: 0 })).toContain("A calm day.");
   });
-  it("answers to Loaf when the pet has no name, and keeps the short hello without facts", () => {
-    expect(helloLine({ ...c, petName: "" }, at, { open: 0, overdue: 0 })).toContain("I'm Loaf,");
+  it("answers to Pluto when the pet has no name, and keeps the short hello without facts", () => {
+    expect(helloLine({ ...c, petName: "" }, at, { open: 0, overdue: 0 })).toContain("I'm Pluto,");
     expect(helloLine(c, at)).toBe("Good morning, Asha!");
   });
   it("the daily greeting uses it", () => {

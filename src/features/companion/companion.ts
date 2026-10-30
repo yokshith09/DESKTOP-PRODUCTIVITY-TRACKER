@@ -7,7 +7,7 @@ import { ymd } from "@/lib/dates";
  * Stored in preferences under `ui.companion` (included in the data export).
  */
 export interface Companion {
-  /** What you call the pet. Empty: it answers to "Loaf". */
+  /** What you call the pet. Empty: it answers to "Pluto". */
   petName: string;
   /** The pet's birthday: the day it was first met (YYYY-MM-DD). */
   born: string;
@@ -88,7 +88,7 @@ const clip = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1).trim
  * what is overdue, else what is waiting today, else the day's quote. Kind words only.
  */
 export function helloLine(c: Companion, now: Date, facts?: HelloFacts): string {
-  const intro = `${greetingFor(c, now)} I'm ${c.petName || "Loaf"}, your assistant.`;
+  const intro = `${greetingFor(c, now)} I'm ${c.petName || "Pluto"}, your assistant.`;
   if (!facts) return greetingFor(c, now);
   if (facts.overdue > 0) {
     const first = facts.firstOverdue ? `, starting with “${clip(facts.firstOverdue, 28)}”` : "";

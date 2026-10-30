@@ -7,7 +7,7 @@
 //! * **Windows**: a low-level keyboard hook (`WH_KEYBOARD_LL`) on its own thread that only adds
 //!   one to a counter per key-down. It is installed only while the setting is on.
 //! * **macOS**: `CGEventSourceCounterForEventType(kCGEventKeyDown)`, the system's own key-down
-//!   counter. macOS may ask for Input Monitoring; Loaf asks for it when the switch is turned on.
+//!   counter. macOS may ask for Input Monitoring; Pluto asks for it when the switch is turned on.
 //! * Elsewhere: nothing happens.
 //!
 //! It also sends `pet://textbox` (`true`/`false`) whenever *a text box is focused* changes, so the
@@ -22,9 +22,9 @@
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use loaf_core::bus::{EventBus, Recv};
-use loaf_core::events::Event;
-use loaf_core::settings_service::SettingsService;
+use pluto_core::bus::{EventBus, Recv};
+use pluto_core::events::Event;
+use pluto_core::settings_service::SettingsService;
 use tauri::{AppHandle, Emitter};
 
 /// How long without a key press before the pet stops typing.
@@ -153,7 +153,7 @@ mod os {
         pub fn start() -> Option<Self> {
             let (ready_tx, ready_rx) = mpsc::channel::<Option<u32>>();
             let join = std::thread::Builder::new()
-                .name("loaf-keycount".into())
+                .name("pluto-keycount".into())
                 .spawn(move || hook_thread(&ready_tx))
                 .ok()?;
             match ready_rx.recv_timeout(Duration::from_secs(2)) {

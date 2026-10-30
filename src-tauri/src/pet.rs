@@ -1,4 +1,4 @@
-//! The desktop pet (F1-22): a small transparent, always-on-top window with Loaf the bear.
+//! The desktop pet (F1-22): a small transparent, always-on-top window with Pluto the bear.
 //!
 //! * **Click** opens the dashboard, **double-click** hides it, **right-click** opens a menu,
 //!   **drag** moves the pet. Hovering grows the window to show a summary card beside the pet;
@@ -15,11 +15,11 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, PoisonError};
 use std::time::Duration;
 
-use loaf_core::bus::{EventBus, Recv};
-use loaf_core::error::{AppError, Result};
-use loaf_core::events::Event;
-use loaf_core::pet_screen::pet_on_screen;
-use loaf_core::settings_service::SettingsService;
+use pluto_core::bus::{EventBus, Recv};
+use pluto_core::error::{AppError, Result};
+use pluto_core::events::Event;
+use pluto_core::pet_screen::pet_on_screen;
+use pluto_core::settings_service::SettingsService;
 use serde::Serialize;
 use serde_json::{json, Value};
 use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu};
@@ -425,7 +425,7 @@ pub enum Entry {
     Separator,
 }
 
-/// Dashboard pages the menu can open directly, with the keys that open them inside Loaf.
+/// Dashboard pages the menu can open directly, with the keys that open them inside Pluto.
 pub const PAGES: [(&str, &str, &str); 7] = [
     ("pet:page:today", "Today", "CmdOrCtrl+1"),
     ("pet:page:tasks", "Tasks", "CmdOrCtrl+2"),
@@ -484,9 +484,9 @@ pub fn menu_spec(
             .map(|(_, c)| c.clone())
     };
     let open = if main_visible {
-        ("pet:hide-main", "Hide Loaf")
+        ("pet:hide-main", "Hide Pluto")
     } else {
-        ("pet:open", "Open Loaf")
+        ("pet:open", "Open Pluto")
     };
     let flag = |k: &str, default: bool| settings.get(k).and_then(Value::as_bool).unwrap_or(default);
     vec![
@@ -532,7 +532,7 @@ pub fn menu_spec(
             "Hide pet",
             key(crate::shortcuts::Action::TogglePet),
         ),
-        Entry::Item("pet:quit", "Quit Loaf", None),
+        Entry::Item("pet:quit", "Quit Pluto", None),
     ]
 }
 
@@ -620,7 +620,7 @@ pub fn on_menu(app: &AppHandle, id: &str) {
 /// `settings`).
 pub fn command<R: Runtime>(app: &AppHandle<R>, what: &str) {
     crate::tray::show_main(app);
-    let _ = app.emit_to("main", "loaf://command", what);
+    let _ = app.emit_to("main", "pluto://command", what);
 }
 
 /// Set `pet.visible` and apply it now, even if the stored value was already that (the window
@@ -849,7 +849,7 @@ pub mod fullscreen {
     }
 
     /// macOS has no such question, so look for an ordinary window that covers a whole screen.
-    /// Loaf's own windows are skipped, and window titles are never read.
+    /// Pluto's own windows are skipped, and window titles are never read.
     #[cfg(target_os = "macos")]
     pub fn other_app_fills_a_screen() -> bool {
         use core_foundation::base::{CFType, TCFType};
@@ -862,7 +862,7 @@ pub mod fullscreen {
             kCGWindowListExcludeDesktopElements, kCGWindowListOptionOnScreenOnly,
             kCGWindowOwnerPID,
         };
-        use loaf_core::pet_screen::covers_screen;
+        use pluto_core::pet_screen::covers_screen;
 
         let Some(list) = copy_window_info(
             kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements,
@@ -964,7 +964,7 @@ fn monitor_layout<R: Runtime>(app: &AppHandle<R>) -> Vec<Rect> {
 /// Place and show the pet now, and follow the pet settings from here on. Also watches for the
 /// computer waking up and for screens changing (B2/S1): the OS gives no portable event for
 /// either, so one look a minute (an exception to ADR-009, like `sites.rs`) re-applies the pet
-/// and tells every window `loaf://wake` so reminders and the greeting can catch up.
+/// and tells every window `pluto://wake` so reminders and the greeting can catch up.
 pub fn start<R: Runtime>(app: AppHandle<R>, settings: Arc<SettingsService>, bus: &EventBus) {
     {
         let (app, settings) = (app.clone(), Arc::clone(&settings));
@@ -985,7 +985,7 @@ pub fn start<R: Runtime>(app: AppHandle<R>, settings: Arc<SettingsService>, bus:
                     layout = now_layout;
                     apply(&app, &settings, false).await;
                     if woke {
-                        let _ = app.emit("loaf://wake", ());
+                        let _ = app.emit("pluto://wake", ());
                     }
                 }
             }
@@ -1323,7 +1323,7 @@ mod tests {
             find(&spec, "pet:hide-main"),
             Some(&Entry::Item(
                 "pet:hide-main",
-                "Hide Loaf",
+                "Hide Pluto",
                 Some("CmdOrCtrl+Shift+L".into())
             ))
         );
@@ -1346,7 +1346,11 @@ mod tests {
         )]);
         assert_eq!(
             find(&menu_spec(false, &custom), "pet:open"),
-            Some(&Entry::Item("pet:open", "Open Loaf", Some("Alt+F9".into())))
+            Some(&Entry::Item(
+                "pet:open",
+                "Open Pluto",
+                Some("Alt+F9".into())
+            ))
         );
     }
 

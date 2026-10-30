@@ -8,7 +8,7 @@ import { Clipboard, SadBrows, Tear } from "./SpriteProps";
  * The new characters (Phase 7, pulled forward by the owner): Mochi, Pip, Bolt, Ghosty.
  * Drawn as lit 3D volumes: a key light from the top left, a core shadow, a cool rim light
  * on the far edge, a sharp specular highlight, and contact shadows where parts meet.
- * Same core poses as Loaf the bear. `type` is the typing-along pose: a laptop opens and they tap with you.
+ * Same core poses as Pluto the bear. `type` is the typing-along pose: a laptop opens and they tap with you.
  */
 export const CHARACTER_POSES = ["idle", "type", "wait", "cheer", "sleep"] as const;
 /**

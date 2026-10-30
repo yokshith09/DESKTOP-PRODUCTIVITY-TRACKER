@@ -7,15 +7,15 @@ Same 13 sections as the other specs. Status words per PROJECT_STATUS §2.
 ## FR-84 — Community pets website and upload server
 
 **1 Metadata** — Group: Platform · Status: Planned · Phase: P7 (moved earlier only if the owner says) · Effort: XL · Origin: owner 2026-10-23 ("we develop a website and backend server for accepting pets — not pull requests by anyone"). **Reopens the backend** for this purpose only.
-**2 Story** — As a creator I upload my pet on Loaf's website; after review it appears in everyone's gallery. As a user I browse and install pets from inside Loaf.
-**3 Behaviour** — Website: browse, search, preview animations, download. Account (email or GitHub sign-in) needed only to upload. Upload form: ZIP of the pack, licence choice (CC BY 4.0 / CC0 / "free to use in Loaf only"), checkbox "I made this or have the right to share it", tags. Automatic check (same rules as FR-63) → moderation queue → approved pets go public. Report button + takedown within 48 h. Loaf's gallery (FR-66) reads the public catalog.
+**2 Story** — As a creator I upload my pet on Pluto's website; after review it appears in everyone's gallery. As a user I browse and install pets from inside Pluto.
+**3 Behaviour** — Website: browse, search, preview animations, download. Account (email or GitHub sign-in) needed only to upload. Upload form: ZIP of the pack, licence choice (CC BY 4.0 / CC0 / "free to use in Pluto only"), checkbox "I made this or have the right to share it", tags. Automatic check (same rules as FR-63) → moderation queue → approved pets go public. Report button + takedown within 48 h. Pluto's gallery (FR-66) reads the public catalog.
 **4 Plain language** — A pet shop website where anyone can submit a pet; we check it before it goes live.
-**5 Technical** — Proposal: one small server (Rust axum, or Supabase if the owner prefers no ops) + Postgres + object storage (Cloudflare R2: no egress fees) + static website. Pack validation reuses `loaf_core::pets` (compile it into the server). Catalog served as static JSON + ZIPs with SHA-256. Images resized server-side for previews. Privacy statement published before launch (decided earlier).
+**5 Technical** — Proposal: one small server (Rust axum, or Supabase if the owner prefers no ops) + Postgres + object storage (Cloudflare R2: no egress fees) + static website. Pack validation reuses `pluto_core::pets` (compile it into the server). Catalog served as static JSON + ZIPs with SHA-256. Images resized server-side for previews. Privacy statement published before launch (decided earlier).
 **6 Choices** — **Decided 2026-10-23: Supabase** (Postgres, Auth, Storage, Edge Functions; free tier to start, Pro ~US$25/month when needed [Likely]). Pack validation runs in an Edge Function (port the FR-63 rules to TypeScript, sharing test fixtures with the Rust checker). Sign-in: GitHub OAuth + email magic link.
-**7 Tasks** — 1 privacy statement · 2 schema (users, pets, versions, reports) · 3 upload + validation · 4 moderation page · 5 public catalog JSON · 6 website pages · 7 Loaf gallery reads it (FR-66) · 8 takedown flow.
+**7 Tasks** — 1 privacy statement · 2 schema (users, pets, versions, reports) · 3 upload + validation · 4 moderation page · 5 public catalog JSON · 6 website pages · 7 Pluto gallery reads it (FR-66) · 8 takedown flow.
 **8 Tests** — validator shared with FR-63 tests · upload rejects bad packs · catalog hash matches · moderation required before public · rate limits.
 **9 Edge cases** — Stolen art (report + takedown); huge files (25 MB cap); spam accounts (rate limit, review); NSFW (review, report).
-**10 Acceptance** — A pet uploaded on the website, approved, appears in Loaf's gallery and installs.
+**10 Acceptance** — A pet uploaded on the website, approved, appears in Pluto's gallery and installs.
 **11 Checklist** — [ ] privacy · [ ] server · [ ] site · [ ] moderation · [ ] gallery link
 **13 Deps** — FR-63, FR-66; privacy statement; hosting budget (owner). Excludes: paid pets (later decision).
 
@@ -24,7 +24,7 @@ Same 13 sections as the other specs. Status words per PROJECT_STATUS §2.
 ## FR-85 — Daily routine tile and routine notifications
 
 **1 Metadata** — Group: Productivity · Status: **In progress (building now)** · Milestone: FM-V2 (pulled forward by the owner) · Effort: M · Origin: owner 2026-10-23. Replaces FR-69d "routines".
-**2 Story** — As a student I keep a list of things I do every day (drink water, revise 30 min, gym, read) and tick them off; Loaf reminds me what is left ("You have 3 daily routine tasks pending").
+**2 Story** — As a student I keep a list of things I do every day (drink water, revise 30 min, gym, read) and tick them off; Pluto reminds me what is left ("You have 3 daily routine tasks pending").
 **3 Behaviour** —
 - Tile **Daily routine** on Today: the routine items with a checkbox each, a progress ring "2 of 5", add/rename/remove/reorder items inline.
 - Ticks reset at the start of each day (local midnight). Yesterday's result is kept (streak count per item).
@@ -45,11 +45,11 @@ Same 13 sections as the other specs. Status words per PROJECT_STATUS §2.
 ## FR-86 — Private diary with task pick-up
 
 **1 Metadata** — Group: Journal · Status: Built 2026-10-28 with search, recovery key and tray lock; mood faces dropped as optional (Unverified; see DECISIONS) · Milestone: FM-ST (student release) · Effort: L · Origin: owner 2026-10-23.
-**2 Story** — As a user I write about my day in a calm, beautiful private diary, locked with a password. Loaf can spot things I need to do in what I wrote and turn them into tasks with deadlines, but only when I allow it.
+**2 Story** — As a user I write about my day in a calm, beautiful private diary, locked with a password. Pluto can spot things I need to do in what I wrote and turn them into tasks with deadlines, but only when I allow it.
 **3 Behaviour** —
 - **Diary tab** (sidebar). One entry per day by default (more allowed). Calendar strip to jump to a day; mood tag (optional, 5 faces); word count; full-text search inside the diary only after unlock.
-- **Lock**: set a password the first time; the diary opens only after unlocking; auto-locks after N minutes idle (default 5) and when Loaf goes to the tray. Forgotten password = entries cannot be recovered (said clearly at setup; optional recovery key shown once to write down).
-- **Task pick-up** (off by default): when on, Loaf highlights lines that look like to-dos ("need to", "have to", "submit", "remember to", "by Friday", "tomorrow", "- [ ]") with a subtle underline; click → "Make task" with the date already read ("by Friday" → Friday). Also select any text → **Make task** (always available, no setting needed). Converted lines show a small ✓ chip linking to the task.
+- **Lock**: set a password the first time; the diary opens only after unlocking; auto-locks after N minutes idle (default 5) and when Pluto goes to the tray. Forgotten password = entries cannot be recovered (said clearly at setup; optional recovery key shown once to write down).
+- **Task pick-up** (off by default): when on, Pluto highlights lines that look like to-dos ("need to", "have to", "submit", "remember to", "by Friday", "tomorrow", "- [ ]") with a subtle underline; click → "Make task" with the date already read ("by Friday" → Friday). Also select any text → **Make task** (always available, no setting needed). Converted lines show a small ✓ chip linking to the task.
 - Nothing from the diary appears outside it (search, exports, pet bubbles) unless the user makes a task from it; then only the task's title is outside.
 **4 Plain language** — A locked journal that can turn "I need to submit the lab report by Friday" into a task due Friday.
 **5 Technical** — Entries encrypted at rest: key derived from the password with Argon2id (RustCrypto `argon2`, MIT/Apache), encryption XChaCha20-Poly1305 (`chacha20poly1305`, MIT/Apache); only ciphertext + salt + nonce in SQLite (new table `diary_entries`, migration 004). Key held in memory only while unlocked, wiped on lock. Task detection: local rules (regex + a small date parser for "today/tomorrow/Friday/next week/23 Oct") in core — **no AI and nothing leaves the PC**; AI-based pick-up later when the AI runtime exists. Excluded from export unless the user ticks "include diary (encrypted)".

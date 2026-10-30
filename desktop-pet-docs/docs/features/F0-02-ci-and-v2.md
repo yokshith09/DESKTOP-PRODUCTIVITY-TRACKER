@@ -18,9 +18,9 @@ None (CI only). Results appear in the run summary and as an uploaded artifact.
 ## Acceptance Criteria
 - [ ] Workflow runs on `windows-latest` and `macos-latest`: `cargo fmt --check`, `cargo clippy -D warnings`, `cargo test --workspace`, `cargo llvm-cov`, `pnpm lint`, `pnpm test --coverage`, `tauri build`
 - [ ] A PR with a deliberately broken test fails CI (shown once, then reverted)
-- [ ] **`v2-ram` job** builds the F0-01 release bundle on each OS, launches it, waits 120 s to settle, samples every 30 s for 5 min, and reports the **sum across all Loaf processes including webview children**, with a per-process table
-- [ ] Windows sampling: private bytes of the Loaf process plus every descendant (this catches the `msedgewebview2` children)
-- [ ] macOS sampling: physical footprint of the Loaf process plus the `com.apple.WebKit.*` helper processes that appeared after launch (WKWebView helpers are not children of the app, so they are matched by name and start time)
+- [ ] **`v2-ram` job** builds the F0-01 release bundle on each OS, launches it, waits 120 s to settle, samples every 30 s for 5 min, and reports the **sum across all Pluto processes including webview children**, with a per-process table
+- [ ] Windows sampling: private bytes of the Pluto process plus every descendant (this catches the `msedgewebview2` children)
+- [ ] macOS sampling: physical footprint of the Pluto process plus the `com.apple.WebKit.*` helper processes that appeared after launch (WKWebView helpers are not children of the app, so they are matched by name and start time)
 - [ ] The measuring scripts and their method live in the repo with a short note on what they cannot see; the first run's numbers are labelled **preliminary (CI runner)**
 - [ ] Result is appended to `07-architecture-decisions.md` as an amendment. Per the plan's CP1 decision point: a sum over 100 MB on either OS stops work before F0-13; a result between 80 and 120 MB is confirmed on real hardware before any ADR is written
 - [ ] The workflow adds no secrets and no deployment step

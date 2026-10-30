@@ -1,5 +1,5 @@
 /**
- * Where to put accessories on a sprite-pack character. A pack is a baked picture, so Loaf looks
+ * Where to put accessories on a sprite-pack character. A pack is a baked picture, so Pluto looks
  * at it: for every frame it finds the top of the head, how wide the head is and roughly where
  * the neck is, from which pixels are drawn. The same accessory drawings the bear wears are then
  * scaled onto that spot, frame by frame, so they follow the animation. Thin things (an antenna,

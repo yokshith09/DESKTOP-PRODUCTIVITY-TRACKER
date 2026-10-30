@@ -16,7 +16,7 @@ import { GLOBAL_SHORTCUTS } from "./shortcuts";
 import { ShortcutRow } from "./ShortcutRow";
 import { useSetting } from "@/hooks/useTheme";
 
-/** The main projects Loaf ships with and their licenses (About › Open-source software). */
+/** The main projects Pluto ships with and their licenses (About › Open-source software). */
 const LICENSES: [string, string][] = [
   ["Tauri", "MIT or Apache-2.0"], ["Rust standard library", "MIT or Apache-2.0"], ["Tokio", "MIT"], ["rusqlite / SQLite", "MIT / public domain"],
   ["serde", "MIT or Apache-2.0"], ["chrono", "MIT or Apache-2.0"], ["tracing", "MIT"], ["React", "MIT"],
@@ -51,8 +51,8 @@ export function SettingsPage() {
             <ToggleGroupItem value="L">Large</ToggleGroupItem>
           </ToggleGroup>
         </Row>
-        <Row label="Open Loaf at login" hint="Starts quietly in the tray.">
-          <Switch checked={autostart ?? false} onCheckedChange={(v) => void setAutostart(v)} aria-label="Open Loaf at login" />
+        <Row label="Open Pluto at login" hint="Starts quietly in the tray.">
+          <Switch checked={autostart ?? false} onCheckedChange={(v) => void setAutostart(v)} aria-label="Open Pluto at login" />
         </Row>
       </Section>
       <YourProfile />
@@ -89,15 +89,15 @@ export function SettingsPage() {
         </Row>
       </Section>
       <Section title="About">
-        <Row label="Loaf" hint={`Version ${__APP_VERSION__} · Your notes, tasks and reminders are stored only on this computer.`}>
+        <Row label="Pluto" hint={`Version ${__APP_VERSION__} · Your notes, tasks and reminders are stored only on this computer.`}>
           <span />
         </Row>
-        <Row label={CREDIT} hint="Made with care for people who want a calm place to plan their day.">
+        <Row label={CREDIT} hint="Pluto: small companion, big universe. Made with care for people who want a calm place to plan their day.">
           <span />
         </Row>
         <details className="py-3.5 text-[13px]">
           <summary className="cursor-pointer font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring">Open-source software</summary>
-          <p className="mt-2 text-xs text-muted-foreground">Loaf is built on these projects, used under their licenses:</p>
+          <p className="mt-2 text-xs text-muted-foreground">Pluto is built on these projects, used under their licenses:</p>
           <ul className="mt-2 grid gap-x-6 gap-y-1 text-xs text-muted-foreground sm:grid-cols-2">
             {LICENSES.map(([name, license]) => <li key={name}><span className="text-foreground">{name}</span> · {license}</li>)}
           </ul>

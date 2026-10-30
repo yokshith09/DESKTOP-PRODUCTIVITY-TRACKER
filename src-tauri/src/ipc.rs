@@ -1,30 +1,30 @@
-//! IPC command handlers. Thin: deserialize, call `loaf-core`, return. Errors cross the boundary
+//! IPC command handlers. Thin: deserialize, call `pluto-core`, return. Errors cross the boundary
 //! as `AppError` (`{ code, message, field? }`).
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use loaf_core::clock::Clock;
-use loaf_core::courses::{self, Course, CourseLinks, Exam, WeeklyReport};
-use loaf_core::daily_log::{self, DailyLog};
-use loaf_core::data;
-use loaf_core::diary::{self, DiaryHit, DiaryStatus};
-use loaf_core::error::{AppError, Result};
-use loaf_core::events::Event;
-use loaf_core::focus::{self, FocusSession, FocusStart};
-use loaf_core::labels::{self, Label, LabelCount};
-use loaf_core::links;
-use loaf_core::meetings::{self, Meeting, MeetingFilters, MeetingInput, MeetingSummary};
-use loaf_core::notes::{self, BinNote, Note, NoteInput, NotePatch, NoteSort, NoteSummary};
-use loaf_core::reminders::{self, Reminder, ReminderInput, ReminderPatch};
-use loaf_core::retention::{self, RetentionCounts, RetentionRules};
-use loaf_core::settings::SettingsKey;
-use loaf_core::settings_service::SettingsService;
-use loaf_core::task_plans::{self, LinkInput, RepeatDay, TaskPlan};
-use loaf_core::tasks::{
+use pluto_core::clock::Clock;
+use pluto_core::courses::{self, Course, CourseLinks, Exam, WeeklyReport};
+use pluto_core::daily_log::{self, DailyLog};
+use pluto_core::data;
+use pluto_core::diary::{self, DiaryHit, DiaryStatus};
+use pluto_core::error::{AppError, Result};
+use pluto_core::events::Event;
+use pluto_core::focus::{self, FocusSession, FocusStart};
+use pluto_core::labels::{self, Label, LabelCount};
+use pluto_core::links;
+use pluto_core::meetings::{self, Meeting, MeetingFilters, MeetingInput, MeetingSummary};
+use pluto_core::notes::{self, BinNote, Note, NoteInput, NotePatch, NoteSort, NoteSummary};
+use pluto_core::reminders::{self, Reminder, ReminderInput, ReminderPatch};
+use pluto_core::retention::{self, RetentionCounts, RetentionRules};
+use pluto_core::settings::SettingsKey;
+use pluto_core::settings_service::SettingsService;
+use pluto_core::task_plans::{self, LinkInput, RepeatDay, TaskPlan};
+use pluto_core::tasks::{
     self, Task, TaskEdit, TaskEvent, TaskFilters, TaskRow, TaskStatus, TaskView, WorkUpdate,
 };
-use loaf_core::usage::{DomainSetting, TimeRange, TrackingStatus, UsageService, UsageSummary};
+use pluto_core::usage::{DomainSetting, TimeRange, TrackingStatus, UsageService, UsageSummary};
 use serde_json::Value;
 use tauri::{AppHandle, State};
 use tauri_plugin_dialog::DialogExt;
@@ -501,7 +501,7 @@ pub async fn focus_start(input: FocusStart, core: State<'_, Core>) -> Result<Foc
     focus::start(&core.db, &*core.clock, input).await
 }
 
-/// The running session, if any (one that ran out while Loaf was closed is finished here).
+/// The running session, if any (one that ran out while Pluto was closed is finished here).
 #[tauri::command]
 pub async fn focus_task_total(task_id: String, core: State<'_, Core>) -> Result<i64> {
     focus::task_total_ms(&core.db, &task_id).await
@@ -708,14 +708,14 @@ pub struct Exported {
 pub async fn data_export(app: AppHandle, core: State<'_, Core>) -> Result<Option<Exported>> {
     let version = app.package_info().version.to_string();
     let document = data::export(&core.db, &*core.clock, &version).await?;
-    let name = format!("loaf-export-{}.json", core.clock.today());
+    let name = format!("pluto-export-{}.json", core.clock.today());
     let picker = app.clone();
     let chosen = tauri::async_runtime::spawn_blocking(move || {
         picker
             .dialog()
             .file()
             .set_file_name(&name)
-            .add_filter("Loaf export", &["json"])
+            .add_filter("Pluto export", &["json"])
             .blocking_save_file()
     })
     .await
@@ -725,15 +725,15 @@ pub async fn data_export(app: AppHandle, core: State<'_, Core>) -> Result<Option
     };
     let path = chosen
         .into_path()
-        .map_err(|_| AppError::io("Loaf can't save to that place."))?;
+        .map_err(|_| AppError::io("Pluto can't save to that place."))?;
     let bytes = serde_json::to_vec_pretty(&document)
-        .map_err(|_| AppError::internal("Loaf couldn't write the export."))?;
+        .map_err(|_| AppError::internal("Pluto couldn't write the export."))?;
     let size = bytes.len() as u64;
     let target = path.clone();
     tauri::async_runtime::spawn_blocking(move || std::fs::write(target, bytes))
         .await
         .map_err(|_| AppError::internal("Saving stopped unexpectedly."))?
-        .map_err(|_| AppError::io("Loaf couldn't save the file there."))?;
+        .map_err(|_| AppError::io("Pluto couldn't save the file there."))?;
     let shown = path.to_string_lossy().into_owned();
     core.bus.publish(Event::DataExported {
         at: core.clock.now_ms(),
@@ -746,7 +746,7 @@ pub async fn data_export(app: AppHandle, core: State<'_, Core>) -> Result<Option
     }))
 }
 
-/// Ask for an export file and restore it into an empty Loaf. `None` if the dialog was cancelled.
+/// Ask for an export file and restore it into an empty Pluto. `None` if the dialog was cancelled.
 #[tauri::command]
 pub async fn data_import(
     app: AppHandle,
@@ -758,7 +758,7 @@ pub async fn data_import(
         picker
             .dialog()
             .file()
-            .add_filter("Loaf export", &["json"])
+            .add_filter("Pluto export", &["json"])
             .blocking_pick_file()
     })
     .await
@@ -768,24 +768,24 @@ pub async fn data_import(
     };
     let path = chosen
         .into_path()
-        .map_err(|_| AppError::io("Loaf can't open that file."))?;
+        .map_err(|_| AppError::io("Pluto can't open that file."))?;
     let document = tauri::async_runtime::spawn_blocking(move || {
         let size = std::fs::metadata(&path)?.len();
         if size > MAX_BYTES {
             return Ok(Err(AppError::validation(
                 "file",
-                "That file is too large to be a Loaf export.",
+                "That file is too large to be a Pluto export.",
             )));
         }
         let bytes = std::fs::read(&path)?;
         Ok::<_, std::io::Error>(
             serde_json::from_slice::<serde_json::Value>(&bytes)
-                .map_err(|_| AppError::validation("file", "That file isn't a Loaf export.")),
+                .map_err(|_| AppError::validation("file", "That file isn't a Pluto export.")),
         )
     })
     .await
     .map_err(|_| AppError::internal("Reading stopped unexpectedly."))?
-    .map_err(|_| AppError::io("Loaf couldn't read that file."))??;
+    .map_err(|_| AppError::io("Pluto couldn't read that file."))??;
     data::import(&core.db, &*core.clock, document)
         .await
         .map(Some)
@@ -799,7 +799,7 @@ pub async fn data_delete_all(confirm: String, core: State<'_, Core>) -> Result<(
 
 // ---- folders and reset (Settings › Data, Advanced) -----------------------------------------
 
-/// Where Loaf keeps its files, shown read-only in Settings (R1-80).
+/// Where Pluto keeps its files, shown read-only in Settings (R1-80).
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct AppPaths {
     pub data_dir: std::path::PathBuf,
@@ -822,7 +822,7 @@ pub fn folder_open(which: String, paths: State<'_, AppPaths>, app: AppHandle) ->
     };
     app.opener()
         .open_path(dir.to_string_lossy(), None::<&str>)
-        .map_err(|_| AppError::io("Loaf couldn't open that folder."))
+        .map_err(|_| AppError::io("Pluto couldn't open that folder."))
 }
 
 /// Settings › Advanced › Reset settings. Data and layout preferences stay.
@@ -839,5 +839,5 @@ pub async fn open_url(url: String, app: AppHandle) -> Result<()> {
     let url = links::validate_external_url(&url)?;
     app.opener()
         .open_url(url, None::<&str>)
-        .map_err(|_| AppError::io("Loaf couldn't open that link."))
+        .map_err(|_| AppError::io("Pluto couldn't open that link."))
 }

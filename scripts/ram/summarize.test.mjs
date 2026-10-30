@@ -16,10 +16,10 @@ import {
 
 const MB = 1024 * 1024;
 
-// Windows-shaped fixture: loaf.exe (100) -> msedgewebview2 browser (101) -> gpu (102), renderer (103);
+// Windows-shaped fixture: pluto.exe (100) -> msedgewebview2 browser (101) -> gpu (102), renderer (103);
 // plus unrelated processes, including another msedgewebview2 tree that belongs to some other app.
 const winProcs = [
-  { Id: 100, ProcessName: "loaf", PrivateMemorySize64: 10 * MB },
+  { Id: 100, ProcessName: "pluto", PrivateMemorySize64: 10 * MB },
   { Id: 101, ProcessName: "msedgewebview2", PrivateMemorySize64: 30 * MB },
   { Id: 102, ProcessName: "msedgewebview2", PrivateMemorySize64: 20 * MB },
   { Id: 103, ProcessName: "msedgewebview2", PrivateMemorySize64: 25 * MB },
@@ -37,7 +37,7 @@ const winCim = [
 
 // macOS-shaped fixture. WebKit helpers have ppid 1 (XPC/launchd), not the app.
 const macPs = `
-  500     1  20480 /Applications/Loaf.app/Contents/MacOS/loaf
+  500     1  20480 /Applications/Pluto.app/Contents/MacOS/pluto
   600     1  30720 /System/Library/Frameworks/WebKit.framework/Versions/A/XPCServices/com.apple.WebKit.WebContent.xpc/Contents/MacOS/com.apple.WebKit.WebContent
   601     1  10240 /System/Library/Frameworks/WebKit.framework/Versions/A/XPCServices/com.apple.WebKit.Networking.xpc/Contents/MacOS/com.apple.WebKit.Networking
   700     1  99999 /Applications/Safari.app/Contents/MacOS/Safari
@@ -96,7 +96,7 @@ describe("macOS", () => {
   });
 
   it("reports zero webview processes when none appeared", () => {
-    const only = parsePs("  500     1  20480 /Applications/Loaf.app/Contents/MacOS/loaf\n");
+    const only = parsePs("  500     1  20480 /Applications/Pluto.app/Contents/MacOS/pluto\n");
     const { webviewCount } = selectMembers({ platform: "darwin", procs: only, rootPid: 500 });
     assert.equal(webviewCount, 0);
   });
@@ -104,7 +104,7 @@ describe("macOS", () => {
 
 describe("parseFootprint", () => {
   it("reads MB, KB and GB", () => {
-    assert.equal(parseFootprint("loaf [1]: 64-bit    Footprint: 33 MB (16384 bytes per page)"), 33 * MB);
+    assert.equal(parseFootprint("pluto [1]: 64-bit    Footprint: 33 MB (16384 bytes per page)"), 33 * MB);
     assert.equal(parseFootprint("x [2]: 64-bit    Footprint: 512 KB (16384 bytes per page)"), 512 * 1024);
     assert.equal(parseFootprint("x [3]: 64-bit    Footprint: 1.5 GB (16384 bytes per page)"), 1.5 * 1024 * MB);
   });

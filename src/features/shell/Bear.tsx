@@ -51,7 +51,7 @@ const CONFETTI = [
 ];
 
 /**
- * Loaf the bear, drawn "soft 3D": one light from the top left, form shading toward the edges,
+ * Pluto the bear, drawn "soft 3D": one light from the top left, form shading toward the edges,
  * a warm rim light on the shadow side, contact shadows where parts meet, and a blurred ground
  * shadow. `animated` turns on the motion (CSS transforms only; reduced motion stops it).
  */
@@ -90,7 +90,7 @@ export function Bear({ pose = "idle", animated = false, className, style, wear =
   };
 
   return (
-    <svg viewBox="0 0 200 200" role="img" aria-label={`Loaf the bear (${pose})`} className={cn("overflow-visible", className)} style={style}>
+    <svg viewBox="0 0 200 200" role="img" aria-label={`Pluto the bear (${pose})`} className={cn("overflow-visible", className)} style={style}>
       <BearDefs g={g} />
 
       {/* Ground shadow: shrinks while the bear is in the air. */}

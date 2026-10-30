@@ -1,5 +1,5 @@
 /**
- * Who is using Loaf (FR-83, owner 2026-10-28: "what differs for student, developer and others").
+ * Who is using Pluto (FR-83, owner 2026-10-28: "what differs for student, developer and others").
  * The role decides the order of the tour and the quiz and what the tour stresses. It never hides
  * anything and never turns on a privacy feature: app and website time stay off for every role
  * until the person switches them on. Roles start with ordering and emphasis; the features that

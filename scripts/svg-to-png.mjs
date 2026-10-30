@@ -17,7 +17,7 @@ const browser = await chromium.launch({ executablePath: exe });
 const page = await browser.newPage({ viewport: { width: 1536, height: 1872 } });
 const ROWS = [["idle", 6], ["running-right", 8], ["running-left", 8], ["waving", 4], ["jumping", 5], ["failed", 8], ["waiting", 6], ["running", 6], ["review", 6]];
 const BIG_W = 400, BIG_H = 420; // keep in step with spritePack.ts
-const packPy = resolve(import.meta.dirname, "../skills/loaf-character/scripts/pack.py");
+const packPy = resolve(import.meta.dirname, "../skills/pluto-character/scripts/pack.py");
 for (const id of readdirSync(root)) {
   const strips = resolve(root, id, "strips.svg");
   if (existsSync(strips)) {

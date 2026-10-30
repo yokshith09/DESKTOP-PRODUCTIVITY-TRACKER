@@ -1,13 +1,13 @@
-# Prompt: Loaf productivity-tracker dashboard
+# Prompt: Pluto productivity-tracker dashboard
 
 Copy everything below the line into an AI design or coding tool (v0, Claude, Cursor, Lovable, Figma AI). It is self-contained.
 
 ---
 
-You are a senior product designer and front-end engineer. Design and build the main window of **Loaf**, a local-first desktop productivity tracker (Windows and macOS, Tauri + React). Produce a polished, professional, information-dense dashboard in the style of Linear, Notion Calendar, Things and Raycast: restrained, sharp, structured. It must not look playful, childish or like a template.
+You are a senior product designer and front-end engineer. Design and build the main window of **Pluto**, a local-first desktop productivity tracker (Windows and macOS, Tauri + React). Produce a polished, professional, information-dense dashboard in the style of Linear, Notion Calendar, Things and Raycast: restrained, sharp, structured. It must not look playful, childish or like a template.
 
 ## 1. Product in one paragraph
-Loaf keeps a person's notes, tasks, reminders and daily logs on their own computer, with no account and no internet. The first thing they should see is **what they must do today**, then their notes. The whole app reads as a **productivity tracker**: how today is going, how the week went, and where their notes are.
+Pluto keeps a person's notes, tasks, reminders and daily logs on their own computer, with no account and no internet. The first thing they should see is **what they must do today**, then their notes. The whole app reads as a **productivity tracker**: how today is going, how the week went, and where their notes are.
 
 ## 2. Hard constraints
 - Stack: React 18, TypeScript, Tailwind CSS v4, **shadcn/ui** (Radix) components, lucide-react icons. No other UI kit.
@@ -22,7 +22,7 @@ Loaf keeps a person's notes, tasks, reminders and daily logs on their own comput
 - Radius 10–12 px for tiles, 6–8 px for controls. 1 px hairline borders, no drop shadows except popovers. Spacing scale 4/8/12/16/24.
 - Type: 13–14 px body, 12 px meta, 11 px labels, 20–22 px page titles, 28 px for the big numbers in stat tiles. Sentence case, no all-caps headings, no gradient text, no emoji.
 - Every dashboard block is a **tile** with one structure: 44 px header strip (title left, count badge, action right), scrollable body, optional footer with the composer or actions. Tiles sit on a strict 12-column grid with 16 px gaps and equal heights per row.
-- Mascot: a small round bear ("Loaf") appears only in the sidebar logo, empty states and the Character page. Never as a hero.
+- Mascot: a small round bear ("Pluto") appears only in the sidebar logo, empty states and the Character page. Never as a hero.
 
 ## 4. Information architecture (sidebar, in order)
 Overview · Today · Time · Notes · Character · MCP, then a Library group (Archive, Bin), then Labels, then Settings at the bottom. A top bar holds a global search field (`Ctrl/⌘ K`), a theme toggle and a primary **New note** button (`Ctrl/⌘ N`). Remember the last page.
@@ -43,7 +43,7 @@ Header with the full date and "N open · M overdue or missed". Three tiles:
 3. **Activity** — a chronological feed of today: task completed, note created or edited, reminder fired, each with a time stamp and icon.
 
 ### 5.3 Time (daily logs, "digital wellbeing" style)
-Think of the Digital Wellbeing screen on a phone, but for work done in Loaf.
+Think of the Digital Wellbeing screen on a phone, but for work done in Pluto.
 - A **day picker**: a horizontal strip of the last 14 days with a mini bar under each day. Click a day to open it. Arrow keys move between days.
 - A large **summary ring** for the selected day: tasks completed vs planned, with a text summary ("6 of 8 tasks, 75%").
 - A **weekly bar chart** of tasks completed per day with a dashed line for the weekly average. Selected day highlighted.

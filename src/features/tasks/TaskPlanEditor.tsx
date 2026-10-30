@@ -6,7 +6,7 @@ import { CalendarDays, Check, ExternalLink, Link2, Plus, Repeat2, X } from "luci
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { useRepeatDays, useTaskActions } from "@/hooks/useLoaf";
+import { useRepeatDays, useTaskActions } from "@/hooks/usePluto";
 import { daysAgo, parseYmd, ymd } from "@/lib/dates";
 import { WEEKDAYS, isoWeekday, repeatLabel } from "@/lib/repeat";
 import { cn } from "@/lib/utils";

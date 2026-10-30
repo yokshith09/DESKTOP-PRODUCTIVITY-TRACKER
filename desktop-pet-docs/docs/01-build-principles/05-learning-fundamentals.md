@@ -2,7 +2,7 @@
 
 > **Status: 🔒 LOCKED** — v1.0, 2026-10-02 · **amended A-1 (2026-10-03)**. Changes require a written amendment at the bottom of this file.
 
-Loaf's constraints (event-driven, <1% idle CPU, <100 MB RAM, local-first) cannot be met by copying patterns you don't understand. This file defines **what you must understand before building each layer**, and how to learn it without stalling the build.
+Pluto's constraints (event-driven, <1% idle CPU, <100 MB RAM, local-first) cannot be met by copying patterns you don't understand. This file defines **what you must understand before building each layer**, and how to learn it without stalling the build.
 
 ## The Rule
 
@@ -19,7 +19,7 @@ Any of these = stop, learn the concept, write it down, continue.
 
 ### Before Phase 0 (Foundation)
 
-| Concept | Why Loaf needs it | You understand it when you can… |
+| Concept | Why Pluto needs it | You understand it when you can… |
 |---------|-------------------|--------------------------------|
 | Rust ownership & borrowing | Every core module | Explain why a value moved and fix it without `.clone()` everywhere |
 | `Arc`, `Mutex`, `RwLock` | Shared state across event handlers | Say when a `Mutex` will deadlock |
@@ -47,7 +47,7 @@ Any of these = stop, learn the concept, write it down, continue.
 |---------|-----|--------------------|
 | Browser extension model (MV3) | Tab tracking | Explain service-worker lifecycle and why it sleeps |
 | `tabs` / `windows` APIs | Open/close/focus events | List which events fire on tab switch vs window switch |
-| Native Messaging | Extension ↔ Loaf bridge | Register a native host on Windows (registry) and macOS (manifest path) |
+| Native Messaging | Extension ↔ Pluto bridge | Register a native host on Windows (registry) and macOS (manifest path) |
 | Safari Web Extensions | macOS Safari support | Explain why Safari requires an Xcode-wrapped app extension |
 | OS foreground-window events | App time tracking | Use `SetWinEventHook` (Windows) / `NSWorkspace` notifications (macOS) — event-based, no polling |
 
@@ -80,7 +80,7 @@ Any of these = stop, learn the concept, write it down, continue.
 3. Measure the spike (CPU, RAM, latency) — see 09-performance-budgets.md
 4. Write a 5-line note in /docs/learning/<concept>.md:
      - What it is
-     - Why Loaf uses it
+     - Why Pluto uses it
      - The one gotcha that would have bitten you
      - Measured numbers from the spike
      - Link to the best source you used

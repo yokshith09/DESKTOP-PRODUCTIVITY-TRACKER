@@ -81,8 +81,8 @@ const col = (frame: number) => frame;
 /** `pet.json`: only the fields OpenPets/Codex pets define (docs/pets.md in OpenPetsHQ/openpets). */
 export interface PetJson { id: string; displayName: string; description: string; spritesheetPath: string }
 
-/** `loaf.json`: our own details, kept out of pet.json so strict importers never see unknown keys. */
-export interface LoafPackInfo {
+/** `pluto.json`: our own details, kept out of pet.json so strict importers never see unknown keys. */
+export interface PlutoPackInfo {
   cell: { width: number; height: number };
   columns: number;
   rows: { name: string; frames: number; pose: string; source: RowSource }[];
@@ -94,15 +94,15 @@ export interface LoafPackInfo {
   status: "Unverified";
 }
 
-export type PackManifest = PetJson & LoafPackInfo;
+export type PackManifest = PetJson & PlutoPackInfo;
 
 export function buildPetJson(id: string, displayName: string, description: string): PetJson {
   return { id, displayName, description, spritesheetPath: "spritesheet.webp" };
 }
 
 /** Each built-in character's own reactions and special (owner 2026-10-28: one special each). */
-export const PACK_EXTRAS: Record<string, Pick<LoafPackInfo, "reactions" | "special">> = {
-  bear: { reactions: { "all-done": "party" }, special: { name: "Loaf mode", pose: "sleep", line: "Five done. Loaf mode: on.", trigger: "tasks", every: 5 } },
+export const PACK_EXTRAS: Record<string, Pick<PlutoPackInfo, "reactions" | "special">> = {
+  bear: { reactions: { "all-done": "party" }, special: { name: "Pluto mode", pose: "sleep", line: "Five done. Pluto mode: on.", trigger: "tasks", every: 5 } },
   mochi: { reactions: { "task-done": "jump", "task-deleted": "toss" }, special: { name: "Zoomies", pose: "jump", line: "Zoomies!", trigger: "click", every: 5 } },
   pip: { reactions: { "task-added": "wave", "all-done": "party" }, special: { name: "Belly slide", pose: "toss", line: "Three done. Belly slide!", trigger: "tasks", every: 3 } },
   bolt: { reactions: { "task-started": "type", reminder: "ring" }, special: { name: "Systems online", pose: "type", line: "Systems online. Ready when you are.", trigger: "daily", every: 2 } },
@@ -111,7 +111,7 @@ export const PACK_EXTRAS: Record<string, Pick<LoafPackInfo, "reactions" | "speci
   ghosty: { reactions: { "task-deleted": "worried", "focus-done": "cheer" }, special: { name: "Boo", pose: "worried", line: "Boo! …did I scare you?", trigger: "click", every: 7 } },
 };
 
-export function buildLoafInfo(key?: string): LoafPackInfo {
+export function buildPlutoInfo(key?: string): PlutoPackInfo {
   return {
     ...(key ? PACK_EXTRAS[key] : {}),
     cell: { width: CELL_W, height: CELL_H },
@@ -123,7 +123,7 @@ export function buildLoafInfo(key?: string): LoafPackInfo {
 }
 
 export function buildManifest(id: string, displayName: string, description: string): PackManifest {
-  return { ...buildPetJson(id, displayName, description), ...buildLoafInfo() };
+  return { ...buildPetJson(id, displayName, description), ...buildPlutoInfo() };
 }
 
 /**

@@ -4,7 +4,7 @@ import { Bars, type Bar } from "@/features/charts/Bars";
 import { StackedBars, type StackedBar } from "@/features/charts/StackedBars";
 import { Tile } from "@/features/shell/PageHeader";
 import { ipc } from "@/ipc";
-import { useRecentLogs, useUsage } from "@/hooks/useLoaf";
+import { useRecentLogs, useUsage } from "@/hooks/usePluto";
 import { dayLabel, weekdayNarrow, ymd } from "@/lib/dates";
 import { formatDuration } from "@/lib/time";
 import { cn } from "@/lib/utils";

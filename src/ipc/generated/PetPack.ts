@@ -7,12 +7,12 @@ import type { PetSpecial } from "./PetSpecial";
  */
 export type PetPack = { 
 /**
- * The pack's own default pose for some moments (`loaf.json`), keyed by reaction key.
+ * The pack's own default pose for some moments (`pluto.json`), keyed by reaction key.
  * The user's choice on the Character page still wins over these.
  */
 reactions: { [key in string]?: string }, 
 /**
- * The pack's one special reaction (`loaf.json`), if it has one.
+ * The pack's one special reaction (`pluto.json`), if it has one.
  */
 special?: PetSpecial, id: string, display_name: string, description: string, 
 /**

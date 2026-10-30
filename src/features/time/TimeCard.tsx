@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ChevronRight, Globe, ShieldCheck } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Tile } from "@/features/shell/PageHeader";
-import { useTrackingStatus, useUsage } from "@/hooks/useLoaf";
+import { useTrackingStatus, useUsage } from "@/hooks/usePluto";
 import { useSetting } from "@/hooks/useTheme";
 import { formatDuration } from "@/lib/time";
 import { cn } from "@/lib/utils";
@@ -91,7 +91,7 @@ export function TimeCard({ from, to, category = null, className, title = "Where 
           <span className="mb-3 grid size-10 place-items-center rounded-lg bg-muted text-muted-foreground"><ShieldCheck className="size-5" /></span>
           <p className="text-sm font-medium">Track where your time goes</p>
           <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
-            Loaf can record which app is in front and for how long. It stays on this computer, never stores window titles or full web addresses, and you can delete it any time.
+            Pluto can record which app is in front and for how long. It stays on this computer, never stores window titles or full web addresses, and you can delete it any time.
           </p>
           <label className="mt-4 flex items-center gap-2.5 text-[13px] font-medium">
             <Switch checked={false} onCheckedChange={(v) => void setEnabled(v)} aria-label="Turn on app tracking" />

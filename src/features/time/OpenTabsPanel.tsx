@@ -3,7 +3,7 @@ import { ConfirmAction } from "@/components/ConfirmAction";
 import { Globe, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tile } from "@/features/shell/PageHeader";
-import { useOpenTabs } from "@/hooks/useLoaf";
+import { useOpenTabs } from "@/hooks/usePluto";
 import { ipc } from "@/ipc";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -41,7 +41,7 @@ export function OpenTabsPanel({ enabled, className }: { enabled: boolean; classN
       <Tile className={className} title="Open tabs" bodyClassName="p-4">
         <div className="py-8 text-center">
           <p className="text-[13px] text-muted-foreground">
-            See every open browser tab here, switch to it or close it. Loaf reads them live with the same permission as website time — nothing is stored, private windows are skipped.
+            See every open browser tab here, switch to it or close it. Pluto reads them live with the same permission as website time — nothing is stored, private windows are skipped.
           </p>
           <Button size="sm" variant="outline" className="mt-3" onClick={() => void turnOn()}>Turn on app and website time</Button>
         </div>
@@ -71,7 +71,7 @@ export function OpenTabsPanel({ enabled, className }: { enabled: boolean; classN
                   {t.title ?? t.domain ?? "Untitled tab"}
                 </span>
                 {t.domain && <span className="shrink-0 truncate text-[11px] text-muted-foreground">{t.domain}</span>}
-                {/* Firefox tabs come from its session file (macOS) and can't be closed from Loaf. */}
+                {/* Firefox tabs come from its session file (macOS) and can't be closed from Pluto. */}
                 {t.browser !== "Firefox" && (
                   <ConfirmAction message="Close this tab in your browser?" verb="Close" onConfirm={() => void close(t.browser, t.window_index, t.tab_index)}>
                     <Button

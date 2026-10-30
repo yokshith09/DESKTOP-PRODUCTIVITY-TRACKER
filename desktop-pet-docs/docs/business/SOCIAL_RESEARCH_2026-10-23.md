@@ -55,7 +55,7 @@
 - Teams/Organizations wellbeing edition (self-hosted or cloud, no public prices); creator program for streamers.
 - **Pet Studio:** photo or idea → pet in 3 steps; needs sign-in; **credit-based, prices not public** (pricing page requires login).
 
-## What this changes in Loaf's plan
+## What this changes in Pluto's plan
 1. **"No guilt" is a design rule** (added to MASTER_PLAN): the pet never gets sad at the user for a missed day, streaks are forgiving (a missed day doesn't reset to zero — "best week" view), copy says so at launch. The routine tile's 🔥 is kept but becomes forgiving (FR-90).
 2. **Lead with the student workflow**, not "a desktop pet" (OpenPets already covers pets, plugins, routines, focus): diary → tasks, flashcards from notes, **study hours per subject**, exam countdown.
 3. **Earned progress + backup**: pet growth tied to finished focus sessions and routine ticks, adapted to each user so the first milestone comes within a day (FR-91); export/import already exists for data — extend it to pet progress.

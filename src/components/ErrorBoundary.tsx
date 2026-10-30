@@ -22,7 +22,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   override componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error("Loaf screen crashed:", error, info.componentStack);
+    console.error("Pluto screen crashed:", error, info.componentStack);
     if (this.props.quiet && this.state.tries < 3) {
       this.timer = window.setTimeout(() => this.setState((s) => ({ failed: false, tries: s.tries + 1 })), 2000);
     }
@@ -41,7 +41,7 @@ export class ErrorBoundary extends Component<Props, State> {
         <p className="text-xs text-muted-foreground">Nothing is lost: your tasks, notes and settings are saved on this computer.</p>
         <div className="flex justify-center gap-2">
           <Button size="sm" variant="outline" onClick={() => this.setState({ failed: false })}>Try again</Button>
-          <Button size="sm" onClick={() => window.location.reload()}>Reload Loaf</Button>
+          <Button size="sm" onClick={() => window.location.reload()}>Reload Pluto</Button>
         </div>
       </div>
     );

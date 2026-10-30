@@ -1,4 +1,4 @@
-//! F0-09: open Loaf at login, quietly in the tray (`--hidden`).
+//! F0-09: open Pluto at login, quietly in the tray (`--hidden`).
 //!
 //! The setting `general.autostart` is the switch; the operating system's login item (Windows Run
 //! key, macOS launch agent) is the effect. Two jobs:
@@ -11,14 +11,14 @@
 
 use std::sync::Arc;
 
-use loaf_core::bus::{EventBus, Recv};
-use loaf_core::events::Event;
-use loaf_core::settings_service::SettingsService;
+use pluto_core::bus::{EventBus, Recv};
+use pluto_core::events::Event;
+use pluto_core::settings_service::SettingsService;
 use serde_json::{json, Value};
 use tauri::{AppHandle, Runtime};
 use tauri_plugin_autostart::ManagerExt;
 
-/// The argument the login item starts Loaf with.
+/// The argument the login item starts Pluto with.
 pub const HIDDEN_FLAG: &str = "--hidden";
 const KEY: &str = "general.autostart";
 
@@ -89,7 +89,7 @@ pub fn start<R: Runtime>(app: AppHandle<R>, settings: Arc<SettingsService>, bus:
                         }
                     }
                 }
-                // "Delete all data" returns Loaf to a first run: no login item either.
+                // "Delete all data" returns Pluto to a first run: no login item either.
                 Recv::Event(Event::AllDataDeleted { .. }) => {
                     let _ = app.autolaunch().disable();
                 }
@@ -106,10 +106,10 @@ mod tests {
 
     #[test]
     fn hidden_flag_is_found_anywhere_in_the_arguments() {
-        assert!(is_hidden_launch(["loaf.exe", "--hidden"]));
+        assert!(is_hidden_launch(["pluto.exe", "--hidden"]));
         assert!(is_hidden_launch(["--hidden"]));
-        assert!(!is_hidden_launch(["loaf.exe"]));
-        assert!(!is_hidden_launch(["loaf.exe", "--hidden-ish", "hidden"]));
+        assert!(!is_hidden_launch(["pluto.exe"]));
+        assert!(!is_hidden_launch(["pluto.exe", "--hidden-ish", "hidden"]));
         assert!(!is_hidden_launch(Vec::<String>::new()));
     }
 

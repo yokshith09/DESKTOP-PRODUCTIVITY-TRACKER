@@ -24,7 +24,7 @@ describe("About you and your pet (FR-93)", () => {
   it("remembers the day you met as the pet's birthday and shows its age", async () => {
     const m = prefs({});
     wrap(<CompanionPanel />);
-    expect(await screen.findByText("Loaf is born today")).toBeTruthy();
+    expect(await screen.findByText("Pluto is born today")).toBeTruthy();
     await waitFor(() => expect((m.get("ui.companion") as { born: string }).born).toBe(ymd(new Date())));
   });
 
@@ -66,7 +66,7 @@ function Greeter() { useDailyGreeting(); return null; }
 describe("hello once a day (FR-94)", () => {
   const said = (): unknown[] => {
     const out: unknown[] = [];
-    window.addEventListener("loaf-pet-say", (e) => out.push((e as CustomEvent).detail));
+    window.addEventListener("pluto-pet-say", (e) => out.push((e as CustomEvent).detail));
     return out;
   };
 
@@ -74,7 +74,7 @@ describe("hello once a day (FR-94)", () => {
     const out = said();
     const m = prefs({ "ui.companion": { born: "2026-01-01", userName: "Asha", userBirthday: null, greet: true, greetedOn: null }, "ui.nudges": quietOff });
     wrap(<Greeter />);
-    await waitFor(() => expect(out).toContainEqual(expect.objectContaining({ text: expect.stringMatching(/^Good (morning|afternoon|evening), Asha! I'm Loaf, your assistant\./) })));
+    await waitFor(() => expect(out).toContainEqual(expect.objectContaining({ text: expect.stringMatching(/^Good (morning|afternoon|evening), Asha! I'm Pluto, your assistant\./) })));
     await waitFor(() => expect((m.get("ui.companion") as { greetedOn: string }).greetedOn).toBe(ymd(new Date())));
     cleanup();
     const before = out.length;
@@ -90,7 +90,7 @@ describe("hello once a day (FR-94)", () => {
     // Two mounts and a burst of wake/focus events: the old code let each one greet.
     wrap(<><Greeter /><Greeter /></>);
     window.dispatchEvent(new Event("focus"));
-    window.dispatchEvent(new Event("loaf-wake"));
+    window.dispatchEvent(new Event("pluto-wake"));
     await waitFor(() => expect((m.get("ui.companion") as { greetedOn: string }).greetedOn).toBe(ymd(new Date())));
     window.dispatchEvent(new Event("focus"));
     await new Promise((r) => setTimeout(r, 50));
@@ -129,7 +129,7 @@ describe("hello once a day (FR-94)", () => {
     expect(out).toEqual([]);
     // Later the PC wakes up and the gap has passed.
     m.set("ui.nudges", { ...quietOff, last: Date.now() - 2 * 60 * 60_000 });
-    window.dispatchEvent(new Event("loaf-wake"));
+    window.dispatchEvent(new Event("pluto-wake"));
     await waitFor(() => expect(out).toContainEqual(expect.objectContaining({ text: expect.stringContaining("Asha") })));
   });
 });

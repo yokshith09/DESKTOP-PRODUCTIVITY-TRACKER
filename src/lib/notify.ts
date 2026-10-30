@@ -1,7 +1,7 @@
 import { onPetAction, petSay } from "@/ipc";
 
 /**
- * Every notification Loaf shows goes **above the pet as a bubble** (owner 2026-10-23: nothing
+ * Every notification Pluto shows goes **above the pet as a bubble** (owner 2026-10-23: nothing
  * pops up inside the dashboard). Errors stay a little longer. An action such as Undo is offered
  * in the bubble: clicking the pet while it shows runs it.
  */

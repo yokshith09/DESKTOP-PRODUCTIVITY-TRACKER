@@ -16,8 +16,8 @@ afterEach(() => { cleanup(); vi.restoreAllMocks(); notify.info.mockReset(); });
 function petSaid() {
   const list: unknown[] = [];
   const listen = (e: Event) => list.push((e as CustomEvent).detail);
-  window.addEventListener("loaf-pet-say", listen);
-  return { list, stop: () => window.removeEventListener("loaf-pet-say", listen) };
+  window.addEventListener("pluto-pet-say", listen);
+  return { list, stop: () => window.removeEventListener("pluto-pet-say", listen) };
 }
 
 /** Preferences kept in memory, like the real store. */

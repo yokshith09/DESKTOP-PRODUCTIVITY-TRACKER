@@ -23,7 +23,7 @@ const renderPet = () =>
     </QueryClientProvider>,
   );
 
-const bear = () => screen.getByRole("button", { name: /^Loaf\./ });
+const bear = () => screen.getByRole("button", { name: /^Pluto\./ });
 const tap = (el: HTMLElement) => {
   fireEvent.pointerDown(el, { button: 0, buttons: 1, screenX: 10, screenY: 10 });
   fireEvent.pointerUp(el, { button: 0, screenX: 10, screenY: 10 });
@@ -32,9 +32,9 @@ const tap = (el: HTMLElement) => {
 describe("desktop pet", () => {
   it("shows a message from the dashboard above the pet, e.g. the routine reminder (FR-43, FR-85)", async () => {
     renderPet();
-    await screen.findByRole("button", { name: /^Loaf\./ });
+    await screen.findByRole("button", { name: /^Pluto\./ });
     act(() => {
-      window.dispatchEvent(new CustomEvent("loaf-pet-say", { detail: { text: "You have 3 daily routine tasks pending", pose: "wait" } }));
+      window.dispatchEvent(new CustomEvent("pluto-pet-say", { detail: { text: "You have 3 daily routine tasks pending", pose: "wait" } }));
     });
     expect((await screen.findAllByText("You have 3 daily routine tasks pending")).length).toBeGreaterThan(0);
   });
@@ -43,11 +43,11 @@ describe("desktop pet", () => {
     const open = vi.spyOn(ipc, "petClick").mockResolvedValue(null);
     const sent: string[] = [];
     const onAction = (e: Event) => sent.push((e as CustomEvent<string>).detail);
-    window.addEventListener("loaf-pet-action", onAction);
+    window.addEventListener("pluto-pet-action", onAction);
     renderPet();
-    await screen.findByRole("button", { name: /^Loaf\./ });
+    await screen.findByRole("button", { name: /^Pluto\./ });
     act(() => {
-      window.dispatchEvent(new CustomEvent("loaf-pet-say", { detail: { text: "Moved to Bin", actionId: "n1", actionLabel: "Undo" } }));
+      window.dispatchEvent(new CustomEvent("pluto-pet-say", { detail: { text: "Moved to Bin", actionId: "n1", actionLabel: "Undo" } }));
     });
     expect((await screen.findAllByText("Moved to Bin · click: Undo")).length).toBeGreaterThan(0);
     tap(bear());
@@ -57,15 +57,15 @@ describe("desktop pet", () => {
     tap(bear());
     await waitFor(() => expect(open).toHaveBeenCalledTimes(1));
     expect(sent).toEqual(["n1"]);
-    window.removeEventListener("loaf-pet-action", onAction);
+    window.removeEventListener("pluto-pet-action", onAction);
   });
 
   it("a reminder's Done is marked right from the pet", async () => {
     const done = vi.spyOn(ipc, "reminderSetDone").mockResolvedValue(undefined as never);
     renderPet();
-    await screen.findByRole("button", { name: /^Loaf\./ });
+    await screen.findByRole("button", { name: /^Pluto\./ });
     act(() => {
-      window.dispatchEvent(new CustomEvent("loaf-pet-say", { detail: { text: "Stand up", actionId: "reminder-done:r1", actionLabel: "Done" } }));
+      window.dispatchEvent(new CustomEvent("pluto-pet-say", { detail: { text: "Stand up", actionId: "reminder-done:r1", actionLabel: "Done" } }));
     });
     expect((await screen.findAllByText("Stand up · click: Done")).length).toBeGreaterThan(0);
     tap(bear());
@@ -74,7 +74,7 @@ describe("desktop pet", () => {
 
   it("shows the focus timer by the pet while a session runs, with pause (FR-110)", async () => {
     renderPet();
-    await screen.findByRole("button", { name: /^Loaf\./ });
+    await screen.findByRole("button", { name: /^Pluto\./ });
     await act(async () => { await ipc.focusStart({ kind: "FOCUS", minutes: 25, task_id: null }); });
     try {
       const timer = await screen.findByRole("timer", {}, { timeout: 2000 });
@@ -90,7 +90,7 @@ describe("desktop pet", () => {
   it("cheers when focus is done, and a click starts the break (FR-110)", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     renderPet();
-    await screen.findByRole("button", { name: /^Loaf\./ });
+    await screen.findByRole("button", { name: /^Pluto\./ });
     await act(async () => { await ipc.focusStart({ kind: "FOCUS", minutes: 1, task_id: null }); });
     await act(async () => { await vi.advanceTimersByTimeAsync(62_000); });
     expect((await screen.findAllByText("Nice: 1 min. Break 5 min? · click: Break", {}, { timeout: 3000 })).length).toBeGreaterThan(0);
@@ -103,7 +103,7 @@ describe("desktop pet", () => {
     const all = await ipc.settingsGetAll();
     const loaded = vi.spyOn(ipc, "settingsGetAll").mockResolvedValue({ ...all, "pet.hover_card": false });
     renderPet();
-    await screen.findByRole("button", { name: /^Loaf\./ });
+    await screen.findByRole("button", { name: /^Pluto\./ });
     await waitFor(() => expect(loaded).toHaveBeenCalled());
     await act(async () => { await new Promise((r) => setTimeout(r, 20)); });
     fireEvent.mouseEnter(bear().closest("div.flex") as HTMLElement);
@@ -120,9 +120,9 @@ describe("desktop pet", () => {
     fireEvent.click(within(shortcuts).getByRole("button", { name: "Add note" }));
     expect(cmd).toHaveBeenCalledWith("new-note");
     fireEvent.click(within(shortcuts).getByRole("button", { name: "Sleep" }));
-    expect(await screen.findByRole("img", { name: "Loaf the bear (sleep)" })).toBeTruthy();
+    expect(await screen.findByRole("img", { name: "Pluto the bear (sleep)" })).toBeTruthy();
     fireEvent.click(within(shortcuts).getByRole("button", { name: "Wake" }));
-    await waitFor(() => expect(screen.queryByRole("img", { name: "Loaf the bear (sleep)" })).toBeNull());
+    await waitFor(() => expect(screen.queryByRole("img", { name: "Pluto the bear (sleep)" })).toBeNull());
     fireEvent.click(within(shortcuts).getByRole("button", { name: "Focus" }));
     expect(cmd).toHaveBeenCalledWith("focus");
     // Tasks keep their tint and open the Tasks page (H2).
@@ -142,11 +142,11 @@ describe("desktop pet", () => {
 
   it("\"Sleep or wake\" in the right-click menu puts the pet to sleep and wakes it (owner 2026-10-27)", async () => {
     renderPet();
-    await screen.findByRole("button", { name: /^Loaf\./ });
-    act(() => { window.dispatchEvent(new CustomEvent("loaf-pet-menu", { detail: "nap" })); });
-    expect(await screen.findByRole("img", { name: "Loaf the bear (sleep)" })).toBeTruthy();
-    act(() => { window.dispatchEvent(new CustomEvent("loaf-pet-menu", { detail: "nap" })); });
-    await waitFor(() => expect(screen.queryByRole("img", { name: "Loaf the bear (sleep)" })).toBeNull());
+    await screen.findByRole("button", { name: /^Pluto\./ });
+    act(() => { window.dispatchEvent(new CustomEvent("pluto-pet-menu", { detail: "nap" })); });
+    expect(await screen.findByRole("img", { name: "Pluto the bear (sleep)" })).toBeTruthy();
+    act(() => { window.dispatchEvent(new CustomEvent("pluto-pet-menu", { detail: "nap" })); });
+    await waitFor(() => expect(screen.queryByRole("img", { name: "Pluto the bear (sleep)" })).toBeNull());
   });
 
   it("adds a task for today from the card's +, without opening the editor (owner 2026-10-27)", async () => {
@@ -170,7 +170,7 @@ describe("desktop pet", () => {
   it("the timer under the pet is as wide as the pet", async () => {
     const hover = vi.spyOn(ipc, "petHover");
     renderPet();
-    await screen.findByRole("button", { name: /^Loaf\./ });
+    await screen.findByRole("button", { name: /^Pluto\./ });
     await act(async () => { await ipc.focusStart({ kind: "FOCUS", minutes: 25, task_id: null }); });
     try {
       const timer = await screen.findByRole("timer", {}, { timeout: 2000 });
@@ -184,7 +184,7 @@ describe("desktop pet", () => {
   it("the focus timer asks for the strip below the pet (H1)", async () => {
     const hover = vi.spyOn(ipc, "petHover");
     renderPet();
-    await screen.findByRole("button", { name: /^Loaf\./ });
+    await screen.findByRole("button", { name: /^Pluto\./ });
     await act(async () => { await ipc.focusStart({ kind: "FOCUS", minutes: 25, task_id: null }); });
     try {
       await screen.findByRole("timer", {}, { timeout: 2000 });
@@ -202,7 +202,7 @@ describe("desktop pet", () => {
     await waitFor(() => expect(container.querySelector('[data-accessory="crown"]')).toBeTruthy());
     expect(container.querySelector('[data-accessory="scarf"]')).toBeTruthy();
     saved = { worn: [], outfit: "", partyOnBirthday: true };
-    act(() => { window.dispatchEvent(new CustomEvent("loaf-pet-say", { detail: { text: "Back to plain me", pose: "cheer", ms: 3500 } })); });
+    act(() => { window.dispatchEvent(new CustomEvent("pluto-pet-say", { detail: { text: "Back to plain me", pose: "cheer", ms: 3500 } })); });
     await waitFor(() => expect(container.querySelector('[data-accessory]')).toBeNull());
   });
 
@@ -211,7 +211,7 @@ describe("desktop pet", () => {
     const all = await ipc.settingsGetAll();
     vi.spyOn(ipc, "settingsGetAll").mockResolvedValue({ ...all, "pet.media": true });
     renderPet();
-    await screen.findByRole("button", { name: /^Loaf\./ });
+    await screen.findByRole("button", { name: /^Pluto\./ });
     expect(screen.queryByRole("group", { name: "Music" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Play or pause music" })).toBeNull();
   });
@@ -225,7 +225,7 @@ describe("desktop pet", () => {
     expect(sheet).toHaveBeenCalledWith("boba");
     // The bear's current pose plays as one of the pack's rows (idle, or running while you work).
     expect(["idle", "running"]).toContain(pet.getAttribute("data-row"));
-    expect(screen.queryByRole("img", { name: /Loaf the bear/ })).toBeNull();
+    expect(screen.queryByRole("img", { name: /Pluto the bear/ })).toBeNull();
   });
 
   it("a picture pet waves in place when you hover it, and is shown asleep after Sleep", async () => {
@@ -237,7 +237,7 @@ describe("desktop pet", () => {
     fireEvent.mouseEnter(pet.closest("div.flex") as HTMLElement);
     await waitFor(() => expect(screen.getByRole("img", { name: /^boba \(wave\)/ }).getAttribute("data-row")).toBe("waving"));
     // The greeting is in place: no hop, which moved the pet when the cursor came near (owner 2026-10-27).
-    expect(screen.getByRole("button", { name: /^Loaf\./ }).className).not.toContain("pet-hop");
+    expect(screen.getByRole("button", { name: /^Pluto\./ }).className).not.toContain("pet-hop");
     expect(screen.getByRole("img", { name: /^boba \(wave\)/ }).className).toContain("pet-pop");
     fireEvent.click(await screen.findByRole("button", { name: /^Sleep/ }, { timeout: 2000 }));
     await waitFor(() => expect(screen.getByRole("img", { name: /^boba \(sleep\)/ }).getAttribute("data-rest")).toBe("true"));
@@ -254,7 +254,7 @@ describe("desktop pet", () => {
     vi.spyOn(ipc, "settingsGetAll").mockResolvedValue({ ...all, "pet.pack": "gone" });
     vi.spyOn(ipc, "petsSheet").mockRejectedValue({ code: "NOT_FOUND", message: "That pet is not installed." });
     renderPet();
-    expect(await screen.findByRole("img", { name: /Loaf the bear/ })).toBeTruthy();
+    expect(await screen.findByRole("img", { name: /Pluto the bear/ })).toBeTruthy();
   });
 
   it("hovering shows today's card beside the pet", async () => {
@@ -308,7 +308,7 @@ describe("desktop pet", () => {
   it("reacts to a new task with a pose and a speech bubble", async () => {
     renderPet();
     await act(async () => { await ipc.taskQuickAdd("Buy honey"); });
-    expect(await screen.findByRole("img", { name: "Loaf the bear (catch)" }, { timeout: 2000 })).toBeTruthy();
+    expect(await screen.findByRole("img", { name: "Pluto the bear (catch)" }, { timeout: 2000 })).toBeTruthy();
     expect(screen.getAllByText("Got it: “Buy honey”").length).toBeGreaterThan(0);
   });
 
@@ -330,11 +330,11 @@ describe("desktop pet", () => {
     vi.spyOn(ipc, "petHover").mockResolvedValue(null);
     renderPet();
     await act(async () => { await vi.advanceTimersByTimeAsync(14 * 60_000); });
-    expect(screen.queryByRole("img", { name: "Loaf the bear (sleep)" })).toBeNull();
+    expect(screen.queryByRole("img", { name: "Pluto the bear (sleep)" })).toBeNull();
     await act(async () => { await vi.advanceTimersByTimeAsync(2 * 60_000); });
-    expect(screen.getByRole("img", { name: "Loaf the bear (sleep)" })).toBeTruthy();
+    expect(screen.getByRole("img", { name: "Pluto the bear (sleep)" })).toBeTruthy();
     fireEvent.mouseEnter(bear().closest("div.flex") as HTMLElement);
-    expect(screen.queryByRole("img", { name: "Loaf the bear (sleep)" })).toBeNull();
+    expect(screen.queryByRole("img", { name: "Pluto the bear (sleep)" })).toBeNull();
   });
 
   it("drags with the card open without shrinking the window first, then lays the card out again", async () => {
@@ -387,7 +387,7 @@ describe("desktop pet", () => {
     fireEvent.pointerDown(card, { button: 0, buttons: 1, screenX: 10, screenY: 10 });
     fireEvent.pointerMove(card, { buttons: 1, screenX: 40, screenY: 40 }); // the drag starts
     hover.mockClear();
-    act(() => { window.dispatchEvent(new CustomEvent("loaf-pet-say", { detail: { text: "Stretch break", pose: "wave", ms: 4000 } })); });
+    act(() => { window.dispatchEvent(new CustomEvent("pluto-pet-say", { detail: { text: "Stretch break", pose: "wave", ms: 4000 } })); });
     await new Promise((r) => setTimeout(r, 50));
     expect(hover).not.toHaveBeenCalled(); // nothing resized mid-drag
     fireEvent.pointerMove(card, { buttons: 0, screenX: 40, screenY: 40 }); // the drag ends
@@ -429,7 +429,7 @@ describe("desktop pet", () => {
 });
 
 describe("typing along", () => {
-  const typing = (on: boolean) => act(() => { window.dispatchEvent(new CustomEvent("loaf-typing", { detail: on })); });
+  const typing = (on: boolean) => act(() => { window.dispatchEvent(new CustomEvent("pluto-typing", { detail: on })); });
 
   it("with the switch on, the bear takes out its laptop while you type and looks up when you stop", async () => {
     const all = await ipc.settingsGetAll();
@@ -438,16 +438,16 @@ describe("typing along", () => {
     await waitFor(() => expect(ipc.settingsGetAll).toHaveBeenCalled());
     await act(async () => { await new Promise((r) => setTimeout(r, 50)); });
     typing(true);
-    expect(await screen.findByRole("img", { name: "Loaf the bear (type)" })).toBeTruthy();
+    expect(await screen.findByRole("img", { name: "Pluto the bear (type)" })).toBeTruthy();
     typing(false);
-    expect(await screen.findByRole("img", { name: "Loaf the bear (wait)" })).toBeTruthy();
+    expect(await screen.findByRole("img", { name: "Pluto the bear (wait)" })).toBeTruthy();
   });
 
   it("with the switch off (the default), typing changes nothing", async () => {
     renderPet();
     await act(async () => { await new Promise((r) => setTimeout(r, 50)); });
     typing(true);
-    expect(screen.queryByRole("img", { name: "Loaf the bear (type)" })).toBeNull();
+    expect(screen.queryByRole("img", { name: "Pluto the bear (type)" })).toBeNull();
   });
 });
 

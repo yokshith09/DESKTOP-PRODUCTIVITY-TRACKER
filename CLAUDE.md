@@ -1,6 +1,6 @@
-# Loaf — instructions for Claude sessions
+# Pluto — instructions for Claude sessions
 
-Loaf is a local-first desktop app (Tauri v2, Rust core `crates/loaf-core`, React/TypeScript UI in `src`). Windows is tested on the owner's PC; macOS only in CI.
+Pluto is a local-first desktop app (Tauri v2, Rust core `crates/pluto-core`, React/TypeScript UI in `src`). Windows is tested on the owner's PC; macOS only in CI.
 
 **Before doing anything:** follow the session protocol in [`desktop-pet-docs/PROJECT_STATUS.md`](desktop-pet-docs/PROJECT_STATUS.md) §9.
 

@@ -56,7 +56,7 @@ ROADMAP: M4 Quick Actions → M5 Writing assistant → M6 pet continued → M7 M
 
 ## 7. Where we are heading — student first, then developer, then others
 
-**Suggested positioning (needs owner approval):** *Loaf is the calm, offline study companion: tasks and deadlines, focus sessions, quick notes, and a pet that keeps you company. Private by default; no account.*
+**Suggested positioning (needs owner approval):** *Pluto is the calm, offline study companion: tasks and deadlines, focus sessions, quick notes, and a pet that keeps you company. Private by default; no account.*
 
 ### Students (first)
 Highest-value, mostly local, and fit what already exists:

@@ -2,13 +2,13 @@
 //! dashboard page with the note's id; bus events reach it like the main window, so an edit there
 //! shows up everywhere.
 
-use loaf_core::error::{AppError, Result};
+use pluto_core::error::{AppError, Result};
 use tauri::{AppHandle, Manager, Runtime, WebviewUrl, WebviewWindowBuilder};
 
 /// Window labels for notes start with this (see `capabilities/note.json`).
 pub const PREFIX: &str = "note-";
 
-/// The window label for a note id. Only ids Loaf makes (letters, digits, `-` and `_`) are
+/// The window label for a note id. Only ids Pluto makes (letters, digits, `-` and `_`) are
 /// accepted, so the id is safe to put in a label and in the page's start-up script.
 pub fn label_for(id: &str) -> Option<String> {
     let ok = !id.is_empty()
@@ -30,14 +30,14 @@ pub fn note_window_open<R: Runtime>(app: AppHandle<R>, id: String) -> Result<()>
         return Ok(());
     }
     WebviewWindowBuilder::new(&app, &label, WebviewUrl::App("main.html".into()))
-        .title("Loaf note")
+        .title("Pluto note")
         .inner_size(720.0, 640.0)
         .min_inner_size(420.0, 360.0)
-        .initialization_script(format!("window.__LOAF_NOTE__ = \"{id}\";"))
+        .initialization_script(format!("window.__PLUTO_NOTE__ = \"{id}\";"))
         .build()
         .map_err(|error| {
             tracing::warn!(%error, "couldn't open a note window");
-            AppError::io("Loaf couldn't open the note in its own window.")
+            AppError::io("Pluto couldn't open the note in its own window.")
         })?;
     Ok(())
 }

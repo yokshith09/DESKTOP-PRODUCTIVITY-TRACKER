@@ -113,7 +113,7 @@ export const ipc = {
   workUpdateDelete: (id: string) => call<unknown>("work_update_delete", { id }),
   /** Opens the system "save" dialog and writes the export there. `null` if cancelled. */
   dataExport: () => call<{ path: string; bytes: number } | null>("data_export"),
-  /** Opens the system "open" dialog and restores that export into an empty Loaf. `null` if cancelled. */
+  /** Opens the system "open" dialog and restores that export into an empty Pluto. `null` if cancelled. */
   dataImport: () => call<Record<string, number> | null>("data_import"),
   dataDeleteAll: (confirm: string) => call<unknown>("data_delete_all", { confirm }),
   /** `below`: the panel prefers the side under the pet (the focus timer), if it fits there. */

@@ -4,7 +4,7 @@ import { timePresets } from "@/lib/datePresets";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useReminderActions } from "@/hooks/useLoaf";
+import { useReminderActions } from "@/hooks/usePluto";
 import { fromLocalInput, toLocalInput } from "@/lib/time";
 import type { Reminder } from "@/ipc";
 

@@ -23,7 +23,7 @@ export function CompanionPanel() {
   const set = (patch: Partial<Companion>) => void save({ ...companion, ...patch });
   const setBirthday = (m: string, d: string) => set({ userBirthday: m && d ? `${m}-${d}` : null });
   const born = new Date(`${companion.born}T12:00:00`);
-  const petName = companion.petName || "Loaf";
+  const petName = companion.petName || "Pluto";
   const days = ageDays(companion, new Date());
   /** The hello again, as a text bubble above the pet; it doesn't use up today's one. */
   const sayHello = async () => {
@@ -39,7 +39,7 @@ export function CompanionPanel() {
         <div className="space-y-3">
           <label className="block text-xs font-medium text-muted-foreground" htmlFor="pet-name">Pet’s name</label>
           <Input
-            id="pet-name" maxLength={30} placeholder="Loaf"
+            id="pet-name" maxLength={30} placeholder="Pluto"
             value={pet ?? companion.petName}
             onChange={(e) => setPet(e.target.value)}
             onBlur={() => { if (pet !== null) set({ petName: pet.trim() }); setPet(null); }}

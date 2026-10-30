@@ -2,7 +2,7 @@
 
 From the research (`docs/business/MARKET_RESEARCH_2026-10-23.md`, `SOCIAL_RESEARCH_2026-10-23.md`) and the owner's message of 2026-10-23. These are **rules every feature must follow**, then the features that satisfy them.
 
-## 1. Five user needs → how Loaf satisfies each
+## 1. Five user needs → how Pluto satisfies each
 
 | Need (evidence) | Rule | Features that satisfy it | Status |
 |---|---|---|---|
@@ -44,7 +44,7 @@ Rules: most things are level 0-1. Only reminders the user explicitly set reach l
 
 ## 5. Study hours — are we solving it?
 
-**Partly.** Today Loaf tracks **app and website time** (opt-in) and focus timing is planned (FR-05). Students ask for **study hours per subject**, a **timetable**, and **sharing study time with friends**.
+**Partly.** Today Pluto tracks **app and website time** (opt-in) and focus timing is planned (FR-05). Students ask for **study hours per subject**, a **timetable**, and **sharing study time with friends**.
 
 | Part | Status |
 |---|---|
@@ -72,7 +72,7 @@ Rules: most things are level 0-1. Only reminders the user explicitly set reach l
 
 - **Pet birthday** = the day the user first met it (first run / adopted date). **Age** shown on the Character page ("Mochi is 23 days old").
 - **User profile:** first name (optional), birthday (optional, day + month; year never asked).
-- **Greeting once a day** (FR-94): the first time Loaf starts or the PC wakes on a new day, the pet says "Good morning, Asha!" (by time of day), **once**. Through the notification budget.
+- **Greeting once a day** (FR-94): the first time Pluto starts or the PC wakes on a new day, the pet says "Good morning, Asha!" (by time of day), **once**. Through the notification budget.
 - **Birthdays:** on the user's birthday "Happy birthday, Asha! 🎂" with the party animation; on the pet's birthday "I'm 1 today! Thanks for having me" — once each, level 1.
 - Pet age only moves forward with real days; it never "dies" or gets sick.
 - All stored locally in preferences (`ui.companion`), included in export.
@@ -80,7 +80,7 @@ Rules: most things are level 0-1. Only reminders the user explicitly set reach l
 ## 8. Backup of pet progress (FR-95)
 
 - **Already built:** Settings → Data → **Export** writes notes, tasks, meetings, settings and **preferences** (routine, companion profile, chosen pet) to one JSON file; **Import** restores it.
-- **Missing:** imported pet pack files (`<data>/pets/…`) and future XP. FR-95: export a **.loafbackup** (ZIP: the JSON + pet folders); optional automatic weekly backup to a folder the user picks (e.g. OneDrive/Google Drive folder → cloud backup without our server); restore on a new PC.
+- **Missing:** imported pet pack files (`<data>/pets/…`) and future XP. FR-95: export a **.plutobackup** (ZIP: the JSON + pet folders); optional automatic weekly backup to a folder the user picks (e.g. OneDrive/Google Drive folder → cloud backup without our server); restore on a new PC.
 - No account, no server needed.
 
 ## 9. Feature list (new IDs)
@@ -92,6 +92,6 @@ Rules: most things are level 0-1. Only reminders the user explicitly set reach l
 | FR-92 | No-guilt rule + copy check test | All | **Built (test)** |
 | FR-93 | Pet age and birthdays (pet + user) | M6 | **Built** |
 | FR-94 | Greeting once a day | M6 | **Built** |
-| FR-95 | Full backup (.loafbackup incl. pets), auto weekly backup to a chosen folder | M0 | Planned |
+| FR-95 | Full backup (.plutobackup incl. pets), auto weekly backup to a chosen folder | M0 | Planned |
 | FR-96 | Notification budget + quiet hours | FM-V2 | **Built** |
 | FR-97 | Friends / study groups, friends-only opt-in leaderboard, weekly recap card | P7 (backend) | Planned |

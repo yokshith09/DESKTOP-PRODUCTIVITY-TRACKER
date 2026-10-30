@@ -4,7 +4,7 @@ name: Dependency audit
 # week, because new advisories appear for versions that were fine yesterday.
 #
 # Only vulnerabilities fail the job. `cargo audit` prints "unmaintained" and "unsound" notices as
-# warnings (today: Tauri's Linux stack and tokio's AsyncFd, none used by Loaf); read them when
+# warnings (today: Tauri's Linux stack and tokio's AsyncFd, none used by Pluto); read them when
 # they change, they do not block a release.
 on:
   push:

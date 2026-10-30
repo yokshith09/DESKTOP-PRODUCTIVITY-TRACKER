@@ -1,6 +1,6 @@
-# Pet art specification — everything needed to build a Loaf pet
+# Pet art specification — everything needed to build a Pluto pet
 
-A Loaf pet is a **Codex / OpenPets pet pack**, so the same pet works in Loaf, Codex and OpenPets. Loaf checks every pack against this spec on import (`crates/loaf-core/src/pets.rs`) and refuses anything else with a reason.
+A Pluto pet is a **Codex / OpenPets pet pack**, so the same pet works in Pluto, Codex and OpenPets. Pluto checks every pack against this spec on import (`crates/pluto-core/src/pets.rs`) and refuses anything else with a reason.
 
 ## 1. Files
 
@@ -9,7 +9,7 @@ A Loaf pet is a **Codex / OpenPets pet pack**, so the same pet works in Loaf, Co
 ├── pet.json            required
 └── spritesheet.webp    required (or spritesheet.svg — never both)
 ```
-Optional later (OpenPets-compatible, not read by Loaf yet): `outfits/<id>.webp` (same size as the main sheet), `activities/<id>.webp` (one-shot strips).
+Optional later (OpenPets-compatible, not read by Pluto yet): `outfits/<id>.webp` (same size as the main sheet), `activities/<id>.webp` (one-shot strips).
 
 ### pet.json
 ```json
@@ -59,9 +59,9 @@ Optional later (OpenPets-compatible, not read by Loaf yet): `outfits/<id>.webp` 
 
 Frames run left to right in their row; unused columns stay transparent. Each row must loop cleanly (last frame flows into the first).
 
-**Loaf maps every app event onto these rows** (`ROW_FOR_POSE` in `SpritePet.tsx`; user-editable per event in FR-87).
+**Pluto maps every app event onto these rows** (`ROW_FOR_POSE` in `SpritePet.tsx`; user-editable per event in FR-87).
 
-## 4. Style rules (for Loaf's own pets)
+## 4. Style rules (for Pluto's own pets)
 
 - Cute, rounded, "soft 3D" or clean chibi; thick-enough outline to read at 64 px.
 - Readable at 64-160 px on screen: big head (~45% of height), big eyes, simple shapes.
@@ -71,11 +71,11 @@ Frames run left to right in their row; unused columns stay transparent. Each row
 
 ## 5. Ways to make a pack
 
-1. **Codex `hatch-pet` skill** (OpenAI): give character art + the prompt below → it outputs `pet.json` + `spritesheet.webp` in `~/.codex/pets/<id>/`; Loaf lists it automatically.
+1. **Codex `hatch-pet` skill** (OpenAI): give character art + the prompt below → it outputs `pet.json` + `spritesheet.webp` in `~/.codex/pets/<id>/`; Pluto lists it automatically.
 2. **Any image generator or artist**: produce the 9 rows to this spec, assemble the 1536×1872 sheet, write `pet.json`.
-3. **Loaf's exporter** (our SVG characters): `EXPORT_PACKS=1 pnpm exec vitest run spritePackExport` then `node scripts/svg-to-png.mjs`.
+3. **Pluto's exporter** (our SVG characters): `EXPORT_PACKS=1 pnpm exec vitest run spritePackExport` then `node scripts/svg-to-png.mjs`.
 
-Check: drop the folder into Loaf → Character → **Import pet folder**. It is refused with a reason if anything above is wrong.
+Check: drop the folder into Pluto → Character → **Import pet folder**. It is refused with a reason if anything above is wrong.
 
 ## 6. Standard prompt — first character
 
@@ -83,7 +83,7 @@ Use for the character sheet (step 1) and then for `hatch-pet` / row-by-row gener
 
 ### Step 1 — character reference sheet
 ```
-Create an original cute desktop-pet mascot named "Loaf", a small round bear made of soft
+Create an original cute desktop-pet mascot named "Pluto", a small round bear made of soft
 bread-coloured fur (warm golden brown #C98A4B, cream belly and muzzle #F6E3C3, dark brown
 eyes and nose), big head about 45% of its height, short arms and legs, tiny round ears,
 rosy cheeks, friendly and calm personality.
@@ -96,7 +96,7 @@ Keep proportions identical in every view.
 
 ### Step 2 — animation sheet (hatch-pet or row by row)
 ```
-Using the "Loaf" bear reference, make a Codex pet sprite atlas.
+Using the "Pluto" bear reference, make a Codex pet sprite atlas.
 Canvas 1536x1872 px, transparent background, grid of 8 columns x 9 rows, each cell
 192x208 px. Character centred in every cell, feet on the same baseline 8 px above the cell
 bottom, same size in every frame, 10 px margin so nothing is cut off, light from the top-left.
@@ -110,8 +110,8 @@ Row 6 failed, 8 frames: sad, brows raised, small frown, one tear, shoulders slum
 Row 7 waiting, 6 frames: looks at the viewer patiently, small bob, tapping a foot.
 Row 8 running (working), 6 frames: typing on a small laptop, focused eyes on the screen.
 Row 9 review (thinking), 6 frames: reading a clipboard, eyes moving down the page, paw on chin.
-Output spritesheet.webp and pet.json with id "loaf", displayName "Loaf",
-description "Loaf, the bread bear".
+Output spritesheet.webp and pet.json with id "pluto", displayName "Pluto",
+description "Pluto, the bread bear".
 ```
 
 ### Quality checklist before importing

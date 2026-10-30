@@ -31,7 +31,7 @@ function PackCard({ pack, active, shown, onShow, onUse, onRemove }: { pack: PetP
       <Button size="sm" variant={active ? "default" : "outline"} aria-pressed={active} onClick={onUse}>
         {active ? "In use" : "Use"}
       </Button>
-      {pack.source === "loaf" && (
+      {pack.source === "pluto" && (
         <ConfirmAction message={`Remove ${pack.display_name} from your characters?`} verb="Remove" onConfirm={onRemove}>
           <Button size="icon" variant="ghost" aria-label={`Remove ${pack.display_name}`}>
             <Trash2 className="size-4" />
@@ -43,7 +43,7 @@ function PackCard({ pack, active, shown, onShow, onUse, onRemove }: { pack: PetP
 }
 
 /**
- * Pet library (FR-63): every Codex / OpenPets pack Loaf can see, the button to import one from a
+ * Pet library (FR-63): every Codex / OpenPets pack Pluto can see, the button to import one from a
  * folder, and which one the desktop pet shows. Packs are art only; nothing in them runs.
  */
 export function PetLibrary({ shown = null, onShow }: { shown?: string | null; onShow?: (id: string | null) => void } = {}) {
@@ -91,8 +91,8 @@ export function PetLibrary({ shown = null, onShow }: { shown?: string | null; on
       </div>
       <div className="mt-3 grid gap-2 lg:grid-cols-2">
         <Panel className={cn("flex items-center gap-3 p-3", shown === null && onShow && "ring-2 ring-primary")}>
-          <button type="button" onClick={() => onShow?.(null)} aria-pressed={shown === null} aria-label="Preview Loaf the bear" className="min-w-0 flex-1 rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-ring">
-            <span className="block text-sm font-semibold">Loaf the bear</span>
+          <button type="button" onClick={() => onShow?.(null)} aria-pressed={shown === null} aria-label="Preview Pluto the bear" className="min-w-0 flex-1 rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <span className="block text-sm font-semibold">Pluto the bear</span>
             <span className="block text-xs text-muted-foreground">Built in</span>
           </button>
           <Button size="sm" variant={current ? "outline" : "default"} aria-pressed={!current} onClick={() => void setCurrent(null)}>

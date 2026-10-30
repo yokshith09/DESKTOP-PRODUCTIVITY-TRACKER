@@ -20,7 +20,7 @@ A **React component for websites** (`npm i page-mascot`, v0.1.0) by Kamran Ahmed
 | Pipeline scripts | Python: generate, chroma-key fallback for tools without transparency, build atlases, screen/verify alignment |
 | Accessibility | screen-reader label, reduced motion |
 
-## What it does **not** have (vs Loaf)
+## What it does **not** have (vs Pluto)
 No body, no walking/jumping/working poses, no desktop window, no tasks/notes/focus/reminders, no reactions to events, no pet packs in the Codex/OpenPets format, no community gallery or backend, no monetisation.
 
 ## Can we take their pets?
@@ -31,12 +31,12 @@ No body, no walking/jumping/working poses, no desktop window, no tasks/notes/foc
 **They don't fit our pet format as they are.** Our pets are full-body Codex/OpenPets atlases (192×208 cells, rows idle / running / waving / jumping / failed / waiting / working / review). page-mascot sheets are **head-only**: 9 look directions + 9 face expressions. Mapping them into our rows would give a floating head with no running or working animation.
 
 ## What we can usefully take (proposal, not built)
-1. **A "head" pet type** (FR-112 proposal): Loaf gets a second kind of pet — a head that **looks at your mouse anywhere on the desktop** (Tauri can read the global cursor position) and shows expressions for events: heart on task done, surprised on a reminder, sleepy at night, dizzy on errors, delighted on focus done. All 52 non-person-likeness characters become importable "head pets" with credit. Cheap: the player is a few dozen lines; no new art needed.
+1. **A "head" pet type** (FR-112 proposal): Pluto gets a second kind of pet — a head that **looks at your mouse anywhere on the desktop** (Tauri can read the global cursor position) and shows expressions for events: heart on task done, surprised on a reminder, sleepy at night, dizzy on errors, delighted on focus done. All 52 non-person-likeness characters become importable "head pets" with credit. Cheap: the player is a few dozen lines; no new art needed.
 2. **Their alignment check idea** for our Pet Studio: verify that frames don't jump (feet/head baseline) before a pack is accepted.
 3. **Style variants** (ink/sketch/pixel…) as a later idea for our own packs.
 
 **Not worth copying:** the website-component business (different market), and the OpenAI-key image pipeline (we don't pay for AI; BYOK is already our rule).
 
 ## Risks
-- If the author later adds an art licence or asks for removal, we'd need to respect it → keep their characters as a separate, removable pack, not baked into Loaf's own art.
+- If the author later adds an art licence or asks for removal, we'd need to respect it → keep their characters as a separate, removable pack, not baked into Pluto's own art.
 - Some people characters (hijabi, sikh, afro…) represent identities; use their names and art as drawn, never caricature or re-label them.

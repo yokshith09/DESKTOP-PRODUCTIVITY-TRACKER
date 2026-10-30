@@ -2,7 +2,7 @@
 //! users to give permissions to our pet and it does it all").
 //!
 //! This reuses the same permission as `tracking.sites` (both switches on): if the person hasn't
-//! allowed Loaf to read their browser for site *time*, it won't read their open tabs either. The
+//! allowed Pluto to read their browser for site *time*, it won't read their open tabs either. The
 //! list is never stored — it's read fresh each time the panel opens, like a task switcher, not
 //! usage data.
 //!
@@ -23,9 +23,9 @@
 
 use std::sync::Arc;
 
-use loaf_core::error::Result;
-use loaf_core::settings_service::SettingsService;
-use loaf_core::sites::OpenTab;
+use pluto_core::error::Result;
+use pluto_core::settings_service::SettingsService;
+use pluto_core::sites::OpenTab;
 use serde_json::Value;
 use tauri::State;
 
@@ -36,7 +36,7 @@ async fn allowed(settings: &SettingsService) -> bool {
     on("tracking.apps") && on("tracking.sites")
 }
 
-/// Every open tab in the browser Loaf can currently read. Empty, not an error, while the
+/// Every open tab in the browser Pluto can currently read. Empty, not an error, while the
 /// switches are off or on a platform with no reader.
 #[tauri::command]
 pub async fn pet_open_tabs(settings: State<'_, Arc<SettingsService>>) -> Result<Vec<OpenTab>> {
@@ -69,8 +69,8 @@ pub async fn pet_close_tab(
 
 #[cfg(windows)]
 mod os {
-    use loaf_core::sites::{domain_from_address, OpenTab};
-    use loaf_core::usage::{display_name, is_browser};
+    use pluto_core::sites::{domain_from_address, OpenTab};
+    use pluto_core::usage::{display_name, is_browser};
     use windows::core::BSTR;
     use windows::Win32::System::Com::{
         CoCreateInstance, CoInitializeEx, CLSCTX_INPROC_SERVER, COINIT_MULTITHREADED,
@@ -238,8 +238,8 @@ mod os {
 mod os {
     use std::process::Command;
 
-    use loaf_core::sites::{domain_from_address, OpenTab};
-    use loaf_core::usage::display_name;
+    use pluto_core::sites::{domain_from_address, OpenTab};
+    use pluto_core::usage::display_name;
 
     /// Same browsers as `sites.rs`: their scripting dictionary can list every tab directly.
     const ASKABLE: &[&str] = &[
@@ -355,9 +355,9 @@ end tell"#.to_owned()),
         };
         let profiles =
             std::path::Path::new(&home).join("Library/Application Support/Firefox/Profiles");
-        if let Some(found) = loaf_core::firefox::newest_session_file(&profiles)
-            .and_then(|f| loaf_core::firefox::read_session(&f).ok())
-            .and_then(|json| loaf_core::firefox::open_tabs(&json, "Firefox").ok())
+        if let Some(found) = pluto_core::firefox::newest_session_file(&profiles)
+            .and_then(|f| pluto_core::firefox::read_session(&f).ok())
+            .and_then(|json| pluto_core::firefox::open_tabs(&json, "Firefox").ok())
         {
             tabs.extend(found);
         }
@@ -426,7 +426,7 @@ end tell"#.to_owned()),
 
 #[cfg(not(any(windows, target_os = "macos")))]
 mod os {
-    use loaf_core::sites::OpenTab;
+    use pluto_core::sites::OpenTab;
 
     pub fn list() -> Vec<OpenTab> {
         vec![]
