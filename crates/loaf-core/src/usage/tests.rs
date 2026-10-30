@@ -517,6 +517,74 @@ fn polling_with_nothing_in_front_does_nothing() {
     assert!(!t.is_watching());
 }
 
+// ---- clock and screen-held rules ------------------------------------------------------------
+
+#[test]
+fn a_clock_set_back_keeps_the_time_already_earned_and_starts_a_fresh_stretch() {
+    let mut t = Tracker::default();
+    t.handle(focus(T0, "Code.exe"));
+    for minute in 1..=10 {
+        assert!(t.poll(T0 + minute * MIN, 0).is_empty());
+    }
+    // The clock is corrected an hour back (a bad CMOS clock, a time sync, a dual-boot machine).
+    let after = T0 + 10 * MIN - HOUR;
+    let closed = t.poll(after, 0);
+    assert_eq!(
+        brief(&closed),
+        vec![("VS Code", T0, T0 + 10 * MIN)],
+        "what was earned before the step is kept"
+    );
+    let done = t.handle(TrackEvent::Shutdown {
+        at: after + 20 * MIN,
+    });
+    assert_eq!(
+        brief(&done),
+        vec![("VS Code", after, after + 20 * MIN)],
+        "and the new stretch counts from the corrected time, not frozen at the old one"
+    );
+}
+
+#[test]
+fn a_clock_set_back_by_a_moment_is_only_jitter() {
+    let mut t = Tracker::default();
+    t.handle(focus(T0, "Code.exe"));
+    assert!(t.poll(T0 + MIN, 0).is_empty());
+    assert!(t.poll(T0 + MIN - 20 * S, 0).is_empty(), "within the slack");
+    let done = t.handle(TrackEvent::Shutdown { at: T0 + 5 * MIN });
+    assert_eq!(brief(&done), vec![("VS Code", T0, T0 + 5 * MIN)]);
+}
+
+#[test]
+fn a_focus_after_a_clock_step_back_closes_the_old_stretch_first() {
+    let mut t = Tracker::default();
+    t.handle(focus(T0, "Code.exe"));
+    for minute in 1..=3 {
+        assert!(t.poll(T0 + minute * MIN, 0).is_empty());
+    }
+    let back = T0 - 2 * HOUR;
+    let closed = t.handle(focus(back, "chrome.exe"));
+    assert_eq!(brief(&closed), vec![("VS Code", T0, T0 + 3 * MIN)]);
+    let done = t.handle(TrackEvent::Shutdown { at: back + 4 * MIN });
+    assert_eq!(brief(&done), vec![("Google Chrome", back, back + 4 * MIN)]);
+}
+
+#[test]
+fn a_held_screen_counts_as_activity_but_only_for_a_while() {
+    assert_eq!(
+        effective_idle_ms(40 * MIN as u64, true),
+        0,
+        "a film, a call"
+    );
+    assert_eq!(effective_idle_ms(40 * MIN as u64, false), 40 * MIN as u64);
+    let forgotten = MEDIA_HOLD_MAX_MS + 1;
+    assert_eq!(
+        effective_idle_ms(forgotten, true),
+        forgotten,
+        "a film left running overnight is not work"
+    );
+    assert_eq!(effective_idle_ms(3 * S as u64, true), 0);
+}
+
 // ---- persistence ----------------------------------------------------------------------------
 
 struct Fixture {

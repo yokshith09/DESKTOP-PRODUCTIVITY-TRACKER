@@ -43,6 +43,12 @@ pub const IDLE_THRESHOLD_MS: u64 = 5 * 60 * 1000;
 pub const POLL_INTERVAL_MS: u64 = 60 * 1000;
 /// A gap this much longer than [`POLL_INTERVAL_MS`] between two looks means the machine slept.
 pub const SLEEP_GAP_MS: i64 = 150 * 1000;
+/// A screen held awake by a film, a call or a presentation counts as activity for at most this
+/// long without any input; beyond it the person is taken to have walked away from a forgotten
+/// player.
+pub const MEDIA_HOLD_MAX_MS: u64 = 2 * 60 * 60 * 1000;
+/// A reading of the clock this much earlier than a previous one means the clock was set back.
+pub const CLOCK_STEP_BACK_MS: i64 = 30_000;
 /// Usage older than this is deleted.
 pub const RETENTION_DAYS: i64 = 400;
 /// `UsageUpdated` is published at most this often while recording.
@@ -397,6 +403,17 @@ fn check_category(category: &str) -> Result<()> {
     }
 }
 
+/// How long the person has been away, for the idle rules. While the system is being kept awake
+/// on purpose (a film, a video call, a presentation hold the screen on) a stretch with no
+/// keyboard or mouse input is still use, for up to [`MEDIA_HOLD_MAX_MS`].
+pub fn effective_idle_ms(idle_ms: u64, screen_held: bool) -> u64 {
+    if screen_held && idle_ms < MEDIA_HOLD_MAX_MS {
+        0
+    } else {
+        idle_ms
+    }
+}
+
 /// Apply the minimum and maximum session rules. `None` means "too short, drop it".
 pub fn normalize_span(started_at: i64, ended_at: i64) -> Option<(i64, i64)> {
     let ended = ended_at.min(started_at.saturating_add(MAX_SESSION_MS));
@@ -455,6 +472,9 @@ pub struct Tracker {
     /// yet long enough to end the session): when their input stopped. The stretch in progress is
     /// shown only up to here instead of running on until the idle threshold is reached.
     quiet_since: Option<i64>,
+    /// The latest reading of the wall clock the collector gave, to notice the clock being set
+    /// back. (`last_event` cannot do it: idle times are legitimately in the past.)
+    last_now: Option<i64>,
 }
 
 impl Tracker {
@@ -472,6 +492,42 @@ impl Tracker {
 
     pub fn is_idle(&self) -> bool {
         self.idle
+    }
+
+    /// When the person's input stopped, if a look found them already away but not yet long enough
+    /// to end the stretch. The stretch in progress is not shown past this.
+    pub fn quiet_since(&self) -> Option<i64> {
+        self.quiet_since
+    }
+
+    /// Notice the wall clock being set back (a time sync, a wrong CMOS clock, a dual-boot machine):
+    /// the stretch earned so far is closed where it was last seen and a fresh one starts at the
+    /// corrected time. Without this the stretch would stay frozen at the old, later time until the
+    /// clock caught up, and the time in between would be lost.
+    fn observe(&mut self, now: i64) -> Option<AppSession> {
+        let Some(previous) = self.last_now else {
+            self.last_now = Some(now);
+            return None;
+        };
+        if now.saturating_add(CLOCK_STEP_BACK_MS) >= previous {
+            self.last_now = Some(previous.max(now));
+            return None;
+        }
+        // Set back: everything from here is measured on the corrected clock.
+        self.last_now = Some(now);
+        let seen_until = self
+            .quiet_since
+            .map_or(previous, |quiet| quiet.min(previous));
+        let closed = self.close(seen_until);
+        self.last_event = now;
+        self.quiet_since = None;
+        if self.focused.is_some() {
+            self.last_look = Some(now);
+            if !self.idle {
+                self.open_since = Some(now);
+            }
+        }
+        closed
     }
 
     /// The stretch in progress, if an app is in front and the person is active. Its `ended_at`
@@ -509,6 +565,7 @@ impl Tracker {
         let mut out = Vec::new();
         match event {
             TrackEvent::Focus { at, app } => {
+                out.extend(self.observe(at));
                 let at = self.advance(at);
                 let next = app.as_deref().and_then(|a| self.resolve(a));
                 if next.as_ref().map(|f| &f.name) == self.focused.as_ref().map(|f| &f.name) {
@@ -542,6 +599,7 @@ impl Tracker {
                 }
             }
             TrackEvent::Shutdown { at } => {
+                out.extend(self.observe(at));
                 let at = self.advance(at);
                 out.extend(self.close(at));
                 self.focused = None;
@@ -561,6 +619,7 @@ impl Tracker {
     ///   reading), but [`Tracker::open_session`] shows it only up to the last input.
     pub fn poll(&mut self, now: i64, idle_ms: u64) -> Vec<AppSession> {
         let mut out = Vec::new();
+        out.extend(self.observe(now));
         if self.focused.is_none() {
             self.last_look = None;
             return out;
@@ -734,9 +793,23 @@ pub struct UsageService {
     clock: Arc<dyn Clock>,
     /// When `UsageUpdated` was last published by a recording (not a delete).
     last_notified: AtomicI64,
-    /// The stretch in progress, so the totals include the app in front right now instead of
-    /// lagging until the person switches away. Set by the collector; never stored.
-    live: Mutex<Option<AppSession>>,
+    /// Time the totals must include although it is not in the database yet. Set by the
+    /// collector; never stored by this field.
+    unsaved: Mutex<Unsaved>,
+    /// Held while the totals are read and while a waiting batch is written, so a session can
+    /// never be counted twice (in the database and still waiting) or not at all.
+    gate: tokio::sync::Mutex<()>,
+}
+
+/// What the collector holds in memory: the stretch in progress, and finished sessions waiting for
+/// their batch write. Both are in the totals; without them the dashboard would lag and, worse,
+/// drop a session for up to a minute after the person switched away from it.
+#[derive(Debug, Default)]
+struct Unsaved {
+    live: Option<AppSession>,
+    /// The live stretch is not shown past this: the person's input stopped here.
+    live_until: Option<i64>,
+    waiting: Vec<AppSession>,
 }
 
 impl UsageService {
@@ -745,26 +818,60 @@ impl UsageService {
             db,
             clock,
             last_notified: AtomicI64::new(i64::MIN),
-            live: Mutex::new(None),
+            unsaved: Mutex::new(Unsaved::default()),
+            gate: tokio::sync::Mutex::new(()),
         }
     }
 
-    /// Tell the service which stretch is in progress (`None` when nothing is being timed).
-    pub fn set_live(&self, session: Option<AppSession>) {
-        *self.live.lock().unwrap_or_else(PoisonError::into_inner) = session;
+    fn unsaved(&self) -> std::sync::MutexGuard<'_, Unsaved> {
+        self.unsaved.lock().unwrap_or_else(PoisonError::into_inner)
     }
 
-    fn live_now(&self) -> Option<AppSession> {
-        let mut s = self
-            .live
-            .lock()
-            .unwrap_or_else(PoisonError::into_inner)
-            .clone()?;
-        s.ended_at = self
-            .clock
-            .now_ms()
-            .min(s.started_at.saturating_add(MAX_SESSION_MS));
-        Some(s)
+    /// Tell the service which stretch is in progress (`None` when nothing is being timed). It is
+    /// shown up to the present moment.
+    pub fn set_live(&self, session: Option<AppSession>) {
+        self.set_unsaved(session, None, vec![]);
+    }
+
+    /// Tell the service everything the collector holds in memory, in one step so the totals
+    /// never see half of it: the stretch in progress, where it must stop being shown (when the
+    /// person's input stopped, if a look found them away), and the finished sessions still
+    /// waiting to be written.
+    pub fn set_unsaved(
+        &self,
+        live: Option<AppSession>,
+        live_until: Option<i64>,
+        waiting: Vec<AppSession>,
+    ) {
+        *self.unsaved() = Unsaved {
+            live,
+            live_until,
+            waiting,
+        };
+    }
+
+    /// The stretch in progress as it should be shown right now, and the sessions waiting to be
+    /// written.
+    fn unsaved_now(&self) -> (Option<AppSession>, Vec<AppSession>) {
+        let state = self.unsaved();
+        let live = state.live.clone().map(|mut s| {
+            let now = self.clock.now_ms();
+            let shown_until = state.live_until.map_or(now, |until| until.min(now));
+            s.ended_at = shown_until
+                .min(s.started_at.saturating_add(MAX_SESSION_MS))
+                .max(s.started_at);
+            s
+        });
+        (live, state.waiting.clone())
+    }
+
+    /// Write the collector's waiting sessions in one transaction and, in the same step, stop
+    /// counting them as waiting. Records that are invalid or too short are skipped.
+    pub async fn save_waiting(&self, batch: Vec<UsageRecord>) -> Result<u64> {
+        let _gate = self.gate.lock().await;
+        let saved = self.record_many(batch).await?;
+        self.unsaved().waiting.clear();
+        Ok(saved)
     }
 
     fn notification_due(&self, now: i64) -> bool {
@@ -857,9 +964,11 @@ impl UsageService {
     pub async fn summary(&self, from: i64, to: i64) -> Result<UsageSummary> {
         check_range(from, to)?;
         let tz = self.clock.tz();
+        let _gate = self.gate.lock().await;
         let mut summary = self.db.read(move |c| read_summary(c, tz, from, to)).await?;
-        if let Some(live) = self.live_now() {
-            add_live(&mut summary, tz, &live, from, to);
+        let (live, waiting) = self.unsaved_now();
+        for session in waiting.iter().chain(live.iter()) {
+            add_live(&mut summary, tz, session, from, to);
         }
         Ok(summary)
     }

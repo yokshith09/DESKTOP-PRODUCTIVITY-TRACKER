@@ -6,13 +6,18 @@
 //!
 //! * **Windows**: a `SetWinEventHook(EVENT_SYSTEM_FOREGROUND)` hook on its own thread with a
 //!   blocking message loop (no polling), resolving the window to its executable's file name
-//!   (never the path, never the title). Processes that deny access (elevated ones) report
-//!   nothing. Idle time comes from `GetLastInputInfo`.
+//!   (never the path, never the title). Processes that deny access (protected ones) report
+//!   nothing. Idle time comes from `GetLastInputInfo`. A film, a video call or a presentation
+//!   keeps the display on with a power request (`ES_DISPLAY_REQUIRED`); that is read as "the
+//!   screen is held" so time without input is still counted (up to two hours). Once a minute the
+//!   window really in front is asked directly (`GetForegroundWindow`), which corrects a focus
+//!   event Windows never delivered.
 //! * **macOS**: `NSWorkspace.frontmostApplication` (the app's name as macOS shows it, e.g.
 //!   "Google Chrome"), looked at once a second on its own thread and reported only when it
 //!   changes. That one-second look is an exception to ADR-009: the notification needs a run loop
 //!   this thread doesn't have, and the look is a single in-process call. Idle time comes from
-//!   `CGEventSourceSecondsSinceLastEventType`. No permission is needed.
+//!   `CGEventSourceSecondsSinceLastEventType`. A held screen is read from the power assertions
+//!   (`PreventUserIdleDisplaySleep`). No permission is needed.
 //! * Elsewhere: [`start`] returns [`Unsupported`] and the UI shows tracking as unavailable.
 
 use std::sync::Arc;
@@ -95,6 +100,9 @@ pub(crate) mod win {
     use loaf_core::usage_collector::Platform;
     use tokio::sync::mpsc::UnboundedSender;
     use windows_sys::Win32::Foundation::{CloseHandle, HWND, LPARAM};
+    use windows_sys::Win32::System::Power::{
+        CallNtPowerInformation, SystemExecutionState, ES_DISPLAY_REQUIRED,
+    };
     use windows_sys::Win32::System::SystemInformation::GetTickCount;
     use windows_sys::Win32::System::Threading::{
         GetCurrentThreadId, OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_WIN32,
@@ -171,6 +179,32 @@ pub(crate) mod win {
         fn idle_ms(&self) -> Option<u64> {
             idle_ms()
         }
+
+        fn screen_held(&self) -> bool {
+            display_required()
+        }
+
+        fn current_app(&self) -> Option<Option<String>> {
+            // SAFETY: plain FFI call with no arguments; it returns null when no window is in front.
+            Some(foreground_app(unsafe { GetForegroundWindow() }))
+        }
+    }
+
+    /// Whether something (a video player, a call, a presentation) has asked Windows to keep the
+    /// display on right now.
+    pub(crate) fn display_required() -> bool {
+        let mut state: u32 = 0;
+        // SAFETY: the output buffer is a `u32` and its size is passed; there is no input buffer.
+        let status = unsafe {
+            CallNtPowerInformation(
+                SystemExecutionState,
+                std::ptr::null(),
+                0,
+                std::ptr::addr_of_mut!(state).cast(),
+                std::mem::size_of::<u32>() as u32,
+            )
+        };
+        status == 0 && state & ES_DISPLAY_REQUIRED != 0
     }
 
     /// Milliseconds since the last keyboard or mouse input anywhere.
@@ -247,12 +281,17 @@ pub(crate) mod win {
     }
 
     fn report(hwnd: HWND) {
-        // The desktop, taskbar and Alt+Tab belong to explorer.exe too: they record nothing.
-        let app = executable_name(hwnd)
-            .filter(|exe| !loaf_core::usage::is_shell_surface(exe, &class_name(hwnd)));
+        let app = foreground_app(hwnd);
         if let Some(sink) = lock(&SINK).as_ref() {
             let _ = sink.send(app);
         }
+    }
+
+    /// The app a foreground window belongs to. The desktop, taskbar and Alt+Tab belong to
+    /// explorer.exe too: they record nothing.
+    fn foreground_app(hwnd: HWND) -> Option<String> {
+        executable_name(hwnd)
+            .filter(|exe| !loaf_core::usage::is_shell_surface(exe, &class_name(hwnd)))
     }
 
     /// The window's class name (e.g. `CabinetWClass` for a File Explorer folder window); empty if
@@ -374,6 +413,10 @@ pub(crate) mod mac {
     extern "C" {
         fn CGEventSourceSecondsSinceLastEventType(state: i32, event_type: u32) -> f64;
     }
+    #[link(name = "IOKit", kind = "framework")]
+    extern "C" {
+        fn IOPMCopyAssertionsStatus(assertions: *mut CFDictionaryRef) -> i32;
+    }
     const COMBINED_SESSION_STATE: i32 = 0;
     const ANY_INPUT_EVENT: u32 = !0;
 
@@ -480,6 +523,26 @@ pub(crate) mod mac {
         fn idle_ms(&self) -> Option<u64> {
             idle_ms()
         }
+
+        fn screen_held(&self) -> bool {
+            display_held()
+        }
+    }
+
+    /// Whether something (a video player, a call, a presentation) is keeping the display awake.
+    pub(crate) fn display_held() -> bool {
+        let mut raw: CFDictionaryRef = std::ptr::null();
+        // SAFETY: plain FFI call; on success it hands over a dictionary we own (Create rule).
+        if unsafe { IOPMCopyAssertionsStatus(&mut raw) } != 0 || raw.is_null() {
+            return false;
+        }
+        // SAFETY: `raw` is a non-null CFDictionary returned by a Copy function, so we own it.
+        let dict = unsafe { CFDictionary::<CFString, CFType>::wrap_under_create_rule(raw) };
+        let key = CFString::new("PreventUserIdleDisplaySleep");
+        dict.find(&key)
+            .and_then(|v| v.downcast::<CFNumber>())
+            .and_then(|n| n.to_i32())
+            .is_some_and(|count| count > 0)
     }
 
     /// Milliseconds since the last keyboard or mouse input anywhere.

@@ -5,7 +5,14 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
-_(nothing yet)_
+Time-tracking accuracy audit. Unverified on a real PC; the macOS part is compiled only in CI.
+
+- Fixed: **the dashboard total no longer climbs and then falls back.** The stretch in progress was shown up to the present even after the person had stopped typing, so it grew through the quiet minutes and dropped when the 5-minute idle limit closed it (a reproduced series of 0, 1, 2, 3, 4, 5, then 1 minute). It is now shown only up to the last input.
+- Fixed: **time no longer disappears for up to a minute after switching apps.** A finished session waited for its batch write and was in neither the database nor the live stretch. It is now counted while it waits, and counted once when saved.
+- Fixed: **films, video calls and presentations with no keyboard or mouse input are no longer cut off after 5 minutes.** While the system is held awake (Windows `ES_DISPLAY_REQUIRED`, macOS `PreventUserIdleDisplaySleep`) the time counts, for at most 2 hours without input. Same rule for website time.
+- Fixed: **a missed "app in front" event is corrected within a minute** (Windows asks `GetForegroundWindow` at each look) instead of losing time until the next switch.
+- Fixed: **a clock set back** (time sync, wrong CMOS clock, dual boot) kept the stretch frozen at the old time; it now keeps what was earned and continues on the corrected clock.
+- Tests: 10 new in `loaf-core` (482 total). Two were shown to fail without the fix.
 
 ## [0.5.3] — 2026-10-29 (draft for owner testing; Unverified)
 

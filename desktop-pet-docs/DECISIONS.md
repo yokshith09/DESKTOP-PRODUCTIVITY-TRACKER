@@ -432,3 +432,15 @@ Owner: course label, exam countdown and weekly report are on for Student and off
 | Lists draw in steps | 100 rows, then 100 more near the end of the scroll, with a button as well, instead of virtual scrolling (no new dependency, every row stays reachable for screen readers and Find). Revisit if a real PC shows it is not enough. |
 | Note cards are not buttons | A card that holds buttons cannot be a button for a screen reader; the card is a box with a real open button laid over it. |
 | New dev dependency | `axe-core` (dev only, MPL-2.0), used by one test and by the scan recipe in the audit notes. |
+
+## 2026-10-30 — Time-tracking accuracy audit (owner: "no unexplained time loss, no decreasing time")
+
+| Decision | Detail |
+|---|---|
+| **The dashboard never shows more than it will keep** | The stretch in progress was shown up to *now* even after a look had found the person away, so the total climbed through the quiet minutes and fell back when the idle limit closed the stretch (the "50 min, then 47"). It is now shown only up to the last input. |
+| **Finished sessions are in the totals until they are saved** | A session closed by switching apps waited up to a minute for its batch write and was in neither the database nor the live stretch, so the total dipped by its whole length. The collector now tells the service what is waiting, and reading the totals and writing the batch share one gate, so a session is counted once, never twice, never zero times. |
+| **A held screen is activity (up to 2 h)** | A film, a video call or a presentation keeps the display on with a power request. Windows: `ES_DISPLAY_REQUIRED`; macOS: `PreventUserIdleDisplaySleep`. With one active, "no keyboard or mouse input" no longer ends the stretch, for at most 2 hours without input (a forgotten player is not work). Chosen over counting every fullscreen window (a game paused for an hour is not use) and over a lower idle limit (cuts reading and calls short). Applies to apps and sites alike. |
+| **The look also asks which window is in front** | **Amends ADR-019's "timers only while a session is open":** the one-minute look now runs whenever tracking is on, because a missed focus event (after a lock, a sleep or a full-screen switch) left the tracker with nothing in front and nothing to wake it, so time was lost until the next window switch. Cost: one cheap call a minute. |
+| **A clock set back is detected** | A reading more than 30 s earlier than the last one closes the stretch where it was last seen and starts a new one on the corrected clock. Before, the stretch stayed frozen at the old time until the clock caught up. Smaller steps are treated as jitter. |
+| **Not changed, on purpose** | Windows that deny the process query (protected or anti-cheat programs) still record nothing: counting them would also count the lock screen and sign-in UI. The Alt+Tab switcher and sub-2-second blips are still not counted. Both are stated limits, not silent loss. |
+

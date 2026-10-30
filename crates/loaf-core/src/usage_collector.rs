@@ -6,8 +6,10 @@
 //! clock), implemented by the shell. Everything here is tested with a fake one.
 //!
 //! Timers (ADR-019): there are exactly two, and each is armed only when it has work.
-//! * **Idle look**, every [`POLL_INTERVAL_MS`], only while tracking is on and a trackable app is
-//!   in front (also while idle, to see the person come back).
+//! * **Look**, every [`POLL_INTERVAL_MS`], while tracking is on. It reads the idle time (also while
+//!   idle, to see the person come back), whether a film or call is holding the screen on, and
+//!   which window is really in front, so a focus event the OS never delivered (after a lock, a
+//!   sleep, a full-screen switch) puts the tracker right within a minute instead of never.
 //! * **Flush**, one [`FLUSH_INTERVAL`] after the first unsaved session, only while one is waiting.
 //!
 //! **Crash safety.** Every idle look also *checkpoints* the stretch in progress into the usage
@@ -32,7 +34,9 @@ use crate::error::Result;
 use crate::events::Event;
 use crate::settings::SettingsKey;
 use crate::settings_service::SettingsService;
-use crate::usage::{TrackEvent, Tracker, UsageRecord, UsageService, POLL_INTERVAL_MS};
+use crate::usage::{
+    effective_idle_ms, AppSession, TrackEvent, Tracker, UsageRecord, UsageService, POLL_INTERVAL_MS,
+};
 
 /// Finished sessions are written in one batch this long after the first one is waiting.
 pub const FLUSH_INTERVAL: Duration = Duration::from_secs(60);
@@ -49,6 +53,16 @@ pub trait Platform: Send + Sync + 'static {
     fn stop(&self);
     /// Milliseconds since the last keyboard or mouse input, if the OS can say.
     fn idle_ms(&self) -> Option<u64>;
+    /// Whether something is holding the screen on right now (a film, a video call, a
+    /// presentation). Such time is use even though nobody touches the keyboard or the mouse.
+    fn screen_held(&self) -> bool {
+        false
+    }
+    /// Which app is in front right now, asked directly (`Some(None)` means nothing trackable),
+    /// or `None` if this platform cannot be asked. Used to correct a missed focus event.
+    fn current_app(&self) -> Option<Option<String>> {
+        None
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -204,13 +218,24 @@ impl<P: Platform> Worker<P> {
         } else {
             None
         };
-        self.usage.set_live(live);
+        self.usage
+            .set_unsaved(live, self.tracker.quiet_since(), self.waiting());
+    }
+
+    /// Finished sessions not yet in the database.
+    fn waiting(&self) -> Vec<AppSession> {
+        self.pending
+            .iter()
+            .filter_map(|record| match record {
+                UsageRecord::App(session) => Some(session.clone()),
+                UsageRecord::Domain(_) => None,
+            })
+            .collect()
     }
 
     /// Timers exist only while there is something for them to do.
     fn rearm(&mut self) {
-        let watching = self.running.load(Ordering::Relaxed) && self.tracker.is_watching();
-        if !watching {
+        if !self.running.load(Ordering::Relaxed) {
             self.poll_at = None;
         } else if self.poll_at.is_none() {
             self.poll_at = Some(Instant::now() + self.timing.poll);
@@ -236,10 +261,16 @@ impl<P: Platform> Worker<P> {
         }
     }
 
-    /// The periodic idle look.
+    /// The periodic look: correct the app in front if an event was missed, then read the idle
+    /// time (a held screen counts as activity).
     fn look(&mut self) {
         self.poll_at = None; // `rearm` sets the next one
+        if let Some(app) = self.platform.current_app() {
+            let at = self.clock.now_ms();
+            self.feed(TrackEvent::Focus { at, app });
+        }
         if let Some(idle_ms) = self.platform.idle_ms() {
+            let idle_ms = effective_idle_ms(idle_ms, self.platform.screen_held());
             let sessions = self.tracker.poll(self.clock.now_ms(), idle_ms);
             self.keep(sessions);
         }
@@ -251,7 +282,7 @@ impl<P: Platform> Worker<P> {
             return;
         }
         let batch = std::mem::take(&mut self.pending);
-        if let Err(error) = self.usage.record_many(batch.clone()).await {
+        if let Err(error) = self.usage.save_waiting(batch.clone()).await {
             tracing::warn!(code = ?error.code, "couldn't save app time; it will be retried");
             self.pending = batch;
         }
@@ -375,7 +406,7 @@ impl<P: Platform> Worker<P> {
         }
         let at = self.clock.now_ms();
         self.feed(TrackEvent::Shutdown { at });
-        self.usage.set_live(None);
+        self.usage.set_unsaved(None, None, self.waiting());
         self.flush().await;
         self.tidy_journal().await;
     }
@@ -413,6 +444,8 @@ mod tests {
         stops: AtomicUsize,
         idle: Mutex<Option<u64>>,
         fail_start: AtomicBool,
+        held: AtomicBool,
+        screen: Mutex<Option<Option<String>>>,
     }
 
     impl FakePlatform {
@@ -443,6 +476,12 @@ mod tests {
         }
         fn idle_ms(&self) -> Option<u64> {
             *self.idle.lock().unwrap()
+        }
+        fn screen_held(&self) -> bool {
+            self.held.load(Ordering::Relaxed)
+        }
+        fn current_app(&self) -> Option<Option<String>> {
+            self.screen.lock().unwrap().clone()
         }
     }
 
@@ -655,6 +694,161 @@ mod tests {
                 started_at: T0,
                 ended_at: T0 + MIN
             }]
+        );
+    }
+
+    /// The summary total for the whole test day, in seconds.
+    async fn total(f: &Fixture) -> i64 {
+        f.usage
+            .summary(T0 - MIN, T0 + 100 * 3_600_000)
+            .await
+            .unwrap()
+            .total_seconds
+    }
+
+    #[tokio::test]
+    async fn the_total_never_falls_back_after_the_person_walks_away() {
+        let f = fixture();
+        let c = f.collector(quick());
+        f.settings.set("tracking.apps", json!(true)).await.unwrap();
+        running(&c, true).await;
+        f.platform.focus(Some("Code.exe"));
+        f.platform.set_idle(0);
+        settle().await;
+        // Input stops after one minute. The dashboard must not climb on through the quiet time
+        // and then fall back when the five minutes are up and the stretch is closed.
+        let mut seen = vec![total(&f).await];
+        for minute in 1..=9u64 {
+            f.clock.advance_ms(MIN);
+            f.platform.set_idle(minute.saturating_sub(1) * MIN as u64);
+            settle().await;
+            seen.push(total(&f).await);
+        }
+        assert!(
+            seen.windows(2).all(|w| w[0] <= w[1]),
+            "the total went down: {seen:?}"
+        );
+        assert_eq!(*seen.last().unwrap(), 60, "one minute of real input");
+    }
+
+    #[tokio::test]
+    async fn a_session_that_just_ended_is_still_in_the_totals_before_it_is_saved() {
+        let f = fixture();
+        let c = f.collector(Timing::default());
+        f.settings.set("tracking.apps", json!(true)).await.unwrap();
+        running(&c, true).await;
+        f.platform.focus(Some("Code.exe"));
+        settle().await;
+        f.clock.advance_ms(10 * MIN);
+        f.platform.focus(Some("chrome.exe"));
+        settle().await;
+        f.clock.advance_ms(5 * MIN);
+        assert!(
+            f.spans("VS Code").await.is_empty(),
+            "still waiting to be saved"
+        );
+        assert_eq!(total(&f).await, 15 * 60, "the ten minutes must not vanish");
+        let s = f.usage.summary(T0 - MIN, T0 + 60 * MIN).await.unwrap();
+        assert_eq!(s.apps.len(), 2);
+    }
+
+    #[tokio::test]
+    async fn saving_a_waiting_session_does_not_count_it_twice() {
+        let f = fixture();
+        let c = f.collector(quick());
+        f.settings.set("tracking.apps", json!(true)).await.unwrap();
+        running(&c, true).await;
+        f.platform.focus(Some("Code.exe"));
+        settle().await;
+        f.clock.advance_ms(10 * MIN);
+        f.platform.focus(Some("chrome.exe"));
+        eventually(|| async { f.spans("VS Code").await.len() == 1 }).await;
+        assert_eq!(total(&f).await, 10 * 60, "saved, and not also waiting");
+    }
+
+    #[tokio::test]
+    async fn a_film_or_a_call_with_no_input_keeps_counting() {
+        let f = fixture();
+        let c = f.collector(quick());
+        f.settings.set("tracking.apps", json!(true)).await.unwrap();
+        running(&c, true).await;
+        f.platform.focus(Some("Zoom.exe"));
+        f.platform.set_idle(0);
+        f.platform.held.store(true, Ordering::Relaxed);
+        settle().await;
+        // Forty minutes without touching the keyboard or the mouse, looked at every minute.
+        for minute in 1..=40u64 {
+            f.clock.advance_ms(MIN);
+            f.platform.set_idle(minute * MIN as u64);
+            settle().await;
+        }
+        assert_eq!(total(&f).await, 40 * 60);
+        f.settings.set("tracking.apps", json!(false)).await.unwrap();
+        running(&c, false).await;
+        assert_eq!(
+            f.spans("Zoom").await,
+            vec![TimeRange {
+                started_at: T0,
+                ended_at: T0 + 40 * MIN
+            }]
+        );
+    }
+
+    #[tokio::test]
+    async fn without_a_held_screen_five_quiet_minutes_still_end_the_stretch() {
+        let f = fixture();
+        let c = f.collector(quick());
+        f.settings.set("tracking.apps", json!(true)).await.unwrap();
+        running(&c, true).await;
+        f.platform.focus(Some("Zoom.exe"));
+        f.platform.set_idle(0);
+        settle().await;
+        // The last input is one minute in.
+        for minute in 1..=12u64 {
+            f.clock.advance_ms(MIN);
+            f.platform.set_idle(minute.saturating_sub(1) * MIN as u64);
+            settle().await;
+        }
+        eventually(|| async { f.spans("Zoom").await.len() == 1 }).await;
+        assert_eq!(total(&f).await, 60, "only the minute with input counts");
+    }
+
+    #[tokio::test]
+    async fn a_missed_focus_event_is_put_right_at_the_next_look() {
+        let f = fixture();
+        let c = f.collector(quick());
+        f.settings.set("tracking.apps", json!(true)).await.unwrap();
+        running(&c, true).await;
+        f.platform.set_idle(0);
+        // The lock screen was in front when Loaf started looking; no event ever arrives for the
+        // window that comes back after unlocking, but the look sees it.
+        *f.platform.screen.lock().unwrap() = Some(None);
+        settle().await;
+        f.clock.advance_ms(MIN);
+        settle().await;
+        *f.platform.screen.lock().unwrap() = Some(Some("Code.exe".to_owned()));
+        f.clock.advance_ms(MIN);
+        settle().await;
+        for _ in 0..10 {
+            f.clock.advance_ms(MIN);
+            settle().await;
+        }
+        assert!(total(&f).await >= 9 * 60, "got {}", total(&f).await);
+        // And the other way: the app is closed without an event.
+        *f.platform.screen.lock().unwrap() = Some(None);
+        f.clock.advance_ms(MIN);
+        settle().await;
+        f.clock.advance_ms(MIN);
+        settle().await;
+        let before = total(&f).await;
+        for _ in 0..5 {
+            f.clock.advance_ms(MIN);
+            settle().await;
+        }
+        assert_eq!(
+            total(&f).await,
+            before,
+            "nothing is in front, nothing counts"
         );
     }
 

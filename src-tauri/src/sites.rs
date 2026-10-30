@@ -221,7 +221,10 @@ mod os {
                 continue;
             }
             let seen = look(&uia, &mut windows);
-            let idle_ms = crate::tracking::win::idle_ms().unwrap_or(0);
+            let idle_ms = loaf_core::usage::effective_idle_ms(
+                crate::tracking::win::idle_ms().unwrap_or(0),
+                crate::tracking::win::display_required(),
+            );
             if tx.send(Look { seen, idle_ms }).is_err() {
                 return;
             }
@@ -347,7 +350,10 @@ mod os {
                     continue;
                 }
                 let seen = look();
-                let idle_ms = crate::tracking::mac::idle_ms().unwrap_or(0);
+                let idle_ms = loaf_core::usage::effective_idle_ms(
+                    crate::tracking::mac::idle_ms().unwrap_or(0),
+                    crate::tracking::mac::display_held(),
+                );
                 if tx.send(Look { seen, idle_ms }).is_err() {
                     return;
                 }
