@@ -453,3 +453,11 @@ Owner: course label, exam countdown and weekly report are on for Student and off
 | **History is not rewritten** | Git history and published release names (v0.1.0 to v0.5.3) keep the earlier name; only the tree changes. |
 | **Trademark and domain not yet checked** | "Pluto" is a common word and a planet. A search for conflicts in the app, software and entertainment classes, plus the domain and store names, is still to do before a public release. |
 
+## 2026-10-31 — Brand text and integrations research (owner)
+
+| Decision | Detail |
+|---|---|
+| **Brand text recorded** | `BRAND.md` holds the owner's text: "Your personal productivity ecosystem", six parts (Focus, Track, Notes, Projects, AI, Companion), four words (Small, Smart, Connected, Personal). The in-app tagline stays "Small companion. Big universe." |
+| **Integrations research recorded, not decided** | `RESEARCH_INTEGRATIONS.md` records the answers on pet alerts for coding events, mail and calendar without an AI app, token expiry, costs and open-source options. Three decisions are open there (network fetch, MCP writes, order). |
+| **MCP course stays out of the repository** | Removed from the tree and, with the owner's approval, from history; the owner keeps a copy. |
+

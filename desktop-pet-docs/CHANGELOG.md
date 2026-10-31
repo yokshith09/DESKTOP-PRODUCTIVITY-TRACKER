@@ -5,6 +5,12 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+_(nothing yet)_
+
+## [0.5.4] — 2026-10-31 (draft for owner testing; Unverified)
+
+The first build under the name Pluto, with the time-tracking accuracy fixes below. 0.5.3 stays as published.
+
 - Changed: **the app is now called Pluto: "Small companion. Big universe."** Names, data file, identifier, settings text, docs and the character skill all use it. On first start the data of an earlier build (tasks, notes, diary, time history, installed characters) is copied into the new folder; the old folder is left as it was. Unverified on a real PC.
 
 Time-tracking accuracy audit. Unverified on a real PC; the macOS part is compiled only in CI.
