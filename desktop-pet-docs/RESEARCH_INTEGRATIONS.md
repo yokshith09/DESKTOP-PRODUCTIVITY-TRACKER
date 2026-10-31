@@ -31,4 +31,34 @@ Pluto works fully on its own; MCP is optional. For mail and calendar without an 
 ## E. Open decisions this raises
 1. Is an opt-in network fetch (calendar feed URL) acceptable in the local-first rule? It would add the first HTTP client to the app.
 2. Should the MCP server be allowed to create tasks and notes (writes), or stay read-only plus `react`/`say`?
-3. Order: calendar feed before or after the MCP server?
+3. ~~Order: calendar feed before or after the MCP server?~~ **Decided 2026-10-31 (owner): the local MCP server first, the network layer afterwards.** Decisions 1 and 2 stay open until then.
+
+## F. Built-in connectors and the network layer (recorded 2026-10-31; built after the local MCP server)
+
+The owner asked whether connections can be built into Pluto itself ("hard coded"), and asked for these notes to be kept. **Order: local MCP first (P4), then one network layer that these connectors use.** Nothing here is built.
+
+**What "built in" can and cannot mean** [Likely]
+- The list of services and their web addresses can be fixed in the program.
+- A **secret cannot** be: anything inside a program you distribute can be read out of it. So no private key, client secret or token is ever shipped in Pluto.
+- What is allowed: the public identifier of Pluto's own registration with a service (a "client ID"), sign-in that proves itself per sign-in instead of with a secret (OAuth with PKCE), and keys or tokens the person pastes in, stored in the operating system's credential store.
+
+**Built-in connectors (sign in, Pluto fetches)**
+- Google Calendar, Gmail, Drive: sign-in with PKCE; Pluto stores only the refresh token in the credential store. The first in line would be Calendar, read-only.
+- Microsoft 365 and others: same pattern, one connector at a time, each off until the person connects it.
+- Needs: the single opt-in network client, a "Connections" page showing what is connected, what Pluto may read and a Disconnect button that also deletes the stored token.
+
+**For Google specifically**
+- While the registered app is in "Testing", Google ends the refresh token after 7 days, so the person would have to sign in again every week. Moving to "In production" removes that; an app that is not verified shows a warning screen and is limited to 100 users. [Certain]
+- Calendar read access is the lightest to verify; Gmail read access is a restricted scope and needs Google's verification, plus a security assessment if mail is stored or sent to a server (Pluto's would be local only). [Likely]
+- Until verified, the practical route for a personal build is the private calendar address (no sign-in at all) or Gmail over IMAP with an app password.
+
+**Other connections, no sign-in service needed**
+- Calendar feed URL (iCal), CalDAV, IMAP: open protocols with free libraries.
+- Keys the person pastes: GitHub (CI reactions), Notion, Todoist.
+- Everything else reaches Pluto through MCP from an AI app the person already runs.
+
+**Rules for the network layer when it is built**
+- Off by default, per connection; works without any of them.
+- One HTTP client in one module; `pluto-core` stays free of network code (checked by `pnpm check:core-deps`).
+- Every request is logged on the Connections page (what, to whom, when); no data is sent anywhere except the chosen service.
+- Tokens only in the operating system's credential store.

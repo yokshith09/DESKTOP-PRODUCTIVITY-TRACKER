@@ -461,3 +461,12 @@ Owner: course label, exam countdown and weekly report are on for Student and off
 | **Integrations research recorded, not decided** | `RESEARCH_INTEGRATIONS.md` records the answers on pet alerts for coding events, mail and calendar without an AI app, token expiry, costs and open-source options. Three decisions are open there (network fetch, MCP writes, order). |
 | **MCP course stays out of the repository** | Removed from the tree and, with the owner's approval, from history; the owner keeps a copy. |
 
+
+## 2026-10-31 (evening) — Local first; notes and Character layout (owner)
+
+| Decision | Detail |
+|---|---|
+| **Local MCP first, network layer afterwards** | P4 is built with no network code. The calendar feed, the built-in connectors and CI reactions come after the local MCP server works, all through one opt-in network layer. Settles open decision E3 in `RESEARCH_INTEGRATIONS.md`; E1 and E2 stay open. |
+| **"Tell me when it's done" plan recorded** | Four situations (assistant finished, commit/push from VS Code, build result, CI result), what detects each, and what each needs, in `MASTER_PLAN.md` under P4. CI is the only one that needs the network. |
+| **A checklist in a note is a real list** | The editor is a plain text box, so a checklist is Markdown (`- [ ] item`). Fixed so it behaves as one: the button works on an empty note; Enter starts the next box (and ends the list on an empty item); the boxes in Preview can be ticked and the note is saved; note cards draw ☐ and ☑ instead of square brackets. **Not done:** boxes you can tick while typing. That needs a rich-text editor in place of the text box, a bigger change recorded as an open question for the owner. |
+| **The Character page has no empty corners** | The Wardrobe card stretches to the height of the column beside it and fills the extra room with a live view of the pet in its current look. Checked at window widths of 1180, 1400 and 1700 (both columns end together). |

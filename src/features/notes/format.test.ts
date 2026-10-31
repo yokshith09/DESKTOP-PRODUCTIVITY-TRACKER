@@ -1,5 +1,48 @@
 import { describe, expect, it } from "vitest";
-import { lines, wrap } from "./format";
+import { continueList, lines, toggleCheck, withBoxes, wrap } from "./format";
+
+describe("checklists", () => {
+  it("the Checklist button works on an empty note and on a blank line", () => {
+    const r = lines({ text: "", start: 0, end: 0 }, "check");
+    expect(r.text).toBe("- [ ] ");
+    expect(lines({ text: "a\n\nb", start: 0, end: 4 }, "check").text).toBe("- [ ] a\n\n- [ ] b");
+    expect(lines({ text: "- [ ] ", start: 6, end: 6 }, "check").text).toBe(""); // pressed again: off
+  });
+
+  it("ticks and unticks the item on a line, and leaves other lines alone", () => {
+    const t = "intro\n- [ ] milk\n- [x] eggs";
+    expect(toggleCheck(t, 2)).toBe("intro\n- [x] milk\n- [x] eggs");
+    expect(toggleCheck(t, 3)).toBe("intro\n- [ ] milk\n- [ ] eggs");
+    expect(toggleCheck(t, 1)).toBe(t);
+    expect(toggleCheck(t, 99)).toBe(t);
+  });
+
+  it("Enter on a checklist line starts a new unticked box", () => {
+    const r = continueList({ text: "- [x] milk", start: 10, end: 10 });
+    expect(r?.text).toBe("- [x] milk\n- [ ] ");
+    expect(r?.start).toBe(r?.text.length);
+  });
+
+  it("Enter continues bullets and counts numbers up", () => {
+    expect(continueList({ text: "- a", start: 3, end: 3 })?.text).toBe("- a\n- ");
+    expect(continueList({ text: "1. a", start: 4, end: 4 })?.text).toBe("1. a\n2. ");
+  });
+
+  it("Enter on an empty item ends the list", () => {
+    expect(continueList({ text: "x\n- [ ] a\n- [ ] ", start: 16, end: 16 })?.text).toBe("x\n- [ ] a\n");
+  });
+
+  it("leaves Enter alone on ordinary text, with a selection, or mid-line", () => {
+    expect(continueList({ text: "plain", start: 5, end: 5 })).toBeNull();
+    expect(continueList({ text: "- a", start: 0, end: 3 })).toBeNull();
+    expect(continueList({ text: "- [ ] ab", start: 7, end: 7 })).toBeNull();
+  });
+
+  it("cards show boxes instead of square brackets", () => {
+    expect(withBoxes("- [ ] milk\n- [x] eggs")).toBe("☐ milk\n☑ eggs");
+    expect(withBoxes("a [ ] b")).toBe("a [ ] b");
+  });
+});
 
 describe("note formatting", () => {
   it("bolds the selection and un-bolds it again", () => {

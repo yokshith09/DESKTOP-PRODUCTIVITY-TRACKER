@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ConfirmAction } from "@/components/ConfirmAction";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Archive, ArchiveRestore, Bold, Check, CheckSquare, Eye, FolderKanban, Heading2, Italic, List, ListOrdered, Palette, Pencil, Pin, PinOff, Plus, SquareArrowOutUpRight, Tag, Trash2 } from "lucide-react";
@@ -17,7 +17,7 @@ import { STATUS_LABEL } from "@/lib/taskStatus";
 import { COLOR_NAMES } from "./colors";
 import { MarkdownView } from "./MarkdownView";
 import { CoursePicker } from "@/features/student/CoursePicker";
-import { NOTE_FONTS, fontClass, lines, wrap, type Edit, type LineKind, type NoteFont } from "./format";
+import { NOTE_FONTS, continueList, fontClass, lines, toggleCheck, wrap, type Edit, type LineKind, type NoteFont } from "./format";
 
 const FONT_KEY = ["prefs", "ui.note_font"] as const;
 
@@ -97,6 +97,18 @@ function EditorBody({ note, onClose, fullWindow }: { note: Note; onClose: () => 
   const titleRef = useRef<HTMLInputElement>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
 
+  // Where the caret goes after the next render: set right after React writes the new text, so
+  // nothing typed in between can land in the wrong place.
+  const caret = useRef<{ start: number; end: number; focus: boolean } | null>(null);
+  useLayoutEffect(() => {
+    const el = bodyRef.current;
+    const c = caret.current;
+    if (!el || !c) return;
+    caret.current = null;
+    if (c.focus) el.focus();
+    el.setSelectionRange(c.start, c.end);
+  }, [body]);
+
   const flush = async () => {
     clearTimeout(timer.current);
     if (!dirty.current) return;
@@ -130,8 +142,8 @@ function EditorBody({ note, onClose, fullWindow }: { note: Note; onClose: () => 
     const el = bodyRef.current;
     if (!el) return;
     const next = f({ text: body, start: el.selectionStart, end: el.selectionEnd });
+    caret.current = { start: next.start, end: next.end, focus: true };
     edit({ body: next.text });
-    requestAnimationFrame(() => { el.focus(); el.setSelectionRange(next.start, next.end); });
   };
   const line = (kind: LineKind) => format((e) => lines(e, kind));
   const saveProject = () => {
@@ -219,13 +231,22 @@ function EditorBody({ note, onClose, fullWindow }: { note: Note; onClose: () => 
           className="h-auto border-0 bg-transparent px-0 text-xl font-semibold tracking-tight shadow-none focus-visible:ring-0"
         />
         {preview ? (
-          <div aria-label="Preview" className={cn("min-h-64 overflow-y-auto", fullWindow ? "flex-1" : "max-h-[50vh]")}><MarkdownView source={body} /></div>
+          <div aria-label="Preview" className={cn("min-h-64 overflow-y-auto", fullWindow ? "flex-1" : "max-h-[50vh]")}><MarkdownView source={body} onToggle={(n) => edit({ body: toggleCheck(body, n) })} /></div>
         ) : (
           <textarea
             ref={bodyRef}
             value={body}
             maxLength={BODY_MAX}
             onChange={(e) => edit({ body: e.target.value })}
+            onKeyDown={(e) => {
+              if (e.key !== "Enter" || e.shiftKey || e.ctrlKey || e.metaKey || e.altKey || e.nativeEvent.isComposing) return;
+              const el = e.currentTarget;
+              const next = continueList({ text: body, start: el.selectionStart, end: el.selectionEnd });
+              if (!next) return;
+              e.preventDefault();
+              caret.current = { start: next.start, end: next.end, focus: false };
+              edit({ body: next.text });
+            }}
             placeholder="Take a note…"
             aria-label="Note"
             className={cn("min-h-64 resize-none overflow-y-auto bg-transparent text-[15px] leading-relaxed outline-none placeholder:text-muted-foreground", fullWindow ? "flex-1" : "max-h-[50vh]")}

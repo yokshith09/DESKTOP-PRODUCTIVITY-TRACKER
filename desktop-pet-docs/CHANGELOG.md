@@ -5,7 +5,12 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
-_(nothing yet)_
+Unverified on a real PC.
+
+- Fixed: **checklists in notes.** The Checklist button did nothing on an empty note and wrote only `- [ ]` as text elsewhere. It now works on an empty note; Enter continues the list (and ends it on an empty item); the boxes in Preview are clickable and save the note; note cards show ☐ and ☑ instead of square brackets. Also fixed: the cursor could jump after a formatting button or Enter when typing fast.
+- Fixed: **the Character page left an empty block under the Wardrobe** at the default window size. The card now stretches to its neighbour and shows a live view of the pet in its current look. Both columns end together at widths 1180, 1400 and 1700.
+- Docs: the plan for "tell me when it's done" (assistant finished, VS Code commits and pushes, builds, CI) under P4; built-in connectors and the Google limits recorded; the order is local MCP first, network layer afterwards.
+- Tests: 9 new front-end tests (479 pass); the checklist behaviour is covered in the pure functions, the preview boxes and the editor.
 
 ## [0.5.4] — 2026-10-31 (draft for owner testing; Unverified)
 

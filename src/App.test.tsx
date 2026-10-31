@@ -226,11 +226,30 @@ describe("Notes screen (against the in-memory shell)", () => {
     expect(within(preview).getByRole("heading", { level: 1, name: "Big heading" })).toBeTruthy();
     const box = within(preview).getByRole("checkbox") as HTMLInputElement;
     expect(box.checked).toBe(true);
-    expect(box.disabled).toBe(true);
+    expect(box.disabled).toBe(false); // ticking in the preview edits the note
     expect(preview.textContent).toContain("<b>raw</b> text");
     expect(preview.querySelector("b")).toBeNull();
+    await user.click(box);
+    expect((within(preview).getByRole("checkbox") as HTMLInputElement).checked).toBe(false);
+    await user.click(within(dialog).getByRole("button", { name: "Edit" }));
+    expect((within(dialog).getByRole("textbox", { name: "Note" }) as HTMLTextAreaElement).value).toContain("- [ ] done item");
+    await user.click(within(dialog).getByRole("button", { name: "Preview" }));
     await user.click(within(dialog).getByRole("button", { name: "Edit" }));
     expect(within(dialog).getByRole("textbox", { name: "Note" })).toBeTruthy();
+  });
+
+  it("Enter in a checklist starts the next box", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await openNotes(user);
+    await user.click(await screen.findByRole("button", { name: "Groceries" }));
+    const dialog = await screen.findByRole("dialog");
+    const body = within(dialog).getByRole("textbox", { name: "Note" }) as HTMLTextAreaElement;
+    await user.clear(body);
+    await user.click(within(dialog).getByRole("button", { name: "Checklist" }));
+    await user.click(body);
+    await user.keyboard("milk{Enter}eggs");
+    expect(body.value).toBe("- [ ] milk\n- [ ] eggs");
   });
 
   it("note editor shortcuts: Ctrl+D pins, Ctrl+E toggles preview", async () => {

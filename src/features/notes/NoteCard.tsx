@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { timeAgo } from "@/lib/time";
 import type { NoteSummary } from "@/ipc";
+import { withBoxes } from "./format";
 
 export interface NoteHandlers {
   onOpen: (id: string) => void;
@@ -93,7 +94,7 @@ export function NoteCard({ note, ...h }: { note: NoteSummary } & NoteHandlers) {
         <Pin aria-label="Pinned" className="absolute right-3 top-3 size-3.5 rotate-45 fill-primary text-primary group-hover:hidden group-focus-within:hidden" />
       )}
       {note.title && <h3 className="mb-2 pr-5 text-[14.5px] font-semibold leading-snug tracking-tight">{note.title}</h3>}
-      {note.excerpt && <p className="line-clamp-6 whitespace-pre-line text-[13px] leading-relaxed text-foreground/75">{note.excerpt}</p>}
+      {note.excerpt && <p className="line-clamp-6 whitespace-pre-line text-[13px] leading-relaxed text-foreground/75">{withBoxes(note.excerpt)}</p>}
       {!note.title && !note.excerpt && <p className="text-[13px] italic text-muted-foreground">Empty note</p>}
       <div className="mt-4 flex items-center gap-1.5">
         <CourseTag kind="note" id={note.id} />{note.project && <Badge>{note.project}</Badge>}
@@ -116,7 +117,7 @@ export function NoteRow({ note, ...h }: { note: NoteSummary } & NoteHandlers) {
       <OpenNote note={note} onOpen={h.onOpen} />
       <span aria-hidden className={cn("size-2 shrink-0 rounded-full", note.color === "default" ? "bg-border" : "note-dot")} />
       <span className="w-56 shrink-0 truncate text-[13px] font-medium">{note.title || "Untitled"}</span>
-      <span className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground">{note.excerpt.replace(/\s+/g, " ")}</span>
+      <span className="min-w-0 flex-1 truncate text-[13px] text-muted-foreground">{withBoxes(note.excerpt).replace(/\s+/g, " ")}</span>
       <span className="hidden items-center gap-1.5 lg:flex">
         {note.labels.slice(0, 2).map((l) => (
           <Badge key={l.id}>{l.name}</Badge>
@@ -148,7 +149,7 @@ export function PinnedCard({ note, ...h }: { note: NoteSummary } & NoteHandlers)
       </div>
       <Pin aria-label="Pinned" className="absolute right-3.5 top-4 size-3.5 rotate-45 fill-primary text-primary group-hover:hidden group-focus-within:hidden" />
       <h3 className="mb-2 pr-6 text-[15px] font-semibold leading-snug tracking-tight">{note.title || "Untitled"}</h3>
-      <p className="line-clamp-3 whitespace-pre-line text-[13px] leading-relaxed text-foreground/75">{note.excerpt}</p>
+      <p className="line-clamp-3 whitespace-pre-line text-[13px] leading-relaxed text-foreground/75">{withBoxes(note.excerpt)}</p>
       <div className="mt-auto flex items-center gap-1.5 pt-4">
         <CourseTag kind="note" id={note.id} />{note.project && <Badge>{note.project}</Badge>}
         {note.labels.slice(0, 2).map((l) => <Badge key={l.id}>{l.name}</Badge>)}

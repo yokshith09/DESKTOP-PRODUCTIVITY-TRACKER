@@ -1,8 +1,24 @@
+import { createContext, useContext } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { notify } from "@/lib/notify";
 import { errorMessage, ipc } from "@/ipc";
 import { cn } from "@/lib/utils";
+
+/** The source line of the list item being drawn: react-markdown puts it on the item, not on its box. */
+const ItemLine = createContext<number | undefined>(undefined);
+
+function Box({ checked, onToggle }: { checked: boolean; onToggle: ((line: number) => void) | undefined }) {
+  const line = useContext(ItemLine);
+  return (
+    <input
+      type="checkbox" checked={checked} aria-label="Done"
+      disabled={!onToggle || line === undefined} readOnly={!onToggle}
+      onChange={() => line !== undefined && onToggle?.(line)}
+      className="size-3.5 translate-y-0.5 accent-[var(--primary)]"
+    />
+  );
+}
 
 const open = async (href: string) => {
   try {
@@ -13,11 +29,11 @@ const open = async (href: string) => {
 };
 
 /**
- * A note's Markdown, read-only (R1-11). Headings, lists, task-list boxes (not clickable), code,
+ * A note's Markdown (R1-11). Headings, lists, task-list boxes (clickable when `onToggle` is given, which receives the source line), code,
  * links, bold and italic. Raw HTML in the text is shown as text, never rendered. Links open in
  * the default browser through the app's own `open_url` (http, https and mailto only).
  */
-export function MarkdownView({ source, className }: { source: string; className?: string }) {
+export function MarkdownView({ source, className, onToggle }: { source: string; className?: string; onToggle?: (line: number) => void }) {
   if (!source.trim()) return <p className={cn("text-[15px] italic text-muted-foreground", className)}>Nothing to preview yet.</p>;
   return (
     <div className={cn("space-y-3 text-[15px] leading-relaxed", className)}>
@@ -31,8 +47,12 @@ export function MarkdownView({ source, className }: { source: string; className?
           p: ({ children }) => <p>{children}</p>,
           ul: ({ children, className: c }) => <ul className={cn("list-disc space-y-1 pl-5", c?.includes("contains-task-list") && "list-none pl-0")}>{children}</ul>,
           ol: ({ children }) => <ol className="list-decimal space-y-1 pl-5">{children}</ol>,
-          li: ({ children, className: c }) => <li className={cn(c?.includes("task-list-item") && "flex items-baseline gap-2")}>{children}</li>,
-          input: ({ checked }) => <input type="checkbox" checked={!!checked} disabled readOnly className="size-3.5 translate-y-0.5 accent-[var(--primary)]" />,
+          li: ({ children, className: c, node }) => (
+            <ItemLine.Provider value={node?.position?.start.line}>
+              <li className={cn(c?.includes("task-list-item") && "flex items-baseline gap-2")}>{children}</li>
+            </ItemLine.Provider>
+          ),
+          input: ({ checked }) => <Box checked={!!checked} onToggle={onToggle} />,
           blockquote: ({ children }) => <blockquote className="border-l-2 border-primary/50 pl-3 text-muted-foreground">{children}</blockquote>,
           hr: () => <hr className="border-border" />,
           pre: ({ children }) => <pre className="overflow-x-auto rounded-md bg-muted/70 p-3 text-[13px] leading-snug">{children}</pre>,
