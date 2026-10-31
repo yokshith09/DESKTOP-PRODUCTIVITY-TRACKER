@@ -161,6 +161,12 @@ Every claim is tagged with how it was checked. **Fact** = seen in code, tests, G
 | Permissions | None | Automation prompt per browser; Accessibility for text-box; Input Monitoring for typing-along | Different by OS |
 | Privacy radar | Same | Same | Yes (uses the stored sites) |
 | Verified on real machine | No | No | n/a |
+| Pet window resize (card opening) | One call moves and resizes (`SetWindowPos`), so no jump | Two calls (size, then position) | **Gap**: the "pet jumps when the card opens" fix of 0.2.x is Windows-only; the 0.5.5 blink fix is in the page and applies to both, but was diagnosed for Windows |
+| Hide while another app is full screen | Asks Windows (full-screen state) | Looks for an ordinary window that covers a screen | Yes (different mechanism) |
+| Held screen counts as activity (films, calls) | `ES_DISPLAY_REQUIRED` | `PreventUserIdleDisplaySleep` | Yes |
+| Which app is in front, corrected at each look | Asks `GetForegroundWindow` | Already polled each second | Yes |
+| Removing an earlier Loaf | Installer (`-setup.exe` and `.msi`) | One-time dialog in the app | Yes, different mechanism |
+| Linux | Not supported: tracking, typing, media and full-screen detection are stubs; planned P7 | | n/a |
 
 Not fixable without the other OS: Safari (private windows can't be told apart, kept off on purpose), Arc and Firefox on Mac (no way to ask), Windows localisation. The UI now lists the right browsers per OS.
 

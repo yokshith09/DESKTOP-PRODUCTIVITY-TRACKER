@@ -6,7 +6,8 @@
 //! once, the first time the new folder has no database. It only ever copies: the old folder is
 //! left exactly as it was, so nothing can be lost by it.
 //!
-//! The earlier names appear in this file and nowhere else; they are what the old files are called.
+//! The earlier names appear in this file and in the Windows installer hook
+//! (`src-tauri/windows/hooks.nsh`), and nowhere else; they are what the old files are called.
 
 use std::fs;
 use std::io;
@@ -18,6 +19,43 @@ const OLD_DB: &str = "loaf.db";
 const NEW_DB: &str = "pluto.db";
 const OLD_PACK_EXTRAS: &str = "loaf.json";
 const NEW_PACK_EXTRAS: &str = "pluto.json";
+
+/// What an earlier build left installed on a Mac: its app bundle and its login item.
+#[derive(Debug, Default, PartialEq, Eq)]
+pub struct EarlierMacApp {
+    /// `Loaf.app` in each applications folder where it was found.
+    pub bundles: Vec<PathBuf>,
+    /// Login items (launch agents) that start it at login.
+    pub login_items: Vec<PathBuf>,
+}
+
+impl EarlierMacApp {
+    pub fn is_empty(&self) -> bool {
+        self.bundles.is_empty() && self.login_items.is_empty()
+    }
+}
+
+/// The name of the earlier program's process, to stop it before it is removed.
+pub const OLD_PROCESS_NAME: &str = "loaf";
+const OLD_BUNDLE: &str = "Loaf.app";
+const OLD_LOGIN_ITEMS: [&str; 2] = ["Loaf.plist", "app.loaf.desktop.plist"];
+
+/// Look for an earlier build in the given applications folders and launch-agent folder. Only
+/// existing paths are returned; nothing is touched.
+pub fn earlier_mac_app(applications: &[PathBuf], launch_agents: &Path) -> EarlierMacApp {
+    EarlierMacApp {
+        bundles: applications
+            .iter()
+            .map(|dir| dir.join(OLD_BUNDLE))
+            .filter(|p| p.is_dir())
+            .collect(),
+        login_items: OLD_LOGIN_ITEMS
+            .iter()
+            .map(|name| launch_agents.join(name))
+            .filter(|p| p.is_file())
+            .collect(),
+    }
+}
 
 /// What was copied.
 #[derive(Debug, Default, PartialEq, Eq)]
@@ -212,5 +250,46 @@ mod tests {
         write(&old.join("loaf.db"), "main");
         assert_eq!(carry_over(&old, &new).unwrap().database_files, 1);
         assert_eq!(carry_over(&old, &new).unwrap(), CarriedOver::default());
+    }
+
+    #[test]
+    fn an_earlier_mac_install_is_found_in_either_applications_folder_and_its_login_item_too() {
+        let tmp = tempfile::tempdir().unwrap();
+        let (system, user, agents) = (
+            tmp.path().join("Applications"),
+            tmp.path().join("home/Applications"),
+            tmp.path().join("LaunchAgents"),
+        );
+        fs::create_dir_all(system.join("Loaf.app/Contents")).unwrap();
+        fs::create_dir_all(user.join("Loaf.app")).unwrap();
+        write(&agents.join("Loaf.plist"), "<plist/>");
+        write(&agents.join("Other.plist"), "<plist/>");
+
+        let found = earlier_mac_app(&[system.clone(), user.clone()], &agents);
+
+        assert_eq!(
+            found.bundles,
+            vec![system.join("Loaf.app"), user.join("Loaf.app")]
+        );
+        assert_eq!(found.login_items, vec![agents.join("Loaf.plist")]);
+        assert!(!found.is_empty());
+    }
+
+    #[test]
+    fn nothing_is_reported_when_no_earlier_mac_install_exists() {
+        let tmp = tempfile::tempdir().unwrap();
+        let found = earlier_mac_app(
+            &[tmp.path().join("Applications")],
+            &tmp.path().join("LaunchAgents"),
+        );
+        assert!(found.is_empty());
+        // a file called Loaf.app is not an app bundle
+        write(&tmp.path().join("Applications/Loaf.app"), "x");
+        assert!(earlier_mac_app(
+            &[tmp.path().join("Applications")],
+            &tmp.path().join("LaunchAgents")
+        )
+        .bundles
+        .is_empty());
     }
 }

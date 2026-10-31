@@ -2,6 +2,7 @@
 //! here; logic lives in `pluto-core` (ADR-002).
 
 mod autostart;
+mod earlier_app;
 mod ipc;
 mod logs;
 mod media;
@@ -382,6 +383,9 @@ pub fn run() {
 
             tray::setup_tray(app.handle(), &tray::MenuRegistry::base(), quit)?;
             autostart::start(app.handle().clone(), settings.clone(), &bus);
+            // A Mac has no installer step: offer to clear away an earlier build, once.
+            #[cfg(target_os = "macos")]
+            earlier_app::offer_removal(app.handle().clone(), settings.clone());
             app.manage(Arc::new(pet::PetState::default()));
             app.on_menu_event(|app, event| pet::on_menu(app, event.id().as_ref()));
             pet::start(app.handle().clone(), settings.clone(), &bus);

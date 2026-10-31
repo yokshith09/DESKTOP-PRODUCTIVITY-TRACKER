@@ -5,11 +5,13 @@ name: Release build
 #
 # It starts by itself when the app version changes on `main` (src-tauri/tauri.conf.json), so a
 # release is: bump the version, push to main, wait, test the draft's installers, publish. It also
-# starts when you push a tag `v*` or press "Run workflow" in the Actions tab. If a release for the
-# version already exists (draft or published), a version-change push does nothing.
+# starts when you push a tag `v*` or press "Run workflow" in the Actions tab. If the release for the
+# version is already PUBLISHED, a push does nothing (published installers never change under people).
+# If it is still a DRAFT, a push that touches the version file or this workflow rebuilds it and
+# points the draft at the commit that was built, so publishing tags exactly that commit.
 #
 # Publishing the draft creates the tag `v<version>` on the commit that was built.
-# To rebuild the same version (for example after a fix), change this file or press "Run workflow".
+# To rebuild the same unpublished version (for example after a fix), change this file or press "Run workflow".
 # (0.5.2 was rebuilt this way after a case-clash in the sources broke its first build.)
 #
 # Signing is NOT set up: it needs the owner's certificates. Unsigned installers work, but Windows
@@ -53,7 +55,8 @@ jobs:
           build=true
           # An automatic branch push must not rebuild a release that already exists.
           if [ "$EVENT" = "push" ] && [ "$REF_TYPE" = "branch" ]; then
-            if gh release list --repo "$REPO" --limit 100 --json tagName -q '.[].tagName' | grep -qx "$tag"; then
+            # Only a published release stops a rebuild; a draft is refreshed.
+            if gh release list --repo "$REPO" --limit 100 --json tagName,isDraft -q '.[] | select(.isDraft | not) | .tagName' | grep -qx "$tag"; then
               build=false
             fi
           fi
@@ -119,6 +122,10 @@ jobs:
           if [ "${#files[@]}" -eq 0 ]; then echo "No installers were built."; exit 1; fi
           if gh release list --repo "$REPO" --limit 100 --json tagName -q '.[].tagName' | grep -qx "$TAG"; then
             gh release upload "$TAG" "${files[@]}" --repo "$REPO" --clobber
+            # A draft keeps the commit it was first made from; move it to the one just built.
+            if [ "$(gh release view "$TAG" --repo "$REPO" --json isDraft -q .isDraft)" = "true" ]; then
+              gh release edit "$TAG" --repo "$REPO" --target "$SHA"
+            fi
           else
             flags=(--draft --generate-notes --target "$SHA")
             case "$TAG" in *-*) flags+=(--prerelease);; esac
