@@ -7,13 +7,18 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 _(nothing yet)_
 
-## [0.5.5] — 2026-10-31 (draft for owner testing; Unverified)
+## [0.5.6] — 2026-10-31 (draft for owner testing; Unverified)
 
-Fixes on top of 0.5.4, which is published and stays as it is.
+Fixes on top of 0.5.5, which is published and stays as it is.
 
 - Fixed (**Unverified on a real PC**): **the live total could still drop by up to two minutes after you walked away.** The 0.5.4 fix only helped once a once-a-minute look had found you away; before that, the stretch was shown up to the present, so it climbed and then fell back to your last input (the "50 → 47" class). The total now asks the OS for the time of your last input every time it is read and shows the stretch only up to it; that time only moves forward, so the total cannot go down. While you work it is current to the second; if you come back within the five minutes the gap counts and the total jumps up. Two tests (a series of readings across a walk-away, and readings between looks); the series test had been failing on macOS CI intermittently and is now deterministic.
 
-- Fixed (diagnosed, **not seen on a real PC**): **a second Pluto blinking above the hover card.** When the pet window grows to make room for the card, Windows can show the window's previous frame (the pet alone) at the top of the grown window for a frame or two, which sits exactly above the card. The pet is now invisible for the moment of the resize (opacity, so the pointer still counts as over it) and comes back after the first painted frame, with a 250 ms failsafe so it can never stay hidden. If the blink is still there, the other explanation to rule out is a second copy of the app running (see the notes in `PROJECT_STATUS.md`).
+## [0.5.5] — 2026-10-31 (published)
+
+Fixes on top of 0.5.4, which is published and stays as it is.
+
+
+- Fixed (**confirmed by the owner on a real PC, 2026-10-31**): **a second Pluto blinking above the hover card.** When the pet window grows to make room for the card, Windows can show the window's previous frame (the pet alone) at the top of the grown window for a frame or two, which sits exactly above the card. The pet is now invisible for the moment of the resize (opacity, so the pointer still counts as over it) and comes back after the first painted frame, with a 250 ms failsafe so it can never stay hidden. If the blink is still there, the other explanation to rule out is a second copy of the app running (see the notes in `PROJECT_STATUS.md`).
 - Fixed (**not run on a real PC**): **installing Pluto no longer leaves the old Loaf behind.** Pluto and Loaf are different programs to the system, so the old one stayed installed, kept running (a second pet) and kept its login entry; each person had to remove it by hand.
   - **Windows `-setup.exe`:** the installer stops Loaf, runs Loaf's own uninstaller silently (which keeps the data folder) and removes its login entry.
   - **Windows `.msi`:** a Loaf installed from the `.msi` is found by its product code and removed with Windows Installer (progress shown; an all-users install asks Windows for permission, which the person can refuse).
