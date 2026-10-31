@@ -70,9 +70,15 @@ before(start);
 after(async () => { await driver?.quit(); });
 
 describe("Pluto, end to end", () => {
-  it("welcomes a fresh install, then opens on Today", async () => {
+  it("welcomes a fresh install, asks who is using it, then opens on Today", async () => {
     await visible(`//h1[normalize-space(.)="Welcome to Pluto"]`);
     await click(xButton("Start"));
+    // Since 0.5.2 a new install asks one question (FR-83) and then starts the tour on Today. The
+    // test skips both, as a person in a hurry would; its later steps need the page free.
+    await visible(`//h1[normalize-space(.)="What describes you best?"]`);
+    await click(xButton("Skip"));
+    await click(xButton("Skip tour"));
+    await gone(`//*[@role="dialog" and @aria-label="Pluto tour"]`);
     await byLabel("Today’s agenda");
   });
 
