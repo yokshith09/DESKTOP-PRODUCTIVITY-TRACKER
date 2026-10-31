@@ -796,10 +796,17 @@ pub struct UsageService {
     /// Time the totals must include although it is not in the database yet. Set by the
     /// collector; never stored by this field.
     unsaved: Mutex<Unsaved>,
+    /// Asks the OS how long the person has been away, so the stretch in progress can be shown up
+    /// to their last input at the moment the totals are read, not only at the last look.
+    idle_probe: Mutex<Option<IdleProbe>>,
     /// Held while the totals are read and while a waiting batch is written, so a session can
     /// never be counted twice (in the database and still waiting) or not at all.
     gate: tokio::sync::Mutex<()>,
 }
+
+/// Milliseconds since the last keyboard or mouse input (a held screen already counted as input),
+/// or `None` if the OS cannot say. Cheap: it is called every time the totals are read.
+pub type IdleProbe = Arc<dyn Fn() -> Option<u64> + Send + Sync>;
 
 /// What the collector holds in memory: the stretch in progress, and finished sessions waiting for
 /// their batch write. Both are in the totals; without them the dashboard would lag and, worse,
@@ -819,6 +826,7 @@ impl UsageService {
             clock,
             last_notified: AtomicI64::new(i64::MIN),
             unsaved: Mutex::new(Unsaved::default()),
+            idle_probe: Mutex::new(None),
             gate: tokio::sync::Mutex::new(()),
         }
     }
@@ -850,19 +858,43 @@ impl UsageService {
         };
     }
 
+    /// Let the totals ask the OS for the idle time (`None` removes it).
+    pub fn set_idle_probe(&self, probe: Option<IdleProbe>) {
+        *self
+            .idle_probe
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner) = probe;
+    }
+
     /// The stretch in progress as it should be shown right now, and the sessions waiting to be
     /// written.
+    ///
+    /// It is shown up to the person's last input, never past it, whenever the OS can say when that
+    /// was. The last input time only moves forward, so the total can no longer climb through quiet
+    /// time and drop back when a look finds the person gone (up to two minutes later). Without a
+    /// probe it is shown up to the present, or to where the last look saw their input stop.
     fn unsaved_now(&self) -> (Option<AppSession>, Vec<AppSession>) {
-        let state = self.unsaved();
-        let live = state.live.clone().map(|mut s| {
+        let (live, live_until, waiting) = {
+            let state = self.unsaved();
+            (state.live.clone(), state.live_until, state.waiting.clone())
+        };
+        let live = live.map(|mut s| {
             let now = self.clock.now_ms();
-            let shown_until = state.live_until.map_or(now, |until| until.min(now));
+            let probe = self
+                .idle_probe
+                .lock()
+                .unwrap_or_else(PoisonError::into_inner)
+                .clone();
+            let shown_until = match probe.and_then(|ask| ask()) {
+                Some(idle) => now.saturating_sub(i64::try_from(idle).unwrap_or(i64::MAX)),
+                None => live_until.map_or(now, |until| until.min(now)),
+            };
             s.ended_at = shown_until
                 .min(s.started_at.saturating_add(MAX_SESSION_MS))
                 .max(s.started_at);
             s
         });
-        (live, state.waiting.clone())
+        (live, waiting)
     }
 
     /// Write the collector's waiting sessions in one transaction and, in the same step, stop

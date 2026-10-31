@@ -177,6 +177,11 @@ async fn sleep_until_opt(at: Option<Instant>) {
 impl<P: Platform> Worker<P> {
     async fn run(mut self) {
         let (tx, mut rx) = mpsc::unbounded_channel::<Option<String>>();
+        let platform = self.platform.clone();
+        self.usage.set_idle_probe(Some(Arc::new(move || {
+            let idle = platform.idle_ms()?;
+            Some(effective_idle_ms(idle, platform.screen_held()))
+        })));
         self.recover().await;
         self.reload_settings(&tx).await;
         loop {
@@ -209,6 +214,7 @@ impl<P: Platform> Worker<P> {
             self.rearm();
             self.publish_live();
         }
+        self.usage.set_idle_probe(None);
     }
 
     /// Show the stretch in progress in the totals (not stored until it ends).
@@ -446,6 +452,9 @@ mod tests {
         fail_start: AtomicBool,
         held: AtomicBool,
         screen: Mutex<Option<Option<String>>>,
+        /// When set, the idle time is the fake clock minus this last-input time, so it moves in
+        /// step with the clock instead of being set separately (two steps a look could fall between).
+        last_input: Mutex<Option<(FakeClock, i64)>>,
     }
 
     impl FakePlatform {
@@ -455,6 +464,9 @@ mod tests {
                 .expect("started")
                 .send(app.map(str::to_owned))
                 .unwrap();
+        }
+        fn last_input_at(&self, clock: &FakeClock, at: i64) {
+            *self.last_input.lock().unwrap() = Some((clock.clone(), at));
         }
         fn set_idle(&self, ms: u64) {
             *self.idle.lock().unwrap() = Some(ms);
@@ -475,6 +487,9 @@ mod tests {
             *self.sink.lock().unwrap() = None;
         }
         fn idle_ms(&self) -> Option<u64> {
+            if let Some((clock, at)) = &*self.last_input.lock().unwrap() {
+                return Some(u64::try_from(clock.now_ms() - at).unwrap_or(0));
+            }
             *self.idle.lock().unwrap()
         }
         fn screen_held(&self) -> bool {
@@ -713,14 +728,12 @@ mod tests {
         f.settings.set("tracking.apps", json!(true)).await.unwrap();
         running(&c, true).await;
         f.platform.focus(Some("Code.exe"));
-        f.platform.set_idle(0);
+        // Input stops after one minute; the idle time follows the clock from then on.
+        f.platform.last_input_at(&f.clock, T0 + MIN);
         settle().await;
-        // Input stops after one minute. The dashboard must not climb on through the quiet time
-        // and then fall back when the five minutes are up and the stretch is closed.
         let mut seen = vec![total(&f).await];
-        for minute in 1..=9u64 {
+        for _ in 1..=9 {
             f.clock.advance_ms(MIN);
-            f.platform.set_idle(minute.saturating_sub(1) * MIN as u64);
             settle().await;
             seen.push(total(&f).await);
         }
@@ -729,6 +742,31 @@ mod tests {
             "the total went down: {seen:?}"
         );
         assert_eq!(*seen.last().unwrap(), 60, "one minute of real input");
+    }
+
+    #[tokio::test]
+    async fn between_looks_the_total_follows_the_input_and_stops_when_it_stops() {
+        let f = fixture();
+        // Default timing: no look happens during the test, only the reading of the totals.
+        let c = f.collector(Timing::default());
+        f.settings.set("tracking.apps", json!(true)).await.unwrap();
+        running(&c, true).await;
+        f.platform.focus(Some("Code.exe"));
+        f.platform.last_input_at(&f.clock, T0 + 60 * S);
+        settle().await;
+        f.clock.advance_ms(30 * S);
+        assert_eq!(total(&f).await, 30, "typing: counted up to now");
+        f.clock.advance_ms(30 * S);
+        assert_eq!(total(&f).await, 60);
+        f.clock.advance_ms(3 * MIN);
+        assert_eq!(
+            total(&f).await,
+            60,
+            "walked away: not counted past the last input"
+        );
+        // Back within the five minutes: the stretch carries on and the gap counts.
+        f.platform.last_input_at(&f.clock, T0 + 4 * MIN);
+        assert_eq!(total(&f).await, 240);
     }
 
     #[tokio::test]
