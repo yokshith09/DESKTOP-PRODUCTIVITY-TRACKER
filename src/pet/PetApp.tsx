@@ -55,11 +55,16 @@ type Panel = "card" | "bubble" | "timer" | null;
 /** All in place: a hover greeting must not move the pet (owner 2026-10-27: "it moves when my cursor comes near"). */
 export const PACK_MOTION: Partial<Record<BearPose, string>> = { wave: "pet-pop", ring: "pet-shake", toss: "pet-toss", catch: "pet-pop" };
 
-/** Resolves after the browser has painted the current layout. */
+/** Longest the pet stays hidden for a window resize; it comes back even if no frame is ever painted. */
+const RESIZE_HIDE_MAX_MS = 250;
+
+/** Resolves after the browser has painted the current layout (or after `RESIZE_HIDE_MAX_MS`, whichever is first). */
 function nextPaint(): Promise<void> {
   return new Promise((done) => {
-    if (typeof requestAnimationFrame === "function") requestAnimationFrame(() => requestAnimationFrame(() => done()));
-    else setTimeout(done, 0);
+    const late = setTimeout(done, RESIZE_HIDE_MAX_MS);
+    const finish = () => { clearTimeout(late); done(); };
+    if (typeof requestAnimationFrame === "function") requestAnimationFrame(() => requestAnimationFrame(finish));
+    else setTimeout(finish, 0);
   });
 }
 
@@ -90,6 +95,11 @@ export function PetApp() {
   const [panel, setPanel] = useState<Panel>(null);
   const [hovering, setHovering] = useState(false);
   const [hop, setHop] = useState(false);
+  // True while the OS resizes the window. A transparent window can show its previous frame (the pet
+  // alone) at the top of the grown window for a frame or two, which looked like a second Pluto
+  // blinking above the card (owner 2026-10-31). The pet is invisible, not hidden, for that moment,
+  // so the pointer still counts as over it.
+  const [resizing, setResizing] = useState(false);
   const [dragging, setDragging] = useState(false);
   const draggingRef = useRef(false);
   draggingRef.current = dragging;
@@ -133,20 +143,26 @@ export function PetApp() {
     // Lay out for the grown window first (the pet in its corner, the panel clipped), then grow it:
     // the pet is already where it will stay, so it does not jump when the cursor comes near.
     const planned = await ipc.petPlan(w, h, below);
-    if (planned) {
-      setAnchor(planned);
-      setPanel(next);
-      await nextPaint();
-      // A drag that began meanwhile gets the window as it is; the panel follows at its end.
-      if (draggingRef.current) {
-        deferred.current = { kind: "expand", next, text };
-        return;
+    try {
+      if (planned) {
+        setResizing(true);
+        setAnchor(planned);
+        setPanel(next);
+        await nextPaint(); // the blank frame is on screen before the window changes size
+        // A drag that began meanwhile gets the window as it is; the panel follows at its end.
+        if (draggingRef.current) {
+          deferred.current = { kind: "expand", next, text };
+          return;
+        }
       }
-    }
-    const a = await ipc.petHover(true, w, h, below);
-    if (a) {
-      setAnchor(a);
-      setPanel(next);
+      const a = await ipc.petHover(true, w, h, below);
+      if (a) {
+        setAnchor(a);
+        setPanel(next);
+      }
+      if (planned) await nextPaint(); // the grown window has painted its own layout
+    } finally {
+      setResizing(false);
     }
   };
   const collapse = async () => {
@@ -156,9 +172,18 @@ export function PetApp() {
     }
     // Shrink first, then drop the panel: the other order re-centred the pet in the big window
     // for a moment, so it jumped every time the cursor left it.
-    await ipc.petHover(false, 0, 0);
-    setAnchor(null);
-    setPanel(null);
+    try {
+      if (panelRef.current !== null) {
+        setResizing(true);
+        await nextPaint();
+      }
+      await ipc.petHover(false, 0, 0);
+      setAnchor(null);
+      setPanel(null);
+      if (panelRef.current !== null) await nextPaint();
+    } finally {
+      setResizing(false);
+    }
   };
   /** Back to resting: the focus timer while a session runs, else just the pet. */
   const settle = () => (focusRef.current ? expand("timer") : collapse());
@@ -398,6 +423,7 @@ export function PetApp() {
   return (
     <div
       className="flex h-screen w-screen select-none flex-col overflow-hidden"
+      style={resizing ? { opacity: 0 } : undefined}
       onMouseEnter={onEnter} onMouseLeave={onLeave}
       onPointerDown={onPointerDown} onPointerMove={onWindowPointerMove} onPointerUp={onWindowPointerUp}
     >

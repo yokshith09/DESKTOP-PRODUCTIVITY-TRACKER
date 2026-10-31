@@ -247,7 +247,8 @@ describe("Notes screen (against the in-memory shell)", () => {
     const body = within(dialog).getByRole("textbox", { name: "Note" }) as HTMLTextAreaElement;
     await user.clear(body);
     await user.click(within(dialog).getByRole("button", { name: "Checklist" }));
-    await user.click(body);
+    // No click into the box first: the caret must already be after the marker, or the first
+    // letter typed replaces it (the bug the owner hit in the real window).
     await user.keyboard("milk{Enter}eggs");
     expect(body.value).toBe("- [ ] milk\n- [ ] eggs");
   });

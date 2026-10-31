@@ -283,6 +283,26 @@ describe("desktop pet", () => {
     await waitFor(() => expect(screen.queryByRole("status", { name: "Today at a glance" })).toBeNull());
   });
 
+  it("the pet is invisible only while the window changes size, so no old frame shows above the card (owner 2026-10-31)", async () => {
+    const seen: string[] = [];
+    vi.spyOn(ipc, "petPlan").mockResolvedValue({ pet: "right", card: "above" });
+    vi.spyOn(ipc, "petHover").mockImplementation(async (expanded) => {
+      const root = bear().closest("div.h-screen") as HTMLElement;
+      seen.push(`${expanded ? "grow" : "shrink"}:${root.style.opacity === "0" ? "hidden" : "shown"}`);
+      return expanded ? { pet: "right", card: "above" } : null;
+    });
+    renderPet();
+    const root = bear().closest("div.flex") as HTMLElement;
+    fireEvent.mouseEnter(root);
+    await screen.findByRole("status", { name: "Today at a glance" }, { timeout: 2000 });
+    await waitFor(() => expect((bear().closest("div.h-screen") as HTMLElement).style.opacity).toBe(""));
+    fireEvent.mouseLeave(root);
+    await waitFor(() => expect(seen).toContain("shrink:hidden"));
+    await waitFor(() => expect(screen.queryByRole("status", { name: "Today at a glance" })).toBeNull());
+    await waitFor(() => expect((bear().closest("div.h-screen") as HTMLElement).style.opacity).toBe(""));
+    expect(seen.slice(0, 2)).toEqual(["grow:hidden", "shrink:hidden"]);
+  });
+
   it("one click opens the dashboard, a double click hides it, a right click opens the menu", async () => {
     vi.useFakeTimers();
     const click = vi.spyOn(ipc, "petClick").mockResolvedValue(null);

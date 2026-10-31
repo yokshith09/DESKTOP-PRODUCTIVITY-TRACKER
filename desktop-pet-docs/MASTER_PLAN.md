@@ -176,6 +176,21 @@ All four end the same way: Pluto raises a **named reaction** (`agent_done`, `age
 
 ---
 
+## After MCP: UI polish batch (owner 2026-10-31; **not before P4 is done**)
+
+MCP is the top priority once the open fixes are out. These four come after it, in this order, and each needs a preview approved by the owner before it is built (CLAUDE.md: ask before design choices).
+
+| # | Item | What the owner asked for | Notes |
+|---|---|---|---|
+| U-1 | **Rich-text note editor** | Tick a checklist box while writing, in the editing view (today boxes can be ticked in Preview only). | Replaces the plain text box with an editor that shows boxes, bold, headings and lists as you type, and still saves Markdown, so existing notes, search and export are unchanged. Needs a library choice (decision) and a migration test over real notes. The biggest of the four. |
+| U-2 | **Settings in two tabs** | "Main settings" and "Profile" (grouping, not a new page). | Profile = the role, name, birthday, tour and quiz that sit in Settings and the Character page today. Preview first. |
+| U-3 | **Task editor, tidier** | "Optimise the UI". | A calmer layout of the editor that already has one row per property (links, star, repeat, reminder lead and sound, focus length). Preview first, with what is dropped or moved listed before it is touched. |
+| U-4 | **Diary and Study tabs, richer** | "Enhance". | What "enhance" means is not decided: the owner picks from a list of options (for example: Diary mood and streak view, a weekly look back; Study timetable view, a study-time chart per course, flashcard-style review). Not designed yet. |
+
+Other pages are fine for now (owner); they get fixed later, as they come up.
+
+---
+
 ## P5 — Small features pack (release v0.7.0)
 
 **In plain words:** five self-contained quick wins taken from the old P4 and P5. Each is one to three days, none depends on another, and each can ship on its own as a point release.

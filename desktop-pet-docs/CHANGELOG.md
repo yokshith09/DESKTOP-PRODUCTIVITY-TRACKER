@@ -5,12 +5,17 @@ All notable changes. Newest first. Format follows [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
-Unverified on a real PC.
+_(nothing yet)_
 
-- Fixed: **checklists in notes.** The Checklist button did nothing on an empty note and wrote only `- [ ]` as text elsewhere. It now works on an empty note; Enter continues the list (and ends it on an empty item); the boxes in Preview are clickable and save the note; note cards show ☐ and ☑ instead of square brackets. Also fixed: the cursor could jump after a formatting button or Enter when typing fast.
+## [0.5.5] — 2026-10-31 (draft for owner testing; Unverified)
+
+Fixes on top of 0.5.4, which is published and stays as it is. No change to time tracking in this version: its fixes are in 0.5.4.
+
+- Fixed (diagnosed, **not seen on a real PC**): **a second Pluto blinking above the hover card.** When the pet window grows to make room for the card, Windows can show the window's previous frame (the pet alone) at the top of the grown window for a frame or two, which sits exactly above the card. The pet is now invisible for the moment of the resize (opacity, so the pointer still counts as over it) and comes back after the first painted frame, with a 250 ms failsafe so it can never stay hidden. If the blink is still there, the other explanation to rule out is a second copy of the app running (see the notes in `PROJECT_STATUS.md`).
+- Fixed: **checklists in notes.** Root cause found in a real browser run: after pressing Checklist the new `- [ ] ` marker was left *selected*, so the first letter you typed replaced it and you got plain text (the earlier tests clicked into the box first and so missed it). The cursor now goes after the marker. Also: the button works on an empty note; Enter continues the list (and ends it on an empty item); the boxes in Preview are clickable and save the note; note cards show ☐ and ☑ instead of square brackets; the cursor no longer jumps after a toolbar button or Enter when typing fast.
 - Fixed: **the Character page left an empty block under the Wardrobe** at the default window size. The card now stretches to its neighbour and shows a live view of the pet in its current look. Both columns end together at widths 1180, 1400 and 1700.
 - Docs: the plan for "tell me when it's done" (assistant finished, VS Code commits and pushes, builds, CI) under P4; built-in connectors and the Google limits recorded; the order is local MCP first, network layer afterwards.
-- Tests: 9 new front-end tests (479 pass); the checklist behaviour is covered in the pure functions, the preview boxes and the editor.
+- Tests: 11 new front-end tests (481 pass); the checklist test was shown to fail without the fix; the checklist behaviour is covered in the pure functions, the preview boxes and the editor.
 
 ## [0.5.4] — 2026-10-31 (draft for owner testing; Unverified)
 

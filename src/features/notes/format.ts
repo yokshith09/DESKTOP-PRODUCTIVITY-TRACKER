@@ -38,7 +38,11 @@ export function lines(e: Edit, kind: LineKind): Edit {
     .map((l) => (allHave ? l.replace(PREFIX, "") : l === "" && filled.length > 0 ? l : want(n++) + l.replace(PREFIX, "")))
     .join("\n");
   const next = text.slice(0, from) + out + text.slice(to);
-  return { text: next, start: from, end: from + out.length };
+  // With nothing selected, the caret goes to the end of the line so the next key adds to it; leaving
+  // the new marker selected made the first letter typed replace it (owner 2026-10-31: "just square
+  // brackets"). A selection of several lines stays selected, so the same button can undo it.
+  const caret = start === end ? from + out.length : undefined;
+  return { text: next, start: caret ?? from, end: caret ?? from + out.length };
 }
 
 const TASK_LINE = /^(\s*[-*]\s)\[([ xX])\](?=\s|$)/;

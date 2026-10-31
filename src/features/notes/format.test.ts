@@ -9,6 +9,15 @@ describe("checklists", () => {
     expect(lines({ text: "- [ ] ", start: 6, end: 6 }, "check").text).toBe(""); // pressed again: off
   });
 
+  it("with nothing selected the caret ends up after the marker, so typing adds to it", () => {
+    const r = lines({ text: "", start: 0, end: 0 }, "check");
+    expect(r).toEqual({ text: "- [ ] ", start: 6, end: 6 });
+    const b = lines({ text: "abc", start: 1, end: 1 }, "bullet");
+    expect(b).toEqual({ text: "- abc", start: 5, end: 5 });
+    const sel = lines({ text: "a\nb", start: 0, end: 3 }, "check");
+    expect([sel.start, sel.end]).toEqual([0, sel.text.length]); // a range stays selected
+  });
+
   it("ticks and unticks the item on a line, and leaves other lines alone", () => {
     const t = "intro\n- [ ] milk\n- [x] eggs";
     expect(toggleCheck(t, 2)).toBe("intro\n- [x] milk\n- [x] eggs");
